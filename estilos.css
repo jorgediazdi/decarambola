@@ -1,0 +1,596 @@
+/* ============================================================
+   DECARAMBOLA — estilos.css v1.0
+   Hoja de estilos central compartida por todos los módulos
+   ============================================================
+   USO: <link rel="stylesheet" href="estilos.css">
+   Funciona en file:// — sin restricciones de CORS
+   ============================================================ */
+
+/* ─────────────────────────────────────────
+   1. VARIABLES — tokens de diseño
+──────────────────────────────────────────── */
+:root {
+    --oro:    #d4af37;
+    --neon:   #2eff70;
+    --rojo:   #e74c3c;
+    --azul:   #3498db;
+    --negro:  #080808;
+    --bg:     #0b0b0b;
+    --card:   #0f0f0f;
+    --card2:  #111111;
+    --card3:  #0a0a0a;
+    --borde:  #1a1a1a;
+    --borde2: #222222;
+    --font-principal: 'Arial Black', 'Arial Bold', sans-serif;
+    --font-mono:      'Courier New', Courier, monospace;
+    --fs-micro:  0.38rem;
+    --fs-tiny:   0.42rem;
+    --fs-small:  0.48rem;
+    --fs-label:  0.55rem;
+    --fs-normal: 0.7rem;
+    --fs-medio:  0.85rem;
+    --fs-grande: 1rem;
+    --fs-titulo: 1.2rem;
+    --radio-sm:  10px;
+    --radio-md:  16px;
+    --radio-lg:  20px;
+    --radio-xl:  24px;
+    --gap-sm:  8px;
+    --gap-md:  12px;
+    --gap-lg:  20px;
+}
+
+/* ─────────────────────────────────────────
+   2. RESET Y BASE
+──────────────────────────────────────────── */
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { scroll-behavior:smooth; }
+body { background:var(--negro); color:#fff; font-family:var(--font-principal); min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+a    { text-decoration:none; color:inherit; }
+button { font-family:var(--font-principal); cursor:pointer; }
+input, select, textarea { font-family:var(--font-principal); outline:none; }
+
+/* ─────────────────────────────────────────
+   3. HEADER
+──────────────────────────────────────────── */
+.header {
+    width:100%; background:linear-gradient(180deg,#000 0%,var(--card3) 100%);
+    border-bottom:1px solid var(--borde); padding:16px 18px 14px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:50;
+}
+.header-izq    { display:flex; flex-direction:column; gap:2px; }
+.header-titulo { color:var(--oro); font-size:var(--fs-grande); letter-spacing:3px; }
+.header-sub    { color:#555; font-size:var(--fs-small); letter-spacing:2px; }
+.btn-hdr {
+    background:none; border:1px solid #333; color:#888;
+    padding:8px 14px; border-radius:var(--radio-sm);
+    font-size:var(--fs-label); letter-spacing:1px;
+    font-family:var(--font-principal); text-decoration:none;
+    display:inline-block; transition:0.2s;
+}
+.btn-hdr:active { border-color:var(--oro); color:var(--oro); }
+.sede-chip {
+    font-size:var(--fs-micro); letter-spacing:2px; color:#333;
+    background:var(--card3); border:1px solid var(--borde);
+    border-radius:20px; padding:6px 12px;
+    white-space:nowrap; text-decoration:none; transition:0.2s;
+}
+.sede-chip b { color:var(--oro); margin-left:4px; }
+
+/* ─────────────────────────────────────────
+   4. LAYOUT
+──────────────────────────────────────────── */
+.contenido { width:100%; display:flex; flex-direction:column; align-items:center; }
+.wrap { width:95vw; max-width:500px; padding-top:16px; padding-bottom:100px; }
+.pantalla  { width:100vw; min-height:100vh; display:none; flex-direction:column; align-items:center; overflow-y:auto; }
+.pantalla.activa { display:flex; }
+
+/* ─────────────────────────────────────────
+   5. NAVEGACIÓN BOTTOM
+──────────────────────────────────────────── */
+.nav-bottom {
+    position:fixed; bottom:0; left:0; right:0;
+    background:linear-gradient(transparent,#000 40%);
+    padding:10px 15px 20px; display:flex; gap:var(--gap-sm);
+    justify-content:center; z-index:40;
+}
+.btn-nav {
+    flex:1; max-width:160px; padding:12px 16px;
+    background:var(--card3); border:1px solid var(--borde);
+    border-radius:var(--radio-md); color:#777;
+    font-size:var(--fs-label); letter-spacing:1px;
+    text-align:center; text-decoration:none; display:block;
+    transition:0.2s; font-family:var(--font-principal);
+}
+.btn-nav:active { background:var(--borde); }
+.btn-nav.activo { border-color:var(--oro); color:var(--oro); }
+
+/* ─────────────────────────────────────────
+   6. SEPARADORES DE SECCIÓN
+──────────────────────────────────────────── */
+.sec-titulo { display:flex; align-items:center; justify-content:space-between; margin:20px 0 10px; }
+.sec-titulo-txt { font-size:var(--fs-small); letter-spacing:3px; color:#444; }
+.sec-sep { display:flex; align-items:center; gap:10px; margin:20px 0 14px; }
+.sec-sep-line { flex:1; height:1px; background:var(--borde); }
+.sec-sep-txt  { font-size:var(--fs-micro); letter-spacing:3px; color:#333; white-space:nowrap; }
+
+/* ─────────────────────────────────────────
+   7. CARDS
+──────────────────────────────────────────── */
+.card    { background:var(--card);  border:1px solid var(--borde);  border-radius:var(--radio-xl); padding:20px;    margin-bottom:12px; width:100%; }
+.card-sm { background:var(--card3); border:1px solid var(--borde);  border-radius:var(--radio-lg); padding:14px 16px; margin-bottom:8px; }
+
+/* ─────────────────────────────────────────
+   8. FORMULARIOS
+──────────────────────────────────────────── */
+.campo { background:var(--card3); border:1px solid var(--borde); border-radius:var(--radio-md); padding:13px 16px; margin-bottom:10px; width:100%; }
+.campo label   { display:block; font-size:var(--fs-tiny); letter-spacing:2px; color:#444; margin-bottom:6px; }
+.campo input, .campo select, .campo textarea { width:100%; background:none; border:none; color:#fff; font-size:var(--fs-normal); letter-spacing:1px; font-family:var(--font-principal); }
+.campo input::placeholder { color:#333; }
+
+/* ─────────────────────────────────────────
+   9. BOTONES
+──────────────────────────────────────────── */
+.btn-primario {
+    width:100%; padding:18px; border-radius:var(--radio-lg);
+    background:linear-gradient(135deg,var(--oro),#8a6200);
+    border:none; color:#000; font-size:var(--fs-medio);
+    font-family:var(--font-principal); letter-spacing:3px;
+    cursor:pointer; display:block; text-align:center;
+    text-decoration:none; transition:0.15s;
+    box-shadow:0 0 30px rgba(212,175,55,0.2);
+}
+.btn-primario:active { transform:scale(0.97); }
+
+.btn-secundario {
+    width:100%; padding:14px; border-radius:var(--radio-md);
+    background:var(--card); border:1px solid var(--borde2); color:#666;
+    font-size:var(--fs-label); font-family:var(--font-principal);
+    letter-spacing:2px; cursor:pointer; display:block;
+    text-align:center; transition:0.15s;
+}
+.btn-secundario:active { border-color:var(--oro); color:var(--oro); }
+
+.btn-peligro {
+    width:100%; padding:16px; border-radius:var(--radio-lg);
+    background:linear-gradient(135deg,var(--rojo),#a01010);
+    border:none; color:#fff; font-size:var(--fs-label);
+    font-family:var(--font-principal); letter-spacing:2px;
+    cursor:pointer; transition:0.15s;
+    box-shadow:0 0 20px rgba(231,76,60,0.3);
+}
+.btn-peligro:active { transform:scale(0.97); }
+
+.btn-sm {
+    padding:6px 14px; border-radius:20px; background:none;
+    border:1px solid var(--borde2); color:#555;
+    font-size:var(--fs-micro); font-family:var(--font-principal);
+    letter-spacing:1px; cursor:pointer; transition:0.15s;
+}
+.btn-sm.activo { border-color:var(--oro); color:var(--oro); }
+
+/* ─────────────────────────────────────────
+   10. BOLAS 3D
+──────────────────────────────────────────── */
+.bola {
+    border-radius:50%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; position:relative;
+    flex-shrink:0; cursor:pointer; transition:transform 0.1s;
+}
+.bola:active { transform:scale(0.94); }
+.bola-blanca {
+    background:radial-gradient(circle at 32% 32%,#fff 0%,#eee 20%,#bbb 50%,#777 80%,#222 100%);
+    box-shadow:inset -10px -10px 20px rgba(0,0,0,0.6),inset 4px 4px 10px rgba(255,255,255,0.3),6px 6px 20px rgba(0,0,0,0.9),0 0 0 2px #1a1a1a;
+}
+.bola-amarilla {
+    background:radial-gradient(circle at 32% 32%,#fff9c4 0%,#f5d020 20%,#d4af37 50%,#8a6a00 80%,#2a1a00 100%);
+    box-shadow:inset -10px -10px 20px rgba(0,0,0,0.6),inset 4px 4px 10px rgba(255,220,80,0.3),6px 6px 20px rgba(0,0,0,0.9),0 0 0 2px #1a1a1a;
+}
+.bola-negra {
+    background:radial-gradient(circle at 30% 28%,#555 0%,#222 30%,#111 60%,#000 100%);
+    box-shadow:inset -10px -10px 20px rgba(0,0,0,0.9),inset 5px 5px 12px rgba(255,255,255,0.07),8px 8px 30px rgba(0,0,0,0.9),0 0 0 2px #1a1a1a;
+}
+.bola-blanca  .j-pts { color:#000; }
+.bola-amarilla .j-pts { color:#000; }
+.bola-negra   .j-pts { color:#fff; }
+.j-pts { font-family:var(--font-mono); font-weight:900; line-height:1; text-align:center; }
+.bola.bump { animation:bump 0.22s ease-out; }
+@keyframes bump { 0%{transform:scale(1)} 30%{transform:scale(1.15);filter:brightness(1.5)} 100%{transform:scale(1)} }
+
+/* ─────────────────────────────────────────
+   11. STATS BLOCK
+──────────────────────────────────────────── */
+.stats-fila { display:flex; width:100%; max-width:420px; background:var(--card3); border:1px solid var(--borde); border-radius:18px; overflow:hidden; margin-bottom:10px; }
+.stat-bloque { flex:1; padding:16px 8px; text-align:center; border-right:1px solid var(--borde); }
+.stat-bloque:last-child { border-right:none; }
+.stat-val { font-size:2.8rem; color:#fff; font-family:var(--font-mono); font-weight:900; display:block; line-height:1; }
+.stat-lbl { font-size:var(--fs-micro); color:#444; letter-spacing:2px; display:block; margin-top:6px; font-weight:bold; }
+.stat-val.oro  { color:var(--oro); }
+.stat-val.neon { color:var(--neon); text-shadow:0 0 12px rgba(46,255,112,0.4); }
+.stat-val.rojo { color:var(--rojo); }
+.serie-pill { display:inline-block; font-size:2.8rem; font-family:var(--font-mono); font-weight:900; color:#333; transition:color 0.3s,text-shadow 0.3s; }
+.serie-pill.hot { color:var(--neon); text-shadow:0 0 20px var(--neon),0 0 40px rgba(46,255,112,0.3); }
+
+/* ─────────────────────────────────────────
+   12. AVATAR
+──────────────────────────────────────────── */
+.avatar { border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; flex-shrink:0; overflow:hidden; border:1.5px solid rgba(212,175,55,0.2); background:linear-gradient(135deg,#1a1a00,#2a2000); color:#664; }
+.avatar img { width:100%; height:100%; object-fit:cover; }
+.avatar-sm { width:28px;  height:28px;  font-size:0.6rem; }
+.avatar-md { width:40px;  height:40px;  font-size:0.8rem; }
+.avatar-lg { width:60px;  height:60px;  font-size:1.2rem; }
+.avatar-xl { width:84px;  height:84px;  font-size:1.8rem; }
+
+/* ─────────────────────────────────────────
+   13. ESTADOS DE PARTIDA
+──────────────────────────────────────────── */
+.ganador   { color:var(--oro); text-shadow:0 0 14px rgba(212,175,55,0.4); }
+.perdedor  { opacity:0.35; }
+.en-juego  { border-color:rgba(46,255,112,0.4) !important; box-shadow:0 0 12px rgba(46,255,112,0.06) !important; }
+.terminada { border-color:var(--borde2) !important; }
+.badge     { display:inline-block; font-size:var(--fs-micro); letter-spacing:1px; padding:4px 10px; border-radius:20px; font-family:var(--font-principal); }
+.badge-verde  { background:rgba(46,255,112,0.08);  border:1px solid rgba(46,255,112,0.2);  color:var(--neon); }
+.badge-oro    { background:rgba(212,175,55,0.08);  border:1px solid rgba(212,175,55,0.2);  color:var(--oro);  }
+.badge-rojo   { background:rgba(231,76,60,0.08);   border:1px solid rgba(231,76,60,0.2);   color:var(--rojo); }
+.badge-azul   { background:rgba(52,152,219,0.08);  border:1px solid rgba(52,152,219,0.2);  color:var(--azul); }
+.badge-gris   { background:#111; border:1px solid #1a1a1a; color:#444; }
+
+/* ─────────────────────────────────────────
+   14. RANKING / TABLA
+──────────────────────────────────────────── */
+.rk-fila { display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--card); border:1px solid var(--borde); border-radius:var(--radio-md); margin-bottom:8px; transition:0.15s; }
+.rk-fila.top1 { border-color:rgba(212,175,55,0.4); }
+.rk-fila.top2 { border-color:rgba(192,192,192,0.3); }
+.rk-fila.top3 { border-color:rgba(205,127,50,0.3); }
+.rk-pos { font-size:1rem; color:#333; width:28px; text-align:center; font-family:var(--font-mono); flex-shrink:0; }
+.rk-pos.gold   { color:var(--oro); }
+.rk-pos.silver { color:#c0c0c0; }
+.rk-pos.bronze { color:#cd7f32; }
+.rk-nombre  { font-size:var(--fs-normal); color:#ddd; }
+.rk-detalle { font-size:var(--fs-tiny); color:#444; margin-top:2px; }
+.rk-prom    { font-family:var(--font-mono); font-size:0.9rem; color:#fff; flex-shrink:0; }
+.rk-prom.oro { color:var(--oro); }
+
+/* ─────────────────────────────────────────
+   15. KPIs
+──────────────────────────────────────────── */
+.kpi-grid { display:flex; background:var(--card); border:1px solid var(--borde); border-radius:var(--radio-lg); overflow:hidden; margin-bottom:14px; }
+.kpi-bloque { flex:1; padding:16px 8px; text-align:center; border-right:1px solid var(--borde); }
+.kpi-bloque:last-child { border-right:none; }
+.kpi-val { font-size:1.6rem; font-family:var(--font-mono); color:var(--oro); font-weight:900; display:block; line-height:1; }
+.kpi-lbl { font-size:var(--fs-micro); color:#444; letter-spacing:2px; display:block; margin-top:6px; }
+
+/* ─────────────────────────────────────────
+   16. CUADRO / LLAVES
+──────────────────────────────────────────── */
+.cuadro-scroll { overflow-x:auto; padding-bottom:12px; -webkit-overflow-scrolling:touch; }
+.cuadro-wrap   { display:flex; gap:0; padding:10px 0; }
+.cuadro-ronda  { flex:1; min-width:140px; display:flex; flex-direction:column; }
+.cr-header     { text-align:center; padding:10px 6px 14px; border-bottom:1px solid var(--borde); margin-bottom:8px; }
+.cr-nombre { font-size:var(--fs-small); letter-spacing:2px; color:var(--oro); }
+.cr-jugs   { font-size:var(--fs-tiny);  color:#333; margin-top:3px; }
+.cr-partidas { flex:1; display:flex; flex-direction:column; justify-content:space-around; gap:6px; padding:0 6px; }
+.cr-partida  { background:var(--card); border:1px solid var(--borde); border-radius:12px; overflow:hidden; position:relative; }
+.cr-jug      { display:flex; align-items:center; gap:6px; padding:7px 10px; border-bottom:1px solid var(--borde); }
+.cr-jug:last-child { border-bottom:none; }
+.cr-jug-nom { flex:1; font-size:var(--fs-small); color:#bbb; }
+.cr-jug-pts { font-size:var(--fs-label); color:#fff; font-family:var(--font-mono); font-weight:900; }
+.cr-jug-pts.top { color:var(--oro); }
+
+/* ─────────────────────────────────────────
+   17. OVERLAY
+──────────────────────────────────────────── */
+.overlay { position:fixed; inset:0; z-index:999; background:rgba(0,0,0,0.88); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px; }
+.overlay-titulo { font-size:var(--fs-tiny); letter-spacing:3px; color:#555; }
+.overlay-num    { font-size:3.5rem; font-family:var(--font-mono); color:#fff; line-height:1; }
+.overlay-btns   { display:flex; gap:10px; width:100%; max-width:300px; margin-top:8px; }
+
+/* ─────────────────────────────────────────
+   18. ESTADO VACÍO
+──────────────────────────────────────────── */
+.vacio { text-align:center; padding:30px 20px; color:#333; font-size:var(--fs-label); letter-spacing:2px; line-height:1.8; }
+.vacio-ico { font-size:2rem; display:block; margin-bottom:12px; opacity:0.4; }
+
+/* ─────────────────────────────────────────
+   19. UTILIDADES
+──────────────────────────────────────────── */
+.text-oro    { color:var(--oro); }
+.text-neon   { color:var(--neon); }
+.text-rojo   { color:var(--rojo); }
+.text-gris   { color:#555; }
+.text-center { text-align:center; }
+.text-mono   { font-family:var(--font-mono); }
+.mt-sm  { margin-top:var(--gap-sm); }
+.mt-md  { margin-top:var(--gap-md); }
+.mt-lg  { margin-top:var(--gap-lg); }
+.mb-sm  { margin-bottom:var(--gap-sm); }
+.mb-md  { margin-bottom:var(--gap-md); }
+.mb-lg  { margin-bottom:var(--gap-lg); }
+.w-full { width:100%; }
+.flex   { display:flex; }
+.flex-center { display:flex; align-items:center; justify-content:center; }
+.gap-sm { gap:var(--gap-sm); }
+.gap-md { gap:var(--gap-md); }
+
+/* Scrollbar invisible */
+::-webkit-scrollbar { width:0; height:0; }
+::selection { background:rgba(212,175,55,0.2); color:#fff; }
+
+/* ─────────────────────────────────────────
+   20. CHASIS Y HEADER (páginas wizard/internas)
+──────────────────────────────────────────── */
+.chasis { width:95vw; max-width:500px; padding-top:20px; }
+.header-marca { display:flex; flex-direction:column; gap:1px; }
+.header-marca span { color:var(--oro); font-size:1rem; letter-spacing:3px; }
+.header-marca small { color:#333; font-size:0.48rem; letter-spacing:3px; }
+.header-sede {
+    background:var(--card2); border:1px solid var(--borde);
+    border-radius:10px; padding:6px 12px;
+    font-size:0.52rem; color:#555; text-align:right; letter-spacing:1px;
+}
+.header-sede b { color:var(--oro); display:block; font-size:0.75rem; margin-top:1px; }
+.sede-badge {
+    display:inline-block; background:var(--card2); color:#555;
+    font-size:0.6rem; padding:5px 14px; border-radius:10px;
+    border:1px solid var(--borde); letter-spacing:1px; margin-top:6px;
+}
+
+/* ─────────────────────────────────────────
+   21. WIZARD DE PASOS
+──────────────────────────────────────────── */
+.pasos { display:flex; justify-content:center; gap:8px; margin-bottom:20px; }
+.paso-dot { width:30px; height:6px; border-radius:3px; background:#222; transition:0.3s; }
+.paso-dot.activo   { background:var(--oro); }
+.paso-dot.completo { background:var(--neon); }
+.seccion { display:none; }
+.seccion.visible { display:block; animation:sec-in .22s ease; }
+@keyframes sec-in { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+.titulo-sec {
+    color:var(--oro); font-size:0.85rem; letter-spacing:2px;
+    text-transform:uppercase; margin-bottom:15px;
+    border-left:4px solid var(--oro); padding-left:10px;
+}
+.campo-fila { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.campo textarea { resize:none; height:70px; font-size:0.85rem; }
+
+/* ─────────────────────────────────────────
+   22. CARDS SELECCIONABLES (sistema, cupo, tiempo)
+──────────────────────────────────────────── */
+.cards-sistema { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+.card-sistema {
+    background:#111; border:2px solid #333;
+    border-radius:20px; padding:18px 20px; cursor:pointer;
+    transition:0.2s; position:relative;
+}
+.card-sistema:active { transform:scale(0.98); }
+.card-sistema.seleccionada { border-color:var(--oro); background:#1a1500; }
+.card-sistema b { font-size:0.95rem; display:block; color:var(--oro); }
+.card-sistema span { font-size:0.65rem; color:#777; line-height:1.6; display:block; margin-top:4px; }
+.badge-pop { position:absolute; top:12px; right:15px; background:var(--azul); color:#fff; font-size:0.5rem; padding:3px 8px; border-radius:8px; }
+.cupos-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px; }
+.card-cupo {
+    background:#111; border:2px solid #333;
+    border-radius:15px; padding:18px 5px; text-align:center; cursor:pointer; transition:0.2s;
+}
+.card-cupo.seleccionada { border-color:var(--neon); }
+.card-cupo b { font-size:1.4rem; display:block; color:var(--oro); }
+.card-cupo span { font-size:0.55rem; color:#555; }
+.card-cupo.seleccionada span { color:var(--neon); }
+.tiempo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+.card-tiempo {
+    background:#111; border:2px solid #333;
+    border-radius:15px; padding:15px 5px; text-align:center; cursor:pointer; transition:0.2s;
+}
+.card-tiempo.seleccionada { border-color:var(--azul); }
+.card-tiempo b { font-size:1.2rem; display:block; color:var(--azul); }
+.card-tiempo span { font-size:0.55rem; color:#555; }
+
+/* ─────────────────────────────────────────
+   23. BOLSA Y DISTRIBUCIÓN DE PREMIOS
+──────────────────────────────────────────── */
+.bolsa-total {
+    background:#0a1a0a; border:1px solid var(--neon);
+    border-radius:15px; padding:15px; text-align:center; margin:15px 0;
+}
+.bolsa-total b { color:var(--neon); font-size:1.8rem; display:block; font-family:var(--font-mono); }
+.dist-wrap { margin-top:16px; }
+.dist-titulo {
+    color:#555; font-size:0.6rem; letter-spacing:2px;
+    margin-bottom:12px; border-left:3px solid #333; padding-left:10px;
+}
+.dist-cols { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px; }
+.dist-card {
+    background:#111; border:1px solid #333;
+    border-radius:14px; padding:12px 8px; text-align:center;
+}
+.dist-card .emo { font-size:1.4rem; display:block; margin-bottom:4px; }
+.dist-card label { font-size:0.45rem; letter-spacing:1px; display:block; margin-bottom:8px; }
+.dist-card .sub { color:#444; font-size:0.38rem; margin-top:3px; }
+.dist-inp {
+    width:100%; background:transparent; border:none;
+    border-bottom:1px solid #444; font-size:1.1rem;
+    font-family:var(--font-mono); text-align:center;
+    font-weight:bold; outline:none; color:var(--oro);
+}
+.dist-barra { background:#1a1a1a; border-radius:6px; height:8px; overflow:hidden; display:flex; margin-bottom:6px; }
+.dist-bar-1 { height:100%; background:var(--oro); transition:width 0.3s; }
+.dist-bar-2 { height:100%; background:#c0c0c0; transition:width 0.3s; }
+.dist-bar-3 { height:100%; background:#cd7f32; transition:width 0.3s; }
+.dist-aviso { font-size:0.55rem; text-align:center; color:var(--neon); margin-bottom:12px; }
+.dist-aviso.error { color:var(--rojo); }
+.dist-detalle {
+    background:#0a1200; border:1px solid #1a2200;
+    border-radius:12px; padding:12px 14px; font-size:0.52rem; line-height:2.3;
+}
+.serie-card {
+    background:#111; border:1px solid rgba(46,255,112,0.2);
+    border-radius:14px; padding:12px 16px;
+    display:flex; align-items:center; justify-content:space-between; margin-top:8px;
+}
+.serie-card-txt { flex:1; }
+.serie-card-tit  { color:var(--neon); font-size:0.6rem; }
+.serie-card-desc { color:#333; font-size:0.42rem; margin-top:2px; line-height:1.5; }
+.serie-inp {
+    width:52px; background:transparent; border:none;
+    border-bottom:1px solid rgba(46,255,112,0.3);
+    color:var(--neon); font-size:0.9rem; font-family:var(--font-mono);
+    text-align:center; font-weight:bold; outline:none;
+}
+
+/* ─────────────────────────────────────────
+   24. RESUMEN FINAL WIZARD
+──────────────────────────────────────────── */
+.resumen-item { display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #1a1a1a; font-size:0.85rem; }
+.resumen-item:last-child { border:none; }
+.resumen-item .lbl { color:#555; font-size:0.5rem; letter-spacing:1px; }
+.resumen-item .val { color:#fff; text-align:right; max-width:60%; font-size:0.65rem; }
+
+/* ─────────────────────────────────────────
+   25. BOTONES WIZARD
+──────────────────────────────────────────── */
+.btn-sig {
+    width:100%; padding:20px; background:var(--oro);
+    color:#000; border:none; border-radius:20px;
+    font-weight:bold; font-size:1rem; cursor:pointer;
+    margin-top:15px; text-transform:uppercase; transition:0.15s;
+    font-family:var(--font-principal); letter-spacing:2px;
+}
+.btn-sig:active { transform:scale(0.98); }
+.btn-sig.verde { background:var(--neon); }
+.btn-back {
+    width:100%; background:none; border:1px solid #333;
+    color:#555; padding:14px; border-radius:15px;
+    margin-top:10px; cursor:pointer; font-size:0.8rem;
+    font-family:var(--font-principal); letter-spacing:1px; transition:0.15s;
+}
+.btn-back:active { border-color:var(--oro); color:var(--oro); }
+.btn-volver {
+    width:100%; background:none; border:none; color:#444;
+    padding:12px; cursor:pointer; font-size:0.7rem;
+    font-family:var(--font-principal); margin-top:5px;
+}
+
+/* ─────────────────────────────────────────
+   26. KPI CARDS (organizador / panel)
+──────────────────────────────────────────── */
+.kpi-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.kpi-card {
+    background:var(--card3); border:1px solid var(--borde);
+    border-radius:18px; padding:14px 16px;
+    display:flex; flex-direction:column; gap:4px;
+    position:relative; overflow:hidden;
+}
+.kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.kpi-card.oro::before  { background:var(--oro); }
+.kpi-card.neon::before { background:var(--neon); }
+.kpi-card.azul::before { background:var(--azul); }
+.kpi-card.rojo::before { background:var(--rojo); }
+.kpi-card .kpi-num { font-size:2rem; font-weight:900; line-height:1; font-family:var(--font-mono); }
+.kpi-card.oro  .kpi-num { color:var(--oro); }
+.kpi-card.neon .kpi-num { color:var(--neon); }
+.kpi-card.azul .kpi-num { color:var(--azul); }
+.kpi-card.rojo .kpi-num { color:var(--rojo); }
+.kpi-card .kpi-lbl { color:#444; font-size:0.5rem; letter-spacing:2px; }
+.kpi-card .kpi-sub { color:#333; font-size:0.44rem; letter-spacing:1px; margin-top:1px; }
+
+/* ─────────────────────────────────────────
+   27. SECCIÓN TÍTULO CON BOTÓN
+──────────────────────────────────────────── */
+.sec-hdr { display:flex; align-items:center; justify-content:space-between; margin:20px 0 10px; }
+.sec-hdr h3 { color:#fff; font-size:0.7rem; letter-spacing:3px; border-left:3px solid var(--oro); padding-left:10px; }
+.sec-btn {
+    background:none; border:1px solid var(--borde); color:#444;
+    padding:5px 12px; border-radius:10px; font-size:0.5rem;
+    cursor:pointer; letter-spacing:1px; font-family:var(--font-principal);
+    transition:0.2s; text-decoration:none; display:inline-block;
+}
+.sec-btn:active { border-color:var(--oro); color:var(--oro); }
+.sec-btn.oro { background:linear-gradient(135deg,var(--oro),#a07800); color:#000; border-color:transparent; }
+
+/* ─────────────────────────────────────────
+   28. BOTONES DE ACCIÓN (organizador, control)
+──────────────────────────────────────────── */
+.btn-accion {
+    padding:12px; border-radius:14px; font-size:0.6rem;
+    font-weight:bold; cursor:pointer; letter-spacing:1px;
+    font-family:var(--font-principal); border:none;
+    transition:0.15s; text-decoration:none; text-align:center; display:block;
+}
+.btn-accion:active { transform:scale(0.96); }
+.btn-accion.primario  { background:linear-gradient(135deg,var(--neon),#18aa45); color:#000; }
+.btn-accion.secundario{ background:#111; border:1px solid #1a1a1a; color:#aaa; }
+.btn-accion.azul { background:linear-gradient(135deg,var(--azul),#1a6090); color:#fff; }
+.btn-accion.oro  { background:linear-gradient(135deg,var(--oro),#a07800); color:#000; }
+.btn-accion.rojo { background:linear-gradient(135deg,var(--rojo),#8a1a1a); color:#fff; }
+
+/* ─────────────────────────────────────────
+   29. TORNEO CARD (organizador)
+──────────────────────────────────────────── */
+.torneo-card {
+    background:var(--card3); border:2px solid var(--neon);
+    border-radius:20px; padding:16px 18px; margin-bottom:10px; position:relative;
+}
+.torneo-card::before { content:'🟢 EN VIVO'; position:absolute; top:12px; right:14px; font-size:0.46rem; color:var(--neon); letter-spacing:2px; }
+.torneo-nombre { color:#fff; font-size:1rem; margin-bottom:4px; padding-right:70px; }
+.torneo-codigo { color:#333; font-size:0.5rem; letter-spacing:2px; margin-bottom:12px; }
+.torneo-stats  { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+.ts { background:#111; border-radius:10px; padding:8px; text-align:center; }
+.ts b     { color:#fff; font-size:1.1rem; display:block; font-family:var(--font-mono); }
+.ts small { color:#444; font-size:0.45rem; letter-spacing:1px; }
+.bolsa-row {
+    display:flex; align-items:center; justify-content:space-between;
+    background:rgba(46,255,112,0.05); border:1px solid rgba(46,255,112,0.15);
+    border-radius:12px; padding:10px 14px; margin-bottom:12px;
+}
+.bolsa-lbl { color:#444; font-size:0.5rem; letter-spacing:2px; }
+.bolsa-val { color:var(--neon); font-size:1.1rem; font-family:var(--font-mono); }
+.torneo-acciones { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.no-torneo { background:var(--card3); border:1px solid var(--borde); border-radius:20px; padding:30px 20px; text-align:center; margin-bottom:10px; }
+.no-torneo .icono { font-size:2.5rem; margin-bottom:10px; }
+.no-torneo p { color:#444; font-size:0.65rem; line-height:2; letter-spacing:1px; }
+
+/* ─────────────────────────────────────────
+   30. FILAS JUGADOR / LISTA
+──────────────────────────────────────────── */
+.jugador-row { display:flex; align-items:center; background:var(--card3); border:1px solid var(--borde); border-radius:14px; padding:11px 14px; margin-bottom:8px; gap:12px; }
+.j-pos { font-size:0.75rem; color:#333; min-width:22px; text-align:center; }
+.j-pos.top { color:var(--oro); font-size:1rem; }
+.j-info { flex:1; }
+.j-nom  { font-size:0.85rem; color:#fff; }
+.j-det  { font-size:0.46rem; color:#444; letter-spacing:1px; margin-top:2px; }
+.j-prom { font-size:1rem; color:var(--neon); font-family:var(--font-mono); }
+.j-badge { font-size:0.44rem; padding:3px 8px; border-radius:8px; letter-spacing:1px; background:rgba(46,255,112,0.1); color:var(--neon); border:1px solid rgba(46,255,112,0.2); }
+
+/* ─────────────────────────────────────────
+   31. ACCIONES RÁPIDAS / GRID ICONOS
+──────────────────────────────────────────── */
+.acciones-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.accion-card { background:var(--card3); border:1px solid var(--borde); border-radius:18px; padding:18px 14px; text-align:center; text-decoration:none; cursor:pointer; transition:0.2s; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.accion-card:active { transform:scale(0.95); border-color:var(--oro); }
+.accion-ico { font-size:1.8rem; }
+.accion-nom { font-size:0.6rem; color:#aaa; letter-spacing:1px; }
+.accion-det { font-size:0.46rem; color:#444; letter-spacing:1px; }
+
+/* ─────────────────────────────────────────
+   32. HISTORIAL / EXPORTAR
+──────────────────────────────────────────── */
+.hist-row { background:var(--card3); border:1px solid var(--borde); border-radius:14px; padding:12px 16px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
+.hist-info { flex:1; }
+.hist-nom     { font-size:0.8rem; color:#aaa; }
+.hist-det     { font-size:0.46rem; color:#333; letter-spacing:1px; margin-top:3px; }
+.hist-campeon { font-size:0.55rem; color:var(--oro); margin-top:4px; }
+.hist-estado  { font-size:0.46rem; padding:4px 10px; border-radius:8px; letter-spacing:1px; background:rgba(212,175,55,0.1); color:var(--oro); border:1px solid rgba(212,175,55,0.2); white-space:nowrap; }
+.reporte-card { background:linear-gradient(135deg,#0a0f0a,#050a05); border:1px solid rgba(46,255,112,0.15); border-radius:18px; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.reporte-info small { color:#444; font-size:0.46rem; letter-spacing:2px; display:block; }
+.reporte-info b { color:var(--neon); font-size:0.8rem; margin-top:3px; display:block; }
+.btn-exportar { background:rgba(46,255,112,0.1); border:1px solid rgba(46,255,112,0.25); color:var(--neon); padding:8px 16px; border-radius:12px; font-size:0.55rem; cursor:pointer; font-family:var(--font-principal); letter-spacing:1px; transition:0.2s; white-space:nowrap; }
+.btn-exportar:active { background:rgba(46,255,112,0.2); }
+
+/* ─────────────────────────────────────────
+   33. UTILIDADES EXTRAS
+──────────────────────────────────────────── */
+.empty { text-align:center; padding:24px 0; color:#333; font-size:0.6rem; letter-spacing:1px; }
+input[type=number] { -moz-appearance:textfield; }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }

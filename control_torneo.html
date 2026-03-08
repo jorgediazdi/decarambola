@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Control Torneo — MASTER VIP</title>
+    <style>
+        :root { --oro: #d4af37; --negro: #0b0b0b; --azul: #3498db; --neon: #2eff70; --rojo: #e74c3c; }
+        * { box-sizing: border-box; }
+        body { background: var(--negro); color: #fff; font-family: 'Arial Black', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .chasis { width: 95vw; max-width: 500px; }
+        .header { background: #0a0a0a; border: 2px solid var(--oro); border-radius: 25px; padding: 18px 20px; margin-bottom: 15px; }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .torneo-titulo { color: var(--oro); font-size: 1rem; line-height: 1.2; }
+        .torneo-codigo { color: #333; font-size: 0.6rem; margin-top: 4px; }
+        .bolsa-badge { background: #0a1a0a; border: 1px solid var(--neon); border-radius: 12px; padding: 8px 14px; text-align: center; }
+        .bolsa-badge b { color: var(--neon); font-size: 1rem; display: block; }
+        .bolsa-badge small { color: #444; font-size: 0.5rem; }
+        .header-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+        .stat { background: #111; border-radius: 10px; padding: 8px; text-align: center; }
+        .stat b { color: #fff; font-size: 1rem; display: block; }
+        .stat small { color: #444; font-size: 0.5rem; }
+        .badge-estado { display: inline-block; padding: 4px 12px; border-radius: 10px; font-size: 0.6rem; font-weight: bold; margin-top: 8px; }
+        .badge-en-curso { background: rgba(46,255,112,0.15); color: var(--neon); border: 1px solid var(--neon); }
+        .badge-finalizado { background: rgba(212,175,55,0.15); color: var(--oro); border: 1px solid var(--oro); }
+        .seccion-titulo { color: var(--oro); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; margin: 20px 0 10px; border-left: 4px solid var(--oro); padding-left: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .ronda-badge { background: var(--oro); color: #000; font-size: 0.55rem; padding: 3px 10px; border-radius: 8px; }
+        .card-partida { background: #0a0a0a; border: 2px solid #222; border-radius: 20px; padding: 15px; margin-bottom: 10px; transition: 0.2s; }
+        .card-partida.esperando { border-color: var(--azul); background: #0a0f1a; }
+        .card-partida.en-juego { border-color: var(--neon); background: #0a1a0a; }
+        .card-partida.terminada { border-color: #333; opacity: 0.7; }
+        .card-partida.bye { border-color: var(--oro); background: #1a1500; opacity: 0.8; }
+        .partida-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .partida-num { color: #333; font-size: 0.6rem; }
+        .partida-estado-badge { font-size: 0.55rem; padding: 3px 10px; border-radius: 8px; font-weight: bold; }
+        .est-pendiente { background: #222; color: #555; }
+        .est-esperando { background: rgba(52,152,219,0.2); color: var(--azul); border: 1px solid var(--azul); }
+        .est-en-juego { background: rgba(46,255,112,0.2); color: var(--neon); border: 1px solid var(--neon); }
+        .est-terminada { background: #1a1a1a; color: #444; }
+        .est-bye { background: rgba(212,175,55,0.2); color: var(--oro); }
+        .partida-jugadores { display: flex; flex-direction: column; gap: 6px; }
+        .jugador-fila { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #111; border-radius: 12px; }
+        .jugador-fila.ganador { background: #0a1a0a; border: 1px solid var(--neon); }
+        .jugador-fila.perdedor { opacity: 0.4; }
+        .jugador-nombre { font-size: 0.85rem; }
+        .jugador-prom { color: var(--neon); font-size: 0.75rem; font-family: 'Courier New', monospace; }
+        .jugador-pts { color: var(--oro); font-size: 1.1rem; font-weight: bold; }
+        .corona { margin-left: 5px; font-size: 0.8rem; }
+        .listo-badge { font-size: 0.55rem; color: var(--azul); margin-left: 5px; }
+        .vs-sep { text-align: center; color: #333; font-size: 0.7rem; padding: 2px 0; }
+        .partida-acciones { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-jugar { flex: 1; padding: 12px; background: var(--neon); color: #000; border: none; border-radius: 12px; font-weight: bold; font-size: 0.8rem; cursor: pointer; }
+        .btn-jugar:active { transform: scale(0.97); }
+        .btn-jugar.azul { background: var(--azul); color: #fff; }
+        .btn-jugar.gris { background: #222; color: #555; cursor: default; }
+        .panel-campeon { background: linear-gradient(135deg, #1a1500, #0a0a00); border: 3px solid var(--oro); border-radius: 25px; padding: 25px; text-align: center; margin: 20px 0; box-shadow: 0 0 40px rgba(212,175,55,0.3); }
+        .campeon-titulo { color: var(--oro); font-size: 0.8rem; letter-spacing: 3px; margin-bottom: 10px; }
+        .campeon-nombre { color: #fff; font-size: 2rem; margin: 10px 0; text-shadow: 0 0 20px var(--oro); }
+        .trofeo { font-size: 3rem; display: block; margin: 10px 0; }
+        .btn-declarar { width: 100%; padding: 18px; background: var(--oro); color: #000; border: none; border-radius: 18px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
+        .nav-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-nav { padding: 15px; background: #111; border: 1px solid #333; border-radius: 15px; color: #fff; font-size: 0.75rem; cursor: pointer; text-align: center; text-decoration: none; display: block; }
+        .btn-nav:active { border-color: var(--oro); }
+        .btn-volver { width: 100%; background: none; border: none; color: #444; padding: 15px; cursor: pointer; font-size: 0.7rem; margin-top: 5px; }
+        .vacio { text-align: center; padding: 30px; color: #333; font-size: 0.8rem; }
+        @keyframes pulso { 0%,100% { box-shadow: 0 0 10px rgba(46,255,112,0.2); } 50% { box-shadow: 0 0 25px rgba(46,255,112,0.5); } }
+        .card-partida.en-juego { animation: pulso 2s infinite; }
+    </style>
+</head>
+<body>
+<div class="chasis">
+
+    <div class="header">
+        <div class="header-top">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div id="club-logo-hdr"></div>
+                <div>
+                    <div class="torneo-titulo" id="lbl-nombre">CARGANDO...</div>
+                    <div class="torneo-codigo" id="lbl-codigo"></div>
+                    <div id="lbl-badge-estado"></div>
+                </div>
+            </div>
+            <div class="bolsa-badge">
+                <small>BOLSA</small>
+                <b id="lbl-bolsa">$ 0</b>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat"><b id="stat-jugadores">0</b><small>JUGADORES</small></div>
+            <div class="stat"><b id="stat-ronda">-</b><small>RONDA ACTUAL</small></div>
+            <div class="stat"><b id="stat-pendientes">0</b><small>PENDIENTES</small></div>
+        </div>
+    </div>
+
+    <div class="seccion-titulo">
+        <span>PARTIDAS</span>
+        <span class="ronda-badge" id="lbl-ronda-actual">RONDA 1</span>
+    </div>
+    <div id="contenedor-partidas">
+        <div class="vacio">Cargando partidas...</div>
+    </div>
+
+    <div id="panel-campeon" style="display:none;" class="panel-campeon">
+        <div class="campeon-titulo">🏆 CAMPEÓN DEL TORNEO</div>
+        <span class="trofeo">🥇</span>
+        <div class="campeon-nombre" id="lbl-campeon">-</div>
+        <button class="btn-declarar" onclick="declararCampeon()">🎉 DECLARAR CAMPEÓN OFICIAL</button>
+    </div>
+
+    <div class="nav-bottom">
+        <a href="Brackets.html" class="btn-nav">&#129349; LLAVES<br><small style="color:#555">Completo</small></a>
+        <a href="inscripciones.html" class="btn-nav">&#127867; INSCRIPCIONES<br><small style="color:#555">Agregar jugadores</small></a>
+    </div>
+
+    <button class="btn-volver" onclick="location.href='index.html'">VOLVER AL MENÚ PRINCIPAL</button>
+
+</div>
+
+<script src="core.js"></script>
+<script>
+
+    let torneo = null;
+    let intervaloRefresco = setInterval(refrescar, 5000);
+
+    window.onload = function () {
+        MasterVIP.applyDesign();
+        var sede = MasterVIP.getSede();
+        if (sede.nombre && sede.nombre !== 'GLOBAL') {
+            var hdr = document.getElementById('club-logo-hdr');
+            if (hdr) hdr.innerHTML = MasterVIP.getLogoHTML(34);
+        }
+        cargar();
+    };
+
+    function cargar() {
+        torneo = MasterVIP.getTorneoActivo();
+        if (!torneo) { alert('No hay torneo activo.'); location.href = 'index.html'; return; }
+        renderizar();
+    }
+
+    function refrescar() {
+        torneo = MasterVIP.getTorneoActivo();
+        if (torneo) renderizar();
+    }
+
+    function renderizar() {
+        document.getElementById('lbl-nombre').innerText = torneo.nombre;
+        document.getElementById('lbl-codigo').innerText = 'CÓDIGO: ' + torneo.codigo + ' · ' + torneo.modalidad;
+        document.getElementById('lbl-bolsa').innerText = MasterVIP.formatearPesos(MasterVIP.calcularBolsa(torneo));
+        document.getElementById('stat-jugadores').innerText = torneo.inscritos.length;
+
+        const badge = document.getElementById('lbl-badge-estado');
+        badge.innerHTML = torneo.estado === 'FINALIZADO'
+            ? '<span class="badge-estado badge-finalizado">FINALIZADO</span>'
+            : '<span class="badge-estado badge-en-curso">EN CURSO</span>';
+
+        if (!torneo.rondas || torneo.rondas.length === 0) {
+            document.getElementById('contenedor-partidas').innerHTML = '<div class="vacio">El sorteo aún no se ha realizado</div>';
+            return;
+        }
+
+        const totalRondas = MasterVIP.totalRondas(torneo.inscritos.length);
+        const rondaActual = torneo.rondas[torneo.rondas.length - 1];
+        const nombreRonda = MasterVIP.nombreRonda(totalRondas, rondaActual.numero);
+
+        document.getElementById('lbl-ronda-actual').innerText = nombreRonda;
+        document.getElementById('stat-ronda').innerText = rondaActual.numero + '/' + totalRondas;
+
+        const pendientes = rondaActual.partidas.filter(p => p.estado !== 'TERMINADA' && p.estado !== 'BYE').length;
+        document.getElementById('stat-pendientes').innerText = pendientes;
+
+        let html = '';
+        rondaActual.partidas.forEach((p, i) => { html += dibujarPartida(p, i + 1); });
+        document.getElementById('contenedor-partidas').innerHTML = html;
+
+        if (torneo.estado === 'FINALIZADO' && torneo.campeon) {
+            document.getElementById('panel-campeon').style.display = 'block';
+            document.getElementById('lbl-campeon').innerText = torneo.campeon;
+            clearInterval(intervaloRefresco);
+        } else {
+            document.getElementById('panel-campeon').style.display = 'none';
+        }
+    }
+
+    function dibujarPartida(p, num) {
+        if (p.estado === 'BYE') {
+            return `<div class="card-partida bye">
+                <div class="partida-header">
+                    <span class="partida-num">PARTIDA ${num}</span>
+                    <span class="partida-estado-badge est-bye">BYE — PASA AUTOMÁTICO</span>
+                </div>
+                <div class="jugador-fila ganador">
+                    <span class="jugador-nombre">${p.j1} <span class="corona">👑</span></span>
+                    <span class="jugador-prom">${parseFloat(p.prom1).toFixed(3)}</span>
+                </div>
+            </div>`;
+        }
+
+        if (p.estado === 'TERMINADA') {
+            return `<div class="card-partida terminada">
+                <div class="partida-header">
+                    <span class="partida-num">PARTIDA ${num}</span>
+                    <span class="partida-estado-badge est-terminada">✅ TERMINADA</span>
+                </div>
+                <div class="partida-jugadores">
+                    <div class="jugador-fila ${p.ganador === p.j1 ? 'ganador' : 'perdedor'}">
+                        <span class="jugador-nombre">${p.j1} ${p.ganador === p.j1 ? '<span class="corona">👑</span>' : ''}</span>
+                        <span class="jugador-pts">${p.pts1}</span>
+                    </div>
+                    <div class="vs-sep">vs</div>
+                    <div class="jugador-fila ${p.ganador === p.j2 ? 'ganador' : 'perdedor'}">
+                        <span class="jugador-nombre">${p.j2} ${p.ganador === p.j2 ? '<span class="corona">👑</span>' : ''}</span>
+                        <span class="jugador-pts">${p.pts2}</span>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        if (p.estado === 'EN_JUEGO') {
+            return `<div class="card-partida en-juego">
+                <div class="partida-header">
+                    <span class="partida-num">PARTIDA ${num}</span>
+                    <span class="partida-estado-badge est-en-juego">🟢 EN JUEGO</span>
+                </div>
+                <div class="partida-jugadores">
+                    <div class="jugador-fila"><span class="jugador-nombre">${p.j1}</span><span class="jugador-prom">${parseFloat(p.prom1).toFixed(3)}</span></div>
+                    <div class="vs-sep">vs</div>
+                    <div class="jugador-fila"><span class="jugador-nombre">${p.j2}</span><span class="jugador-prom">${parseFloat(p.prom2).toFixed(3)}</span></div>
+                </div>
+                <div class="partida-acciones">
+                    <button class="btn-jugar gris" disabled>PARTIDA EN CURSO...</button>
+                </div>
+            </div>`;
+        }
+
+        if (p.estado === 'ESPERANDO') {
+            const quienEspera = p.listoJ1 ? p.j2 : p.j1;
+            return `<div class="card-partida esperando">
+                <div class="partida-header">
+                    <span class="partida-num">PARTIDA ${num}</span>
+                    <span class="partida-estado-badge est-esperando">✋ ESPERANDO A ${quienEspera}</span>
+                </div>
+                <div class="partida-jugadores">
+                    <div class="jugador-fila"><span class="jugador-nombre">${p.j1} ${p.listoJ1 ? '<span class="listo-badge">✅ LISTO</span>' : ''}</span><span class="jugador-prom">${parseFloat(p.prom1).toFixed(3)}</span></div>
+                    <div class="vs-sep">vs</div>
+                    <div class="jugador-fila"><span class="jugador-nombre">${p.j2} ${p.listoJ2 ? '<span class="listo-badge">✅ LISTO</span>' : ''}</span><span class="jugador-prom">${parseFloat(p.prom2).toFixed(3)}</span></div>
+                </div>
+                <div class="partida-acciones">
+                    <button class="btn-jugar azul" onclick="iniciarPartidaAdmin('${p.id}','${p.j1}','${p.j2}')">▶ INICIAR COMO ADMIN</button>
+                </div>
+            </div>`;
+        }
+
+        return `<div class="card-partida pendiente">
+            <div class="partida-header">
+                <span class="partida-num">PARTIDA ${num}</span>
+                <span class="partida-estado-badge est-pendiente">⏳ PENDIENTE</span>
+            </div>
+            <div class="partida-jugadores">
+                <div class="jugador-fila"><span class="jugador-nombre">${p.j1}</span><span class="jugador-prom">${parseFloat(p.prom1).toFixed(3)}</span></div>
+                <div class="vs-sep">vs</div>
+                <div class="jugador-fila"><span class="jugador-nombre">${p.j2}</span><span class="jugador-prom">${parseFloat(p.prom2).toFixed(3)}</span></div>
+            </div>
+            <div class="partida-acciones">
+                <button class="btn-jugar" onclick="iniciarPartidaAdmin('${p.id}','${p.j1}','${p.j2}')">▶ INICIAR PARTIDA</button>
+            </div>
+        </div>`;
+    }
+
+    function iniciarPartidaAdmin(partidaId, j1, j2) {
+        MasterVIP.confirmarListo(torneo.id, partidaId, j1);
+        MasterVIP.confirmarListo(torneo.id, partidaId, j2);
+        // Buscar promedios de cada jugador en los inscritos del torneo
+        var ins = torneo.inscritos || [];
+        var ins1 = ins.find(function(i){ return i.nombre === j1; }) || {};
+        var ins2 = ins.find(function(i){ return i.nombre === j2; }) || {};
+        localStorage.setItem('PARTIDA_ACTIVA', JSON.stringify({
+            torneoId:        torneo.id,
+            partidaId:       partidaId,
+            j1: j1,          j2: j2,
+            prom1:           parseFloat(ins1.promedio) || 0,
+            prom2:           parseFloat(ins2.promedio) || 0,
+            tiempoEntrada:   torneo.tiempoEntrada || 40,
+            entradaObjetivo: torneo.entradaObjetivo || 0,
+            reglas:          torneo.reglas || null
+        }));
+        location.href = 'duelo.html';
+    }
+
+    function declararCampeon() {
+        const nombre = torneo.campeon;
+        if (!confirm('¿Confirmas a ' + nombre + ' como CAMPEÓN OFICIAL?\nEsto cerrará el torneo definitivamente.')) return;
+        let torneos = JSON.parse(localStorage.getItem('TORNEOS_LISTA')) || [];
+        const idx = torneos.findIndex(t => t.id === torneo.id);
+        if (idx >= 0) {
+            torneos[idx].estado = 'FINALIZADO';
+            torneos[idx].campeon = nombre;
+            torneos[idx].fechaFin = new Date().toISOString();
+            localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
+        }
+        MasterVIP.sincronizar('torneo_finalizado', { torneoId: torneo.id, campeon: nombre });
+        document.body.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; text-align:center; padding:30px;">
+                <div style="font-size:5rem; margin-bottom:20px;">🏆</div>
+                <div style="color:#d4af37; font-size:0.8rem; letter-spacing:4px; margin-bottom:10px;">CAMPEÓN OFICIAL</div>
+                <div style="color:#fff; font-size:2.5rem; font-family:'Arial Black'; text-shadow:0 0 30px #d4af37; margin-bottom:20px;">${nombre}</div>
+                <div style="color:#2eff70; font-size:1rem; margin-bottom:10px;">TORNEO: ${torneo.nombre}</div>
+                <div style="color:#555; font-size:0.7rem; margin-bottom:40px;">BOLSA: ${MasterVIP.formatearPesos(MasterVIP.calcularBolsa(torneo))}</div>
+                <button onclick="location.href='index.html'" style="background:#d4af37; color:#000; border:none; padding:20px 40px; border-radius:20px; font-size:1rem; font-weight:bold; cursor:pointer;">IR AL MENÚ PRINCIPAL</button>
+            </div>`;
+    }
+
+</script>
+</body>
+</html>
