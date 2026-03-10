@@ -56,7 +56,7 @@
             font-style:italic;
         }
         .subtitulo {
-            color:#444; font-size:0.45rem; letter-spacing:4px; margin-bottom:8px;
+            color:#444; font-size: 0.65rem; letter-spacing:4px; margin-bottom:8px;
         }
         /* ── SLIDER MARCA ── */
         .marca-slider {
@@ -94,7 +94,7 @@
             gap:7px;
             padding:5px 16px;
             border-radius:20px;
-            font-size:0.42rem;
+            font-size: 0.6rem;
             letter-spacing:2px;
             white-space:nowrap;
             cursor:pointer;
@@ -144,7 +144,7 @@
             letter-spacing:2px; margin-bottom:10px;
         }
         .torneo-nombre { color:var(--oro); font-size:0.9rem; letter-spacing:2px; margin-bottom:5px; }
-        .torneo-info { color:#555; font-size:0.45rem; margin-bottom:12px; }
+        .torneo-info { color:#555; font-size: 0.65rem; margin-bottom:12px; }
         .torneo-btns { display:flex; gap:8px; }
         .btn-t {
             flex:1; padding:11px; border:none; border-radius:12px;
@@ -158,7 +158,7 @@
         /* ── SELECTOR DE PORTAL ── */
         .portal-label {
             text-align:center; color:#333;
-            font-size:0.45rem; letter-spacing:3px;
+            font-size: 0.65rem; letter-spacing:3px;
             margin-bottom:16px;
         }
         .portales {
@@ -330,7 +330,7 @@
             border-radius:18px; padding:16px 18px; margin-bottom:10px;
         }
         .ranking-mini-titulo {
-            color:var(--oro); font-size:0.45rem; letter-spacing:2px; margin-bottom:12px;
+            color:var(--oro); font-size: 0.65rem; letter-spacing:2px; margin-bottom:12px;
         }
         .ranking-row {
             display:flex; align-items:center; gap:10px;
@@ -354,7 +354,7 @@
         .mli-icon { flex-shrink:0; }
         .mli-info { flex:1; }
         .mli-titulo { font-size:0.6rem; color:#ddd; letter-spacing:1px; margin-bottom:3px; }
-        .mli-desc { font-size:0.42rem; color:#444; }
+        .mli-desc { font-size: 0.6rem; color:#444; }
         .mli-arrow { color:#333; font-size:0.9rem; }
 
         /* ── PORTAL CLUB ── */
@@ -374,7 +374,7 @@
 
         /* ── SECCIÓN LABEL ── */
         .seccion-label {
-            font-size:0.42rem; color:#333;
+            font-size: 0.6rem; color:#333;
             letter-spacing:3px; margin-bottom:10px;
             padding-left:4px;
         }
@@ -684,11 +684,30 @@
             <span class="mli-arrow">›</span>
         </a>
 
+        <!-- ═══ TARJETA RETOS DESTACADA ═══ -->
+        <div style="margin-top:16px;background:linear-gradient(135deg,#1a0000,#2a0808);border:1px solid rgba(231,76,60,0.35);border-radius:20px;padding:16px 18px;cursor:pointer;" onclick="location.href='reto_crear.html'">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.6rem;">⚔️</span>
+                    <div>
+                        <div style="color:#e74c3c;font-family:'Arial Black',sans-serif;font-size:0.75rem;letter-spacing:2px;">RETOS</div>
+                        <div style="color:#555;font-size: 0.65rem;letter-spacing:1px;margin-top:2px;">DESAFÍOS · APUESTAS · DUELOS</div>
+                    </div>
+                </div>
+                <div id="badge-retos-pendientes" style="display:none;background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;font-size: 0.65rem;padding:4px 10px;border-radius:8px;letter-spacing:1px;">0 PENDIENTES</div>
+            </div>
+            <div id="retos-preview" style="color:#333;font-size:0.5rem;letter-spacing:1px;">Sin retos activos · Sé el primero en desafiar</div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+                <a href="reto_crear.html" onclick="event.stopPropagation()" style="flex:1;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;text-align:center;padding:10px;border-radius:12px;font-size:0.5rem;letter-spacing:2px;text-decoration:none;">⚔️ CREAR RETO</a>
+                <a href="reto_crear.html" onclick="event.stopPropagation()" style="flex:1;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);color:#d4af37;text-align:center;padding:10px;border-radius:12px;font-size:0.5rem;letter-spacing:2px;text-decoration:none;">🔍 VER RETOS</a>
+            </div>
+        </div>
+
         <!-- Top Ranking mini -->
         <div class="ranking-mini" style="margin-top:16px;">
             <div class="ranking-mini-titulo">&#127942; TOP RANKING DEL CLUB</div>
             <div id="ranking-mini-lista">
-                <div style="color:#333;font-size:0.45rem;text-align:center;padding:10px;">Sin datos aún</div>
+                <div style="color:#333;font-size: 0.65rem;text-align:center;padding:10px;">Sin datos aún</div>
             </div>
         </div>
     </div>
@@ -734,7 +753,7 @@
         <div id="sec-unirse" class="club-seccion" style="display:none;">
             <div class="seccion-label" style="margin-top:16px;">&#128279; UNIRSE CON CÓDIGO</div>
             <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:18px;padding:20px;">
-                <div style="color:#555;font-size:0.42rem;letter-spacing:2px;margin-bottom:10px;">CÓDIGO DEL CLUB</div>
+                <div style="color:#555;font-size: 0.6rem;letter-spacing:2px;margin-bottom:10px;">CÓDIGO DEL CLUB</div>
                 <input id="inp-codigo-club" type="text" placeholder="Ej: BCO-001"
                     style="width:100%;background:transparent;border:none;border-bottom:1px solid #222;
                     color:#fff;font-family:'Arial Black',sans-serif;font-size:1.1rem;
@@ -756,20 +775,20 @@
         <div id="sec-crear-club" class="club-seccion" style="display:none;">
             <div class="seccion-label" style="margin-top:16px;">&#127963; REGISTRAR MI CLUB</div>
             <div style="background:#0a0a0a;border:1px solid rgba(52,152,219,0.2);border-radius:18px;padding:20px;">
-                <div style="color:#555;font-size:0.42rem;letter-spacing:2px;margin-bottom:6px;">NOMBRE DEL CLUB</div>
+                <div style="color:#555;font-size: 0.6rem;letter-spacing:2px;margin-bottom:6px;">NOMBRE DEL CLUB</div>
                 <input id="inp-club-nombre" type="text" placeholder="BILLAR ÉLITE"
                     style="width:100%;background:transparent;border:none;border-bottom:1px solid #222;
                     color:#fff;font-family:'Arial Black',sans-serif;font-size:1rem;
                     padding:8px 0;outline:none;margin-bottom:16px;"
                     oninput="this.value=this.value.toUpperCase()">
 
-                <div style="color:#555;font-size:0.42rem;letter-spacing:2px;margin-bottom:6px;">CIUDAD</div>
+                <div style="color:#555;font-size: 0.6rem;letter-spacing:2px;margin-bottom:6px;">CIUDAD</div>
                 <input id="inp-club-ciudad" type="text" placeholder="Medellín"
                     style="width:100%;background:transparent;border:none;border-bottom:1px solid #222;
                     color:#ccc;font-family:'Arial Black',sans-serif;font-size:0.8rem;
                     padding:8px 0;outline:none;margin-bottom:16px;">
 
-                <div style="color:#555;font-size:0.42rem;letter-spacing:2px;margin-bottom:6px;">COLOR PRINCIPAL</div>
+                <div style="color:#555;font-size: 0.6rem;letter-spacing:2px;margin-bottom:6px;">COLOR PRINCIPAL</div>
                 <div style="display:flex;gap:8px;margin-bottom:16px;" id="color-opts">
                     <div class="color-chip" data-c="#d4af37" style="background:#d4af37;" onclick="selColor(this)"></div>
                     <div class="color-chip" data-c="#3498db" style="background:#3498db;" onclick="selColor(this)"></div>
@@ -792,7 +811,7 @@
         <div id="sec-mis-clubes" class="club-seccion" style="display:none;">
             <div class="seccion-label" style="margin-top:16px;">&#127970; MIS CLUBES</div>
             <div id="lista-mis-clubes">
-                <div style="color:#333;font-size:0.45rem;text-align:center;padding:20px;">
+                <div style="color:#333;font-size: 0.65rem;text-align:center;padding:20px;">
                     No perteneces a ningún club todavía
                 </div>
             </div>
@@ -1081,6 +1100,32 @@ function cargarDatosJugador() {
         }
     } catch(e) {}
     cargarRankingMini();
+    cargarRetosPreview();
+}
+
+function cargarRetosPreview() {
+    var retos = {};
+    try { retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES') || '{}'); } catch(e) {}
+    var lista = Object.values(retos);
+    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    var miNombre = (perfil.nombre || '').toUpperCase();
+    var pendientes = lista.filter(function(r) {
+        return r.estado === 'PENDIENTE' && (r.j2 === miNombre || r.tipo_reto === 'abierto');
+    });
+    var badge = document.getElementById('badge-retos-pendientes');
+    var preview = document.getElementById('retos-preview');
+    if (badge && pendientes.length > 0) {
+        badge.style.display = 'block';
+        badge.textContent = pendientes.length + ' PENDIENTE' + (pendientes.length > 1 ? 'S' : '');
+    }
+    if (preview) {
+        if (lista.length === 0) {
+            preview.textContent = 'Sin retos activos · Sé el primero en desafiar';
+        } else {
+            var ultimo = lista[lista.length - 1];
+            preview.textContent = '⚔️ ' + (ultimo.j1 || '?') + ' vs ' + (ultimo.j2 || 'ABIERTO') + ' · ' + (ultimo.modalidad || '3 Bandas') + ' · ' + (ultimo.meta1 || '?') + ' pts';
+        }
+    }
 }
 
 function cargarRankingMini() {
@@ -1165,33 +1210,82 @@ function crearClub() {
     alert('✅ Club creado\nCódigo: ' + codigo + '\nCompártelo con tus jugadores');
 }
 
-function unirseClub() {
+async function unirseClub() {
     var codigo = (document.getElementById('inp-codigo-club').value||'').trim().toUpperCase();
     if(!codigo || codigo.length < 3){ alert('Ingresa un código válido'); return; }
+
+    // Verificar si ya es miembro
     var clubes = JSON.parse(localStorage.getItem('mis_clubes')||'[]');
     var yaExiste = clubes.find(function(c){ return c.codigo === codigo; });
-    if(yaExiste){
-        // Ya es miembro — simplemente activarlo
-        activarClub(codigo);
+    if(yaExiste){ activarClub(codigo); mostrarSeccion(null); return; }
+
+    // Mostrar loading
+    var btn = document.querySelector('[onclick="unirseClub()"]');
+    if(btn) { btn.innerText = 'Buscando...'; btn.disabled = true; }
+
+    try {
+        // Buscar club en Supabase
+        var res = await fetch('https://iwvogyloebvieloequzr.supabase.co/rest/v1/clubs?codigo=eq.' + codigo + '&activo=eq.true&select=*', {
+            headers: {
+                'apikey': 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J',
+                'Authorization': 'Bearer sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J'
+            }
+        });
+        var data = await res.json();
+
+        if(!data || data.length === 0) {
+            alert('❌ Código no encontrado.\nVerifica el código con tu club.\nEjemplo: MVIP-001');
+            if(btn) { btn.innerText = 'UNIRME'; btn.disabled = false; }
+            return;
+        }
+
+        var clubDB = data[0];
+        var club = {
+            id: clubDB.id,
+            codigo: clubDB.codigo,
+            nombre: clubDB.nombre,
+            ciudad: clubDB.ciudad || '',
+            color: clubDB.color_primario || '#d4af37',
+            logo_url: clubDB.logo_url || '',
+            admin: false,
+            fechaIngreso: new Date().toLocaleDateString()
+        };
+
+        // Guardar en localStorage
+        clubes.push(club);
+        localStorage.setItem('mis_clubes', JSON.stringify(clubes));
+        localStorage.setItem('club_activo', JSON.stringify(club));
+
+        // Activar whitelabel con datos del club
+        if(window.WL) {
+            window.WL.setClub({
+                id: club.id,
+                nombre: club.nombre,
+                logo_url: club.logo_url,
+                color_primario: club.color
+            });
+        }
+
+        // Actualizar perfil del jugador con club_id
+        var perfil = JSON.parse(localStorage.getItem('mi_perfil')||'null');
+        if(perfil) {
+            perfil.club = club.nombre;
+            perfil.club_id = club.id;
+            perfil.club_logo_url = club.logo_url;
+            localStorage.setItem('mi_perfil', JSON.stringify(perfil));
+        }
+
+        actualizarHeaderClub(club);
         mostrarSeccion(null);
-        return;
+        alert('✅ Bienvenido a ' + club.nombre + '\n📍 ' + (club.ciudad||''));
+        cargarMisClubes();
+
+    } catch(e) {
+        console.error('Error buscando club:', e);
+        alert('Sin conexión. Intenta de nuevo.');
+    } finally {
+        if(btn) { btn.innerText = 'UNIRME'; btn.disabled = false; }
     }
-    // Verificar si es el código del club propio (admin_sede)
-    var sede = typeof MasterVIP !== 'undefined' ? MasterVIP.getSede() : null;
-    var config = JSON.parse(localStorage.getItem('CLUB_CONFIG')||'{}');
-    if(sede && sede.nombre !== 'GLOBAL') {
-        var codigoPropio = generarCodigo(sede.nombre);
-        // Permitir unirse igualmente — agregar a mis_clubes
-    }
-    var club = { codigo: codigo, nombre: 'CLUB ' + codigo, color:'#3498db', admin:false,
-        fechaIngreso: new Date().toLocaleDateString() };
-    clubes.push(club);
-    localStorage.setItem('mis_clubes', JSON.stringify(clubes));
-    localStorage.setItem('club_activo', JSON.stringify(club));
-    actualizarHeaderClub(club);
-    mostrarSeccion(null);
-    alert('✅ Unido al club ' + codigo);
-    cargarMisClubes();
 }
 
 function cargarMisClubes() {
@@ -1199,7 +1293,7 @@ function cargarMisClubes() {
     var cont = document.getElementById('lista-mis-clubes');
     if(!cont) return;
     if(!clubes.length){
-        cont.innerHTML='<div style="color:#333;font-size:0.45rem;text-align:center;padding:20px;">No perteneces a ningún club</div>';
+        cont.innerHTML='<div style="color:#333;font-size: 0.65rem;text-align:center;padding:20px;">No perteneces a ningún club</div>';
         return;
     }
     cont.innerHTML = clubes.map(function(c){
@@ -1232,7 +1326,7 @@ function actualizarHeaderClub(club) {
     var badge = document.getElementById('lbl-sede');
     if(el) { el.innerText = club.nombre; el.style.color = club.color; }
     if(sub) sub.innerText = club.codigo + (club.ciudad ? ' · ' + club.ciudad : '');
-    if(badge) { badge.innerText = '&#127963; ' + club.nombre; badge.style.borderColor = club.color+'66'; badge.style.color = club.color; }
+    if(badge) { badge.textContent = '🏛 ' + club.nombre; badge.style.borderColor = club.color+'66'; badge.style.color = club.color; }
     var card = document.getElementById('card-club');
     if(card) card.style.borderColor = club.color+'55';
 }

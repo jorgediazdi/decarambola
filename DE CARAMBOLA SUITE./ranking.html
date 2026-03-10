@@ -12,7 +12,7 @@
         /* HEADER */
         .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
         .header-tit { color:var(--oro); font-size:1.1rem; letter-spacing:3px; }
-        .header-sub { color:#333; font-size:0.45rem; letter-spacing:2px; margin-top:2px; }
+        .header-sub { color:#333; font-size: 0.65rem; letter-spacing:2px; margin-top:2px; }
         .btn-hdr { background:none; border:1px solid var(--g1); color:#444; padding:7px 14px; border-radius:10px; font-size:0.5rem; cursor:pointer; letter-spacing:1px; font-family:'Arial Black',sans-serif; text-decoration:none; }
 
         .wrap { width:95vw; max-width:500px; padding-top:14px; padding-bottom:100px; }
@@ -52,7 +52,7 @@
         .kpi-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
         .kpi { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:10px 8px; text-align:center; }
         .kpi b { color:var(--neon); font-size:1.2rem; display:block; font-family:'Courier New',monospace; line-height:1; }
-        .kpi small { color:#333; font-size:0.42rem; letter-spacing:1px; margin-top:3px; display:block; }
+        .kpi small { color:#333; font-size: 0.6rem; letter-spacing:1px; margin-top:3px; display:block; }
 
         /* FILTROS */
         .filtros { display:flex; gap:6px; margin-bottom:10px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
@@ -62,7 +62,7 @@
         .filtro-ico { font-size:0.8rem; line-height:1; }
 
         /* SECCIÓN TÍTULO */
-        .sec-tit { font-size:0.45rem; color:#333; letter-spacing:3px; margin:18px 0 10px; border-left:3px solid var(--g1); padding-left:10px; }
+        .sec-tit { font-size: 0.65rem; color:#333; letter-spacing:3px; margin:18px 0 10px; border-left:3px solid var(--g1); padding-left:10px; }
 
         /* FILA */
         .fila { display:flex; align-items:center; background:var(--g3); border:1px solid var(--g1); border-radius:16px; padding:11px 14px; margin-bottom:8px; gap:10px; cursor:pointer; transition:0.15s; position:relative; overflow:hidden; }
@@ -103,7 +103,7 @@
 <div class="header">
     <div>
         <div class="header-tit">&#128200; RANKING</div>
-        <div class="header-sub" id="lbl-sede">CLUB · DECARAMBOLA</div>
+        <div class="header-sub" id="lbl-sede">TODOS LOS JUGADORES · PROMEDIO OFICIAL</div>
     </div>
     <a href="index.html" class="btn-hdr">&#8592; MENÚ</a>
 </div>
@@ -172,7 +172,9 @@ function getCatStyle(nombre) {
     return CATS[nombre] || CATS['INICIACIÓN'];
 }
 
-window.onload = function() {
+window.onload = async function() {
+    try { await MasterVIP.init();
+        SESSION.verificarAlCargar('jugador'); } catch(e) { console.warn('Init offline:', e); }
     MasterVIP.applyDesign();
     var sede = MasterVIP.getSede();
     document.getElementById('lbl-sede').innerText = sede.nombre !== 'GLOBAL' ? sede.nombre : 'DECARAMBOLA';

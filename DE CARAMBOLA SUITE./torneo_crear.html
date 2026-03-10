@@ -65,7 +65,7 @@ body {
     background:rgba(46,255,112,0.12); border-color:rgba(46,255,112,0.5); color:var(--neon);
 }
 .prog-lbl {
-    font-size:0.42rem; letter-spacing:1px; color:#333;
+    font-size: 0.6rem; letter-spacing:1px; color:#333;
     text-align:center; white-space:nowrap; transition:0.3s; width:54px;
 }
 .prog-lbl.activo { color:var(--oro); }
@@ -824,7 +824,9 @@ var estado = {
     formatoImportado:null
 };
 
-window.onload = function() {
+window.onload = async function() {
+    try { await MasterVIP.init();
+        SESSION.verificarAlCargar('organizador'); } catch(e) { console.warn('Init offline:', e); }
     try { MasterVIP.applyDesign(); } catch(e){}
     var sede = MasterVIP.getSede();
     document.getElementById('lbl-sede').innerText = sede.nombre !== 'GLOBAL' ? sede.nombre : 'GLOBAL';
@@ -877,8 +879,17 @@ function validar(num) {
         estado.dist1 = parseFloat(document.getElementById('pct1').value)||50;
         estado.dist2 = parseFloat(document.getElementById('pct2').value)||30;
         estado.dist3 = parseFloat(document.getElementById('pct3').value)||20;
-        if (estado.pctPremios+estado.pctFee>100) { showToast('Premios + fee no puede superar 100%'); return false; }
-        if (estado.dist1+estado.dist2+estado.dist3!==100) { showToast('La distribución debe sumar 100%'); return false; }
+        if (estado.pctPremios+estado.pctFee>100) {
+            showToast('Premios + fee no puede superar 100% · Ajusta los porcentajes');
+            return false;
+        }
+        var totalDist = Math.round(estado.dist1+estado.dist2+estado.dist3);
+        if (totalDist < 99 || totalDist > 101) {
+            // Auto-corregir: ajustar 3er puesto para sumar 100%
+            estado.dist3 = Math.max(0, 100 - estado.dist1 - estado.dist2);
+            document.getElementById('pct3').value = estado.dist3;
+            calcBolsa();
+        }
     }
     return true;
 }
@@ -1013,9 +1024,9 @@ function generarResumen() {
 }
 
 /* ── CREAR ── */
-function crearTorneo() {
+async function crearTorneo() {
     var fmt = estado.formatoImportado;
-    var torneo = MasterVIP.crearTorneo({
+    var torneo = await MasterVIP.crearTorneo({
         nombre: estado.nombre, fechaInicio: estado.fecha, modalidad: estado.modalidad,
         sistema: estado.sistema||(fmt?fmt.formatoId:'brackets'),
         cupoMax: estado.cupo, tiempoEntrada: estado.tiempo,

@@ -65,14 +65,14 @@
         .empty-state div { font-size: 3rem; margin-bottom: 15px; }
         .empty-state p { font-size: 0.8rem; line-height: 1.8; }
         .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde); position: sticky; top: 64px; z-index: 40; }
-        .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: #444; font-size: 0.48rem; font-family: 'Arial Black', sans-serif; letter-spacing: 2px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
+        .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: #444; font-size: 0.65rem; font-family: 'Arial Black', sans-serif; letter-spacing: 2px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
         .tab-btn.activa { color: var(--oro); border-bottom-color: var(--oro); }
         .lista-wrap { padding: 16px 15px 120px; max-width: 500px; margin: 0 auto; }
         .cuadro-outer { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding: 20px 16px 120px; min-height: calc(100vh - 130px); }
         .cuadro-inner { display: flex; align-items: stretch; gap: 0; min-height: 400px; }
         .col-ronda { display: flex; flex-direction: column; min-width: 148px; flex-shrink: 0; }
         .col-header { text-align: center; padding: 8px 6px 12px; border-bottom: 1px solid var(--borde); margin-bottom: 0; flex-shrink: 0; }
-        .col-header-nom { font-size: 0.45rem; letter-spacing: 2px; color: var(--oro); }
+        .col-header-nom { font-size: 0.65rem; letter-spacing: 2px; color: var(--oro); }
         .col-header-jugs { font-size: 0.38rem; color: #333; margin-top: 2px; }
         .col-slots { flex: 1; display: flex; flex-direction: column; justify-content: space-around; padding: 8px 5px; gap: 0; }
         .col-slot { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 3px 0; }
@@ -86,7 +86,7 @@
         .cc-jug.ganador { background: rgba(212,175,55,0.05); }
         .cc-jug.perdedor { opacity: 0.35; }
         .cc-av { width: 18px; height: 18px; border-radius: 50%; background: #1a1a1a; border: 1px solid #2a2a2a; display: flex; align-items: center; justify-content:center; font-size: 0.38rem; font-weight: 900; color: #555; flex-shrink: 0; }
-        .cc-nom { flex: 1; font-size: 0.42rem; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cc-nom { flex: 1; font-size: 0.6rem; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .cc-pts { font-size: 0.52rem; font-family: 'Courier New', monospace; font-weight: 900; color: #fff; flex-shrink: 0; }
         .cc-pts.top { color: var(--oro); }
         .cc-live { position: absolute; top: 3px; right: 5px; font-size: 0.35rem; color: var(--neon); letter-spacing: 1px; }
@@ -100,7 +100,7 @@
         .camp-lbl { font-size: 0.38rem; letter-spacing: 2px; color: #444; margin-bottom: 6px; }
         .camp-nom { font-size: 0.55rem; color: var(--oro); text-align: center; letter-spacing: 1px; }
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, #000 40%); padding: 10px 15px 20px; display: flex; gap: 8px; }
-        .btn-nav { flex: 1; padding: 13px 8px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; color: #777; font-size: 0.48rem; cursor: pointer; text-align: center; text-decoration: none; display: block; transition: 0.2s; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
+        .btn-nav { flex: 1; padding: 13px 8px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; color: #777; font-size: 0.65rem; cursor: pointer; text-align: center; text-decoration: none; display: block; transition: 0.2s; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
         .btn-nav:active { border-color: var(--oro); color: var(--oro); }
     </style>
 </head>
@@ -141,6 +141,7 @@
     <div class="nav-bottom">
         <button class="btn-nav" onclick="location.href='control_torneo.html'">⚙️ CONTROL</button>
         <button class="btn-nav" onclick="refrescar()">🔄 ACTUALIZAR</button>
+        <button class="btn-nav" onclick="location.href='organizador.html'">🏛 ORGANIZAR</button>
         <button class="btn-nav" onclick="location.href='index.html'">🏠 INICIO</button>
     </div>
 <script src="core.js"></script>
@@ -149,7 +150,9 @@
 var torneo = null;
 var vistaActual = 'lista';
 
-window.onload = function() {
+window.onload = async function() {
+    try { await MasterVIP.init();
+        SESSION.verificarAlCargar('jugador'); } catch(e) { console.warn('Init offline:', e); }
     MasterVIP.applyDesign();
     var sede = MasterVIP.getSede();
     if (sede.nombre && sede.nombre !== 'GLOBAL') {
@@ -387,7 +390,7 @@ function dibujarTablaFinal(cont) {
             '<div style="width:46px;height:46px;border-radius:50%;margin:0 auto 6px;background:' + posBgs[i] + ';border:2px solid ' + posBorders[i] + ';display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;">' + j.nombre[0] + '</div>' +
             '<div style="font-size:0.5rem;letter-spacing:1px;color:#ddd;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + j.nombre + '</div>' +
             '<div style="font-family:Courier New;font-size:0.85rem;color:#fff;">' + prom + '</div>' +
-            (premios[i] ? '<div style="font-size:0.42rem;color:var(--neon);margin-top:4px;">' + MasterVIP.formatearPesos(premios[i]) + '</div>' : '') +
+            (premios[i] ? '<div style="font-size: 0.6rem;color:var(--neon);margin-top:4px;">' + MasterVIP.formatearPesos(premios[i]) + '</div>' : '') +
         '</div>';
     }
     html += '</div>';
@@ -395,7 +398,7 @@ function dibujarTablaFinal(cont) {
     // TABLA COMPLETA
     html += '<div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:16px;overflow:hidden;margin-bottom:16px;">' +
         '<div style="padding:12px 16px;background:#050505;border-bottom:1px solid #111;display:flex;align-items:center;gap:8px;">' +
-            '<span style="font-size:0.45rem;color:#444;letter-spacing:3px;">TABLA FINAL DEL TORNEO</span>' +
+            '<span style="font-size: 0.65rem;color:#444;letter-spacing:3px;">TABLA FINAL DEL TORNEO</span>' +
         '</div>' +
         '<div style="overflow-x:auto;">' +
         '<table style="width:100%;min-width:480px;border-collapse:collapse;">' +
@@ -450,14 +453,14 @@ function dibujarInfo() {
         }
     }
     var pct = totalPartidas > 0 ? Math.round((completadas / totalPartidas) * 100) : 0;
-    var html = '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size:0.48rem;letter-spacing:3px;color:#555;margin-bottom:14px;">ℹ DATOS DEL TORNEO</div>' + kpiRow('NOMBRE', torneo.nombre) + kpiRow('CÓDIGO', torneo.codigo) + kpiRow('SEDE', torneo.sede) + kpiRow('MODALIDAD', torneo.modalidad || '—') + kpiRow('SISTEMA', (torneo.sistema || 'llaves').toUpperCase()) + kpiRow('JUGADORES', (torneo.inscritos || []).length + ' / ' + torneo.cupoMax) + kpiRow('ESTADO', torneo.estado) + '</div>';
-    html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size:0.48rem;letter-spacing:3px;color:#555;margin-bottom:14px;">💰 PREMIOS</div>' + kpiRow('INSCRIPCIÓN', MasterVIP.formatearPesos(torneo.inscripcion || 0) + ' / JUG.') + kpiRow('APORTE CLUB', MasterVIP.formatearPesos(torneo.baseClub || 0)) + kpiRow('BOLSA TOTAL', MasterVIP.formatearPesos(bolsa)) + kpiRow('🥇 CAMPEÓN', MasterVIP.formatearPesos(Math.round(bolsa * 0.50))) + kpiRow('🥈 SEGUNDO', MasterVIP.formatearPesos(Math.round(bolsa * 0.25))) + kpiRow('🥉 TERCERO', MasterVIP.formatearPesos(Math.round(bolsa * 0.15))) + '</div>';
-    html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size:0.48rem;letter-spacing:3px;color:#555;margin-bottom:10px;">📊 PROGRESO</div><div style="font-size:0.42rem;color:#555;margin-bottom:6px;">' + completadas + ' DE ' + totalPartidas + ' PARTIDAS JUGADAS</div><div style="height:8px;background:var(--borde);border-radius:10px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,var(--oro),#ffe066);border-radius:10px;"></div></div><div style="font-size:0.38rem;color:#444;margin-top:5px;text-align:right;">' + pct + '% COMPLETADO</div></div>';
+    var html = '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:14px;">ℹ DATOS DEL TORNEO</div>' + kpiRow('NOMBRE', torneo.nombre) + kpiRow('CÓDIGO', torneo.codigo) + kpiRow('SEDE', torneo.sede) + kpiRow('MODALIDAD', torneo.modalidad || '—') + kpiRow('SISTEMA', (torneo.sistema || 'llaves').toUpperCase()) + kpiRow('JUGADORES', (torneo.inscritos || []).length + ' / ' + torneo.cupoMax) + kpiRow('ESTADO', torneo.estado) + '</div>';
+    html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:14px;">💰 PREMIOS</div>' + kpiRow('INSCRIPCIÓN', MasterVIP.formatearPesos(torneo.inscripcion || 0) + ' / JUG.') + kpiRow('APORTE CLUB', MasterVIP.formatearPesos(torneo.baseClub || 0)) + kpiRow('BOLSA TOTAL', MasterVIP.formatearPesos(bolsa)) + kpiRow('🥇 CAMPEÓN', MasterVIP.formatearPesos(Math.round(bolsa * 0.50))) + kpiRow('🥈 SEGUNDO', MasterVIP.formatearPesos(Math.round(bolsa * 0.25))) + kpiRow('🥉 TERCERO', MasterVIP.formatearPesos(Math.round(bolsa * 0.15))) + '</div>';
+    html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:10px;">📊 PROGRESO</div><div style="font-size: 0.6rem;color:#555;margin-bottom:6px;">' + completadas + ' DE ' + totalPartidas + ' PARTIDAS JUGADAS</div><div style="height:8px;background:var(--borde);border-radius:10px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,var(--oro),#ffe066);border-radius:10px;"></div></div><div style="font-size:0.38rem;color:#444;margin-top:5px;text-align:right;">' + pct + '% COMPLETADO</div></div>';
     document.getElementById('info-contenido').innerHTML = html;
 }
 
 function kpiRow(lbl, val) {
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--borde);"><span style="font-size:0.42rem;color:#444;letter-spacing:1px;">' + lbl + '</span><span style="font-size:0.55rem;color:#ddd;">' + val + '</span></div>';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--borde);"><span style="font-size: 0.6rem;color:#444;letter-spacing:1px;">' + lbl + '</span><span style="font-size:0.55rem;color:#ddd;">' + val + '</span></div>';
 }
 
 function iniciarBtn(btn) {
