@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="estilos.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Perfil — DeCarambola</title>
+    <style>
+        
+        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --rojo:#e74c3c; --azul:#3498db; --g1:#1a1a1a; --g2:#111111; --g3:#0f0f0f; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding-bottom:50px; }
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .header-titulo { color:var(--oro); font-size:1rem; letter-spacing:3px; }
+        .header-sub { color:#333; font-size:0.48rem; letter-spacing:2px; margin-top:2px; }
+        .btn-hdr { background:none; border:1px solid var(--g1); color:#444; padding:7px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; letter-spacing:1px; font-family:'Arial Black',sans-serif; text-decoration:none; }
+        .wrap { width:95vw; max-width:500px; padding-top:16px; }
+        .buscador { background:var(--g3); border:1px solid var(--g1); border-radius:16px; padding:13px 16px; display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+        .buscador input { background:transparent; border:none; color:#fff; font-family:'Arial Black',sans-serif; font-size:1rem; outline:none; flex:1; }
+        .buscador input::placeholder { color:#555; font-weight:normal; }
+        .lista-sug { background:var(--g3); border:1px solid var(--g1); border-radius:12px; overflow:hidden; margin-bottom:14px; display:none; }
+        .sug-fila { padding:11px 16px; cursor:pointer; border-bottom:1px solid var(--g1); font-size:0.8rem; transition:0.15s; display:flex; justify-content:space-between; align-items:center; }
+        .sug-fila:last-child { border:none; }
+        .sug-fila:active { background:var(--g2); }
+        .sug-fila small { color:#444; font-size:0.48rem; }
+
+        /* CARNET */
+        .carnet { background:linear-gradient(160deg,#0f0f0f 0%,#050505 100%); border:1px solid var(--g1); border-radius:24px; margin-bottom:14px; overflow:hidden; position:relative; }
+        .carnet-franja { height:5px; background:linear-gradient(90deg,transparent,var(--oro),transparent); }
+        .carnet-bg { position:absolute; top:5px; right:-20px; font-size:8rem; opacity:0.04; pointer-events:none; line-height:1; }
+        .carnet-body { padding:20px 20px 16px; position:relative; }
+        .carnet-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
+        .carnet-avatar { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#1a1a00,#3a2a00); border:2px solid var(--oro); display:flex; align-items:center; justify-content:center; font-size:2.2rem; font-weight:900; color:var(--oro); flex-shrink:0; box-shadow:0 0 24px rgba(212,175,55,0.25); overflow:hidden; position:relative; cursor:pointer; }
+        .carnet-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+        .av-cam { position:absolute; inset:0; background:rgba(0,0,0,0.55); border-radius:50%; display:none; align-items:center; justify-content:center; font-size:1.3rem; pointer-events:none; }
+        .carnet-avatar:active .av-cam { display:flex; }
+        #inp-foto-perfil { display:none; }
+        .carnet-info { flex:1; }
+        .carnet-nom { font-size:1.3rem; color:#fff; line-height:1.1; margin-bottom:4px; }
+        .carnet-club { font-size:0.55rem; color:var(--oro); letter-spacing:2px; margin-bottom:2px; }
+        .carnet-loc { font-size:0.48rem; color:#444; letter-spacing:1px; }
+        .carnet-cat { display:flex; flex-direction:column; align-items:center; gap:3px; background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:8px 12px; flex-shrink:0; min-width:58px; }
+        .carnet-cat-ico { font-size:1.4rem; line-height:1; }
+        .carnet-cat-nom { font-size:0.4rem; color:#555; letter-spacing:1px; text-align:center; }
+
+        /* STATS */
+        .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+        .stat-box { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:10px 8px; text-align:center; }
+        .stat-box.dest { border-color:rgba(212,175,55,0.3); background:rgba(212,175,55,0.04); }
+        .stat-val { font-size:1.4rem; font-weight:900; font-family:'Courier New',monospace; line-height:1; color:#fff; }
+        .stat-box.dest .stat-val { color:var(--oro); }
+        .stat-lbl { font-size:0.42rem; color:#444; letter-spacing:1px; margin-top:3px; }
+
+        /* NIVEL */
+        .nivel-wrap { margin-bottom:14px; }
+        .nivel-head { display:flex; justify-content:space-between; font-size:0.48rem; color:#444; letter-spacing:1px; margin-bottom:5px; }
+        .nivel-barra { height:6px; background:var(--g2); border-radius:10px; overflow:hidden; }
+        .nivel-fill { height:100%; background:linear-gradient(90deg,var(--oro),#ffe066); border-radius:10px; transition:width 0.6s ease; }
+
+        /* RANKING BADGE */
+        .rank-badge { display:flex; align-items:center; gap:10px; background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.2); border-radius:14px; padding:10px 14px; margin-bottom:14px; }
+        .rank-pos { font-size:2rem; color:var(--oro); line-height:1; }
+        .rank-info small { color:#444; font-size:0.48rem; letter-spacing:2px; display:block; }
+        .rank-info b { color:#fff; font-size:0.75rem; }
+
+        /* FOOTER CARNET */
+        .carnet-footer { background:var(--g3); border-top:1px solid var(--g1); padding:10px 20px; display:flex; align-items:center; justify-content:space-between; }
+        .carnet-id { font-size:0.42rem; color:#333; letter-spacing:2px; font-family:'Courier New',monospace; }
+        .carnet-marca { font-size:0.55rem; color:var(--oro); letter-spacing:2px; }
+
+        /* INSIGNIAS */
+        .sec-titulo { color:#fff; font-size:0.65rem; letter-spacing:3px; margin:18px 0 10px; border-left:3px solid var(--oro); padding-left:10px; }
+        .ins-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
+        .ins { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:10px 6px; text-align:center; }
+        .ins.ok { border-color:rgba(212,175,55,0.3); background:rgba(212,175,55,0.06); }
+        .ins.ok.verde { border-color:rgba(46,255,112,0.3); background:rgba(46,255,112,0.05); }
+        .ins.off { opacity:0.25; }
+        .ins-ico { font-size:1.5rem; line-height:1; margin-bottom:4px; }
+        .ins-nom { font-size:0.4rem; color:#555; letter-spacing:1px; }
+        .ins.ok .ins-nom { color:var(--oro); }
+        .ins.ok.verde .ins-nom { color:var(--neon); }
+
+        /* HISTORIAL */
+        .hist-row { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
+        .hist-pos { font-size:1.3rem; min-width:30px; text-align:center; }
+        .hist-info { flex:1; }
+        .hist-nom { font-size:0.8rem; }
+        .hist-det { font-size:0.45rem; color:#444; margin-top:2px; letter-spacing:1px; }
+
+        /* BOTONES */
+        .btn-comp { width:100%; padding:16px; background:linear-gradient(135deg,var(--azul),#1460a0); color:#fff; border:none; border-radius:16px; font-size:0.9rem; font-weight:bold; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:2px; margin-bottom:10px; transition:0.15s; }
+        .btn-comp:active { transform:scale(0.97); }
+        .btn-link { width:100%; padding:14px; background:var(--g3); border:1px solid var(--g1); color:#666; border-radius:16px; font-size:0.7rem; font-weight:bold; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:1px; margin-bottom:14px; transition:0.15s; }
+        .btn-link:active { border-color:var(--oro); color:var(--oro); }
+
+        .empty-perfil { text-align:center; padding:50px 20px; }
+        .empty-perfil .ico { font-size:3rem; margin-bottom:12px; }
+        .empty-perfil p { color:#333; font-size:0.65rem; line-height:2.2; letter-spacing:1px; }
+        .vacio { text-align:center; padding:20px; color:#333; font-size:0.6rem; letter-spacing:1px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-titulo">PERFIL</div>
+        <div class="header-sub">CARNET DEL JUGADOR</div>
+    </div>
+    <a href="index.html" class="btn-hdr">← MENÚ</a>
+</div>
+
+<div class="wrap">
+    <div class="buscador">
+        <span style="color:#444;font-size:1.2rem;">🔍</span>
+        <input type="text" id="busq" placeholder="Busca un maestro por nombre..."
+            oninput="buscarJugador(this.value)">
+    </div>
+    <div class="lista-sug" id="lista-sug"></div>
+    <div id="zona-perfil">
+        <div class="empty-perfil">
+            <div class="ico">🎱</div>
+            <p>BUSCA UN MAESTRO<br>PARA VER SU PERFIL<br>Y ESTADÍSTICAS</p>
+        </div>
+    </div>
+</div>
+
+
+<script src="core.js"></script>
+<script>
+    var jugActivo = null;
+
+    window.onload = function () {
+        MasterVIP.applyDesign();
+
+        // 1. ¿Viene por URL con jugador=?
+        var params = window.location.search;
+        var matchJug = params.match(/jugador=([^&]+)/);
+        if (matchJug) {
+            var jUrl = MasterVIP.buscarJugador(decodeURIComponent(matchJug[1]));
+            if (jUrl) { mostrarPerfil(jUrl); return; }
+        }
+
+        // 2. ¿Hay "mi perfil" guardado?
+        var miPerfil = MasterVIP._get('mi_perfil', null);
+        if (miPerfil && miPerfil.nombre) {
+            var jMio = MasterVIP.buscarJugador(miPerfil.nombre);
+            if (jMio) { mostrarPerfil(jMio); return; }
+        }
+
+        // 3. Estado vacío — mostrar bola 3D invitando a buscar
+        mostrarVacio();
+    };
+
+    function mostrarVacio() {
+        var zona = document.getElementById('zona-perfil');
+        var todos = MasterVIP.getJugadores();
+        todos.sort(function(a,b){ return (b.promedio||0)-(a.promedio||0); });
+        var sede = MasterVIP.getSede();
+        var nJugs = todos.length;
+
+        // ── SIN JUGADORES: pantalla de bienvenida con diseño completo
+        if (nJugs === 0) {
+            zona.innerHTML =
+            '<style>@keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}@keyframes pulso{0%,100%{opacity:.4}50%{opacity:1}}</style>'+
+            '<div style="display:flex;flex-direction:column;align-items:center;padding:30px 20px 20px;">'+
+
+            // BOLA 3D
+            '<div style="width:130px;height:130px;border-radius:50%;'+
+                'background:radial-gradient(circle at 32% 32%,#fff9c4 0%,#f5d020 20%,#d4af37 50%,#8a6a00 80%,#2a1a00 100%);'+
+                'box-shadow:inset -12px -12px 24px rgba(0,0,0,.6),inset 5px 5px 12px rgba(255,220,80,.3),8px 8px 30px rgba(0,0,0,.9),0 0 40px rgba(212,175,55,.15);'+
+                'display:flex;align-items:center;justify-content:center;margin-bottom:20px;'+
+                'animation:flotar 4s ease-in-out infinite;">'+
+                '<span style="font-size:3rem;color:#000;font-family:Courier New;font-weight:900;">3</span>'+
+            '</div>'+
+
+            // MARCA
+            '<div style="font-size:1.4rem;color:var(--oro);letter-spacing:6px;margin-bottom:4px;">DeCarambola</div>'+
+            '<div style="font-size:0.42rem;color:#333;letter-spacing:4px;margin-bottom:28px;">'+sede.nombre+'</div>'+
+
+            // TARJETA INFO
+            '<div style="width:100%;background:#0f0f0f;border:1px solid #1a1a1a;border-radius:20px;padding:20px;margin-bottom:14px;">'+
+                '<div style="font-size:0.45rem;color:#333;letter-spacing:3px;margin-bottom:14px;border-left:3px solid var(--oro);padding-left:10px;">QUE PUEDES HACER</div>'+
+                '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'+
+                    '<div style="font-size:1.4rem;width:36px;text-align:center;">&#127942;</div>'+
+                    '<div><div style="font-size:0.65rem;color:#ccc;">Torneos de billar</div><div style="font-size:0.42rem;color:#444;margin-top:2px;">Crea y gestiona torneos con llaves</div></div>'+
+                '</div>'+
+                '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'+
+                    '<div style="font-size:1.4rem;width:36px;text-align:center;">&#9889;</div>'+
+                    '<div><div style="font-size:0.65rem;color:#ccc;">Entrenamiento personal</div><div style="font-size:0.42rem;color:#444;margin-top:2px;">Lleva tu promedio y progreso</div></div>'+
+                '</div>'+
+                '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'+
+                    '<div style="font-size:1.4rem;width:36px;text-align:center;">&#128200;</div>'+
+                    '<div><div style="font-size:0.65rem;color:#ccc;">Ranking del club</div><div style="font-size:0.42rem;color:#444;margin-top:2px;">Clasifica a todos tus jugadores</div></div>'+
+                '</div>'+
+                '<div style="display:flex;align-items:center;gap:12px;">'+
+                    '<div style="font-size:1.4rem;width:36px;text-align:center;">&#127941;</div>'+
+                    '<div><div style="font-size:0.65rem;color:#ccc;">Insignias y logros</div><div style="font-size:0.42rem;color:#444;margin-top:2px;">Perfil completo por jugador</div></div>'+
+                '</div>'+
+            '</div>'+
+
+            // PASO A PASO
+            '<div style="width:100%;background:#0a0a0a;border:1px solid #111;border-radius:16px;padding:16px 18px;">'+
+                '<div style="font-size:0.45rem;color:#333;letter-spacing:3px;margin-bottom:12px;border-left:3px solid #2eff70;padding-left:10px;">COMO EMPEZAR</div>'+
+                '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'+
+                    '<div style="background:var(--oro);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:900;flex-shrink:0;">1</div>'+
+                    '<div style="font-size:0.55rem;color:#666;">Ve al <b style="color:#aaa;">Menu Principal</b> e inscribe jugadores</div>'+
+                '</div>'+
+                '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'+
+                    '<div style="background:#333;color:#888;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:900;flex-shrink:0;">2</div>'+
+                    '<div style="font-size:0.55rem;color:#444;">Crea un torneo o inicia entrenamiento</div>'+
+                '</div>'+
+                '<div style="display:flex;align-items:center;gap:10px;">'+
+                    '<div style="background:#333;color:#888;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:900;flex-shrink:0;">3</div>'+
+                    '<div style="font-size:0.55rem;color:#444;">Los perfiles se llenan automaticamente</div>'+
+                '</div>'+
+            '</div>'+
+
+            '</div>';
+            return;
+        }
+
+        // ── CON JUGADORES: directorio del club
+        var topHtml = '';
+        var medals = ['&#127942;','&#129352;','&#129353;'];
+        var bords = ['rgba(212,175,55,0.5)','rgba(192,192,192,0.3)','rgba(205,127,50,0.3)'];
+        var bgs   = ['rgba(212,175,55,0.07)','rgba(192,192,192,0.04)','rgba(205,127,50,0.04)'];
+        var top = todos.slice(0,3);
+        for (var i = 0; i < top.length; i++) {
+            var jt = top[i]; var cat = MasterVIP.getCategoria(jt.promedio||0);
+            topHtml += '<div data-nombre="'+encodeURIComponent(jt.nombre)+'" onclick="selBtn(this)" style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:'+bgs[i]+';border:1px solid '+bords[i]+';border-radius:16px;margin-bottom:10px;cursor:pointer;">'+
+                '<div style="font-size:1.5rem;width:30px;text-align:center;">'+medals[i]+'</div>'+
+                MasterVIP.getAvatarHTML(jt.nombre,46)+
+                '<div style="flex:1;"><div style="font-size:0.8rem;color:#ddd;margin-bottom:3px;">'+jt.nombre+'</div>'+
+                '<div style="font-size:0.42rem;color:#555;">'+cat.emoji+' '+cat.nombre+(jt.club?' &middot; '+jt.club:'')+'</div></div>'+
+                '<div style="text-align:right;"><div style="font-family:Courier New;font-size:1.1rem;color:#fff;">'+(jt.promedio||0).toFixed(3)+'</div>'+
+                '<div style="font-size:0.38rem;color:#333;margin-top:2px;">'+(jt.ciudad||'')+'</div></div></div>';
+        }
+        var restHtml = '';
+        var resto = todos.slice(3,12);
+        for (var j2=0; j2<resto.length; j2++) {
+            var jr=resto[j2]; var catr=MasterVIP.getCategoria(jr.promedio||0);
+            restHtml += '<div data-nombre="'+encodeURIComponent(jr.nombre)+'" onclick="selBtn(this)" style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;margin-bottom:7px;cursor:pointer;">'+
+                '<div style="font-size:0.55rem;color:#333;width:20px;text-align:right;">'+(j2+4)+'</div>'+
+                MasterVIP.getAvatarHTML(jr.nombre,34)+
+                '<div style="flex:1;font-size:0.65rem;color:#bbb;">'+jr.nombre+'</div>'+
+                '<div style="font-size:0.45rem;color:#444;margin-right:6px;">'+catr.emoji+'</div>'+
+                '<div style="font-family:Courier New;font-size:0.75rem;color:#888;">'+(jr.promedio||0).toFixed(3)+'</div></div>';
+        }
+        zona.innerHTML =
+            '<div style="text-align:center;padding:20px 0 14px;">'+
+                '<div style="font-size:0.42rem;letter-spacing:4px;color:#333;margin-bottom:6px;">DIRECTORIO DEL CLUB</div>'+
+                '<div style="font-size:0.75rem;color:#444;letter-spacing:2px;">'+nJugs+' JUGADORES REGISTRADOS</div>'+
+            '</div>'+
+            '<div style="font-size:0.45rem;color:#333;letter-spacing:3px;margin-bottom:10px;border-left:3px solid var(--oro);padding-left:10px;">&#127942; TOP RANKING</div>'+topHtml+
+            (restHtml ? '<div style="font-size:0.45rem;color:#333;letter-spacing:3px;margin:16px 0 10px;border-left:3px solid #222;padding-left:10px;">TODOS LOS JUGADORES</div>'+restHtml : '');
+    }
+
+
+    function selBtn(el) {
+        var nombre = decodeURIComponent(el.getAttribute('data-nombre') || '');
+        var j = MasterVIP.buscarJugador(nombre);
+        if (j) mostrarPerfil(j);
+    }
+
+    function buscarJugador(txt) {
+        var lista = document.getElementById('lista-sug');
+        if (!txt || txt.length < 2) { lista.style.display = 'none'; return; }
+        var todos = MasterVIP.getJugadores();
+        var fil = [];
+        var up = txt.toUpperCase();
+        for (var i = 0; i < todos.length; i++) {
+            if (todos[i].nombre.toUpperCase().indexOf(up) >= 0) {
+                fil.push(todos[i]);
+                if (fil.length >= 6) break;
+            }
+        }
+        if (!fil.length) { lista.style.display = 'none'; return; }
+        lista.style.display = 'block';
+        var html = '';
+        for (var k = 0; k < fil.length; k++) {
+            var jf = fil[k];
+            var cat = MasterVIP.getCategoria(jf.promedio||0);
+            html += '<div class="sug-fila" data-nombre="' + encodeURIComponent(jf.nombre) + '" onclick="selBtn(this)">' +
+                '<div>' + jf.nombre + '<small>' + cat.emoji + ' ' + cat.nombre + ' · ' + (jf.club||'—') + '</small></div>' +
+                '<small>' + (jf.promedio||0).toFixed(3) + '</small>' +
+            '</div>';
+        }
+        lista.innerHTML = html;
+    }
+
+    function sel(nombre) {
+        var j = MasterVIP.buscarJugador(nombre);
+        if (!j) return;
+        document.getElementById('busq').value = '';
+        document.getElementById('lista-sug').style.display = 'none';
+        mostrarPerfil(j);
+        setTimeout(function(){ if (jugActivo) cargarFotoGuardada(jugActivo.nombre); }, 50);
+    }
+
+    function mostrarPerfil(j) {
+        jugActivo = j;
+        var zona   = document.getElementById('zona-perfil');
+        var hist   = MasterVIP._get('ranking_historico_club', []);
+        var mias   = [];
+        var nom_up = j.nombre.toUpperCase();
+        for (var i = 0; i < hist.length; i++) {
+            if (hist[i].nombre.toUpperCase() === nom_up) mias.push(hist[i]);
+        }
+        var torneos = MasterVIP.getTorneos();
+        var misTorn = [];
+        for (var t = 0; t < torneos.length; t++) {
+            if (torneos[t].estado === 'FINALIZADO') {
+                var ins2 = torneos[t].inscritos || [];
+                for (var x = 0; x < ins2.length; x++) {
+                    if (ins2[x].nombre.toUpperCase() === nom_up) { misTorn.push(torneos[t]); break; }
+                }
+            }
+        }
+        // Torneo activo — estado actual del jugador
+        var torneoActivo = MasterVIP.getTorneoActivo();
+        var estadoEnTorneo = null;
+        if (torneoActivo) {
+            var rondaAct = torneoActivo.rondas && torneoActivo.rondas[torneoActivo.rondas.length - 1];
+            if (rondaAct) {
+                for (var p2 = 0; p2 < rondaAct.partidas.length; p2++) {
+                    var part = rondaAct.partidas[p2];
+                    if ((part.j1||'').toUpperCase() === nom_up || (part.j2||'').toUpperCase() === nom_up) {
+                        estadoEnTorneo = part;
+                        break;
+                    }
+                }
+            }
+        }
+
+        var cat    = MasterVIP.getCategoria(j.promedio||0);
+        var prom   = j.promedio||0;
+        var ini    = j.nombre.trim()[0].toUpperCase();
+        var nPart  = mias.length;
+        var vics   = 0;
+        for (var v = 0; v < mias.length; v++) { if (mias[v].resultado === 'GANÓ') vics++; }
+        var pctV   = nPart > 0 ? Math.round((vics/nPart)*100) : 0;
+        var serieM = 0;
+        for (var s = 0; s < mias.length; s++) { serieM = Math.max(serieM, parseInt(mias[s].serieMayor)||0); }
+        var promMejor = 0;
+        for (var pm = 0; pm < mias.length; pm++) { promMejor = Math.max(promMejor, parseFloat(mias[pm].promedio)||0); }
+        var todos   = MasterVIP.getJugadores();
+        var sorted  = todos.slice().sort(function(a,b){ return (b.promedio||0)-(a.promedio||0); });
+        var pos     = 0;
+        for (var r = 0; r < sorted.length; r++) { if (sorted[r].nombre.toUpperCase() === nom_up) { pos = r+1; break; } }
+        var nivel   = calcNivel(prom);
+        var insignias = calcIns(j, mias, misTorn, vics, serieM);
+
+        // ── Colores por categoría
+        var catColor = cat.color || '#d4af37';
+
+        // ── Foto
+        var fotoSrc = MasterVIP.getFoto(j.nombre);
+        var avatarInner = fotoSrc
+            ? '<img src="' + fotoSrc + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
+            : '<span id="av-ini" style="font-size:2.2rem;font-weight:900;color:' + catColor + ';">' + ini + '</span>';
+
+        // ── Torneo activo badge
+        var tornActivoHtml = '';
+        if (torneoActivo && torneoActivo.estado === 'EN_CURSO') {
+            var enJuego = estadoEnTorneo && estadoEnTorneo.estado === 'EN_JUEGO';
+            var pendiente = estadoEnTorneo && estadoEnTorneo.estado === 'PENDIENTE';
+            var eliminado = false;
+            var insTs = torneoActivo.inscritos || [];
+            for (var ei = 0; ei < insTs.length; ei++) {
+                if (insTs[ei].nombre.toUpperCase() === nom_up && insTs[ei].eliminado) { eliminado = true; break; }
+            }
+            var bgT = enJuego ? 'rgba(46,255,112,0.08)' : eliminado ? 'rgba(231,76,60,0.06)' : 'rgba(212,175,55,0.06)';
+            var brT = enJuego ? 'rgba(46,255,112,0.25)'  : eliminado ? 'rgba(231,76,60,0.2)'  : 'rgba(212,175,55,0.15)';
+            var txT = enJuego ? '#2eff70' : eliminado ? '#e74c3c' : '#d4af37';
+            var lblT = enJuego ? '● EN JUEGO' : eliminado ? '✗ ELIMINADO' : '⏳ EN TORNEO';
+            tornActivoHtml =
+                '<div style="background:' + bgT + ';border:1px solid ' + brT + ';border-radius:12px;' +
+                'padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">' +
+                '<div style="font-size:0.42rem;letter-spacing:2px;color:' + txT + ';">' + lblT + '</div>' +
+                '<div style="flex:1;font-size:0.55rem;color:#ddd;">' + (torneoActivo.nombre||'') + '</div>' +
+                (estadoEnTorneo ? '<div style="font-size:0.42rem;color:#444;">R' + (estadoEnTorneo.ronda||'?') + '</div>' : '') +
+                '</div>';
+        }
+
+        zona.innerHTML =
+        '<div class="carnet">' +
+            '<div class="carnet-franja" style="background:linear-gradient(90deg,transparent,' + catColor + ',transparent);"></div>' +
+            '<div class="carnet-bg">🎱</div>' +
+            '<div class="carnet-body">' +
+                tornActivoHtml +
+                '<div class="carnet-head">' +
+                    '<div class="carnet-avatar" id="av-wrap" onclick="abrirFoto()" ' +
+                        'style="border-color:' + catColor + ';box-shadow:0 0 24px ' + catColor + '44;">' +
+                        avatarInner +
+                        '<div class="av-cam">📷</div>' +
+                    '</div>' +
+                    '<input type="file" id="inp-foto-perfil" accept="image/*" onchange="guardarFoto(event)">' +
+                    '<div class="carnet-info">' +
+                        '<div class="carnet-nom">' + j.nombre + '</div>' +
+                        '<div class="carnet-club">' + (j.club||'SIN CLUB') + '</div>' +
+                        '<div class="carnet-loc">📍 ' + (j.ciudad||'—') + (j.departamento ? ', ' + j.departamento : '') + ', ' + (j.pais||'COLOMBIA') + '</div>' +
+                        (j.tel ? '<div style="font-size:0.42rem;color:#333;margin-top:3px;letter-spacing:1px;">📱 ' + j.tel + '</div>' : '') +
+                    '</div>' +
+                    '<div class="carnet-cat">' +
+                        '<div class="carnet-cat-ico">' + cat.emoji + '</div>' +
+                        '<div class="carnet-cat-nom" style="color:' + catColor + ';">' + cat.nombre + '</div>' +
+                    '</div>' +
+                '</div>' +
+
+                // STATS PRINCIPALES
+                '<div class="stats-grid">' +
+                    '<div class="stat-box dest"><div class="stat-val" style="color:' + catColor + ';">' + prom.toFixed(3) + '</div><div class="stat-lbl">PROMEDIO</div></div>' +
+                    '<div class="stat-box"><div class="stat-val">' + nPart + '</div><div class="stat-lbl">PARTIDAS</div></div>' +
+                    '<div class="stat-box"><div class="stat-val">' + (pctV||0) + '%</div><div class="stat-lbl">VICTORIAS</div></div>' +
+                    '<div class="stat-box"><div class="stat-val">' + serieM + '</div><div class="stat-lbl">SERIE MÁXIMA</div></div>' +
+                    '<div class="stat-box"><div class="stat-val">' + misTorn.length + '</div><div class="stat-lbl">TORNEOS</div></div>' +
+                    '<div class="stat-box"><div class="stat-val" style="color:' + catColor + ';">' + promMejor.toFixed(3) + '</div><div class="stat-lbl">MEJOR PROM.</div></div>' +
+                '</div>' +
+
+                // BARRA DE NIVEL
+                '<div class="nivel-wrap">' +
+                    '<div class="nivel-head">' +
+                        '<span>' + nivel.desde.toFixed(3) + ' — ' + cat.nombre.toUpperCase() + '</span>' +
+                        '<span>SIGUIENTE: ' + nivel.siguiente + ' ' + nivel.hasta.toFixed(3) + '</span>' +
+                    '</div>' +
+                    '<div class="nivel-barra">' +
+                        '<div class="nivel-fill" style="width:' + nivel.pct + '%;background:linear-gradient(90deg,' + catColor + ',#ffe066);"></div>' +
+                    '</div>' +
+                '</div>' +
+
+                // RANKING BADGE
+                '<div class="rank-badge" style="border-color:' + catColor + '33;">' +
+                    '<div class="rank-pos" style="color:' + catColor + ';">' + (pos>0?'#'+pos:'—') + '</div>' +
+                    '<div class="rank-info">' +
+                        '<small>RANKING DEL CLUB</small>' +
+                        '<b>' + (pos===1?'🏆 LÍDER':pos<=3?'🥈 TOP 3':'DE '+todos.length+' JUGADORES') + '</b>' +
+                    '</div>' +
+                    '<div style="text-align:right;">' +
+                        '<div style="font-size:0.42rem;color:#444;letter-spacing:1px;">REGISTRO</div>' +
+                        '<div style="font-size:0.48rem;color:#666;">' + (j.fechaRegistro ? new Date(j.fechaRegistro).toLocaleDateString('es-CO') : '—') + '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+
+            '<div class="carnet-footer">' +
+                '<span class="carnet-id">DC-' + j.nombre.replace(/\s/g,'').toUpperCase().substr(0,6) + '</span>' +
+                '<span class="carnet-marca">DeCarambola</span>' +
+            '</div>' +
+        '</div>' +
+
+        '<div class="sec-titulo">INSIGNIAS</div>' +
+        '<div class="ins-grid">' + renderInsignias(insignias) + '</div>' +
+
+        '<button class="btn-comp" onclick="compartir()">📤 COMPARTIR PERFIL</button>' +
+        '<button class="btn-link" onclick="copiarLink()">🔗 COPIAR ENLACE</button>' +
+
+        '<div class="sec-titulo">HISTORIAL DE TORNEOS</div>' +
+        renderHistorial(misTorn, j.nombre) +
+
+        '<div class="sec-titulo">ÚLTIMAS PARTIDAS</div>' +
+        renderUltimasPartidas(mias, j.nombre);
+
+    }
+
+    function renderInsignias(ins) {
+        var html = '';
+        for (var i = 0; i < ins.length; i++) {
+            var x = ins[i];
+            var cls = x.ok ? ('ok' + (x.v ? ' verde' : '')) : 'off';
+            html += '<div class="ins ' + cls + '">';
+            if (!x.ok) html += '<span class="ins-lock">&#128274;</span>';
+            html += '<div class="ins-ico">' + x.ico + '</div>';
+            html += '<span class="ins-nom">' + x.nom + '</span>';
+            html += '</div>';
+        }
+        return html;
+    }
+
+    function renderHistorial(misTorn, nombre) {
+        if (!misTorn.length) return '<div class="vacio">Sin torneos finalizados aún</div>';
+        var html = '';
+        var lista = misTorn.slice(0, 8);
+        for (var i = 0; i < lista.length; i++) {
+            var t = lista[i];
+            var campeon = (t.campeon||'').toUpperCase() === nombre.toUpperCase();
+            var sub     = (t.subcampeon||'').toUpperCase() === nombre.toUpperCase();
+            var ico = campeon ? '🥇' : sub ? '🥈' : '🎱';
+            html += '<div class="hist-row">' +
+                '<div class="hist-pos">' + ico + '</div>' +
+                '<div class="hist-info">' +
+                    '<div class="hist-nom">' + t.nombre + '</div>' +
+                    '<div class="hist-det">' + t.codigo + ' · ' + new Date(t.fechaCreacion).toLocaleDateString('es-CO') + ' · ' + (t.modalidad||'3 BANDAS') + '</div>' +
+                '</div></div>';
+        }
+        return html;
+    }
+
+    function renderUltimasPartidas(mias, nombre) {
+        var partidas = mias.filter(function(m){ return m.tipo === 'Torneo' || m.tipo === 'Entrenamiento'; });
+        partidas = partidas.slice(-8).reverse();
+        if (!partidas.length) return '<div class="vacio">Sin partidas registradas aún</div>';
+        var html = '';
+        for (var i = 0; i < partidas.length; i++) {
+            var m = partidas[i];
+            var esTorneo = m.tipo === 'Torneo';
+            var ico  = esTorneo ? '🏆' : '🎯';
+            var prom = parseFloat(m.promedio)||0;
+            var color = prom >= 1.0 ? 'var(--neon)' : prom >= 0.7 ? 'var(--oro)' : '#888';
+            html += '<div class="hist-row">' +
+                '<div class="hist-pos">' + ico + '</div>' +
+                '<div class="hist-info">' +
+                    '<div class="hist-nom">' + (esTorneo ? 'PARTIDA TORNEO' : 'ENTRENAMIENTO') + '</div>' +
+                    '<div class="hist-det">' + (m.fecha||'—') +
+                        (m.carambolas ? ' · ' + m.carambolas + ' car.' : '') +
+                        (m.entradas   ? ' · ' + m.entradas + ' ent.' : '') +
+                    '</div>' +
+                '</div>' +
+                '<div style="font-family:Courier New;font-size:0.85rem;color:' + color + ';">' + prom.toFixed(3) + '</div>' +
+            '</div>';
+        }
+        return html;
+    }
+
+    function calcNivel(p) {
+        var nivs = [
+            {d:0,    h:0.200, n:'NOVATO'},
+            {d:0.200,h:0.400, n:'AFICIONADO'},
+            {d:0.400,h:0.600, n:'INTERMEDIO'},
+            {d:0.600,h:0.800, n:'AVANZADO'},
+            {d:0.800,h:1.200, n:'EXPERTO'},
+            {d:1.200,h:2.000, n:'MAESTRO'},
+            {d:2.000,h:9.999, n:'GRAN MAESTRO'}
+        ];
+        var act = nivs[0];
+        for (var i = 0; i < nivs.length; i++) { if (p >= nivs[i].d && p < nivs[i].h) { act = nivs[i]; break; } }
+        var idx = 0;
+        for (var j = 0; j < nivs.length; j++) { if (nivs[j].d === act.d) { idx = j; break; } }
+        var sig = idx < nivs.length-1 ? nivs[idx+1] : null;
+        var rng = act.h - act.d;
+        var pct = Math.min(100, Math.round(((p-act.d)/rng)*100));
+        return { pct:pct, desde:act.d, hasta:act.h, siguiente: sig?sig.n:'★ CIMA' };
+    }
+
+    function calcIns(j, mias, torns, vics, serieM) {
+        var p = j.promedio||0;
+        var esCampeon = false;
+        for (var i = 0; i < torns.length; i++) {
+            if ((torns[i].campeon||'').toUpperCase() === j.nombre.toUpperCase()) { esCampeon = true; break; }
+        }
+        return [
+            { ico:'&#127942;', nom:'CAMPEON',  ok: esCampeon,       v:false },
+            { ico:'&#127919;', nom:'SHARP',    ok: p>=1.0,          v:false },
+            { ico:'&#128293;', nom:'RACHA',    ok: serieM>=10,      v:true  },
+            { ico:'&#9889;',   nom:'MVP',      ok: vics>=5,         v:true  },
+            { ico:'&#127377;', nom:'VETERANO', ok: mias.length>=20, v:false },
+            { ico:'&#128081;', nom:'REY',      ok: p>=2.0,          v:false },
+            { ico:'&#128200;', nom:'PROGRESO', ok: mias.length>=5,  v:true  },
+            { ico:'&#11088;',  nom:'ESTRELLA', ok: torns.length>=3, v:false }
+        ];
+    }
+
+    function compartir() {
+        if (!jugActivo) return;
+        var p = (jugActivo.promedio||0).toFixed(3);
+        var cat = MasterVIP.getCategoria(jugActivo.promedio||0);
+        var txt = '🎱 *'+jugActivo.nombre+'*\n'+
+            cat.emoji+' '+cat.nombre+' · Promedio '+p+'\n'+
+            '🏛 '+(jugActivo.club||'SIN CLUB')+' · '+(jugActivo.ciudad||'')+'\n'+
+            '\n📊 Perfil en DeCarambola';
+        if (navigator.share) {
+            navigator.share({title:'Perfil DeCarambola', text:txt}).catch(function(){});
+        } else {
+            navigator.clipboard.writeText(txt).then(function(){
+                alert('✅ Perfil copiado\nPégalo en WhatsApp');
+            });
+        }
+    }
+
+
+    /* ── FOTO DE PERFIL ── */
+    function abrirFoto() {
+        var inp = document.getElementById('inp-foto-perfil');
+        if (inp) inp.click();
+    }
+
+    function guardarFoto(event) {
+        if (!jugActivo) return;
+        var file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 500000) { alert('Foto muy pesada. Máximo 500KB'); return; }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var base64 = e.target.result;
+            var fotos = JSON.parse(localStorage.getItem('FOTOS_JUGADORES')) || {};
+            fotos[jugActivo.nombre.toUpperCase()] = base64;
+            localStorage.setItem('FOTOS_JUGADORES', JSON.stringify(fotos));
+            mostrarFotoEnAvatar(base64);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function mostrarFotoEnAvatar(src) {
+        var img = document.getElementById('av-img');
+        var ini = document.getElementById('av-ini');
+        if (img && src) {
+            img.src = src;
+            img.style.display = 'block';
+            if (ini) ini.style.display = 'none';
+        }
+    }
+
+    function cargarFotoGuardada(nombre) {
+        var fotos = JSON.parse(localStorage.getItem('FOTOS_JUGADORES')) || {};
+        var src = fotos[nombre.toUpperCase()];
+        if (src) mostrarFotoEnAvatar(src);
+    }
+
+    function copiarLink() {
+        if (!jugActivo) return;
+        var url = window.location.origin + window.location.pathname +
+            '?jugador=' + encodeURIComponent(jugActivo.nombre);
+        navigator.clipboard.writeText(url).then(function(){
+            var b = document.querySelector('.btn-link');
+            b.innerText = '✅ ENLACE COPIADO';
+            setTimeout(function(){ b.innerText = '🔗 COPIAR ENLACE'; }, 2000);
+        });
+    }
+</script>
+<script src="whitelabel.js"></script>
+</body>
+</html>

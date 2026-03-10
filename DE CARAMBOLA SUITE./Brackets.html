@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Llaves — DeCarambola</title>
+    <style>
+:root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; --borde:#1a1a1a; --card:#0a0a0a; }
+        * { box-sizing: border-box; }
+        body { background: var(--negro); color: #fff; font-family: 'Arial Black', sans-serif; margin: 0; padding: 0; }
+        .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 15px 20px; position: sticky; top: 0; z-index: 50; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .bolsa-chip { background: #0a1a0a; border: 1px solid var(--neon); border-radius: 20px; padding: 6px 14px; text-align: center; }
+        .bolsa-chip b { color: var(--neon); font-size: 0.9rem; display: block; line-height: 1; }
+        .bolsa-chip small { color: #333; font-size: 0.5rem; }
+        .header-sub { color: #333; font-size: 0.6rem; margin-top: 5px; letter-spacing: 1px; }
+        .contenido { padding: 20px 15px 100px; max-width: 500px; margin: 0 auto; }
+        .ronda-bloque { margin-bottom: 30px; }
+        .ronda-titulo { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .ronda-titulo-linea { flex: 1; height: 1px; background: #1a1a1a; }
+        .ronda-titulo-txt { color: var(--oro); font-size: 0.7rem; letter-spacing: 3px; white-space: nowrap; }
+        .ronda-titulo-badge { background: var(--oro); color: #000; font-size: 0.5rem; padding: 3px 10px; border-radius: 10px; white-space: nowrap; }
+        .partida-card { background: #0a0a0a; border: 2px solid #1a1a1a; border-radius: 20px; overflow: hidden; margin-bottom: 12px; transition: 0.3s; position: relative; }
+        .partida-card.en-juego { border-color: var(--neon); box-shadow: 0 0 20px rgba(46,255,112,0.1); animation: pulso-card 2s infinite; }
+        .partida-card.terminada { border-color: #222; opacity: 0.85; }
+        .partida-card.bye { border-color: var(--oro); background: #0f0d00; }
+        .partida-card.pendiente { border-color: #1a1a1a; }
+        .partida-card.esperando { border-color: var(--azul); }
+        @keyframes pulso-card { 0%,100% { box-shadow: 0 0 15px rgba(46,255,112,0.1); } 50% { box-shadow: 0 0 30px rgba(46,255,112,0.25); } }
+        .card-estado { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: #050505; border-bottom: 1px solid #111; }
+        .card-num { color: #222; font-size: 0.55rem; letter-spacing: 1px; }
+        .est-badge { font-size: 0.55rem; padding: 3px 10px; border-radius: 10px; font-weight: bold; letter-spacing: 1px; }
+        .est-pendiente { background: #111; color: #333; }
+        .est-esperando { background: rgba(52,152,219,0.15); color: var(--azul); border: 1px solid rgba(52,152,219,0.3); }
+        .est-en-juego { background: rgba(46,255,112,0.12); color: var(--neon); border: 1px solid rgba(46,255,112,0.3); }
+        .est-terminada { background: #111; color: #444; }
+        .est-bye { background: rgba(212,175,55,0.1); color: var(--oro); }
+        .jugador-row { display: flex; align-items: center; padding: 12px 14px; border-bottom: 1px solid #0f0f0f; transition: background 0.2s; gap: 10px; }
+        .jugador-row:last-of-type { border-bottom: none; }
+        .jugador-row.ganador { background: #0a1a0a; }
+        .jugador-row.perdedor { opacity: 0.4; }
+        .jugador-row.bye-row { background: #0f0d00; }
+        .j-corona { font-size: 1rem; flex-shrink: 0; width: 20px; }
+        .j-nombre { flex: 1; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .j-prom { font-size: 0.75rem; color: #444; font-family: 'Courier New', monospace; flex-shrink: 0; }
+        .j-pts { font-size: 1.4rem; font-weight: 900; color: var(--oro); flex-shrink: 0; min-width: 30px; text-align: right; }
+        .j-pts.winner { color: var(--oro); text-shadow: 0 0 10px rgba(212,175,55,0.5); }
+        .j-pts.loser { color: #333; }
+        .j-listo { font-size: 0.55rem; color: var(--azul); flex-shrink: 0; }
+        .vs-divider { text-align: center; font-size: 0.6rem; color: #1a1a1a; padding: 3px 0; letter-spacing: 2px; }
+        .card-accion { padding: 10px 12px; background: #050505; border-top: 1px solid #111; }
+        .btn-card { width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer; letter-spacing: 1px; transition: 0.15s; }
+        .btn-card:active { transform: scale(0.97); }
+        .btn-card.verde { background: var(--neon); color: #000; }
+        .btn-card.azul { background: var(--azul); color: #fff; }
+        .btn-card.gris { background: #111; color: #333; cursor: default; }
+        .conector { display: flex; justify-content: center; margin: -5px 0 20px; }
+        .conector-linea { width: 2px; height: 30px; background: linear-gradient(var(--oro), transparent); opacity: 0.3; }
+        .campeon-panel { background: linear-gradient(135deg, #1a1200, #0a0800); border: 2px solid var(--oro); border-radius: 25px; padding: 25px; text-align: center; margin: 20px 0; box-shadow: 0 0 40px rgba(212,175,55,0.2); }
+        .campeon-panel .trofeo { font-size: 3.5rem; display: block; margin-bottom: 10px; }
+        .campeon-panel .campeon-lbl { color: #444; font-size: 0.6rem; letter-spacing: 3px; margin-bottom: 8px; }
+        .campeon-panel .campeon-nombre { color: var(--oro); font-size: 2rem; text-shadow: 0 0 25px rgba(212,175,55,0.5); }
+        .campeon-panel .bolsa-ganada { color: var(--neon); font-size: 1rem; margin-top: 8px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #222; }
+        .empty-state div { font-size: 3rem; margin-bottom: 15px; }
+        .empty-state p { font-size: 0.8rem; line-height: 1.8; }
+        .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde); position: sticky; top: 64px; z-index: 40; }
+        .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: #444; font-size: 0.48rem; font-family: 'Arial Black', sans-serif; letter-spacing: 2px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
+        .tab-btn.activa { color: var(--oro); border-bottom-color: var(--oro); }
+        .lista-wrap { padding: 16px 15px 120px; max-width: 500px; margin: 0 auto; }
+        .cuadro-outer { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding: 20px 16px 120px; min-height: calc(100vh - 130px); }
+        .cuadro-inner { display: flex; align-items: stretch; gap: 0; min-height: 400px; }
+        .col-ronda { display: flex; flex-direction: column; min-width: 148px; flex-shrink: 0; }
+        .col-header { text-align: center; padding: 8px 6px 12px; border-bottom: 1px solid var(--borde); margin-bottom: 0; flex-shrink: 0; }
+        .col-header-nom { font-size: 0.45rem; letter-spacing: 2px; color: var(--oro); }
+        .col-header-jugs { font-size: 0.38rem; color: #333; margin-top: 2px; }
+        .col-slots { flex: 1; display: flex; flex-direction: column; justify-content: space-around; padding: 8px 5px; gap: 0; }
+        .col-slot { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 3px 0; }
+        .cuadro-card { background: var(--card); border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; }
+        .cuadro-card.en-juego { border-color: rgba(46,255,112,0.5); }
+        .cuadro-card.terminada { border-color: #1f1f1f; }
+        .cuadro-card.pendiente { border-color: var(--borde); }
+        .cuadro-card.bye { border-color: rgba(212,175,55,0.2); }
+        .cc-jug { display: flex; align-items: center; gap: 5px; padding: 6px 8px; border-bottom: 1px solid var(--borde); min-height: 28px; }
+        .cc-jug:last-child { border-bottom: none; }
+        .cc-jug.ganador { background: rgba(212,175,55,0.05); }
+        .cc-jug.perdedor { opacity: 0.35; }
+        .cc-av { width: 18px; height: 18px; border-radius: 50%; background: #1a1a1a; border: 1px solid #2a2a2a; display: flex; align-items: center; justify-content:center; font-size: 0.38rem; font-weight: 900; color: #555; flex-shrink: 0; }
+        .cc-nom { flex: 1; font-size: 0.42rem; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cc-pts { font-size: 0.52rem; font-family: 'Courier New', monospace; font-weight: 900; color: #fff; flex-shrink: 0; }
+        .cc-pts.top { color: var(--oro); }
+        .cc-live { position: absolute; top: 3px; right: 5px; font-size: 0.35rem; color: var(--neon); letter-spacing: 1px; }
+        .col-conector { width: 22px; flex-shrink: 0; display: flex; flex-direction: column; padding-top: 44px; }
+        .con-grupo { flex: 1; display: flex; flex-direction: column; }
+        .con-top { flex: 1; border-right: 1px solid #2a2a2a; border-bottom: 1px solid #2a2a2a; }
+        .con-bot { flex: 1; border-right: 1px solid #2a2a2a; border-top: 1px solid #2a2a2a; }
+        .con-mid { height: 1px; background: #2a2a2a; margin-left: 0; }
+        .col-campeon { min-width: 110px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 44px 12px 12px; }
+        .camp-trofeo { font-size: 2rem; margin-bottom: 8px; }
+        .camp-lbl { font-size: 0.38rem; letter-spacing: 2px; color: #444; margin-bottom: 6px; }
+        .camp-nom { font-size: 0.55rem; color: var(--oro); text-align: center; letter-spacing: 1px; }
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, #000 40%); padding: 10px 15px 20px; display: flex; gap: 8px; }
+        .btn-nav { flex: 1; padding: 13px 8px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; color: #777; font-size: 0.48rem; cursor: pointer; text-align: center; text-decoration: none; display: block; transition: 0.2s; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
+        .btn-nav:active { border-color: var(--oro); color: var(--oro); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div id="club-logo-hdr"></div>
+                <div>
+                    <div class="header-titulo" id="lbl-torneo">LLAVES</div>
+                    <div class="header-sub" id="lbl-sub">CARGANDO...</div>
+                </div>
+            </div>
+            <div class="bolsa-chip">
+                <small>BOLSA</small>
+                <b id="lbl-bolsa">$ 0</b>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <button class="tab-btn activa" id="tab-lista" onclick="cambiarVista('lista')">☰ LISTA</button>
+        <button class="tab-btn" id="tab-cuadro" onclick="cambiarVista('cuadro')">⊞ CUADRO</button>
+        <button class="tab-btn" id="tab-info" onclick="cambiarVista('info')" id="tab-info">&#8505; TORNEO</button>
+    </div>
+    <div id="vista-lista">
+        <div class="lista-wrap" id="contenido">
+            <div class="empty-state"><div>⏳</div><p>Cargando...</p></div>
+        </div>
+    </div>
+    <div id="vista-cuadro" style="display:none;">
+        <div class="cuadro-outer">
+            <div class="cuadro-inner" id="cuadro-contenido"></div>
+        </div>
+    </div>
+    <div id="vista-info" style="display:none;">
+        <div class="lista-wrap" id="info-contenido"></div>
+    </div>
+    <div class="nav-bottom">
+        <button class="btn-nav" onclick="location.href='control_torneo.html'">⚙️ CONTROL</button>
+        <button class="btn-nav" onclick="refrescar()">🔄 ACTUALIZAR</button>
+        <button class="btn-nav" onclick="location.href='index.html'">🏠 INICIO</button>
+    </div>
+<script src="core.js"></script>
+
+<script>
+var torneo = null;
+var vistaActual = 'lista';
+
+window.onload = function() {
+    MasterVIP.applyDesign();
+    var sede = MasterVIP.getSede();
+    if (sede.nombre && sede.nombre !== 'GLOBAL') {
+        var hdr = document.getElementById('club-logo-hdr');
+        if (hdr) hdr.innerHTML = MasterVIP.getLogoHTML(34);
+    }
+    cargar();
+};
+
+function refrescar() { cargar(); }
+
+function cambiarVista(v) {
+    vistaActual = v;
+    document.getElementById('vista-lista').style.display = v === 'lista' ? 'block' : 'none';
+    document.getElementById('vista-cuadro').style.display = v === 'cuadro' ? 'block' : 'none';
+    document.getElementById('vista-info').style.display = v === 'info' ? 'block' : 'none';
+    var tabs = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < tabs.length; i++) { tabs[i].classList.remove('activa'); }
+    document.getElementById('tab-' + v).classList.add('activa');
+    if (v === 'cuadro' && torneo) dibujarCuadro();
+    if (v === 'info' && torneo) dibujarInfo();
+}
+
+function cargar() {
+    torneo = MasterVIP.getTorneoActivo();
+    if (!torneo) {
+        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.<br>Crea uno desde el menú principal.</p></div>';
+        return;
+    }
+    document.getElementById('lbl-torneo').innerText = torneo.nombre;
+    document.getElementById('lbl-sub').innerText = torneo.codigo + ' · ' + (torneo.modalidad || '') + ' · ' + (torneo.inscritos || []).length + ' JUG.';
+    document.getElementById('lbl-bolsa').innerText = MasterVIP.formatearPesos(MasterVIP.calcularBolsa(torneo));
+    if (!torneo.rondas || torneo.rondas.length === 0) {
+        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎲</div><p>El sorteo aún no se ha realizado.<br>Ve a <b style="color:var(--oro)">Inscripciones</b> para cerrarlo.</p></div>';
+        return;
+    }
+    // Si finalizado, ir directo a tabla final
+    if (torneo.estado === 'FINALIZADO' && torneo.campeon) {
+        cambiarVista('info');
+        return;
+    }
+    dibujarLista();
+    if (vistaActual === 'cuadro') dibujarCuadro();
+    if (vistaActual === 'info') dibujarInfo();
+}
+
+function dibujarLista() {
+    var totalRondas = MasterVIP.totalRondas((torneo.inscritos || []).length);
+    var html = '';
+    if (torneo.estado === 'FINALIZADO' && torneo.campeon) {
+        html += '<div class="campeon-panel"><span class="trofeo">🏆</span><div class="campeon-lbl">CAMPEÓN COPA</div><div class="campeon-nombre">' + torneo.campeon + '</div><div class="bolsa-ganada">' + MasterVIP.formatearPesos(Math.round(MasterVIP.calcularBolsa(torneo) * 0.5)) + '</div></div>';
+    }
+    for (var ri = 0; ri < torneo.rondas.length; ri++) {
+        var ronda = torneo.rondas[ri];
+        var esActual = ri === torneo.rondas.length - 1;
+        var nomRonda = MasterVIP.nombreRonda(totalRondas, ronda.numero);
+        html += '<div class="ronda-bloque"><div class="ronda-titulo"><div class="ronda-titulo-linea"></div><span class="ronda-titulo-txt">' + nomRonda + '</span>' + (esActual ? '<span class="ronda-titulo-badge">EN CURSO</span>' : '<span class="ronda-titulo-badge" style="background:#1a1a1a;color:#333;">COMPLETADA</span>') + '<div class="ronda-titulo-linea"></div></div>';
+        for (var pi = 0; pi < ronda.partidas.length; pi++) {
+            html += buildCardLista(ronda.partidas[pi], pi + 1, esActual);
+        }
+        if (ri < torneo.rondas.length - 1) {
+            html += '<div class="conector"><div class="conector-linea"></div></div>';
+        }
+        html += '</div>';
+    }
+    document.getElementById('contenido').innerHTML = html;
+}
+
+function buildCardLista(p, num, esActual) {
+    var cls = 'partida-card ';
+    if (p.estado === 'BYE') cls += 'bye';
+    else if (p.estado === 'TERMINADA') cls += 'terminada';
+    else if (p.estado === 'EN_JUEGO') cls += 'en-juego';
+    else if (p.estado === 'ESPERANDO') cls += 'esperando';
+    else cls += 'pendiente';
+    var html = '<div class="' + cls + '">';
+    var badgeTxt = '', badgeCls = 'est-pendiente';
+    if (p.estado === 'BYE') { badgeTxt = '⚡ BYE'; badgeCls = 'est-bye'; }
+    else if (p.estado === 'TERMINADA') { badgeTxt = '✅ TERMINADA'; badgeCls = 'est-terminada'; }
+    else if (p.estado === 'EN_JUEGO') { badgeTxt = '🟢 EN JUEGO'; badgeCls = 'est-en-juego'; }
+    else if (p.estado === 'ESPERANDO') { badgeTxt = '✋ ESPERANDO'; badgeCls = 'est-esperando'; }
+    else { badgeTxt = '⏳ PENDIENTE'; badgeCls = 'est-pendiente'; }
+    html += '<div class="card-estado"><span class="card-num">PARTIDA ' + num + '</span><span class="est-badge ' + badgeCls + '">' + badgeTxt + '</span></div>';
+    if (p.estado === 'BYE') {
+        html += '<div class="jugador-row bye-row"><span class="j-corona">👑</span><span class="j-nombre">' + p.j1 + '</span><span class="j-prom">' + parseFloat(p.prom1 || 0).toFixed(3) + '</span></div>';
+        return html + '</div>';
+    }
+    var g1 = p.ganador === p.j1, g2 = p.ganador === p.j2, term = p.estado === 'TERMINADA';
+    html += '<div class="jugador-row ' + (term ? (g1 ? 'ganador' : 'perdedor') : '') + '"><span class="j-corona">' + (g1 ? '👑' : (p.estado === 'EN_JUEGO' ? '⚔️' : '🎱')) + '</span><span class="j-nombre">' + p.j1 + '</span>' + (p.estado === 'ESPERANDO' ? '<span class="j-listo">' + (p.listoJ1 ? '✅' : '') + '</span>' : '') + '<span class="j-prom">' + parseFloat(term ? p.promFinalJ1 || p.prom1 : p.prom1 || 0).toFixed(3) + '</span>' + (term ? '<span class="j-pts ' + (g1 ? 'winner' : 'loser') + '">' + p.pts1 + '</span>' : '') + '</div>';
+    html += '<div class="vs-divider">' + (term ? '· · ·' : 'VS') + '</div>';
+    html += '<div class="jugador-row ' + (term ? (g2 ? 'ganador' : 'perdedor') : '') + '"><span class="j-corona">' + (g2 ? '👑' : (p.estado === 'EN_JUEGO' ? '⚔️' : '🎱')) + '</span><span class="j-nombre">' + p.j2 + '</span>' + (p.estado === 'ESPERANDO' ? '<span class="j-listo">' + (p.listoJ2 ? '✅' : '') + '</span>' : '') + '<span class="j-prom">' + parseFloat(term ? p.promFinalJ2 || p.prom2 : p.prom2 || 0).toFixed(3) + '</span>' + (term ? '<span class="j-pts ' + (g2 ? 'winner' : 'loser') + '">' + p.pts2 + '</span>' : '') + '</div>';
+    if (esActual && !term && p.estado !== 'BYE' && p.estado !== 'EN_JUEGO') {
+        html += '<div class="card-accion"><button class="btn-card verde" data-id="' + encodeURIComponent(p.id) + '" data-j1="' + encodeURIComponent(p.j1) + '" data-j2="' + encodeURIComponent(p.j2) + '" onclick="iniciarBtn(this)">▶ INICIAR PARTIDA</button></div>';
+    } else if (p.estado === 'EN_JUEGO') {
+        html += '<div class="card-accion"><button class="btn-card gris" disabled>PARTIDA EN CURSO...</button></div>';
+    }
+    return html + '</div>';
+}
+
+function dibujarCuadro() {
+    if (!torneo || !torneo.rondas || !torneo.rondas.length) return;
+    var totalRondas = MasterVIP.totalRondas((torneo.inscritos || []).length);
+    var html = '';
+    for (var ri = 0; ri < torneo.rondas.length; ri++) {
+        var ronda = torneo.rondas[ri];
+        var nomRonda = MasterVIP.nombreRonda(totalRondas, ronda.numero);
+        html += '<div class="col-ronda"><div class="col-header"><div class="col-header-nom">' + nomRonda + '</div><div class="col-header-jugs">' + ronda.partidas.length * 2 + ' JUG.</div></div><div class="col-slots">';
+        for (var pi = 0; pi < ronda.partidas.length; pi++) {
+            html += '<div class="col-slot">' + buildCardCuadro(ronda.partidas[pi]) + '</div>';
+        }
+        html += '</div></div>';
+        if (ri < torneo.rondas.length - 1) {
+            html += '<div class="col-conector">';
+            for (var ci = 0; ci < ronda.partidas.length; ci += 2) {
+                html += '<div class="con-grupo"><div class="con-top"></div><div class="con-mid"></div><div class="con-bot"></div></div>';
+            }
+            html += '</div>';
+        }
+    }
+    html += '<div class="col-campeon">';
+    if (torneo.estado === 'FINALIZADO' && torneo.campeon) {
+        html += '<div class="camp-trofeo">🏆</div><div class="camp-lbl">CAMPEÓN</div><div class="camp-nom">' + torneo.campeon + '</div>';
+    } else {
+        html += '<div class="camp-trofeo" style="opacity:0.15;">🏆</div><div class="camp-lbl">GRAN FINAL</div><div class="camp-nom" style="color:#333;">POR DEFINIR</div>';
+    }
+    html += '</div>';
+    document.getElementById('cuadro-contenido').innerHTML = html;
+}
+
+function buildCardCuadro(p) {
+    var cls = 'cuadro-card ';
+    if (p.estado === 'TERMINADA') cls += 'terminada';
+    else if (p.estado === 'EN_JUEGO') cls += 'en-juego';
+    else if (p.estado === 'BYE') cls += 'bye';
+    else cls += 'pendiente';
+    var term = p.estado === 'TERMINADA', g1 = p.ganador === p.j1, g2 = p.ganador === p.j2;
+    var html = '<div class="' + cls + '" style="position:relative;">';
+    if (p.estado === 'EN_JUEGO') html += '<div class="cc-live">● LIVE</div>';
+    var av1 = p.j1 ? p.j1.trim()[0] : '?';
+    html += '<div class="cc-jug ' + (term ? (g1 ? 'ganador' : 'perdedor') : '') + '"><div class="cc-av">' + av1 + '</div><div class="cc-nom">' + (p.j1 || '—').split(' ')[0] + '</div>' + (term ? '<div class="cc-pts ' + (g1 ? 'top' : '') + '">' + (p.pts1 || 0) + '</div>' : '') + '</div>';
+    var av2 = p.j2 ? p.j2.trim()[0] : '?';
+    html += '<div class="cc-jug ' + (term ? (g2 ? 'ganador' : 'perdedor') : '') + '"><div class="cc-av">' + av2 + '</div><div class="cc-nom">' + (p.j2 || '—').split(' ')[0] + '</div>' + (term ? '<div class="cc-pts ' + (g2 ? 'top' : '') + '">' + (p.pts2 || 0) + '</div>' : '') + '</div>';
+    return html + '</div>';
+}
+
+function calcTablaFinal() {
+    // Construir tabla de posiciones final a partir de las rondas
+    var totalRondas = MasterVIP.totalRondas((torneo.inscritos || []).length);
+    var posMap = {}; // nombre -> {pos, ronda, car, ent, promedio, serieMax}
+
+    // Inicializar todos los inscritos
+    for (var i = 0; i < torneo.inscritos.length; i++) {
+        var jug = torneo.inscritos[i];
+        posMap[jug.nombre.toUpperCase()] = {
+            nombre: jug.nombre, rondaElim: 0,
+            car: 0, ent: 0, promedio: 0, serieMax: 0, partidas: 0
+        };
+    }
+
+    // Recorrer todas las partidas y acumular stats
+    for (var ri = 0; ri < torneo.rondas.length; ri++) {
+        var ronda = torneo.rondas[ri];
+        for (var pi = 0; pi < ronda.partidas.length; pi++) {
+            var p = ronda.partidas[pi];
+            if (p.estado !== 'TERMINADA') continue;
+
+            // J1
+            var k1 = (p.j1 || '').toUpperCase();
+            if (posMap[k1]) {
+                posMap[k1].car += parseInt(p.pts1) || 0;
+                posMap[k1].ent += parseInt(p.entradas1 || 0);
+                posMap[k1].partidas++;
+                posMap[k1].rondaElim = ronda.numero;
+                if ((p.serieJ1 || 0) > posMap[k1].serieMax) posMap[k1].serieMax = p.serieJ1 || 0;
+            }
+            // J2
+            var k2 = (p.j2 || '').toUpperCase();
+            if (posMap[k2]) {
+                posMap[k2].car += parseInt(p.pts2) || 0;
+                posMap[k2].ent += parseInt(p.entradas2 || 0);
+                posMap[k2].partidas++;
+                posMap[k2].rondaElim = ronda.numero;
+                if ((p.serieJ2 || 0) > posMap[k2].serieMax) posMap[k2].serieMax = p.serieJ2 || 0;
+            }
+        }
+    }
+
+    // Calcular promedio
+    var lista = Object.values(posMap);
+    for (var j = 0; j < lista.length; j++) {
+        lista[j].promedio = lista[j].ent > 0 ? lista[j].car / lista[j].ent : parseFloat((lista[j].promedio || 0));
+    }
+
+    // Ordenar: campeón primero, luego por ronda eliminado (desc) y promedio
+    lista.sort(function(a, b) {
+        if (a.nombre.toUpperCase() === (torneo.campeon || '').toUpperCase()) return -1;
+        if (b.nombre.toUpperCase() === (torneo.campeon || '').toUpperCase()) return 1;
+        if (b.rondaElim !== a.rondaElim) return b.rondaElim - a.rondaElim;
+        return b.promedio - a.promedio;
+    });
+    return lista;
+}
+
+function dibujarTablaFinal(cont) {
+    var tabla = calcTablaFinal();
+    var totalRondas = MasterVIP.totalRondas((torneo.inscritos || []).length);
+    var bolsa = MasterVIP.calcularBolsa(torneo);
+    var premios = [
+        Math.round(bolsa * ((torneo.dist1 || 50) / 100)),
+        Math.round(bolsa * ((torneo.dist2 || 30) / 100)),
+        Math.round(bolsa * ((torneo.dist3 || 20) / 100))
+    ];
+    var coronas = ['&#127942;', '&#129352;', '&#129353;'];
+    var posBgs  = [
+        'linear-gradient(160deg,#1a1400,#0a0800)',
+        'linear-gradient(160deg,#141414,#0a0a0a)',
+        'linear-gradient(160deg,#140e00,#0a0800)'
+    ];
+    var posBorders = [
+        'rgba(212,175,55,0.5)',
+        'rgba(192,192,192,0.3)',
+        'rgba(205,127,50,0.3)'
+    ];
+
+    var html = '';
+
+    // PODIO TOP 3
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px;">';
+    for (var i = 0; i < Math.min(3, tabla.length); i++) {
+        var j = tabla[i];
+        var prom = j.promedio.toFixed(3);
+        html += '<div style="background:' + posBgs[i] + ';border:1px solid ' + posBorders[i] + ';border-radius:18px;padding:14px 8px 12px;text-align:center;position:relative;">' +
+            '<div style="position:absolute;top:0;left:0;right:0;height:3px;border-radius:18px 18px 0 0;background:linear-gradient(90deg,transparent,' + posBorders[i] + ',transparent);"></div>' +
+            '<div style="font-size:1.5rem;margin-bottom:6px;">' + coronas[i] + '</div>' +
+            '<div style="width:46px;height:46px;border-radius:50%;margin:0 auto 6px;background:' + posBgs[i] + ';border:2px solid ' + posBorders[i] + ';display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;">' + j.nombre[0] + '</div>' +
+            '<div style="font-size:0.5rem;letter-spacing:1px;color:#ddd;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + j.nombre + '</div>' +
+            '<div style="font-family:Courier New;font-size:0.85rem;color:#fff;">' + prom + '</div>' +
+            (premios[i] ? '<div style="font-size:0.42rem;color:var(--neon);margin-top:4px;">' + MasterVIP.formatearPesos(premios[i]) + '</div>' : '') +
+        '</div>';
+    }
+    html += '</div>';
+
+    // TABLA COMPLETA
+    html += '<div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:16px;overflow:hidden;margin-bottom:16px;">' +
+        '<div style="padding:12px 16px;background:#050505;border-bottom:1px solid #111;display:flex;align-items:center;gap:8px;">' +
+            '<span style="font-size:0.45rem;color:#444;letter-spacing:3px;">TABLA FINAL DEL TORNEO</span>' +
+        '</div>' +
+        '<div style="overflow-x:auto;">' +
+        '<table style="width:100%;min-width:480px;border-collapse:collapse;">' +
+        '<thead><tr style="background:#060606;">' +
+            '<th style="padding:10px 8px;text-align:center;font-size:0.38rem;color:#333;letter-spacing:1px;width:32px;">POS</th>' +
+            '<th style="padding:10px 8px;text-align:left;font-size:0.38rem;color:#333;letter-spacing:1px;">JUGADOR</th>' +
+            '<th style="padding:10px 8px;text-align:center;font-size:0.38rem;color:#333;letter-spacing:1px;">FASE</th>' +
+            '<th style="padding:10px 8px;text-align:center;font-size:0.38rem;color:#333;letter-spacing:1px;">CAR.</th>' +
+            '<th style="padding:10px 8px;text-align:center;font-size:0.38rem;color:#333;letter-spacing:1px;">ENT.</th>' +
+            '<th style="padding:10px 8px;text-align:center;font-size:0.38rem;color:#333;letter-spacing:1px;">PROM.</th>' +
+            '<th style="padding:10px 8px;text-align:center;font-size:0.38rem;color:#333;letter-spacing:1px;">SERIE</th>' +
+        '</tr></thead><tbody>';
+
+    for (var k = 0; k < tabla.length; k++) {
+        var jf = tabla[k];
+        var esCampeon = jf.nombre.toUpperCase() === (torneo.campeon || '').toUpperCase();
+        var fase = esCampeon ? 'CAMPEÓN' : MasterVIP.nombreRonda(totalRondas, jf.rondaElim || 1);
+        var promC = jf.promedio > 0 ? jf.promedio.toFixed(3) : '—';
+        var promColor = jf.promedio >= 1.0 ? 'var(--neon)' : jf.promedio >= 0.7 ? 'var(--oro)' : '#888';
+        var rowBg = k === 0 ? 'rgba(212,175,55,0.04)' : k === 1 ? 'rgba(192,192,192,0.02)' : k === 2 ? 'rgba(205,127,50,0.02)' : 'transparent';
+        var posColor = k === 0 ? 'var(--oro)' : k === 1 ? '#c0c0c0' : k === 2 ? '#cd7f32' : '#333';
+
+        html += '<tr style="background:' + rowBg + ';border-bottom:1px solid #0f0f0f;">' +
+            '<td style="padding:10px 8px;text-align:center;font-size:0.65rem;font-weight:900;color:' + posColor + ';font-family:Courier New;">' + (k + 1) + '</td>' +
+            '<td style="padding:10px 8px;"><div style="font-size:0.6rem;color:#ddd;">' + jf.nombre + '</div></td>' +
+            '<td style="padding:10px 8px;text-align:center;font-size:0.38rem;color:#555;letter-spacing:1px;">' + fase + '</td>' +
+            '<td style="padding:10px 8px;text-align:center;font-size:0.65rem;font-family:Courier New;color:#fff;">' + (jf.car || 0) + '</td>' +
+            '<td style="padding:10px 8px;text-align:center;font-size:0.65rem;font-family:Courier New;color:#888;">' + (jf.ent || 0) + '</td>' +
+            '<td style="padding:10px 8px;text-align:center;font-size:0.65rem;font-family:Courier New;color:' + promColor + ';">' + promC + '</td>' +
+            '<td style="padding:10px 8px;text-align:center;font-size:0.65rem;font-family:Courier New;color:var(--neon);">' + (jf.serieMax || 0) + '</td>' +
+        '</tr>';
+    }
+    html += '</tbody></table></div></div>';
+    cont.innerHTML = html;
+}
+
+function dibujarInfo() {
+    if (!torneo) return;
+
+    // Si torneo FINALIZADO: mostrar tabla final
+    if (torneo.estado === 'FINALIZADO' && torneo.campeon) {
+        dibujarTablaFinal(document.getElementById('info-contenido'));
+        return;
+    }
+
+    var bolsa = MasterVIP.calcularBolsa(torneo);
+    var completadas = 0, totalPartidas = 0;
+    for (var ri = 0; ri < (torneo.rondas || []).length; ri++) {
+        for (var pi = 0; pi < torneo.rondas[ri].partidas.length; pi++) {
+            totalPartidas++;
+            if (torneo.rondas[ri].partidas[pi].estado === 'TERMINADA') completadas++;
+        }
+    }
+    var pct = totalPartidas > 0 ? Math.round((completadas / totalPartidas) * 100) : 0;
+    var html = '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size:0.48rem;letter-spacing:3px;color:#555;margin-bottom:14px;">ℹ DATOS DEL TORNEO</div>' + kpiRow('NOMBRE', torneo.nombre) + kpiRow('CÓDIGO', torneo.codigo) + kpiRow('SEDE', torneo.sede) + kpiRow('MODALIDAD', torneo.modalidad || '—') + kpiRow('SISTEMA', (torneo.sistema || 'llaves').toUpperCase()) + kpiRow('JUGADORES', (torneo.inscritos || []).length + ' / ' + torneo.cupoMax) + kpiRow('ESTADO', torneo.estado) + '</div>';
+    html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size:0.48rem;letter-spacing:3px;color:#555;margin-bottom:14px;">💰 PREMIOS</div>' + kpiRow('INSCRIPCIÓN', MasterVIP.formatearPesos(torneo.inscripcion || 0) + ' / JUG.') + kpiRow('APORTE CLUB', MasterVIP.formatearPesos(torneo.baseClub || 0)) + kpiRow('BOLSA TOTAL', MasterVIP.formatearPesos(bolsa)) + kpiRow('🥇 CAMPEÓN', MasterVIP.formatearPesos(Math.round(bolsa * 0.50))) + kpiRow('🥈 SEGUNDO', MasterVIP.formatearPesos(Math.round(bolsa * 0.25))) + kpiRow('🥉 TERCERO', MasterVIP.formatearPesos(Math.round(bolsa * 0.15))) + '</div>';
+    html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size:0.48rem;letter-spacing:3px;color:#555;margin-bottom:10px;">📊 PROGRESO</div><div style="font-size:0.42rem;color:#555;margin-bottom:6px;">' + completadas + ' DE ' + totalPartidas + ' PARTIDAS JUGADAS</div><div style="height:8px;background:var(--borde);border-radius:10px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,var(--oro),#ffe066);border-radius:10px;"></div></div><div style="font-size:0.38rem;color:#444;margin-top:5px;text-align:right;">' + pct + '% COMPLETADO</div></div>';
+    document.getElementById('info-contenido').innerHTML = html;
+}
+
+function kpiRow(lbl, val) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--borde);"><span style="font-size:0.42rem;color:#444;letter-spacing:1px;">' + lbl + '</span><span style="font-size:0.55rem;color:#ddd;">' + val + '</span></div>';
+}
+
+function iniciarBtn(btn) {
+    var pid = decodeURIComponent(btn.getAttribute('data-id') || '');
+    var j1 = decodeURIComponent(btn.getAttribute('data-j1') || '');
+    var j2 = decodeURIComponent(btn.getAttribute('data-j2') || '');
+    iniciar(pid, j1, j2);
+}
+
+function iniciar(partidaId, j1, j2) {
+    MasterVIP.confirmarListo(torneo.id, partidaId, j1);
+    MasterVIP.confirmarListo(torneo.id, partidaId, j2);
+    localStorage.setItem('PARTIDA_ACTIVA', JSON.stringify({
+        torneoId: torneo.id,
+        partidaId: partidaId,
+        j1: j1, j2: j2,
+        tiempoEntrada: torneo.tiempoEntrada || 40,
+        entradaObjetivo: torneo.entradaObjetivo || 0
+    }));
+    location.href = 'duelo.html';
+}
+</script>
+<script src="whitelabel.js"></script>
+</body>
+</html>

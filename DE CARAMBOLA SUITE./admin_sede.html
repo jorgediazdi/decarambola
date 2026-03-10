@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mi Club — DeCarambola</title>
+    <style>
+        :root {
+            --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70;
+            --rojo:#e74c3c; --azul:#3498db;
+            --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a;
+            --club-color: #d4af37;
+        }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding-bottom:50px; }
+
+        /* HEADER */
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:15px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .header-titulo { color:var(--oro); font-size:1rem; letter-spacing:3px; }
+        .header-sub { color:#333; font-size:0.48rem; letter-spacing:2px; margin-top:2px; }
+        .btn-hdr { background:none; border:1px solid var(--g1); color:#444; padding:7px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; letter-spacing:1px; font-family:'Arial Black',sans-serif; text-decoration:none; }
+
+        .wrap { width:95vw; max-width:500px; padding-top:16px; }
+
+        /* ── PREVIEW TARJETA DEL CLUB ── */
+        .preview-card {
+            border-radius:22px; padding:22px 20px;
+            margin-bottom:18px; position:relative; overflow:hidden;
+            background:var(--g3); border:2px solid var(--club-color);
+            transition: border-color 0.4s;
+            min-height:160px;
+        }
+        .preview-bg {
+            position:absolute; inset:0;
+            background:linear-gradient(135deg, color-mix(in srgb, var(--club-color) 8%, transparent), transparent);
+            transition: background 0.4s;
+        }
+        .preview-deco {
+            position:absolute; right:-15px; top:-15px;
+            font-size:7rem; opacity:0.05; pointer-events:none; line-height:1;
+        }
+        .preview-body { position:relative; z-index:1; }
+        .preview-nombre { font-size:1.4rem; letter-spacing:2px; margin-bottom:4px; transition:color 0.3s; }
+        .preview-ciudad { font-size:0.52rem; letter-spacing:2px; margin-bottom:12px; opacity:0.5; }
+        .preview-chips { display:flex; gap:6px; flex-wrap:wrap; }
+        .preview-chip { font-size:0.45rem; letter-spacing:1px; padding:4px 10px; border-radius:10px; border:1px solid; opacity:0.7; }
+        .preview-badge {
+            position:absolute; bottom:16px; right:16px;
+            font-size:0.42rem; letter-spacing:2px;
+            color:var(--club-color); opacity:0.6;
+        }
+
+        /* ── SECCIÓN ── */
+        .sec { margin-bottom:6px; }
+        .sec-titulo { color:#666; font-size:0.5rem; letter-spacing:3px; margin:20px 0 10px; display:flex; align-items:center; gap:10px; }
+        .sec-titulo::before, .sec-titulo::after { content:''; flex:1; height:1px; background:var(--g1); }
+
+        /* ── CAMPOS ── */
+        .campo { background:var(--g3); border:1px solid var(--g1); border-radius:16px; padding:13px 16px; margin-bottom:10px; }
+        .campo label { display:block; color:#555; font-size:0.5rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:7px; }
+        .campo input, .campo textarea, .campo select {
+            width:100%; background:transparent; border:none; border-bottom:1px solid var(--g1);
+            color:#fff; font-family:'Arial Black',sans-serif; font-size:1rem; padding:5px 0; outline:none;
+        }
+        .campo input::placeholder, .campo textarea::placeholder { color:#555; font-size:0.85rem; font-weight:normal; }
+        .campo textarea { resize:none; height:50px; font-size:0.85rem; }
+        .campo select option { background:#111; }
+        .campo-doble { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+        /* ── SELECTOR DE COLOR ── */
+        .color-picker-wrap { display:flex; flex-direction:column; gap:10px; }
+        .color-paleta { display:flex; gap:8px; flex-wrap:wrap; }
+        .color-swatch {
+            width:36px; height:36px; border-radius:50%;
+            cursor:pointer; border:3px solid transparent;
+            transition:0.2s; flex-shrink:0;
+        }
+        .color-swatch.activo { border-color:#fff; transform:scale(1.15); }
+        .color-custom-row { display:flex; align-items:center; gap:10px; }
+        .inp-color { width:44px; height:36px; border-radius:10px; border:1px solid var(--g1); cursor:pointer; background:none; padding:2px; }
+        .lbl-color { font-size:0.52rem; color:#555; letter-spacing:1px; }
+
+        /* ── SELECTOR DE EMOJI/ÍCONO ── */
+        .emoji-grid { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+        .emoji-opt { font-size:1.6rem; cursor:pointer; padding:6px; border-radius:12px; border:2px solid transparent; transition:0.15s; }
+        .emoji-opt.activo { border-color:var(--oro); background:rgba(212,175,55,0.1); }
+        .emoji-opt:active { transform:scale(0.9); }
+
+    
+    /* ══ MESAS Y LAYOUT ══════════════════════════════════════ */
+    var numMesas = 4;
+    var layoutActual = 'fila';
+    var nombresMesas = {};
+    var LAYOUTS = [
+        {id:'fila', label:'UNA FILA'},
+        {id:'dos-filas', label:'DOS FILAS'},
+        {id:'l-shape', label:'EN L'},
+        {id:'libre', label:'LIBRE'}
+    ];
+
+    function ajustarMesas(delta) {
+        numMesas = Math.max(1, Math.min(20, numMesas + delta));
+        document.getElementById('lbl-num-mesas').innerText = numMesas;
+        renderLayoutPreview();
+    }
+
+    function elegirLayout(id) {
+        layoutActual = id;
+        document.querySelectorAll('.layout-opt').forEach(function(el) {
+            var a = el.dataset.lid === id;
+            el.style.borderColor = a ? colorActual : '#1a1a1a';
+            el.querySelector('.lo-lbl').style.color = a ? colorActual : '#555';
+        });
+        renderLayoutPreview();
+    }
+
+    function renderLayoutPreview() {
+        var cont = document.getElementById('layout-preview');
+        if (!cont) return;
+        cont.innerHTML = '';
+        var sz = numMesas <= 6 ? 70 : 52;
+        for (var i = 1; i <= numMesas; i++) {
+            var mesa = document.createElement('div');
+            mesa.style.cssText =
+                'width:'+sz+'px;height:'+(sz*0.6)+'px;' +
+                'background:linear-gradient(135deg,#0d4a28,#073320);' +
+                'border:2px solid '+colorActual+';border-radius:8px;' +
+                'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+                'cursor:pointer;flex-shrink:0;transition:0.15s;';
+            var nom = nombresMesas[i] || ('M'+i);
+            mesa.innerHTML =
+                '<div style="font-size:0.45rem;color:'+colorActual+';font-family:Arial Black,sans-serif;letter-spacing:1px;">'+nom+'</div>' +
+                '<div style="font-size:0.65rem;">🎱</div>';
+            mesa.onclick = (function(idx) {
+                return function() {
+                    var nuevo = prompt('Nombre de la mesa '+idx+':', nombresMesas[idx] || 'Mesa '+idx);
+                    if (nuevo !== null) { nombresMesas[idx] = nuevo.trim() || ('Mesa '+idx); renderLayoutPreview(); }
+                };
+            })(i);
+            cont.appendChild(mesa);
+            if (layoutActual === 'dos-filas' && i === Math.ceil(numMesas/2)) {
+                var br = document.createElement('div');
+                br.style.cssText = 'width:100%;height:0;flex-basis:100%;';
+                cont.appendChild(br);
+            }
+        }
+        cont.style.flexWrap = (layoutActual === 'fila' && numMesas <= 6) ? 'nowrap' : 'wrap';
+        cont.style.overflowX = (layoutActual === 'fila' && numMesas > 6) ? 'auto' : 'visible';
+    }
+
+    function initLayouts() {
+        var cont = document.getElementById('layout-opciones');
+        if (!cont) return;
+        cont.innerHTML = LAYOUTS.map(function(l) {
+            var a = l.id === layoutActual;
+            return '<div class="layout-opt" data-lid="'+l.id+'" onclick="elegirLayout(\''+l.id+'\')" ' +
+                'style="background:#0a0a0a;border:2px solid '+(a?'var(--club-color)':'#1a1a1a')+';' +
+                'border-radius:14px;padding:14px 8px;text-align:center;cursor:pointer;transition:0.2s;">' +
+                '<div class="lo-lbl" style="font-size:0.5rem;letter-spacing:2px;font-family:Arial Black,sans-serif;color:'+(a?'var(--club-color)':'#555')+';">'+l.label+'</div>' +
+                '</div>';
+        }).join('');
+    }
+
+    /* ── PIN ── */
+        .pin-row { display:flex; gap:8px; }
+        .pin-digit {
+            flex:1; height:52px; background:var(--g3); border:2px solid var(--g1);
+            border-radius:14px; color:#fff; font-size:1.5rem; text-align:center;
+            font-family:'Courier New',monospace; outline:none; caret-color:var(--oro);
+        }
+        .pin-digit:focus { border-color:var(--oro); }
+
+        /* ── LOGO UPLOAD ── */
+        .logo-upload-area {
+            border: 2px dashed var(--g1);
+            border-radius: 18px;
+            padding: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            background: var(--g3);
+            position: relative;
+        }
+        .logo-upload-area:hover { border-color: var(--oro); background: rgba(212,175,55,0.05); }
+        .logo-upload-area input[type=file] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 2;
+        }
+        .logo-preview-circle {
+            width: 80px; height: 80px; border-radius: 50%;
+            border: 2px solid var(--club-color, #d4af37);
+            margin: 0 auto 10px;
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+            background: var(--g2);
+            font-size: 2rem;
+        }
+        .logo-preview-circle img { width: 100%; height: 100%; object-fit: cover; }
+        .logo-upload-txt { color: #666; font-size: 0.55rem; letter-spacing: 2px; }
+        .logo-upload-txt b { color: var(--oro); display: block; font-size: 0.7rem; margin-bottom: 4px; }
+        .btn-remove-logo {
+            margin-top: 10px; padding: 6px 16px;
+            background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.3);
+            color: #ff6b6b; border-radius: 10px; font-size: 0.55rem;
+            cursor: pointer; letter-spacing: 1px; display: none;
+        }
+        /* Preview card con logo */
+        .preview-deco-logo {
+            width: 52px; height: 52px; border-radius: 50%;
+            overflow: hidden; display: inline-flex;
+            align-items: center; justify-content: center;
+            border: 2px solid var(--club-color, #d4af37);
+            background: var(--g2);
+        }
+        .preview-deco-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ── CONFIGURACIÓN ACTUAL CHIP ── */
+        .sede-chip-wrap {
+            background:var(--g3); border:1px solid var(--g1);
+            border-radius:16px; padding:12px 16px;
+            display:flex; align-items:center; justify-content:space-between;
+            margin-bottom:18px;
+        }
+        .sede-chip-info small { color:#444; font-size:0.48rem; letter-spacing:2px; display:block; }
+        .sede-chip-info b { color:#fff; font-size:0.9rem; margin-top:2px; display:block; }
+        .sede-badge { font-size:0.48rem; padding:5px 12px; border-radius:10px; letter-spacing:1px; }
+        .sede-ok { background:rgba(46,255,112,0.1); color:var(--neon); border:1px solid rgba(46,255,112,0.25); }
+        .sede-no { background:var(--g2); color:#333; border:1px solid var(--g1); }
+
+        /* ── BTNS ── */
+        .btn-guardar {
+            width:100%; padding:18px;
+            background:linear-gradient(135deg,var(--oro),#a07800);
+            color:#000; border:none; border-radius:18px;
+            font-size:1rem; font-weight:bold;
+            font-family:'Arial Black',sans-serif;
+            cursor:pointer; letter-spacing:2px;
+            margin-bottom:10px; transition:0.15s;
+            box-shadow:0 6px 20px rgba(212,175,55,0.2);
+        }
+        .btn-guardar:active { transform:scale(0.97); box-shadow:none; }
+
+        .btn-sec {
+            width:100%; padding:14px; background:var(--g3);
+            border:1px solid var(--g1); color:#666;
+            border-radius:16px; font-size:0.7rem; font-weight:bold;
+            font-family:'Arial Black',sans-serif; cursor:pointer;
+            letter-spacing:1px; margin-bottom:10px; transition:0.15s;
+        }
+        .btn-sec:active { border-color:var(--rojo); color:var(--rojo); }
+
+        /* ── ANUNCIO ── */
+        .anuncio-preview {
+            background:linear-gradient(135deg,#0a0800,#1a1200);
+            border:1px solid rgba(212,175,55,0.2); border-left:4px solid var(--oro);
+            border-radius:14px; padding:14px 16px; margin-bottom:10px;
+            display:none;
+        }
+        .anuncio-preview b { color:var(--oro); display:block; margin-bottom:4px; font-size:0.85rem; }
+        .anuncio-preview p { color:#555; font-size:0.58rem; line-height:1.7; }
+
+        .vacio { text-align:center; padding:20px; color:#333; font-size:0.6rem; letter-spacing:1px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-titulo">MI CLUB</div>
+        <div class="header-sub">CONFIGURACIÓN DE SEDE</div>
+    </div>
+    <a href="index.html" class="btn-hdr">← MENÚ</a>
+</div>
+
+<div class="wrap">
+
+    <!-- ESTADO ACTUAL -->
+    <div class="sede-chip-wrap">
+        <div class="sede-chip-info">
+            <small>SEDE CONFIGURADA</small>
+            <b id="lbl-sede-actual">Sin configurar</b>
+        </div>
+        <span class="sede-badge sede-no" id="lbl-sede-badge">SIN CONFIGURAR</span>
+    </div>
+
+    <!-- ══ PREVIEW TARJETA VIVA ══ -->
+    <div class="preview-card" id="preview-card">
+        <div class="preview-bg" id="preview-bg"></div>
+        <div class="preview-deco" id="preview-deco">🎱</div>
+        <div class="preview-body">
+            <div class="preview-nombre" id="preview-nombre" style="color:var(--club-color)">NOMBRE DEL CLUB</div>
+            <div class="preview-ciudad" id="preview-ciudad">CIUDAD · PAÍS</div>
+            <div class="preview-chips">
+                <div class="preview-chip" id="prev-chip1" style="color:var(--club-color);border-color:var(--club-color)">🎱 BILLAR 3 BANDAS</div>
+                <div class="preview-chip" id="prev-chip2" style="color:var(--club-color);border-color:var(--club-color)">📍 COLOMBIA</div>
+            </div>
+        </div>
+        <div class="preview-badge">DeCarambola ✦</div>
+    </div>
+
+    <!-- ══ IDENTIDAD DEL CLUB ══ -->
+    <div class="sec-titulo">IDENTIDAD</div>
+
+    <div class="campo">
+        <label>Nombre del Club *</label>
+        <input type="text" id="inp-nombre" placeholder="BILLAR CLUB MEDELLÍN"
+            oninput="this.value=this.value.toUpperCase(); actualizarPreview()">
+    </div>
+
+    <div class="campo-doble">
+        <div class="campo">
+            <label>Ciudad *</label>
+            <input type="text" id="inp-ciudad" placeholder="MEDELLÍN"
+                oninput="this.value=this.value.toUpperCase(); actualizarPreview()">
+        </div>
+        <div class="campo">
+            <label>País</label>
+            <input type="text" id="inp-pais" placeholder="COLOMBIA"
+                oninput="this.value=this.value.toUpperCase(); actualizarPreview()">
+        </div>
+    </div>
+
+    <div class="campo">
+        <label>Modalidad Principal</label>
+        <select id="inp-modalidad" onchange="actualizarPreview()">
+            <option value="BILLAR 3 BANDAS">🎱 3 BANDAS</option>
+            <option value="BILLAR LIBRE">🎱 BILLAR LIBRE</option>
+            <option value="BILLAR CADRE">🎱 CADRE</option>
+            <option value="BILLAR ARTÍSTICO">🎱 ARTÍSTICO</option>
+            <option value="POOL 8 BOLAS">🎱 POOL 8 BOLAS</option>
+            <option value="POOL 9 BOLAS">🎱 POOL 9 BOLAS</option>
+            <option value="SNOOKER">🎱 SNOOKER</option>
+        </select>
+    </div>
+
+    <!-- ══ COLOR DEL CLUB ══ -->
+    <div class="sec-titulo">COLOR DEL CLUB</div>
+
+    <div class="campo">
+        <label>Elige el color que identifica tu club</label>
+        <div class="color-picker-wrap">
+            <div class="color-paleta" id="color-paleta">
+                <!-- se llena por JS -->
+            </div>
+            <div class="color-custom-row">
+                <input type="color" class="inp-color" id="inp-color-custom" value="#d4af37" oninput="elegirColorCustom(this.value)">
+                <span class="lbl-color">COLOR PERSONALIZADO</span>
+                <span id="lbl-hex" style="font-size:0.52rem;color:var(--oro);font-family:'Courier New',monospace;">#d4af37</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ LOGO DEL CLUB ══ -->
+    <div class="sec-titulo">LOGO DEL CLUB</div>
+
+    <div class="campo">
+        <label>Sube tu logo (JPG o PNG) — opcional</label>
+        <label class="logo-upload-area" id="logo-upload-area" for="inp-logo" style="cursor:pointer;display:block;">
+            <input type="file" id="inp-logo" accept="image/jpeg,image/png,image/webp,image/gif"
+                onchange="cargarLogo(this)"
+                style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;">
+            <div class="logo-preview-circle" id="logo-preview-circle">
+                <span id="logo-emoji-placeholder">🏛️</span>
+            </div>
+            <div class="logo-upload-txt">
+                <b id="logo-upload-label">TOCA PARA SUBIR LOGO</b>
+                JPG · PNG · WEBP — máx. 2 MB
+            </div>
+        </label>
+        <button class="btn-remove-logo" id="btn-remove-logo" onclick="quitarLogo(event)">✕ QUITAR LOGO</button>
+    </div>
+
+    <!-- ══ ÍCONO / EMOJI DEL CLUB ══ -->
+    <div class="sec-titulo">ÍCONO DEL CLUB</div>
+
+    <div class="campo">
+        <label>Ícono que aparece en la tarjeta</label>
+        <div class="emoji-grid" id="emoji-grid">
+            <!-- se llena por JS -->
+        </div>
+    </div>
+
+    <!-- ══ CONTACTO ══ -->
+    <div class="sec-titulo">CONTACTO Y REDES</div>
+
+    <div class="campo">
+        <label>WhatsApp del Club</label>
+        <input type="tel" id="inp-tel" placeholder="3001234567" maxlength="10">
+    </div>
+
+    <div class="campo-doble">
+        <div class="campo">
+            <label>Instagram</label>
+            <input type="text" id="inp-ig" placeholder="@miclub">
+        </div>
+        <div class="campo">
+            <label>Facebook</label>
+            <input type="text" id="inp-fb" placeholder="MiClub">
+        </div>
+    </div>
+
+
+    <!-- ══ MESAS Y LAYOUT ══ -->
+    <div class="sec-titulo">MESAS Y LAYOUT</div>
+
+    <div class="campo">
+        <label>Número de Mesas</label>
+        <div style="display:flex;align-items:center;gap:16px;margin-top:8px;">
+            <button onclick="ajustarMesas(-1)" style="width:44px;height:44px;background:#111;border:1px solid #2a2a2a;border-radius:12px;color:#fff;font-size:1.4rem;cursor:pointer;">−</button>
+            <div style="flex:1;text-align:center;">
+                <div id="lbl-num-mesas" style="font-size:2.2rem;color:var(--club-color);font-family:Courier New,monospace;font-weight:900;line-height:1;">4</div>
+                <div style="font-size:0.42rem;color:#444;letter-spacing:2px;margin-top:2px;">MESAS</div>
+            </div>
+            <button onclick="ajustarMesas(+1)" style="width:44px;height:44px;background:#111;border:1px solid #2a2a2a;border-radius:12px;color:#fff;font-size:1.4rem;cursor:pointer;">+</button>
+        </div>
+    </div>
+
+    <div class="campo">
+        <label>Disposición del Salón</label>
+        <div id="layout-opciones" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;"></div>
+    </div>
+
+    <div class="campo">
+        <label>Vista Previa del Salón — toca una mesa para renombrarla</label>
+        <div id="layout-preview" style="background:#050505;border:1px solid #1a1a1a;border-radius:16px;padding:16px;min-height:100px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;overflow-x:auto;"></div>
+    </div>
+
+    <!-- ══ SEGURIDAD ══ -->
+    <div class="sec-titulo">SEGURIDAD</div>
+
+    <div class="campo">
+        <label>PIN de Administrador (4 dígitos)</label>
+        <div class="pin-row">
+            <input class="pin-digit" type="password" maxlength="1" inputmode="numeric" id="p1" oninput="moverPin(this,'p2')">
+            <input class="pin-digit" type="password" maxlength="1" inputmode="numeric" id="p2" oninput="moverPin(this,'p3')">
+            <input class="pin-digit" type="password" maxlength="1" inputmode="numeric" id="p3" oninput="moverPin(this,'p4')">
+            <input class="pin-digit" type="password" maxlength="1" inputmode="numeric" id="p4">
+        </div>
+    </div>
+
+    <!-- ══ ANUNCIO SLIDER ══ -->
+    <div class="sec-titulo">ANUNCIO EN SLIDER</div>
+
+    <div class="campo">
+        <label>Título del Anuncio</label>
+        <input type="text" id="inp-anuncio-titulo" placeholder="OPEN VIP ABRIL 2026"
+            oninput="this.value=this.value.toUpperCase(); actualizarAnuncioPreview()">
+    </div>
+    <div class="campo">
+        <label>Subtítulo</label>
+        <textarea id="inp-anuncio-sub" placeholder="Inscripciones abiertas · Bolsa garantizada $500.000" oninput="actualizarAnuncioPreview()"></textarea>
+    </div>
+
+    <!-- Preview anuncio -->
+    <div class="anuncio-preview" id="anuncio-preview">
+        <b id="prev-anuncio-titulo">—</b>
+        <p id="prev-anuncio-sub">—</p>
+    </div>
+
+    <!-- BOTONES -->
+    <button class="btn-guardar" onclick="guardar()">⚡ GUARDAR CONFIGURACIÓN</button>
+    <button class="btn-sec" onclick="resetear()">🗑 RESETEAR CLUB</button>
+
+</div>
+
+<script src="core.js"></script>
+<script>
+
+    var colorActual = '#d4af37';
+    var emojiActual = '🎱';
+    var logoBase64  = '';
+
+    /* ══ FUNCIONES DE LOGO ══════════════════════════════════════ */
+    function cargarLogo(input) {
+        if (!input.files || !input.files[0]) return;
+        var file = input.files[0];
+        if (file.size > 2 * 1024 * 1024) {
+            alert('El logo debe pesar menos de 2 MB.\nEste archivo pesa ' + (file.size/1048576).toFixed(1) + ' MB.');
+            input.value = '';
+            return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            logoBase64 = e.target.result;
+            mostrarLogoPreview(logoBase64);
+        };
+        reader.onerror = function() { alert('Error leyendo el archivo. Intenta de nuevo.'); };
+        reader.readAsDataURL(file);
+    }
+
+    function mostrarLogoPreview(src) {
+        var circle = document.getElementById('logo-preview-circle');
+        var label  = document.getElementById('logo-upload-label');
+        var btnRm  = document.getElementById('btn-remove-logo');
+        if (circle) circle.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        if (label)  label.innerText  = '✅ LOGO CARGADO — TOCA PARA CAMBIAR';
+        if (btnRm)  btnRm.style.display = 'block';
+        // Preview en tarjeta
+        var deco = document.getElementById('preview-deco-logo');
+        if (deco) deco.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+        actualizarPreview();
+    }
+
+    function quitarLogo(e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        logoBase64 = '';
+        var circle = document.getElementById('logo-preview-circle');
+        var label  = document.getElementById('logo-upload-label');
+        var btnRm  = document.getElementById('btn-remove-logo');
+        var inp    = document.getElementById('inp-logo');
+        if (circle) circle.innerHTML = '<span id="logo-emoji-placeholder">' + emojiActual + '</span>';
+        if (label)  label.innerText  = 'TOCA PARA SUBIR LOGO';
+        if (btnRm)  btnRm.style.display = 'none';
+        if (inp)    inp.value = '';
+        var deco = document.getElementById('preview-deco-logo');
+        if (deco) deco.innerHTML = '<span style="font-size:1.6rem;">' + emojiActual + '</span>';
+        actualizarPreview();
+    }
+
+    var COLORES = [
+        '#d4af37','#2eff70','#3498db','#e74c3c',
+        '#9b59b6','#e67e22','#1abc9c','#f39c12',
+        '#fff','#c0392b','#16a085','#2980b9'
+    ];
+
+    var EMOJIS = ['🎱','🏆','⭐','🎯','👑','🔥','🌟','⚡','🎲','🏅','💎','🎪'];
+
+    /* ── INIT ── */
+    window.onload = function () {
+        // Paleta de colores
+        var paleta = document.getElementById('color-paleta');
+        paleta.innerHTML = COLORES.map(function(c){
+            return '<div class="color-swatch" style="background:'+c+'" onclick="elegirColor(''+c+'',this)" title="'+c+'"></div>';
+        }).join('');
+
+        // Grid de emojis
+        var grid = document.getElementById('emoji-grid');
+        grid.innerHTML = EMOJIS.map(function(e){
+            return '<div class="emoji-opt" onclick="elegirEmoji(''+e+'',this)">'+e+'</div>';
+        }).join('');
+
+        // Marcar primeros activos
+        paleta.firstChild.classList.add('activo');
+        grid.firstChild.classList.add('activo');
+
+        // Cargar configuración guardada
+        var sede = MasterVIP.getSede();
+        var config = JSON.parse(localStorage.getItem('CLUB_CONFIG')) || {};
+
+        if (sede.nombre !== 'GLOBAL') {
+            document.getElementById('lbl-sede-actual').innerText = sede.nombre;
+            document.getElementById('lbl-sede-badge').innerText  = '✅ ACTIVA';
+            document.getElementById('lbl-sede-badge').className  = 'sede-badge sede-ok';
+            document.getElementById('inp-nombre').value = sede.nombre;
+        }
+
+        if (config.ciudad) document.getElementById('inp-ciudad').value = config.ciudad;
+        if (config.pais)   document.getElementById('inp-pais').value   = config.pais;
+        else               document.getElementById('inp-pais').value   = 'COLOMBIA';
+        if (config.tel)    document.getElementById('inp-tel').value    = config.tel;
+        if (config.ig)     document.getElementById('inp-ig').value     = config.ig;
+        if (config.fb)     document.getElementById('inp-fb').value     = config.fb;
+        if (config.modalidad) document.getElementById('inp-modalidad').value = config.modalidad;
+
+        if (config.color) {
+            elegirColorSilencioso(config.color);
+            document.getElementById('inp-color-custom').value = config.color;
+            document.getElementById('lbl-hex').innerText = config.color;
+        }
+        if (config.emoji) {
+            elegirEmojiSilencioso(config.emoji);
+        }
+        // Cargar logo — compatible con clave nueva (logoUrl) y vieja (logo)
+        var logoGuardado = config.logoUrl || config.logo || '';
+        if (logoGuardado) {
+            logoBase64 = logoGuardado;
+            mostrarLogoPreview(logoGuardado);
+        } else {
+            var btnRm = document.getElementById('btn-remove-logo');
+            if (btnRm) btnRm.style.display = 'none';
+        }
+
+        var anuncio = JSON.parse(localStorage.getItem('ANUNCIO_IA')) || {};
+        if (anuncio.titulo) document.getElementById('inp-anuncio-titulo').value = anuncio.titulo;
+        if (anuncio.subtitulo) document.getElementById('inp-anuncio-sub').value = anuncio.subtitulo;
+
+        actualizarPreview();
+        actualizarAnuncioPreview();
+
+        // Init mesas
+        initLayouts();
+        var savedMesas = JSON.parse(localStorage.getItem('CLUB_MESAS') || '{}');
+        if (savedMesas.numMesas) { numMesas = savedMesas.numMesas; document.getElementById('lbl-num-mesas').innerText = numMesas; }
+        if (savedMesas.layout)  { layoutActual = savedMesas.layout; }
+        if (savedMesas.nombres) { nombresMesas = savedMesas.nombres; }
+        initLayouts();
+        renderLayoutPreview();
+    };
+
+    /* ── COLOR ── */
+    function elegirColor(color, el) {
+        colorActual = color;
+        document.querySelectorAll('.color-swatch').forEach(function(s){ s.classList.remove('activo'); });
+        el.classList.add('activo');
+        document.getElementById('inp-color-custom').value = color;
+        document.getElementById('lbl-hex').innerText = color;
+        aplicarColor(color);
+    }
+
+    function elegirColorCustom(color) {
+        colorActual = color;
+        document.querySelectorAll('.color-swatch').forEach(function(s){ s.classList.remove('activo'); });
+        document.getElementById('lbl-hex').innerText = color;
+        aplicarColor(color);
+    }
+
+    function elegirColorSilencioso(color) {
+        colorActual = color;
+        aplicarColor(color);
+        // marcar swatch si coincide
+        document.querySelectorAll('.color-swatch').forEach(function(s){
+            s.classList.toggle('activo', s.style.background === color || s.title === color);
+        });
+    }
+
+    function aplicarColor(color) {
+        document.documentElement.style.setProperty('--club-color', color);
+        actualizarPreview();
+    }
+
+    /* ── EMOJI ── */
+    function elegirEmoji(emoji, el) {
+        emojiActual = emoji;
+        document.querySelectorAll('.emoji-opt').forEach(function(e){ e.classList.remove('activo'); });
+        el.classList.add('activo');
+        actualizarPreview();
+    }
+
+    function elegirEmojiSilencioso(emoji) {
+        emojiActual = emoji;
+        document.querySelectorAll('.emoji-opt').forEach(function(e){
+            e.classList.toggle('activo', e.innerText === emoji);
+        });
+    }
+
+    /* ── PREVIEW ── */
+    function actualizarPreview() {
+        var nom  = document.getElementById('inp-nombre').value || 'NOMBRE DEL CLUB';
+        var ciu  = document.getElementById('inp-ciudad').value || 'CIUDAD';
+        var pais = document.getElementById('inp-pais').value   || 'PAÍS';
+        var mod  = document.getElementById('inp-modalidad').value || 'BILLAR 3 BANDAS';
+
+        document.getElementById('preview-nombre').innerText  = nom;
+        document.getElementById('preview-ciudad').innerText  = ciu + ' · ' + pais;
+        document.getElementById('prev-chip1').innerText      = emojiActual + ' ' + mod;
+        document.getElementById('prev-chip2').innerText      = '📍 ' + pais;
+
+        // Logo o emoji en el deco
+        var deco = document.getElementById('preview-deco');
+        if (logoBase64) {
+            deco.innerHTML = '<img src="'+logoBase64+'" id="preview-logo-img" style="width:48px;height:48px;object-fit:contain;border-radius:8px;">';
+        } else {
+            deco.innerHTML = emojiActual;
+        }
+
+        // Aplicar color al card
+        var card = document.getElementById('preview-card');
+        card.style.borderColor = colorActual;
+        document.getElementById('preview-bg').style.background =
+            'linear-gradient(135deg, ' + colorActual + '0f, transparent)';
+        document.getElementById('preview-nombre').style.color = colorActual;
+        document.getElementById('prev-chip1').style.color       = colorActual;
+        document.getElementById('prev-chip1').style.borderColor = colorActual;
+        document.getElementById('prev-chip2').style.color       = colorActual;
+        document.getElementById('prev-chip2').style.borderColor = colorActual;
+    }
+
+    function actualizarAnuncioPreview() {
+        var tit = document.getElementById('inp-anuncio-titulo').value;
+        var sub = document.getElementById('inp-anuncio-sub').value;
+        var prev = document.getElementById('anuncio-preview');
+        if (tit) {
+            prev.style.display = 'block';
+            document.getElementById('prev-anuncio-titulo').innerText = tit;
+            document.getElementById('prev-anuncio-sub').innerText = sub || '—';
+        } else {
+            prev.style.display = 'none';
+        }
+    }
+
+
+    /* ══ MESAS Y LAYOUT ══════════════════════════════════════ */
+    var numMesas = 4;
+    var layoutActual = 'fila';
+    var nombresMesas = {};
+    var LAYOUTS = [
+        {id:'fila', label:'UNA FILA'},
+        {id:'dos-filas', label:'DOS FILAS'},
+        {id:'l-shape', label:'EN L'},
+        {id:'libre', label:'LIBRE'}
+    ];
+
+    function ajustarMesas(delta) {
+        numMesas = Math.max(1, Math.min(20, numMesas + delta));
+        document.getElementById('lbl-num-mesas').innerText = numMesas;
+        renderLayoutPreview();
+    }
+
+    function elegirLayout(id) {
+        layoutActual = id;
+        document.querySelectorAll('.layout-opt').forEach(function(el) {
+            var a = el.dataset.lid === id;
+            el.style.borderColor = a ? colorActual : '#1a1a1a';
+            el.querySelector('.lo-lbl').style.color = a ? colorActual : '#555';
+        });
+        renderLayoutPreview();
+    }
+
+    function renderLayoutPreview() {
+        var cont = document.getElementById('layout-preview');
+        if (!cont) return;
+        cont.innerHTML = '';
+        var sz = numMesas <= 6 ? 70 : 52;
+        for (var i = 1; i <= numMesas; i++) {
+            var mesa = document.createElement('div');
+            mesa.style.cssText =
+                'width:'+sz+'px;height:'+(sz*0.6)+'px;' +
+                'background:linear-gradient(135deg,#0d4a28,#073320);' +
+                'border:2px solid '+colorActual+';border-radius:8px;' +
+                'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+                'cursor:pointer;flex-shrink:0;transition:0.15s;';
+            var nom = nombresMesas[i] || ('M'+i);
+            mesa.innerHTML =
+                '<div style="font-size:0.45rem;color:'+colorActual+';font-family:Arial Black,sans-serif;letter-spacing:1px;">'+nom+'</div>' +
+                '<div style="font-size:0.65rem;">🎱</div>';
+            mesa.onclick = (function(idx) {
+                return function() {
+                    var nuevo = prompt('Nombre de la mesa '+idx+':', nombresMesas[idx] || 'Mesa '+idx);
+                    if (nuevo !== null) { nombresMesas[idx] = nuevo.trim() || ('Mesa '+idx); renderLayoutPreview(); }
+                };
+            })(i);
+            cont.appendChild(mesa);
+            if (layoutActual === 'dos-filas' && i === Math.ceil(numMesas/2)) {
+                var br = document.createElement('div');
+                br.style.cssText = 'width:100%;height:0;flex-basis:100%;';
+                cont.appendChild(br);
+            }
+        }
+        cont.style.flexWrap = (layoutActual === 'fila' && numMesas <= 6) ? 'nowrap' : 'wrap';
+        cont.style.overflowX = (layoutActual === 'fila' && numMesas > 6) ? 'auto' : 'visible';
+    }
+
+    function initLayouts() {
+        var cont = document.getElementById('layout-opciones');
+        if (!cont) return;
+        cont.innerHTML = LAYOUTS.map(function(l) {
+            var a = l.id === layoutActual;
+            return '<div class="layout-opt" data-lid="'+l.id+'" onclick="elegirLayout(\''+l.id+'\')" ' +
+                'style="background:#0a0a0a;border:2px solid '+(a?'var(--club-color)':'#1a1a1a')+';' +
+                'border-radius:14px;padding:14px 8px;text-align:center;cursor:pointer;transition:0.2s;">' +
+                '<div class="lo-lbl" style="font-size:0.5rem;letter-spacing:2px;font-family:Arial Black,sans-serif;color:'+(a?'var(--club-color)':'#555')+';">'+l.label+'</div>' +
+                '</div>';
+        }).join('');
+    }
+
+    /* ── PIN ── */
+    function moverPin(el, sigId) {
+        if (el.value.length === 1) {
+            var sig = document.getElementById(sigId);
+            if (sig) sig.focus();
+        }
+    }
+
+    function getPin() {
+        return document.getElementById('p1').value +
+               document.getElementById('p2').value +
+               document.getElementById('p3').value +
+               document.getElementById('p4').value;
+    }
+
+    /* ── GUARDAR ── */
+    function guardar() {
+        var nom  = document.getElementById('inp-nombre').value.trim();
+        var ciu  = document.getElementById('inp-ciudad').value.trim();
+        var pais = (document.getElementById('inp-pais').value.trim() || 'COLOMBIA');
+        var pin  = getPin();
+        var tel  = document.getElementById('inp-tel').value.trim();
+        var ig   = document.getElementById('inp-ig').value.trim();
+        var fb   = document.getElementById('inp-fb').value.trim();
+        var mod  = document.getElementById('inp-modalidad').value;
+        var tit  = document.getElementById('inp-anuncio-titulo').value.trim();
+        var sub  = document.getElementById('inp-anuncio-sub').value.trim();
+
+        if (!nom)       return alert('El nombre del club es obligatorio.');
+        if (!ciu)       return alert('La ciudad es obligatoria.');
+        if (pin.length < 4) return alert('El PIN debe tener 4 dígitos.');
+
+        // Guardar sede en core
+        MasterVIP.setSede(nom, pin);
+
+        // Guardar config — clave correcta: logoUrl
+        var config = { ciudad:ciu, pais:pais, color:colorActual, emoji:emojiActual, tel:tel, ig:ig, fb:fb, modalidad:mod };
+        if (logoBase64) {
+            config.logoUrl = logoBase64;
+        } else {
+            var prevConfig = JSON.parse(localStorage.getItem('CLUB_CONFIG') || '{}');
+            var prevLogo = prevConfig.logoUrl || prevConfig.logo || '';
+            if (prevLogo) config.logoUrl = prevLogo;
+        }
+        localStorage.setItem('CLUB_CONFIG', JSON.stringify(config));
+        localStorage.setItem('CLUB_MESAS', JSON.stringify({numMesas:numMesas, layout:layoutActual, nombres:nombresMesas}));
+
+        // Guardar anuncio
+        if (tit) {
+            localStorage.setItem('ANUNCIO_IA', JSON.stringify({ titulo:tit, subtitulo:sub }));
+        }
+
+        // Banner de confirmación verde (sin alert molesto)
+        document.getElementById('lbl-sede-actual').innerText = nom;
+        document.getElementById('lbl-sede-badge').innerText  = '✅ ACTIVA';
+        document.getElementById('lbl-sede-badge').className  = 'sede-badge sede-ok';
+
+        var banner = document.createElement('div');
+        banner.style.cssText = 'position:fixed;top:0;left:0;width:100%;z-index:9999;background:linear-gradient(135deg,#061a06,#0a2e0a);border-bottom:2px solid #2eff70;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;';
+        banner.innerHTML =
+            '<div>' +
+                '<div style="color:#2eff70;font-size:0.85rem;font-family:Arial Black,sans-serif;letter-spacing:2px;">✅ ' + nom.toUpperCase() + ' GUARDADO</div>' +
+                '<div style="color:#3a7a3a;font-size:0.42rem;letter-spacing:2px;margin-top:3px;">' + ciu + (config.logoUrl ? ' · CON LOGO ✓' : ' · SIN LOGO') + '</div>' +
+            '</div>' +
+            '<button onclick="location.href=\'index.html\'" style="background:rgba(46,255,112,0.12);border:1px solid rgba(46,255,112,0.35);color:#2eff70;padding:9px 16px;border-radius:10px;font-family:Arial Black,sans-serif;font-size:0.5rem;cursor:pointer;letter-spacing:1px;">IR AL INICIO →</button>';
+        document.body.appendChild(banner);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ── RESETEAR ── */
+    function resetear() {
+        if (!confirm('¿Resetear toda la configuración del club?\nEsto NO borra torneos ni jugadores.')) return;
+        localStorage.removeItem('CLUB_CONFIG');
+        localStorage.removeItem('ANUNCIO_IA');
+        localStorage.removeItem('SEDE_CONFIG');
+        alert('✅ Configuración reseteada');
+        location.reload();
+    }
+
+</script>
+<script src="whitelabel.js"></script>
+</body>
+</html>

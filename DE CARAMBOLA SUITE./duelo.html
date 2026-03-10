@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Duelo — DeCarambola</title>
+    <style>
+        :root {
+            --oro:   #d4af37;
+            --negro: #0b0b0b;
+            --azul:  #3498db;
+            --neon:  #2eff70;
+            --rojo:  #e74c3c;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--negro);
+            color: #fff;
+            font-family: 'Arial Black', Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ═══════════════════════════════════════
+           PANTALLAS — una visible a la vez
+        ═══════════════════════════════════════ */
+        .pantalla {
+            width: 100vw; height: 100vh;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+        }
+        .pantalla.activa { display: flex; }
+
+        /* ═══════════════════════════════════════
+           PANTALLA 1 — REGISTRO + CONFIGURACIÓN
+        ═══════════════════════════════════════ */
+        #p-registro {
+            justify-content: flex-start;
+            padding: 20px 16px 30px;
+        }
+
+        .reg-titulo {
+            color: var(--oro);
+            font-size: 1.3rem;
+            letter-spacing: 4px;
+            text-align: center;
+            margin-bottom: 4px;
+            margin-top: 8px;
+        }
+        .reg-sub {
+            color: #333;
+            font-size: 0.55rem;
+            letter-spacing: 3px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* ── Tarjeta de jugador ── */
+        .jcard {
+            width: 100%; max-width: 440px;
+            background: #0f0f0f;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        /* Bola selector de salida */
+        .bola-sel {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 3px solid #333;
+            cursor: pointer;
+            flex-shrink: 0;
+            appearance: none;
+            transition: 0.3s;
+        }
+        #s1 { background: radial-gradient(circle at 35% 35%, #fff, #aaa); }
+        #s1:checked { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.5); }
+        #s2 { background: radial-gradient(circle at 35% 35%, var(--oro), #886b00); }
+        #s2:checked { border-color: var(--oro); box-shadow: 0 0 12px rgba(212,175,55,0.5); }
+
+        /* Campos de la tarjeta */
+        .jcard-campos { flex: 1; }
+        .jcampo-nom {
+            width: 100%; background: transparent;
+            border: none; border-bottom: 1px solid #222;
+            color: #fff; font-family: 'Arial Black', sans-serif;
+            font-size: 1rem; padding: 5px 0; outline: none;
+            margin-bottom: 8px;
+        }
+        .jcampo-nom::placeholder { color: #888; font-size: 0.85rem; }
+
+        /* Fila de objetivo + hándicap */
+        .jcard-extra {
+            display: flex; gap: 8px; margin-top: 4px;
+        }
+        .jcampo-mini {
+            flex: 1; background: #111;
+            border: 1px solid #222; border-radius: 10px;
+            padding: 8px 10px; display: flex;
+            flex-direction: column; gap: 2px;
+        }
+        .jcampo-mini label {
+            color: #555; font-size: 0.5rem;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+        .jcampo-mini input {
+            width: 100%; background: transparent;
+            border: none; color: #fff;
+            font-family: 'Arial Black', sans-serif;
+            font-size: 0.95rem; outline: none; padding: 0;
+        }
+        .jcampo-mini input::placeholder { color: #888; }
+
+        /* Separador visual */
+        .divider-reg {
+            width: 100%; max-width: 440px;
+            display: flex; align-items: center; gap: 10px;
+            margin: 8px 0;
+        }
+        .div-line { flex: 1; height: 1px; background: #1a1a1a; }
+        .div-txt { color: #333; font-size: 0.55rem; letter-spacing: 2px; }
+
+        /* Config global (reloj, objetivo compartido) */
+        .config-global {
+            width: 100%; max-width: 440px;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 16px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+        }
+        .config-titulo {
+            color: #444; font-size: 0.55rem;
+            letter-spacing: 2px; margin-bottom: 10px;
+        }
+        .config-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .config-item {
+            background: #111; border: 1px solid #1a1a1a;
+            border-radius: 12px; padding: 10px 12px;
+        }
+        .config-item label {
+            display: block; color: #555;
+            font-size: 0.5rem; letter-spacing: 1px;
+            text-transform: uppercase; margin-bottom: 5px;
+        }
+        .config-item input, .config-item select {
+            width: 100%; background: transparent;
+            border: none; color: #fff;
+            font-family: 'Arial Black', sans-serif;
+            font-size: 1rem; outline: none;
+        }
+        .config-item input::placeholder { color: #888; }
+        .config-item select option { background: #111; }
+
+        /* Botón intercambiar */
+        .btn-intercambiar {
+            width: 100%; max-width: 440px;
+            background: none; border: 1px solid #1a1a1a;
+            color: #444; padding: 10px;
+            border-radius: 12px; cursor: pointer;
+            font-size: 0.65rem; letter-spacing: 1px;
+            margin-bottom: 12px; transition: 0.2s;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .btn-intercambiar:active { border-color: var(--oro); color: var(--oro); }
+
+        /* Botón iniciar */
+        .btn-iniciar {
+            width: 100%; max-width: 440px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--oro), #a07800);
+            color: #000; border: none; border-radius: 20px;
+            font-size: 1.1rem; font-weight: bold;
+            font-family: 'Arial Black', sans-serif;
+            cursor: pointer; letter-spacing: 2px;
+            box-shadow: 0 8px 25px rgba(212,175,55,0.25);
+            transition: 0.15s; margin-bottom: 10px;
+        }
+        .btn-iniciar:active { transform: scale(0.97); box-shadow: none; }
+
+        /* Chip de promedio detectado */
+        .prom-detectado {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-size: 0.55rem;
+            color: #555;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+        .prom-detectado.tiene-prom {
+            border-color: rgba(46,255,112,0.3);
+            color: var(--neon);
+            background: rgba(46,255,112,0.05);
+        }
+
+        /* Control de meta con + y - grandes */
+        .meta-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 14px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+        .meta-btn {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            background: #111;
+            color: #fff;
+            font-size: 1.6rem;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.15s;
+            flex-shrink: 0;
+            font-family: 'Arial Black', sans-serif;
+            line-height: 1;
+        }
+        .meta-menos { color: var(--rojo); border-color: rgba(231,76,60,0.3); }
+        .meta-menos:active { background: rgba(231,76,60,0.15); transform: scale(0.9); }
+        .meta-mas   { color: var(--neon); border-color: rgba(46,255,112,0.3); }
+        .meta-mas:active   { background: rgba(46,255,112,0.1); transform: scale(0.9); }
+
+        .meta-display {
+            flex: 1; text-align: center;
+        }
+        .meta-num {
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            line-height: 1;
+        }
+        .meta-num.tiene-meta { color: var(--oro); }
+
+        /* Input numérico directo — mismo tamaño visual */
+        .meta-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #333;
+            color: var(--oro);
+            font-family: 'Courier New', monospace;
+            font-size: 2.6rem;
+            font-weight: 900;
+            text-align: center;
+            outline: none;
+            padding: 0;
+            -moz-appearance: textfield;
+        }
+        .meta-input::-webkit-outer-spin-button,
+        .meta-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .meta-input::placeholder { color: #333; font-size: 2rem; }
+        .meta-lbl-txt {
+            font-size: 0.5rem;
+            color: #444;
+            letter-spacing: 3px;
+            margin-top: 2px;
+        }
+
+        /* Chip de hándicap calculado */
+        .hnd-resultado {
+            display: flex; align-items: center; gap: 8px;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 10px;
+            padding: 7px 12px;
+            font-size: 0.6rem;
+            color: #555;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            min-height: 34px;
+        }
+        .hnd-resultado.con-hnd {
+            border-color: rgba(212,175,55,0.3);
+            color: var(--oro);
+            background: rgba(212,175,55,0.05);
+        }
+        .btn-volver-reg {
+            width: 100%; max-width: 440px;
+            background: none; border: none;
+            color: #333; padding: 12px;
+            cursor: pointer; font-size: 0.65rem;
+            letter-spacing: 1px; text-align: center;
+            font-family: 'Arial Black', sans-serif;
+        }
+
+        /* ═══════════════════════════════════════
+           PANTALLA 2 — JUEGO
+           Layout fijo: barra top | mitad1 | divisor | mitad2 | teclado
+        ═══════════════════════════════════════ */
+        #p-juego {
+            padding: 0;
+            position: relative;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+
+        /* ── BARRA SUPERIOR FIJA (reloj + info) ── */
+        .barra-top {
+            position: fixed; top: 0; left: 0; right: 0;
+            z-index: 50;
+            background: #000;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex; align-items: center;
+            justify-content: space-between;
+            padding: 8px 14px;
+            height: 52px;
+        }
+
+        /* Indicador de meta / progreso */
+        .meta-info {
+            display: flex; flex-direction: column;
+            align-items: flex-start; gap: 1px;
+        }
+        .meta-lbl { color: #333; font-size: 0.45rem; letter-spacing: 2px; }
+        .meta-val { color: var(--oro); font-size: 0.75rem; }
+
+        /* Reloj central */
+        .reloj-box {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 1px;
+        }
+        .reloj-ent { color: #333; font-size: 0.45rem; letter-spacing: 2px; }
+        #reloj {
+            font-size: 1.7rem;
+            color: var(--neon);
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 12px var(--neon);
+            line-height: 1;
+            min-width: 44px; text-align: center;
+        }
+        #reloj.urgente {
+            color: var(--rojo);
+            text-shadow: 0 0 12px var(--rojo);
+            animation: parpadeo 0.5s infinite;
+        }
+        @keyframes parpadeo { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+        /* Botón finalizar visible */
+        .btn-fin {
+            background: rgba(231,76,60,0.12);
+            border: 1px solid rgba(231,76,60,0.4);
+            color: #e88; padding: 6px 12px;
+            border-radius: 16px; font-size: 0.55rem;
+            cursor: pointer; letter-spacing: 1px;
+            font-family: 'Arial Black', sans-serif;
+            transition: 0.2s;
+        }
+        .btn-fin:active { background: rgba(231,76,60,0.25); color: #fff; }
+
+        /* ── CAMPO DE JUEGO ── */
+        .campo-juego {
+            position: fixed;
+            top: 52px;
+            bottom: 155px;
+            left: 0; right: 0;
+            display: flex; flex-direction: column;
+        }
+
+        /* ══ MITAD — cada jugador ocupa exactamente 50% ══ */
+        .mitad {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            grid-template-rows: auto;
+            align-items: center;
+            justify-items: center;
+            padding: 0 16px;
+            transition: background 0.25s;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            gap: 0 12px;
+        }
+
+        /* Borde turno activo */
+        .mitad.activa { background: rgba(212,175,55,0.05); }
+        .mitad.activa::before {
+            content: '';
+            position: absolute; left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: var(--oro);
+            border-radius: 0 3px 3px 0;
+        }
+
+        /* ── NOMBRE — esquina superior izquierda absoluta ── */
+        .j-nombre {
+            position: absolute;
+            top: 7px; left: 14px;
+            font-size: 0.75rem;
+            color: #888;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            transition: color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 55%;
+        }
+        .mitad.activa .j-nombre { color: var(--oro); }
+
+        /* ── META — esquina superior derecha absoluta ── */
+        .j-meta-txt {
+            position: absolute;
+            top: 7px; right: 14px;
+            font-size: 0.7rem; color: #666; letter-spacing: 1px;
+        }
+        .mitad.activa .j-meta-txt { color: #aaa; }
+
+        /* ══ COLUMNA IZQUIERDA: stats ══ */
+        .j-col-stats {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            justify-self: end;
+        }
+        .j-stat {
+            display: flex; flex-direction: column;
+            align-items: flex-end; gap: 1px;
+        }
+        .j-stat-val {
+            font-size: 1.9rem;
+            color: #ffffff;
+            font-family: 'Courier New', monospace;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .j-stat-lbl {
+            font-size: 0.6rem;
+            color: #888;
+            letter-spacing: 2px;
+            text-align: right;
+        }
+
+        /* ══ COLUMNA CENTRO: bola gigante ══ */
+        .bola {
+            width: 118px; height: 118px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.1s;
+            position: relative;
+        }
+        .bola:active { transform: scale(0.88); }
+
+        /* Reflejo superior — da el efecto 3D real de una bola de billar */
+        .bola::after {
+            content: '';
+            position: absolute;
+            top: 12%; left: 18%;
+            width: 30%; height: 22%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.75) 0%, transparent 80%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .bola-blanca {
+            background: radial-gradient(circle at 35% 32%,
+                #ffffff 0%, #f0f0f0 15%, #d0d0d0 35%, #999 60%, #555 85%, #1a1a1a 100%);
+            box-shadow:
+                inset -14px -14px 28px rgba(0,0,0,0.65),
+                inset 6px 6px 14px rgba(255,255,255,0.35),
+                8px 10px 28px rgba(0,0,0,0.95),
+                0 0 0 2px #111;
+        }
+        .bola-dorada {
+            background: radial-gradient(circle at 35% 32%,
+                #fffde0 0%, #fce84a 12%, #e8c020 30%, #c89a00 55%, #7a5500 80%, #2a1800 100%);
+            box-shadow:
+                inset -14px -14px 28px rgba(0,0,0,0.6),
+                inset 6px 6px 14px rgba(255,230,80,0.4),
+                8px 10px 28px rgba(0,0,0,0.95),
+                0 0 0 2px #111,
+                0 0 22px rgba(212,175,55,0.18);
+        }
+        @keyframes bump {
+            0%   { transform: scale(1); }
+            30%  { transform: scale(1.18); filter: brightness(1.5); }
+            100% { transform: scale(1); }
+        }
+        .bola.bump { animation: bump 0.22s ease-out; }
+
+        /* Número dentro de la bola */
+        .j-pts {
+            font-size: 3.6rem;
+            font-weight: 900;
+            color: #111;
+            line-height: 1;
+            user-select: none;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.25);
+            position: relative;
+            z-index: 1;
+        }
+        #bola2 .j-pts { color: #1a0f00; text-shadow: 0 1px 3px rgba(255,200,0,0.2); }
+
+        /* ══ COLUMNA DERECHA: serie ══ */
+        .j-col-serie {
+            display: flex; flex-direction: column;
+            align-items: flex-start; gap: 0;
+            justify-self: start;
+        }
+        .j-serie {
+            font-size: 3.4rem;
+            font-weight: 900;
+            color: #444;
+            line-height: 1;
+            transition: color 0.25s;
+            font-family: 'Courier New', monospace;
+        }
+        .j-serie.activa {
+            color: var(--rojo);
+            text-shadow: 0 0 18px rgba(231,76,60,0.6);
+        }
+        .j-serie-lbl {
+            color: #777; font-size: 0.6rem;
+            letter-spacing: 2px; margin-top: 2px;
+        }
+
+        /* Barra de progreso meta */
+        .j-meta-barra {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 3px; background: #0f0f0f;
+        }
+        .j-meta-fill {
+            height: 100%; background: #333;
+            transition: width 0.3s ease;
+        }
+        .mitad.activa .j-meta-fill { background: var(--oro); }
+
+        /* ── DIVISOR CENTRAL ── */
+        .divisor {
+            position: fixed;
+            left: 0; right: 0;
+            top: calc(52px + (100vh - 52px - 155px) / 2);
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%, #1a1a1a 20%, #333 50%, #1a1a1a 80%, transparent 100%);
+            z-index: 20;
+        }
+        .turno-dot {
+            position: absolute;
+            left: 50%; top: -6px;
+            transform: translateX(-50%);
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: var(--oro);
+            box-shadow: 0 0 14px var(--oro), 0 0 4px #fff;
+        }
+
+        /* ── TECLADO FIJO ── */
+        .teclado-wrap {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            z-index: 50;
+            background: #000;
+            border-top: 1px solid #1a1a1a;
+            padding: 8px 10px 14px;
+            height: 155px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+
+        /* ── CABECERA DEL TECLADO ── */
+        .teclado-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2px;
+            height: 36px;
+            flex-shrink: 0;
+        }
+
+        /* Quién juega: bola + nombre + entrada */
+        .turno-quien {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .turno-bola {
+            width: 28px; height: 28px;
+            border-radius: 50%; flex-shrink: 0;
+        }
+        .turno-bola.blanca {
+            background: radial-gradient(circle at 33% 33%, #fff, #999, #333);
+            box-shadow: inset -3px -3px 6px rgba(0,0,0,0.5), 2px 2px 6px rgba(0,0,0,0.8);
+        }
+        .turno-bola.dorada {
+            background: radial-gradient(circle at 33% 33%, #ffe, var(--oro), #553);
+            box-shadow: inset -3px -3px 6px rgba(0,0,0,0.5), 2px 2px 6px rgba(0,0,0,0.8);
+        }
+        .turno-nombre {
+            font-size: 0.85rem;
+            color: var(--oro);
+            letter-spacing: 2px;
+            line-height: 1;
+            font-weight: 900;
+        }
+        .turno-sub {
+            font-size: 0.5rem;
+            color: #555;
+            letter-spacing: 2px;
+            margin-top: 2px;
+        }
+
+        /* Metas de ambos jugadores */
+        .turno-metas {
+            display: flex; align-items: center; gap: 6px;
+        }
+        .turno-meta-item {
+            display: flex; align-items: baseline; gap: 2px;
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 10px;
+            padding: 4px 10px;
+        }
+        .turno-meta-item.activo {
+            border-color: var(--oro);
+            background: rgba(212,175,55,0.07);
+        }
+        .tm-val {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            line-height: 1;
+        }
+        .tm-sep { color: #333; font-size: 0.7rem; margin: 0 1px; }
+        .tm-tot { font-size: 0.75rem; color: #555; font-family: 'Courier New', monospace; }
+        .turno-meta-item.activo .tm-val { color: var(--oro); }
+        .turno-meta-item.activo .tm-tot { color: var(--oro); opacity: 0.6; }
+        .turno-meta-divider { color: #222; font-size: 0.55rem; letter-spacing: 1px; }
+
+        /* Botones numéricos */
+        .teclado {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px; flex: 1;
+        }
+        .btn-num {
+            background: #111; border: 1px solid #1c1c1c;
+            color: #fff; border-radius: 12px;
+            font-size: 1.5rem; font-weight: 900;
+            cursor: pointer; transition: 0.1s;
+            font-family: 'Arial Black', sans-serif;
+            user-select: none;
+        }
+        .btn-num:active { background: #252525; transform: scale(0.9); border-color: var(--oro); }
+        .btn-restar {
+            background: rgba(231,76,60,0.1);
+            border-color: rgba(231,76,60,0.2);
+            color: var(--rojo); font-size: 1.8rem;
+        }
+        .btn-restar:active { background: rgba(231,76,60,0.22); }
+        .btn-sig {
+            height: 38px;
+            background: linear-gradient(135deg, var(--azul), #1460a0);
+            color: #fff; border: none; border-radius: 12px;
+            font-size: 0.85rem; font-weight: 900;
+            cursor: pointer; letter-spacing: 2px;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .btn-sig:active { transform: scale(0.97); opacity: 0.85; }
+
+        /* ═══════════════════════════════════════
+           PANTALLA 3 — CERTIFICADO / RESUMEN
+        ═══════════════════════════════════════ */
+        #p-certi {
+            justify-content: center;
+            padding: 20px 16px;
+            background: radial-gradient(ellipse at center, #111 0%, #000 100%);
+        }
+
+        .certi-card {
+            width: 100%; max-width: 390px;
+            border: 2px solid var(--oro);
+            border-radius: 28px;
+            padding: 28px 22px;
+            background: linear-gradient(145deg, #0f0f0f, #000);
+            box-shadow: 0 0 50px rgba(212,175,55,0.12);
+            position: relative; overflow: hidden;
+        }
+
+        .certi-corona { font-size: 3rem; text-align: center; display: block; margin-bottom: 6px; }
+
+        .certi-campeontxt {
+            text-align: center;
+            color: #555; font-size: 0.55rem;
+            letter-spacing: 4px; margin-bottom: 6px;
+        }
+
+        /* CAMPEÓN — muy notorio */
+        .certi-campeon {
+            text-align: center;
+            color: var(--oro);
+            font-size: 1.9rem;
+            text-shadow: 0 0 20px rgba(212,175,55,0.4);
+            line-height: 1.1;
+            margin-bottom: 3px;
+        }
+        .certi-campeon-label {
+            text-align: center;
+            color: var(--oro);
+            font-size: 0.65rem;
+            letter-spacing: 4px;
+            margin-bottom: 18px;
+            opacity: 0.7;
+        }
+
+        /* Marcador final */
+        .certi-marcador {
+            display: flex; justify-content: space-around;
+            align-items: center;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 16px;
+            padding: 14px; margin-bottom: 14px;
+        }
+        .certi-j { text-align: center; }
+        .certi-j-nom { font-size: 0.6rem; color: #555; margin-bottom: 4px; }
+        .certi-j-pts { font-size: 2.4rem; color: #fff; line-height: 1; }
+        .certi-j-pts.ganador { color: var(--oro); text-shadow: 0 0 14px rgba(212,175,55,0.4); }
+        .certi-vs { color: #222; font-size: 0.8rem; }
+
+        /* Grid de stats */
+        .certi-stats {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 8px; margin-bottom: 16px;
+        }
+        .certi-stat {
+            background: #0a0a0a; border: 1px solid #1a1a1a;
+            border-radius: 12px; padding: 10px;
+            text-align: center;
+        }
+        .certi-stat b {
+            color: var(--neon); font-size: 1.1rem;
+            display: block; font-family: 'Courier New', monospace;
+        }
+        .certi-stat.destacado b { color: var(--rojo); }
+        .certi-stat small { color: #444; font-size: 0.48rem; letter-spacing: 1px; }
+
+        .btn-guardar {
+            width: 100%; padding: 18px;
+            background: linear-gradient(135deg, var(--neon), #18aa45);
+            color: #000; border: none; border-radius: 18px;
+            font-size: 0.95rem; font-weight: bold;
+            font-family: 'Arial Black', sans-serif;
+            cursor: pointer; letter-spacing: 1px;
+            box-shadow: 0 6px 20px rgba(46,255,112,0.2);
+        }
+        .btn-guardar:active { transform: scale(0.97); }
+
+
+        /* ── SELECTOR FORMATO (pequeño, debajo de config) ── */
+        .fmt-row {
+            width: 100%; max-width: 440px;
+            display: flex; gap: 6px;
+            margin-bottom: 8px;
+        }
+        .fmt-chip {
+            flex: 1; padding: 9px 4px;
+            background: #0a0a0a;
+            border: 1.5px solid #1a1a1a;
+            border-radius: 12px;
+            color: #444;
+            font-family: 'Arial Black', sans-serif;
+            font-size: 0.38rem;
+            letter-spacing: 1px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.18s;
+            line-height: 1.5;
+        }
+        .fmt-chip .fc-ico { display:block; font-size:1rem; margin-bottom:2px; }
+        .fmt-chip.on {
+            border-color: var(--oro);
+            color: var(--oro);
+            background: rgba(212,175,55,0.07);
+        }
+        .fmt-lbl-desc {
+            width: 100%; max-width: 440px;
+            font-size: 0.38rem; color: #444;
+            letter-spacing: 1px; text-align: center;
+            margin-bottom: 14px; padding: 0 4px;
+        }
+
+        /* ── INDICADOR DE SETS — tipo tenis ── */
+        .sets-bar {
+            display: none;  /* solo visible en bo3/bo5/bo7 */
+            position: fixed;
+            top: 52px; left: 0; right: 0;
+            z-index: 45;
+            background: #000;
+            border-bottom: 1px solid #111;
+            padding: 5px 14px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            height: 34px;
+        }
+        .sets-bar.visible { display: flex; }
+
+        /* Ajustar el campo cuando hay sets-bar */
+        .sets-bar.visible ~ .campo-juego {
+            top: 86px;
+        }
+
+        .sb-nombre {
+            font-size: 0.42rem; color: #555;
+            letter-spacing: 2px; min-width: 70px;
+            white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sb-nombre.der { text-align: right; }
+
+        .sb-sets {
+            display: flex; align-items: center; gap: 4px;
+        }
+        .sb-dot {
+            width: 12px; height: 12px;
+            border-radius: 3px;
+            border: 1.5px solid #2a2a2a;
+            background: #0a0a0a;
+            transition: 0.2s;
+        }
+        .sb-dot.j1-won {
+            background: #fff;
+            border-color: #fff;
+            box-shadow: 0 0 6px rgba(255,255,255,0.4);
+        }
+        .sb-dot.j2-won {
+            background: var(--oro);
+            border-color: var(--oro);
+            box-shadow: 0 0 6px rgba(212,175,55,0.5);
+        }
+        .sb-dot.current {
+            border-color: #444;
+            animation: pulse-dot 1.4s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%,100% { opacity:0.4; } 50% { opacity:1; }
+        }
+
+        .sb-score {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            font-weight: 900;
+            min-width: 28px;
+            text-align: center;
+        }
+        .sb-score.j1 { color: #fff; }
+        .sb-score.j2 { color: var(--oro); }
+        .sb-vs { color: #222; font-size: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<!-- ═════════════════════════════════════════════════
+     PANTALLA 1 — REGISTRO Y CONFIGURACIÓN
+════════════════════════════════════════════════════ -->
+<div class="pantalla activa" id="p-registro">
+
+    <div class="reg-titulo">NUEVO DUELO</div>
+    <div class="reg-sub">CONFIGURA LA PARTIDA</div>
+
+    <!-- ── JUGADOR 1 — bola blanca ── -->
+    <div class="jcard">
+        <input type="radio" name="salida" id="s1" class="bola-sel" checked>
+        <div class="jcard-campos">
+            <input type="text" id="n1" class="jcampo-nom"
+                placeholder="NOMBRE MAESTRO 1"
+                oninput="this.value=this.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g,'').toUpperCase(); debounceBuscar(1)">
+
+            <input type="tel" id="doc1" inputmode="numeric" maxlength="12"
+                placeholder="CÉDULA / PASAPORTE"
+                oninput="this.value=this.value.replace(/[^0-9]/g,''); buscarPorDoc(1);"
+                style="background:transparent;border:none;border-bottom:1px solid #1a1a1a;color:#888;font-family:'Arial Black',sans-serif;font-size:0.75rem;outline:none;width:100%;padding:4px 0;margin-bottom:4px;letter-spacing:2px;">
+
+            <!-- Promedio detectado del historial -->
+            <div class="prom-detectado" id="prom-chip1">
+                <span id="prom-chip1-txt">SIN HISTORIAL</span>
+            </div>
+
+            <!-- Meta: input directo + ajuste fino -->
+            <div class="meta-control">
+                <button class="meta-btn meta-menos" onclick="ajustarMeta(1,-1)">−</button>
+                <div class="meta-display">
+                    <input type="number"
+                        id="meta-num1"
+                        class="meta-input"
+                        placeholder="—"
+                        min="1" max="999"
+                        oninput="metaEscrita(1)">
+                    <div class="meta-lbl-txt">META</div>
+                </div>
+                <button class="meta-btn meta-mas" onclick="ajustarMeta(1,+1)">+</button>
+            </div>
+
+            <!-- Hándicap calculado automáticamente -->
+            <div class="hnd-resultado" id="hnd-chip1">
+                <span class="hnd-ico">⚖️</span>
+                <span id="hnd-chip1-txt">CONFIGURA LAS METAS PARA VER EL HÁNDICAP</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── JUGADOR 2 — bola dorada ── -->
+    <div class="jcard">
+        <input type="radio" name="salida" id="s2" class="bola-sel">
+        <div class="jcard-campos">
+            <input type="text" id="n2" class="jcampo-nom"
+                placeholder="NOMBRE MAESTRO 2"
+                oninput="this.value=this.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g,'').toUpperCase(); debounceBuscar(2)">
+
+            <input type="tel" id="doc2" inputmode="numeric" maxlength="12"
+                placeholder="CÉDULA / PASAPORTE"
+                oninput="this.value=this.value.replace(/[^0-9]/g,''); buscarPorDoc(2);"
+                style="background:transparent;border:none;border-bottom:1px solid #1a1a1a;color:#888;font-family:'Arial Black',sans-serif;font-size:0.75rem;outline:none;width:100%;padding:4px 0;margin-bottom:4px;letter-spacing:2px;">
+
+            <div class="prom-detectado" id="prom-chip2">
+                <span id="prom-chip2-txt">SIN HISTORIAL</span>
+            </div>
+
+            <div class="meta-control">
+                <button class="meta-btn meta-menos" onclick="ajustarMeta(2,-1)">−</button>
+                <div class="meta-display">
+                    <input type="number"
+                        id="meta-num2"
+                        class="meta-input"
+                        placeholder="—"
+                        min="1" max="999"
+                        oninput="metaEscrita(2)">
+                    <div class="meta-lbl-txt">META</div>
+                </div>
+                <button class="meta-btn meta-mas" onclick="ajustarMeta(2,+1)">+</button>
+            </div>
+
+            <div class="hnd-resultado" id="hnd-chip2" style="visibility:hidden;">
+                <span class="hnd-ico"></span>
+                <span id="hnd-chip2-txt"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Separador -->
+    <div class="divider-reg">
+        <div class="div-line"></div>
+        <span class="div-txt">CONFIG. GENERAL</span>
+        <div class="div-line"></div>
+    </div>
+
+    <!-- Config global -->
+    <div class="config-global">
+        <div class="config-titulo">REGLAS DE LA PARTIDA</div>
+        <div class="config-fila">
+            <div class="config-item">
+                <label>Tiempo por entrada (seg)</label>
+                <input type="number" id="cfg-tiempo" value="40" min="10" max="120">
+            </div>
+            <div class="config-item">
+                <label>Modalidad</label>
+                <select id="cfg-modal">
+                    <option value="3 Bandas">3 BANDAS</option>
+                    <option value="Libre">LIBRE</option>
+                    <option value="Cinco Pinos">CINCO PINOS</option>
+                    <option value="Cuadro">CUADRO</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── FORMATO — pequeño, discreto ── -->
+    <div class="divider-reg" style="margin-top:4px;">
+        <div class="div-line"></div>
+        <span class="div-txt">FORMATO</span>
+        <div class="div-line"></div>
+    </div>
+    <div class="fmt-row">
+        <button class="fmt-chip on" onclick="selFmt(1,this)">
+            <span class="fc-ico">🎱</span>PARTIDA<br>ÚNICA
+        </button>
+        <button class="fmt-chip" onclick="selFmt(3,this)">
+            <span class="fc-ico">3️⃣</span>MEJOR<br>DE 3
+        </button>
+        <button class="fmt-chip" onclick="selFmt(5,this)">
+            <span class="fc-ico">5️⃣</span>MEJOR<br>DE 5
+        </button>
+        <button class="fmt-chip" onclick="selFmt(7,this)">
+            <span class="fc-ico">7️⃣</span>MEJOR<br>DE 7
+        </button>
+    </div>
+    <div class="fmt-lbl-desc" id="fmt-desc">Una sola partida decide al campeón</div>
+
+    <button class="btn-intercambiar" onclick="intercambiar()">⇅ INTERCAMBIAR POSICIONES</button>
+    <button class="btn-iniciar" onclick="empezar()">▶ INICIAR DUELO</button>
+    <button class="btn-volver-reg" onclick="location.href='index.html'">← VOLVER AL MENÚ</button>
+
+</div>
+
+<!-- ═════════════════════════════════════════════════
+     PANTALLA 2 — JUEGO
+════════════════════════════════════════════════════ -->
+<div class="pantalla" id="p-juego">
+
+    <!-- BARRA SUPERIOR FIJA -->
+    <div class="barra-top">
+        <!-- Info meta J1 -->
+        <div class="meta-info">
+            <span class="meta-lbl" id="lbl-meta1-top">META J1</span>
+            <span class="meta-val" id="lbl-pts-meta1">— / —</span>
+        </div>
+
+        <!-- Reloj central con pausa -->
+        <div class="reloj-box">
+            <span class="reloj-ent" id="lbl-ent-top">ENTRADA 1</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div id="reloj">40</div>
+                <button id="btn-pausa" onclick="togglePausa()" style="
+                    background:rgba(255,255,255,0.06);
+                    border:1px solid #333;
+                    color:#aaa;
+                    font-size:1.1rem;
+                    width:34px; height:34px;
+                    border-radius:50%;
+                    cursor:pointer;
+                    display:flex;align-items:center;justify-content:center;
+                    transition:0.2s;
+                    flex-shrink:0;
+                ">⏸</button>
+            </div>
+        </div>
+
+        <!-- Botón finalizar + meta J2 -->
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+            <button class="btn-fin" onclick="confirmarFin()">🏁 FINALIZAR</button>
+            <span class="meta-val" style="font-size:0.65rem;" id="lbl-pts-meta2">— / —</span>
+        </div>
+    </div>
+
+    <!-- BARRA DE SETS — solo visible en bo3/bo5/bo7 -->
+    <div class="sets-bar" id="sets-bar">
+        <span class="sb-nombre" id="sb-n1">J1</span>
+        <div class="sb-sets" id="sb-dots"></div>
+        <span class="sb-vs">SETS</span>
+        <div class="sb-sets" id="sb-dots2"></div>
+        <span class="sb-nombre der" id="sb-n2">J2</span>
+    </div>
+
+    <!-- CAMPO DE JUEGO (mitad1 + mitad2) -->
+    <div class="campo-juego" id="campo-juego">
+
+        <!-- ══ JUGADOR 1 — Arriba ══ -->
+        <!-- Grid: [stats izq] | [bola centro] | [serie der] -->
+        <div class="mitad activa" id="mitad1" onclick="if(d.t!==1)cambio()">
+
+            <div class="j-nombre" id="lbl1">MAESTRO 1</div>
+            <div class="j-meta-txt" id="lbl-meta1"></div>
+
+            <!-- COL IZQUIERDA: entradas + promedio -->
+            <div class="j-col-stats">
+                <div class="j-stat" style="align-items:flex-end;">
+                    <div class="j-stat-val" id="ent1">0</div>
+                    <div class="j-stat-lbl">ENTRADAS</div>
+                </div>
+                <div class="j-stat" style="align-items:flex-end;">
+                    <div class="j-stat-val" id="prom1">0.000</div>
+                    <div class="j-stat-lbl">PROMEDIO</div>
+                </div>
+            </div>
+
+            <!-- COL CENTRO: bola con puntos -->
+            <div class="bola bola-blanca" id="bola1">
+                <div class="j-pts" id="pts1">0</div>
+            </div>
+
+            <!-- COL DERECHA: serie actual -->
+            <div class="j-col-serie">
+                <div class="j-serie activa" id="serie1">0</div>
+                <div class="j-serie-lbl">SERIE</div>
+                <div class="j-stat-val" id="ms1" style="color:var(--rojo);font-size:1.4rem;margin-top:6px;">0</div>
+                <div class="j-stat-lbl" style="font-size:0.6rem;color:#777;">S.MAYOR</div>
+            </div>
+
+            <div class="j-meta-barra">
+                <div class="j-meta-fill" id="fill1" style="width:0%"></div>
+            </div>
+        </div>
+
+        <!-- DIVISOR con dot -->
+        <div class="divisor">
+            <div class="turno-dot" id="turno-dot"></div>
+        </div>
+
+        <!-- ══ JUGADOR 2 — Abajo ══ -->
+        <div class="mitad" id="mitad2" onclick="if(d.t!==2)cambio()">
+
+            <div class="j-nombre" id="lbl2">MAESTRO 2</div>
+            <div class="j-meta-txt" id="lbl-meta2"></div>
+
+            <!-- COL IZQUIERDA: entradas + promedio -->
+            <div class="j-col-stats">
+                <div class="j-stat" style="align-items:flex-end;">
+                    <div class="j-stat-val" id="ent2">0</div>
+                    <div class="j-stat-lbl">ENTRADAS</div>
+                </div>
+                <div class="j-stat" style="align-items:flex-end;">
+                    <div class="j-stat-val" id="prom2">0.000</div>
+                    <div class="j-stat-lbl">PROMEDIO</div>
+                </div>
+            </div>
+
+            <!-- COL CENTRO: bola con puntos -->
+            <div class="bola bola-dorada" id="bola2">
+                <div class="j-pts" id="pts2">0</div>
+            </div>
+
+            <!-- COL DERECHA: serie actual -->
+            <div class="j-col-serie">
+                <div class="j-serie" id="serie2">0</div>
+                <div class="j-serie-lbl">SERIE</div>
+                <div class="j-stat-val" id="ms2" style="color:var(--rojo);font-size:1.4rem;margin-top:6px;">0</div>
+                <div class="j-stat-lbl" style="font-size:0.6rem;color:#777;">S.MAYOR</div>
+            </div>
+
+            <div class="j-meta-barra">
+                <div class="j-meta-fill" id="fill2" style="width:0%"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TECLADO FIJO ABAJO -->
+    <div class="teclado-wrap">
+
+        <!-- CABECERA: quién juega ahora (sin repetir marcador) -->
+        <div class="teclado-header">
+            <div class="turno-quien">
+                <div class="turno-bola" id="tk-bola"></div>
+                <div>
+                    <div class="turno-nombre" id="tk-nombre">—</div>
+                    <div class="turno-sub" id="tk-entrada">ENTRADA 1</div>
+                </div>
+            </div>
+            <div class="turno-metas">
+                <div class="turno-meta-item" id="tk-meta1">
+                    <span class="tm-val" id="tk-v1">0</span>
+                    <span class="tm-sep">/</span>
+                    <span class="tm-tot" id="tk-t1">∞</span>
+                </div>
+                <div class="turno-meta-divider">VS</div>
+                <div class="turno-meta-item" id="tk-meta2">
+                    <span class="tm-val" id="tk-v2">0</span>
+                    <span class="tm-sep">/</span>
+                    <span class="tm-tot" id="tk-t2">∞</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTONES NUMÉRICOS -->
+        <div class="teclado">
+            <button class="btn-num" onclick="sumar(1)">1</button>
+            <button class="btn-num" onclick="sumar(2)">2</button>
+            <button class="btn-num" onclick="sumar(3)">3</button>
+            <button class="btn-num" onclick="sumar(4)">4</button>
+            <button class="btn-num btn-restar" onclick="restar()">−</button>
+        </div>
+        <button class="btn-sig" onclick="cambio()">► SIGUIENTE ENTRADA</button>
+    </div>
+
+</div>
+
+<!-- ═════════════════════════════════════════════════
+     PANTALLA 3 — CERTIFICADO
+════════════════════════════════════════════════════ -->
+<div class="pantalla" id="p-certi">
+    <div class="certi-card">
+
+        <span class="certi-corona">🏆</span>
+        <div class="certi-campeontxt">CAMPEÓN DEL DUELO</div>
+        <div class="certi-campeon" id="certi-ganador">—</div>
+
+        <!-- Marcador final -->
+        <div class="certi-marcador">
+            <div class="certi-j">
+                <div class="certi-j-nom" id="certi-n1">J1</div>
+                <div class="certi-j-pts" id="certi-p1">0</div>
+            </div>
+            <div class="certi-vs">VS</div>
+            <div class="certi-j">
+                <div class="certi-j-nom" id="certi-n2">J2</div>
+                <div class="certi-j-pts" id="certi-p2">0</div>
+            </div>
+        </div>
+
+        <!-- Stats finales -->
+        <div class="certi-stats">
+            <div class="certi-stat">
+                <b id="c-prom1">0.000</b>
+                <small id="c-lbl-prom1">PROM J1</small>
+            </div>
+            <div class="certi-stat">
+                <b id="c-prom2">0.000</b>
+                <small id="c-lbl-prom2">PROM J2</small>
+            </div>
+            <div class="certi-stat destacado">
+                <b id="c-ms1">0</b>
+                <small id="c-lbl-ms1">SERIE MAYOR J1</small>
+            </div>
+            <div class="certi-stat destacado">
+                <b id="c-ms2">0</b>
+                <small id="c-lbl-ms2">SERIE MAYOR J2</small>
+            </div>
+            <div class="certi-stat">
+                <b id="c-ent1">0</b>
+                <small id="c-lbl-ent1">ENTRADAS J1</small>
+            </div>
+            <div class="certi-stat">
+                <b id="c-ent2">0</b>
+                <small id="c-lbl-ent2">ENTRADAS J2</small>
+            </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:8px;">
+            <button class="btn-guardar" onclick="guardarYSalir()" style="
+                width:100%;padding:16px;
+                background:linear-gradient(135deg,#d4af37,#a07800);
+                color:#000;border:none;border-radius:16px;
+                font-size:0.9rem;font-weight:bold;
+                font-family:'Arial Black',sans-serif;
+                letter-spacing:2px;cursor:pointer;">
+                💾 GUARDAR RESULTADO
+            </button>
+            <button onclick="nuevaPartida()" style="
+                width:100%;padding:14px;
+                background:#111;border:1px solid #333;
+                color:#aaa;border-radius:16px;
+                font-size:0.75rem;font-weight:bold;
+                font-family:'Arial Black',sans-serif;
+                letter-spacing:2px;cursor:pointer;">
+                🎱 NUEVA PARTIDA
+            </button>
+            <button onclick="location.href='index.html'" style="
+                width:100%;padding:12px;
+                background:none;border:none;
+                color:#444;border-radius:16px;
+                font-size:0.6rem;
+                font-family:'Arial Black',sans-serif;
+                letter-spacing:2px;cursor:pointer;">
+                ← VOLVER AL MENÚ
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════
+     LÓGICA
+════════════════════════════════════════════════════ -->
+<script src="core.js"></script>
+<script>
+
+    /* ── ESTADO DEL DUELO ── */
+    let d = {
+        p1:0, p2:0,         // puntos
+        e1:0, e2:0,         // entradas
+        s1:0, s2:0,         // serie actual
+        ms1:0, ms2:0,       // mayor serie
+        t:1                 // turno: 1 o 2
+    };
+
+    let cfg = {
+        meta1: 0, meta2: 0,
+        hnd1: 0, hnd2: 0,
+        tiempo: 40,
+        modal: '3 Bandas',
+        bestOf: 1             // 1 | 3 | 5 | 7
+    };
+
+    // Estado de la serie (bo3/bo5/bo7)
+    let serie = {
+        wins1: 0, wins2: 0,
+        setActual: 1,
+        hist: []  // [{set, p1, p2, e1, e2, gan}]
+    };
+
+    var _fmtDesc = {
+        1: 'Una sola partida decide al campeón',
+        3: 'Gana quien primero gane 2 sets',
+        5: 'Gana quien primero gane 3 sets',
+        7: 'Gana quien primero gane 4 sets'
+    };
+
+    function selFmt(n, el) {
+        cfg.bestOf = n;
+        document.querySelectorAll('.fmt-chip').forEach(function(b){ b.classList.remove('on'); });
+        el.classList.add('on');
+        document.getElementById('fmt-desc').innerText = _fmtDesc[n];
+    }
+
+    /* ── ACTUALIZAR BARRA DE SETS ── */
+    function actualizarSetsBar() {
+        var bar = document.getElementById('sets-bar');
+        var campo = document.getElementById('campo-juego');
+        if (!bar) return;
+
+        if (cfg.bestOf <= 1) {
+            bar.classList.remove('visible');
+            if (campo) campo.style.top = '52px';
+            return;
+        }
+
+        bar.classList.add('visible');
+        if (campo) campo.style.top = '86px';
+
+        var nom1 = document.getElementById('lbl1').innerText || 'J1';
+        var nom2 = document.getElementById('lbl2').innerText || 'J2';
+        document.getElementById('sb-n1').innerText = nom1.split(' ')[0];
+        document.getElementById('sb-n2').innerText = nom2.split(' ')[0];
+
+        // Dibujar dots — uno por set posible
+        function renderDots(containerId, ganadorNum) {
+            var el = document.getElementById(containerId);
+            if (!el) return;
+            var need = Math.ceil(cfg.bestOf / 2);
+            var dots = '';
+            for (var i = 0; i < need; i++) {
+                var won  = serie.hist.filter(function(s){ return s.gan === ganadorNum; }).length;
+                var cls  = 'sb-dot';
+                if (i < won) {
+                    cls += ganadorNum === 1 ? ' j1-won' : ' j2-won';
+                } else if (i === won && serie.setActual <= cfg.bestOf) {
+                    cls += ' current';
+                }
+                dots += '<div class="' + cls + '"></div>';
+            }
+            el.innerHTML = dots;
+        }
+        renderDots('sb-dots',  1);
+        renderDots('sb-dots2', 2);
+    }
+
+    let tiempoRestante = 40;
+    let timer = null;
+    let pausado = false;
+    let partidaActiva = null;  // si viene de torneo
+
+    /* ── SPLASH DE MARCA ── */
+    function mostrarSplashMarca(onDone) {
+        try {
+            var cfg  = JSON.parse(localStorage.getItem('CLUB_CONFIG') || '{}');
+            var sede = JSON.parse(localStorage.getItem('CONFIG_SEDE_ACTIVA') || '{}');
+            var nombre = sede.nombre || '';
+            if (!nombre || nombre === 'GLOBAL') { if (onDone) onDone(); return; }
+            var color = cfg.color || '#d4af37';
+            var bg    = cfg.colorBg || '#0b0b0b';
+            var emoji = cfg.emoji || '🎱';
+            var lema  = cfg.lema || 'BILLAR TRES BANDAS';
+            var logo  = cfg.logoUrl || cfg.logo || '';
+            var logoHtml = logo
+                ? '<div style="width:110px;height:110px;border-radius:50%;overflow:hidden;border:3px solid '+color+';box-shadow:0 0 32px '+color+'55;flex-shrink:0;"><img src="'+logo+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML=\'<span style=font-size:3.5rem;line-height:110px;display:block;text-align:center>'+emoji+'</span>\'"></div>'
+                : '<div style="width:110px;height:110px;border-radius:50%;border:3px solid '+color+';box-shadow:0 0 32px '+color+'55;display:flex;align-items:center;justify-content:center;font-size:3.5rem;">'+emoji+'</div>';
+            var ov = document.createElement('div');
+            ov.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:'+bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px;transition:opacity 0.6s ease;';
+            ov.innerHTML = logoHtml +
+                '<div style="text-align:center;">' +
+                    '<div style="font-size:1.6rem;font-weight:900;color:'+color+';font-family:Arial Black,sans-serif;letter-spacing:3px;text-shadow:0 0 20px '+color+'88;">'+nombre+'</div>' +
+                    '<div style="font-size:0.5rem;letter-spacing:4px;color:#555;font-family:Arial Black,sans-serif;margin-top:6px;">'+lema+'</div>' +
+                    '<div style="font-size:0.48rem;letter-spacing:3px;color:#3a3a3a;font-family:Arial Black,sans-serif;margin-top:8px;">⚪ DUELO ⚪</div>' +
+                '</div>' +
+                '<div style="position:absolute;bottom:24px;font-size:0.4rem;letter-spacing:3px;color:#222;font-family:Arial Black,sans-serif;">POWERED BY DECARAMBOLA</div>';
+            document.body.appendChild(ov);
+            setTimeout(function() {
+                ov.style.opacity = '0';
+                setTimeout(function() { ov.remove(); if (onDone) onDone(); }, 650);
+            }, 2300);
+        } catch(e) { if (onDone) onDone(); }
+    }
+
+    /* ── CASERITO: datos del reto activo para guardar al final ── */
+    var _reto = null;
+
+    /* ── INICIO ── */
+    window.onload = function () {
+        mostrarSplashMarca(function() {});
+
+        var ctx = null;
+        try { ctx = JSON.parse(localStorage.getItem('PARTIDA_ACTIVA') || 'null'); } catch(e) {}
+
+        if (ctx && ctx.tipo === 'caserito') {
+            // Pre-llenar setup con los datos del caserito
+            _reto = ctx;
+            partidaActiva = ctx;
+            document.getElementById('n1').value      = ctx.j1 || '';
+            document.getElementById('n2').value      = ctx.j2 || '';
+            document.getElementById('cfg-tiempo').value = ctx.tiempoEntrada || 40;
+            if (ctx.meta1) {
+                document.getElementById('meta-num1').value = ctx.meta1;
+                regMeta[1] = ctx.meta1;
+            }
+            if (ctx.meta2) {
+                document.getElementById('meta-num2').value = ctx.meta2;
+                regMeta[2] = ctx.meta2;
+            }
+            if (ctx.modalidad) document.getElementById('cfg-modal').value = ctx.modalidad;
+            if (ctx.bestOf && ctx.bestOf > 1) {
+                cfg.bestOf = ctx.bestOf;
+                // Marcar el chip correcto
+                document.querySelectorAll('.fmt-chip').forEach(function(b){ b.classList.remove('on'); });
+                var chip = document.querySelector('.fmt-chip[onclick*="selFmt('+ctx.bestOf+',"]');
+                // fallback: recorrer todos
+                document.querySelectorAll('.fmt-chip').forEach(function(b){
+                    var m = b.getAttribute('onclick').match(/selFmt\((\d+)/);
+                    if(m && parseInt(m[1])===ctx.bestOf){ b.classList.add('on'); }
+                });
+                document.getElementById('fmt-desc').innerText = _fmtDesc[ctx.bestOf] || '';
+            }
+
+            // Banner de bolsa si hay inscripción
+            if (ctx.inscripcion > 0) {
+                var b = document.createElement('div');
+                b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999;background:rgba(46,255,112,0.1);border-bottom:2px solid rgba(46,255,112,0.3);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;font-family:Arial Black,sans-serif;';
+                b.innerHTML = '<span style="font-size:0.45rem;color:#2eff70;letter-spacing:1px;">🏆 BOLSA CASERITO — GANADOR RECIBE: <b>$' + (ctx.bolsaGanador||0).toLocaleString('es-CO') + '</b></span>' +
+                              '<span style="font-size:0.38rem;color:#555;">Fee plataforma: $' + (ctx.bolsaFee||0).toLocaleString('es-CO') + '</span>';
+                document.body.appendChild(b);
+                // Ajustar p-registro para no quedar debajo del banner
+                document.getElementById('p-registro').style.paddingTop = '52px';
+            }
+            return;
+        }
+
+        if (ctx) {
+            partidaActiva = ctx;
+            document.getElementById('n1').value = ctx.j1 || '';
+            document.getElementById('n2').value = ctx.j2 || '';
+            document.getElementById('cfg-tiempo').value = ctx.tiempoEntrada || 40;
+            if (ctx.entradaObjetivo) {
+                document.getElementById('meta-num1').value = ctx.entradaObjetivo;
+                document.getElementById('meta-num2').value = ctx.entradaObjetivo;
+            }
+        }
+    };
+
+    /* ── ESTADO DE REGISTRO ── */
+    var regMeta = { 1: 0, 2: 0 };
+    var regProm = { 1: 0, 2: 0 };
+
+    /* ── CACHÉ DEL HISTORIAL — se carga una sola vez ── */
+    var _histCache = null;
+    var _jugsCache = null;
+    function _getHistorial() {
+        if (!_histCache) {
+            try { _histCache = JSON.parse(localStorage.getItem('ranking_historico_club')) || []; }
+            catch(e) { _histCache = []; }
+        }
+        return _histCache;
+    }
+    function _getJugadores() {
+        try { if (!_jugsCache) _jugsCache = MasterVIP.getJugadores(); } catch(e) { _jugsCache = []; }
+        return _jugsCache;
+    }
+
+    /* ── BUSCAR POR CÉDULA — autocompleta nombre ── */
+    function buscarPorDoc(j) {
+        var docVal = document.getElementById('doc' + j).value.trim();
+        if (docVal.length < 4) return;
+        var jugs = MasterVIP.getJugadores();
+        var encontrado = jugs.find(function(jg) { return jg.cedula && jg.cedula === docVal; });
+        if (encontrado) {
+            document.getElementById('n' + j).value = encontrado.nombre;
+            buscarPromedio(j);
+        }
+    }
+
+    /* ── DEBOUNCE — espera 300ms después de la última tecla ── */
+    var _timerBuscar = { 1: null, 2: null };
+    function debounceBuscar(j) {
+        clearTimeout(_timerBuscar[j]);
+        _timerBuscar[j] = setTimeout(function() { buscarPromedio(j); }, 300);
+    }
+
+    /* ── BUSCAR PROMEDIO DEL HISTORIAL ── */
+    function buscarPromedio(j) {
+        var nom     = document.getElementById('n' + j).value.trim().toUpperCase();
+        var chip    = document.getElementById('prom-chip' + j);
+        var chipTxt = document.getElementById('prom-chip' + j + '-txt');
+
+        if (nom.length < 2) {
+            chip.className    = 'prom-detectado';
+            chipTxt.innerText = 'SIN HISTORIAL';
+            regProm[j]        = 0;
+            calcularHandicapAuto();
+            return;
+        }
+
+        var prom      = 0;
+        var jugadores = _getJugadores();
+        var encontrado = null;
+        for (var i = 0; i < jugadores.length; i++) {
+            if (jugadores[i].nombre.toUpperCase() === nom) { encontrado = jugadores[i]; break; }
+        }
+
+        if (encontrado && encontrado.promedio > 0) {
+            prom = encontrado.promedio;
+        } else {
+            var h = _getHistorial();
+            var suma = 0, cnt = 0;
+            for (var k = 0; k < h.length; k++) {
+                if (h[k].nombre && h[k].nombre.toUpperCase() === nom) {
+                    suma += parseFloat(h[k].promedio) || 0;
+                    cnt++;
+                }
+            }
+            if (cnt > 0) prom = parseFloat((suma / cnt).toFixed(3));
+        }
+
+        regProm[j] = prom;
+
+        if (prom > 0) {
+            chip.className    = 'prom-detectado tiene-prom';
+            chipTxt.innerText = '✓ PROMEDIO HISTÓRICO: ' + prom.toFixed(3);
+            calcularHandicapAuto();
+        } else {
+            chip.className    = 'prom-detectado';
+            chipTxt.innerText = 'SIN HISTORIAL — AJUSTA LA META MANUALMENTE';
+        }
+    }
+
+    /* ── AJUSTAR META CON + / - ── */
+    function ajustarMeta(j, delta) {
+        const inp = document.getElementById('meta-num' + j);
+        let val = (parseInt(inp.value) || 0) + delta;
+        if (val < 1) val = 1;
+        if (val > 999) val = 999;
+        regMeta[j] = val;
+        inp.value = val;
+        calcularHandicapAuto();
+    }
+
+    /* ── META ESCRITA DIRECTAMENTE ── */
+    function metaEscrita(j) {
+        var inp = document.getElementById('meta-num' + j);
+        var val = parseInt(inp.value) || 0;
+        regMeta[j] = val;
+        calcularHandicapAuto();
+    }
+
+    /* ── CALCULAR HÁNDICAP AUTOMÁTICAMENTE ── */
+    function calcularHandicapAuto() {
+        const m1 = regMeta[1];
+        const m2 = regMeta[2];
+        const p1 = regProm[1];
+        const p2 = regProm[2];
+
+        const chip1 = document.getElementById('hnd-chip1');
+        const chip2 = document.getElementById('hnd-chip2');
+        const txt1  = document.getElementById('hnd-chip1-txt');
+        const txt2  = document.getElementById('hnd-chip2-txt');
+
+        chip2.style.visibility = 'visible';
+
+        // CASO A: Ambos tienen promedio histórico → calcular metas automáticas
+        if (p1 > 0 && p2 > 0) {
+            // El de mayor promedio tiene la meta mayor
+            const base = Math.max(m1 > 0 ? m1 : 40, m2 > 0 ? m2 : 40);
+            const mayor = Math.max(p1, p2);
+            const metaCalc1 = Math.round(base * (p1 / mayor));
+            const metaCalc2 = Math.round(base * (p2 / mayor));
+
+            // Solo auto-asignar si el usuario no ha tocado los botones todavía
+            if (m1 === 0) { regMeta[1] = metaCalc1; document.getElementById('meta-num1').value = metaCalc1; }
+            if (m2 === 0) { regMeta[2] = metaCalc2; document.getElementById('meta-num2').value = metaCalc2; }
+
+            const diff = Math.abs((m1 || metaCalc1) - (m2 || metaCalc2));
+            chip1.className = 'hnd-resultado con-hnd';
+            chip2.className = 'hnd-resultado con-hnd';
+            txt1.innerText = 'HÁNDICAP AUTO: ' + (m1 || metaCalc1) + ' vs ' + (m2 || metaCalc2) + ' (' + diff + ' de diferencia)';
+            txt2.innerText = '';
+            chip2.style.visibility = 'hidden';
+            return;
+        }
+
+        // CASO B: Solo metas manuales → mostrar diferencia como hándicap
+        if (m1 > 0 && m2 > 0) {
+            const diff = Math.abs(m1 - m2);
+            const quien = m1 > m2
+                ? (document.getElementById('n2').value || 'J2') + ' tiene ' + diff + ' de ventaja'
+                : m2 > m1
+                    ? (document.getElementById('n1').value || 'J1') + ' tiene ' + diff + ' de ventaja'
+                    : 'PARTIDA IGUALADA — SIN HÁNDICAP';
+
+            chip1.className = 'hnd-resultado con-hnd';
+            chip2.style.visibility = 'hidden';
+            txt1.innerText = diff > 0 ? '⚖️ HÁNDICAP: ' + quien : '⚖️ PARTIDA IGUALADA';
+            return;
+        }
+
+        // CASO C: Solo una meta definida
+        chip1.className = 'hnd-resultado';
+        chip2.style.visibility = 'hidden';
+        txt1.innerText = m1 > 0 || m2 > 0
+            ? 'DEFINE LA META DEL OTRO JUGADOR'
+            : 'CONFIGURA LAS METAS PARA VER EL HÁNDICAP';
+    }
+
+    /* ── INTERCAMBIAR ── */
+    function intercambiar() {
+        const n1v = document.getElementById('n1').value;
+        const n2v = document.getElementById('n2').value;
+        document.getElementById('n1').value = n2v;
+        document.getElementById('n2').value = n1v;
+
+        // Swap cédulas también
+        const d1v = document.getElementById('doc1').value;
+        const d2v = document.getElementById('doc2').value;
+        document.getElementById('doc1').value = d2v;
+        document.getElementById('doc2').value = d1v;
+
+        const tmpMeta = regMeta[1];
+        regMeta[1] = regMeta[2];
+        regMeta[2] = tmpMeta;
+
+        const tmpProm = regProm[1];
+        regProm[1] = regProm[2];
+        regProm[2] = tmpProm;
+
+        // Refrescar visuales
+        document.getElementById('meta-num1').value = regMeta[1] || '';
+        document.getElementById('meta-num2').value = regMeta[2] || '';
+
+        buscarPromedio(1);
+        buscarPromedio(2);
+    }
+
+    /* ── EMPEZAR ── */
+    function empezar() {
+        const nom1 = (document.getElementById('n1').value.trim() || 'MAESTRO 1').toUpperCase();
+        const nom2 = (document.getElementById('n2').value.trim() || 'MAESTRO 2').toUpperCase();
+        const doc1 = document.getElementById('doc1').value.trim();
+        const doc2 = document.getElementById('doc2').value.trim();
+
+        if (!nom1 || nom1 === 'MAESTRO 1') { alert('Ingresa el nombre del Jugador 1'); return; }
+        if (!nom2 || nom2 === 'MAESTRO 2') { alert('Ingresa el nombre del Jugador 2'); return; }
+
+        try {
+            var j1 = MasterVIP.buscarJugador(nom1);
+            var j2 = MasterVIP.buscarJugador(nom2);
+            if (doc1) { var d1o = j1 ? Object.assign({},j1,{cedula:doc1}) : {nombre:nom1,cedula:doc1,promedio:0}; MasterVIP.guardarJugador(d1o); }
+            if (doc2) { var d2o = j2 ? Object.assign({},j2,{cedula:doc2}) : {nombre:nom2,cedula:doc2,promedio:0}; MasterVIP.guardarJugador(d2o); }
+        } catch(e) {}
+
+        cfg.meta1  = parseInt(document.getElementById('meta-num1').value) || 0;
+        cfg.meta2  = parseInt(document.getElementById('meta-num2').value) || 0;
+        cfg.hnd1   = 0;
+        cfg.hnd2   = 0;
+        cfg.tiempo = parseInt(document.getElementById('cfg-tiempo').value) || 40;
+        cfg.modal  = document.getElementById('cfg-modal').value;
+
+        // Sin hándicap inicial — la meta diferente ES el hándicap
+        d.p1 = 0;
+        d.p2 = 0;
+
+        document.getElementById('lbl1').innerText = nom1;
+        document.getElementById('lbl2').innerText = nom2;
+
+        actualizarMetaTop();
+
+        d.t = document.getElementById('s1').checked ? 1 : 2;
+
+        // Resetear serie
+        serie = { wins1:0, wins2:0, setActual:1, hist:[] };
+        actualizarSetsBar();
+
+        document.getElementById('p-registro').classList.remove('activa');
+        document.getElementById('p-juego').classList.add('activa');
+
+        tiempoRestante = cfg.tiempo;
+        iniciarReloj();
+        actualizarUI();
+    }
+
+    /* ── RELOJ ── */
+    function iniciarReloj() {
+        clearInterval(timer);
+        pausado = false;
+        const rel = document.getElementById('reloj');
+        const btn = document.getElementById('btn-pausa');
+        rel.classList.remove('urgente');
+        rel.innerText = tiempoRestante;
+        if (btn) { btn.innerText = '⏸'; btn.style.color = '#aaa'; btn.style.borderColor = '#333'; }
+
+        timer = setInterval(() => {
+            if (pausado) return;
+            tiempoRestante--;
+            rel.innerText = tiempoRestante;
+            if (tiempoRestante <= 10) rel.classList.add('urgente');
+            if (tiempoRestante <= 0)  { clearInterval(timer); cambio(); }
+        }, 1000);
+    }
+
+    function togglePausa() {
+        pausado = !pausado;
+        const btn = document.getElementById('btn-pausa');
+        const rel = document.getElementById('reloj');
+        if (pausado) {
+            btn.innerText = '▶';
+            btn.style.color = '#2eff70';
+            btn.style.borderColor = '#2eff70';
+            rel.style.opacity = '0.4';
+        } else {
+            btn.innerText = '⏸';
+            btn.style.color = '#aaa';
+            btn.style.borderColor = '#333';
+            rel.style.opacity = '1';
+        }
+    }
+
+    /* ── LÓGICA ── */
+    function sumar(n) {
+        d['p' + d.t] += n;
+        d['s' + d.t] += n;
+        if (d['s' + d.t] > d['ms' + d.t]) d['ms' + d.t] = d['s' + d.t];
+
+        // Animar bola
+        const bola = document.getElementById('bola' + d.t);
+        bola.classList.remove('bump');
+        void bola.offsetWidth;
+        bola.classList.add('bump');
+
+        actualizarUI();
+        verificarMeta();
+    }
+
+    function restar() {
+        if (d['p' + d.t] > (d.t === 1 ? cfg.hnd1 : cfg.hnd2)) {
+            d['p' + d.t]--;
+            if (d['s' + d.t] > 0) d['s' + d.t]--;
+        }
+        actualizarUI();
+    }
+
+    function cambio() {
+        d['e' + d.t]++;
+        d['s' + d.t] = 0;
+        d.t = d.t === 1 ? 2 : 1;
+        tiempoRestante = cfg.tiempo;
+        iniciarReloj();
+        actualizarUI();
+        // Actualizar entrada en barra top
+        document.getElementById('lbl-ent-top').innerText =
+            'ENTRADA ' + (d['e' + d.t] + 1);
+    }
+
+    /* ── VERIFICAR META — se llama después de cada carambola ── */
+    function verificarMeta() {
+        const meta = d.t === 1 ? cfg.meta1 : cfg.meta2;
+        if (meta <= 0) return;
+
+        if (d['p' + d.t] >= meta) {
+            clearInterval(timer);
+            pausado = false;
+
+            // Si es serie (bo3/bo5/bo7) → terminar set
+            if (cfg.bestOf > 1) {
+                terminarSet(d.t);
+                return;
+            }
+
+            const nom = document.getElementById('lbl' + d.t).innerText;
+            const p1  = d.p1, p2 = d.p2;
+
+            // Overlay en pantalla — no tapa el marcador
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position:fixed; inset:0; z-index:999;
+                background:rgba(0,0,0,0.85);
+                display:flex; flex-direction:column;
+                align-items:center; justify-content:center;
+                gap:16px;
+            `;
+            overlay.innerHTML = `
+                <div style="font-size:3rem">🏆</div>
+                <div style="color:#d4af37;font-size:1.6rem;letter-spacing:3px;text-align:center;">${nom}</div>
+                <div style="color:#fff;font-size:0.7rem;letter-spacing:3px;">¡GANÓ EL DUELO!</div>
+                <div style="display:flex;gap:24px;align-items:center;margin:8px 0;">
+                    <div style="text-align:center;">
+                        <div style="font-size:2.5rem;font-family:'Courier New',monospace;color:#fff;">${p1}</div>
+                        <div style="font-size:0.5rem;color:#555;letter-spacing:2px;">${document.getElementById('lbl1').innerText}</div>
+                    </div>
+                    <div style="color:#333;font-size:1rem;">VS</div>
+                    <div style="text-align:center;">
+                        <div style="font-size:2.5rem;font-family:'Courier New',monospace;color:#fff;">${p2}</div>
+                        <div style="font-size:0.5rem;color:#555;letter-spacing:2px;">${document.getElementById('lbl2').innerText}</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin:10px 16px 0;max-width:480px;margin-left:auto;margin-right:auto;">
+                    <button onclick="compartirWhatsApp(1)"
+                        style="flex:1;padding:12px 8px;background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.4);color:#25d366;border-radius:16px;font-size:0.5rem;font-family:'Arial Black',sans-serif;letter-spacing:1px;cursor:pointer;">
+                        📱 WA J1
+                    </button>
+                    <button onclick="compartirWhatsApp(2)"
+                        style="flex:1;padding:12px 8px;background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.4);color:#25d366;border-radius:16px;font-size:0.5rem;font-family:'Arial Black',sans-serif;letter-spacing:1px;cursor:pointer;">
+                        📱 WA J2
+                    </button>
+                    <button onclick="compartirWhatsApp(0)"
+                        style="flex:1;padding:12px 8px;background:rgba(37,211,102,0.15);border:1px solid rgba(37,211,102,0.5);color:#25d366;border-radius:16px;font-size:0.5rem;font-family:'Arial Black',sans-serif;letter-spacing:1px;cursor:pointer;">
+                        📤 AMBOS
+                    </button>
+                </div>
+                <button id="btn-overlay-certi"
+                    style="background:linear-gradient(135deg,#d4af37,#a07800);color:#000;border:none;
+                    padding:16px 32px;border-radius:16px;font-size:0.9rem;font-weight:bold;
+                    font-family:'Arial Black',sans-serif;letter-spacing:2px;cursor:pointer;margin-top:8px;">
+                    VER CERTIFICADO →
+                </button>
+            `;
+            // Botón de cierre correcto
+            overlay.querySelector('button').onclick = function() {
+                document.body.removeChild(overlay);
+                mostrarCertificado();
+            };
+            document.body.appendChild(overlay);
+        }
+    }
+
+
+    /* ══ SERIES — terminar set ══ */
+    function terminarSet(ganNum) {
+        // Guardar stats del set
+        serie.hist.push({
+            set: serie.setActual,
+            p1: d.p1, p2: d.p2,
+            e1: d.e1 || 1, e2: d.e2 || 1,
+            gan: ganNum
+        });
+        if (ganNum === 1) serie.wins1++;
+        else              serie.wins2++;
+
+        const need  = Math.ceil(cfg.bestOf / 2);
+        const nom1  = document.getElementById('lbl1').innerText;
+        const nom2  = document.getElementById('lbl2').innerText;
+        const nomG  = ganNum === 1 ? nom1 : nom2;
+        const wG    = ganNum === 1 ? serie.wins1 : serie.wins2;
+        const wL    = ganNum === 1 ? serie.wins2 : serie.wins1;
+
+        // ¿Ya ganó la serie?
+        if (wG >= need) {
+            mostrarCampeonSerie(ganNum);
+            return;
+        }
+
+        // Resumen del set — overlay entre sets
+        const histHTML = serie.hist.map(function(s) {
+            var g1cls = s.gan===1 ? 'color:var(--oro);font-weight:900;' : 'color:#555;';
+            var g2cls = s.gan===2 ? 'color:var(--oro);font-weight:900;' : 'color:#555;';
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #111;">' +
+                '<span style="font-size:0.45rem;color:#444;letter-spacing:1px;">SET '+s.set+'</span>' +
+                '<span style="font-family:Courier New,monospace;font-size:1rem;'+g1cls+'">'+s.p1+'</span>' +
+                '<span style="color:#333;font-size:0.6rem;">—</span>' +
+                '<span style="font-family:Courier New,monospace;font-size:1rem;'+g2cls+'">'+s.p2+'</span>' +
+                '</div>';
+        }).join('');
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;';
+        overlay.innerHTML =
+            '<div style="color:#555;font-size:0.42rem;letter-spacing:3px;">SET '+serie.setActual+' TERMINADO</div>' +
+            '<div style="color:var(--oro);font-size:1.4rem;letter-spacing:2px;">'+nomG+' GANÓ</div>' +
+            '<div style="color:#aaa;font-size:0.55rem;letter-spacing:2px;">'+serie.wins1+' — '+serie.wins2+' en la serie</div>' +
+            '<div style="width:100%;max-width:320px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:14px;padding:12px 16px;margin:8px 0;">' +
+                '<div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid #1a1a1a;margin-bottom:4px;">' +
+                    '<span style="font-size:0.38rem;color:#555;letter-spacing:2px;">SETS</span>' +
+                    '<span style="font-size:0.38rem;color:#888;letter-spacing:2px;">'+nom1.split(' ')[0]+'</span>' +
+                    '<span style="font-size:0.38rem;color:#555;">VS</span>' +
+                    '<span style="font-size:0.38rem;color:#888;letter-spacing:2px;">'+nom2.split(' ')[0]+'</span>' +
+                '</div>' +
+                histHTML +
+            '</div>' +
+            '<div style="color:#666;font-size:0.4rem;letter-spacing:1px;">FALTAN '+(need-wG)+' sets para ganar la serie</div>' +
+            '<button style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:16px 40px;border-radius:14px;font-size:0.9rem;font-weight:900;font-family:Arial Black,sans-serif;letter-spacing:2px;cursor:pointer;margin-top:6px;">▶ SET '+(serie.setActual+1)+'</button>';
+
+        overlay.querySelector('button').onclick = function() {
+            document.body.removeChild(overlay);
+            // Resetear estado para el siguiente set
+            serie.setActual++;
+            d.p1=0; d.p2=0; d.e1=0; d.e2=0; d.s1=0; d.s2=0;
+            d.t = ganNum === 1 ? 2 : 1;
+            tiempoRestante = cfg.tiempo;
+            actualizarSetsBar();
+            iniciarReloj();
+            actualizarUI();
+        };
+        document.body.appendChild(overlay);
+    }
+
+    /* ══ CAMPEÓN DE LA SERIE ══ */
+    function mostrarCampeonSerie(ganNum) {
+        const nom1 = document.getElementById('lbl1').innerText;
+        const nom2 = document.getElementById('lbl2').innerText;
+        const nomG = ganNum === 1 ? nom1 : nom2;
+        const need = Math.ceil(cfg.bestOf / 2);
+
+        // Resumen de todos los sets
+        const histHTML = serie.hist.map(function(s) {
+            var g1cls = s.gan===1 ? 'color:var(--oro);font-weight:900;' : 'color:#555;';
+            var g2cls = s.gan===2 ? 'color:var(--oro);font-weight:900;' : 'color:#555;';
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #0f0f0f;">' +
+                '<span style="font-size:0.42rem;color:#444;letter-spacing:1px;">SET '+s.set+'</span>' +
+                '<span style="font-family:Courier New,monospace;font-size:1rem;'+g1cls+'">'+s.p1+'</span>' +
+                '<span style="color:#222;font-size:0.6rem;">—</span>' +
+                '<span style="font-family:Courier New,monospace;font-size:1rem;'+g2cls+'">'+s.p2+'</span>' +
+                '</div>';
+        }).join('');
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;';
+        overlay.innerHTML =
+            '<div style="font-size:3.5rem;">🏆</div>' +
+            '<div style="color:#555;font-size:0.42rem;letter-spacing:4px;">CAMPEÓN DE LA SERIE</div>' +
+            '<div style="color:var(--oro);font-size:1.8rem;letter-spacing:2px;text-align:center;text-shadow:0 0 20px rgba(212,175,55,0.4);">'+nomG+'</div>' +
+            '<div style="color:#aaa;font-size:0.65rem;letter-spacing:2px;">GANÓ '+need+' DE '+cfg.bestOf+'</div>' +
+            '<div style="color:#d4af37;font-size:1.2rem;letter-spacing:3px;">'+serie.wins1+' — '+serie.wins2+'</div>' +
+            '<div style="width:100%;max-width:320px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:14px;padding:12px 16px;margin:8px 0;">' +
+                '<div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid #1a1a1a;margin-bottom:4px;">' +
+                    '<span style="font-size:0.38rem;color:#555;letter-spacing:1px;">SETS</span>' +
+                    '<span style="font-size:0.38rem;color:#888;">'+nom1.split(' ')[0]+'</span>' +
+                    '<span style="font-size:0.38rem;color:#555;">VS</span>' +
+                    '<span style="font-size:0.38rem;color:#888;">'+nom2.split(' ')[0]+'</span>' +
+                '</div>' +
+                histHTML +
+            '</div>' +
+            '<button style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:16px 36px;border-radius:14px;font-size:0.9rem;font-weight:900;font-family:Arial Black,sans-serif;letter-spacing:2px;cursor:pointer;">VER CERTIFICADO →</button>';
+
+        // El certificado muestra los totales acumulados — rellenar d con totales
+        overlay.querySelector('button').onclick = function() {
+            document.body.removeChild(overlay);
+            // Acumular totales de todos los sets para el certificado
+            var tp1=0,tp2=0,te1=0,te2=0;
+            serie.hist.forEach(function(s){ tp1+=s.p1; tp2+=s.p2; te1+=s.e1; te2+=s.e2; });
+            d.p1=tp1; d.p2=tp2; d.e1=te1; d.e2=te2;
+            mostrarCertificado();
+        };
+        document.body.appendChild(overlay);
+    }
+
+    /* ── UI ── */
+    function actualizarUI() {
+        // Puntos en bolas
+        document.getElementById('pts1').innerText = d.p1;
+        document.getElementById('pts2').innerText = d.p2;
+
+        // Entradas
+        document.getElementById('ent1').innerText = d.e1;
+        document.getElementById('ent2').innerText = d.e2;
+
+        // Promedios
+        document.getElementById('prom1').innerText = d.e1 > 0 ? (d.p1 / d.e1).toFixed(3) : '0.000';
+        document.getElementById('prom2').innerText = d.e2 > 0 ? (d.p2 / d.e2).toFixed(3) : '0.000';
+
+        // Series actuales
+        const s1El = document.getElementById('serie1');
+        const s2El = document.getElementById('serie2');
+        s1El.innerText = d.s1;
+        s2El.innerText = d.s2;
+        s1El.className = 'j-serie' + (d.t === 1 && d.s1 > 0 ? ' activa' : '');
+        s2El.className = 'j-serie' + (d.t === 2 && d.s2 > 0 ? ' activa' : '');
+
+        // Serie mayor
+        document.getElementById('ms1').innerText = d.ms1;
+        document.getElementById('ms2').innerText = d.ms2;
+
+        // Mitades activas
+        document.getElementById('mitad1').className = 'mitad' + (d.t === 1 ? ' activa' : '');
+        document.getElementById('mitad2').className = 'mitad' + (d.t === 2 ? ' activa' : '');
+
+        // Metas individuales (texto en cada mitad)
+        if (cfg.meta1 > 0) document.getElementById('lbl-meta1').innerText = d.p1 + ' / ' + cfg.meta1;
+        if (cfg.meta2 > 0) document.getElementById('lbl-meta2').innerText = d.p2 + ' / ' + cfg.meta2;
+
+        // Barras de progreso
+        if (cfg.meta1 > 0) document.getElementById('fill1').style.width = Math.min(100, (d.p1 / cfg.meta1) * 100) + '%';
+        if (cfg.meta2 > 0) document.getElementById('fill2').style.width = Math.min(100, (d.p2 / cfg.meta2) * 100) + '%';
+
+        actualizarMetaTop();
+        actualizarTecladoHeader();
+    }
+
+    /* ── HEADER DEL TECLADO — quién juega y metas ── */
+    function actualizarTecladoHeader() {
+        const nom1 = document.getElementById('lbl1').innerText;
+        const nom2 = document.getElementById('lbl2').innerText;
+        const nomActivo = d.t === 1 ? nom1 : nom2;
+
+        // Bola de turno
+        const bola = document.getElementById('tk-bola');
+        bola.className = 'turno-bola ' + (d.t === 1 ? 'blanca' : 'dorada');
+
+        // Nombre y entrada activa
+        document.getElementById('tk-nombre').innerText = nomActivo;
+        const entActiva = d.t === 1 ? d.e1 + 1 : d.e2 + 1;
+        document.getElementById('tk-entrada').innerText = 'ENTRADA ' + entActiva;
+
+        // Marcador con metas — J1
+        const v1 = document.getElementById('tk-v1');
+        const t1 = document.getElementById('tk-t1');
+        const box1 = document.getElementById('tk-meta1');
+        v1.innerText = d.p1;
+        t1.innerText = cfg.meta1 > 0 ? cfg.meta1 : '∞';
+        box1.className = 'turno-meta-item' + (d.t === 1 ? ' activo' : '');
+
+        // Marcador con metas — J2
+        const v2 = document.getElementById('tk-v2');
+        const t2 = document.getElementById('tk-t2');
+        const box2 = document.getElementById('tk-meta2');
+        v2.innerText = d.p2;
+        t2.innerText = cfg.meta2 > 0 ? cfg.meta2 : '∞';
+        box2.className = 'turno-meta-item' + (d.t === 2 ? ' activo' : '');
+    }
+
+    function actualizarMetaTop() {
+        const n1 = document.getElementById('lbl1')?.innerText || 'J1';
+        const n2 = document.getElementById('lbl2')?.innerText || 'J2';
+        const lbl1 = document.getElementById('lbl-meta1-top');
+        const val1 = document.getElementById('lbl-pts-meta1');
+        const val2 = document.getElementById('lbl-pts-meta2');
+
+        if (lbl1) lbl1.innerText = n1.split(' ')[0];
+
+        if (cfg.meta1 > 0) {
+            if (val1) val1.innerText = d.p1 + '/' + cfg.meta1;
+        } else {
+            if (val1) val1.innerText = '↑ ' + d.p1;
+        }
+
+        if (cfg.meta2 > 0) {
+            if (val2) val2.innerText = d.p2 + '/' + cfg.meta2;
+        } else {
+            if (val2) val2.innerText = '↑ ' + d.p2;
+        }
+    }
+
+    /* ── FINALIZAR ── */
+    function confirmarFin() {
+        const p1 = d.p1, p2 = d.p2;
+        const n1 = document.getElementById('lbl1').innerText;
+        const n2 = document.getElementById('lbl2').innerText;
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position:fixed; inset:0; z-index:999;
+            background:rgba(0,0,0,0.88);
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            gap:14px; padding:20px;
+        `;
+        overlay.innerHTML = `
+            <div style="color:#aaa;font-size:0.55rem;letter-spacing:3px;">MARCADOR ACTUAL</div>
+            <div style="display:flex;gap:28px;align-items:center;">
+                <div style="text-align:center;">
+                    <div style="font-size:3rem;font-family:'Courier New',monospace;color:#fff;">${p1}</div>
+                    <div style="font-size:0.5rem;color:#555;letter-spacing:2px;">${n1}</div>
+                </div>
+                <div style="color:#333;font-size:1.2rem;">VS</div>
+                <div style="text-align:center;">
+                    <div style="font-size:3rem;font-family:'Courier New',monospace;color:#fff;">${p2}</div>
+                    <div style="font-size:0.5rem;color:#555;letter-spacing:2px;">${n2}</div>
+                </div>
+            </div>
+            <div style="color:#555;font-size:0.6rem;letter-spacing:2px;margin-top:4px;">¿FINALIZAR EL DUELO?</div>
+            <div style="display:flex;gap:10px;width:100%;max-width:300px;">
+                <button id="btn-fin-si" style="flex:1;padding:16px;background:linear-gradient(135deg,#d4af37,#a07800);
+                    color:#000;border:none;border-radius:14px;font-size:0.85rem;font-weight:bold;
+                    font-family:'Arial Black',sans-serif;letter-spacing:1px;cursor:pointer;">
+                    ✅ FINALIZAR
+                </button>
+                <button id="btn-fin-no" style="flex:1;padding:16px;background:#111;border:1px solid #333;
+                    color:#666;border-radius:14px;font-size:0.85rem;font-weight:bold;
+                    font-family:'Arial Black',sans-serif;letter-spacing:1px;cursor:pointer;">
+                    SEGUIR
+                </button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#btn-fin-si').onclick = function() {
+            document.body.removeChild(overlay);
+            clearInterval(timer);
+            mostrarCertificado();
+        };
+        overlay.querySelector('#btn-fin-no').onclick = function() {
+            document.body.removeChild(overlay);
+        };
+    }
+
+    function mostrarCertificado() {
+        const nom1 = document.getElementById('lbl1').innerText;
+        const nom2 = document.getElementById('lbl2').innerText;
+        const pr1 = d.e1 > 0 ? (d.p1 / d.e1).toFixed(3) : '0.000';
+        const pr2 = d.e2 > 0 ? (d.p2 / d.e2).toFixed(3) : '0.000';
+
+        // Determinar ganador
+        let ganador = nom1;
+        if (d.p2 > d.p1) ganador = nom2;
+        else if (d.p1 === d.p2) ganador = parseFloat(pr1) >= parseFloat(pr2) ? nom1 : nom2;
+
+        // Llenar certificado
+        document.getElementById('certi-ganador').innerText = ganador;
+
+        document.getElementById('certi-n1').innerText = nom1;
+        document.getElementById('certi-n2').innerText = nom2;
+        document.getElementById('certi-p1').innerText = d.p1;
+        document.getElementById('certi-p2').innerText = d.p2;
+        document.getElementById('certi-p1').className = 'certi-j-pts' + (d.p1 >= d.p2 ? ' ganador' : '');
+        document.getElementById('certi-p2').className = 'certi-j-pts' + (d.p2 >= d.p1 ? ' ganador' : '');
+
+        document.getElementById('c-prom1').innerText  = pr1;
+        document.getElementById('c-prom2').innerText  = pr2;
+        document.getElementById('c-ms1').innerText    = d.ms1;
+        document.getElementById('c-ms2').innerText    = d.ms2;
+        document.getElementById('c-ent1').innerText   = d.e1;
+        document.getElementById('c-ent2').innerText   = d.e2;
+
+        // Labels con nombres cortos
+        const c1 = nom1.split(' ')[0];
+        const c2 = nom2.split(' ')[0];
+        document.getElementById('c-lbl-prom1').innerText = 'PROM ' + c1;
+        document.getElementById('c-lbl-prom2').innerText = 'PROM ' + c2;
+        document.getElementById('c-lbl-ms1').innerText   = 'SERIE MAYOR ' + c1;
+        document.getElementById('c-lbl-ms2').innerText   = 'SERIE MAYOR ' + c2;
+        document.getElementById('c-lbl-ent1').innerText  = 'ENTRADAS ' + c1;
+        document.getElementById('c-lbl-ent2').innerText  = 'ENTRADAS ' + c2;
+
+        document.getElementById('p-juego').classList.remove('activa');
+        document.getElementById('p-certi').classList.add('activa');
+    }
+
+    /* ── GUARDAR ── */
+    function compartirWhatsApp(jugNum) {
+        const nom1 = document.getElementById('lbl1').innerText;
+        const nom2 = document.getElementById('lbl2').innerText;
+        const pr1 = d.e1 > 0 ? (d.p1/d.e1).toFixed(3) : '0.000';
+        const pr2 = d.e2 > 0 ? (d.p2/d.e2).toFixed(3) : '0.000';
+        const ganador = d.p1 > d.p2 ? nom1 : (d.p2 > d.p1 ? nom2 : nom1);
+        const tel = document.getElementById('tel' + jugNum)?.value?.trim() || '';
+        const fecha = new Date().toLocaleDateString('es-CO');
+
+        const msg =
+            '🎱 *DECARAMBOLA — RESULTADO PARTIDA*\n' +
+            '━━━━━━━━━━━━━━━━\n' +
+            '📅 ' + fecha + '\n\n' +
+            '🟡 *' + nom1 + '*\n' +
+            '   Carambolas: ' + d.p1 + ' | Entradas: ' + d.e1 + ' | Prom: *' + pr1 + '*\n\n' +
+            '⚪ *' + nom2 + '*\n' +
+            '   Carambolas: ' + d.p2 + ' | Entradas: ' + d.e2 + ' | Prom: *' + pr2 + '*\n\n' +
+            '🏆 *GANADOR: ' + ganador + '*\n' +
+            '━━━━━━━━━━━━━━━━\n' +
+            '_Generado por DeCarambola_';
+
+        var url = 'https://wa.me/';
+        if (tel) url += tel.replace(/[^0-9]/g,'');
+        url += '?text=' + encodeURIComponent(msg);
+        window.open(url, '_blank');
+    }
+
+    function guardarYSalir() {
+        const nom1 = document.getElementById('lbl1').innerText;
+        const nom2 = document.getElementById('lbl2').innerText;
+        const pr1 = d.e1 > 0 ? parseFloat((d.p1 / d.e1).toFixed(3)) : 0;
+        const pr2 = d.e2 > 0 ? parseFloat((d.p2 / d.e2).toFixed(3)) : 0;
+        const ganador = d.p1 > d.p2 ? nom1 : (d.p2 > d.p1 ? nom2 : (pr1 >= pr2 ? nom1 : nom2));
+
+        // Guardar en historial del club
+        var h = [];
+        try { h = JSON.parse(localStorage.getItem('ranking_historico_club')) || []; } catch(e) { h = []; }
+        h.push({ nombre: nom1, promedio: pr1, fecha: new Date().toLocaleDateString(), tipo: 'Duelo' });
+        h.push({ nombre: nom2, promedio: pr2, fecha: new Date().toLocaleDateString(), tipo: 'Duelo' });
+        localStorage.setItem('ranking_historico_club', JSON.stringify(h));
+
+        // Actualizar promedios de los jugadores en el club
+        try {
+            var j1 = MasterVIP.buscarJugador(nom1);
+            var j2 = MasterVIP.buscarJugador(nom2);
+            if (j1) { j1.promedio = pr1; MasterVIP.guardarJugador(j1); }
+            if (j2) { j2.promedio = pr2; MasterVIP.guardarJugador(j2); }
+        } catch(e) {}
+
+        // Si viene de torneo
+        if (partidaActiva) {
+            var resultado = {
+                j1: nom1, j2: nom2, pts1: d.p1, pts2: d.p2,
+                promFinalJ1: pr1, promFinalJ2: pr2,
+                serieMayorJ1: d.ms1, serieMayorJ2: d.ms2,
+                ganador: ganador, fecha: new Date().toISOString()
+            };
+            var res = null; try {             var res = MasterVIP.registrarResultado(
+                partidaActiva.torneoId, partidaActiva.partidaId, resultado
+            ); } catch(e) {}
+            localStorage.removeItem('PARTIDA_ACTIVA');
+            if (res && res.ok) {
+                location.href = 'control_torneo.html';
+                return;
+            }
+        }
+
+        // Si es caserito, guardar en RETOS_LISTA
+        if (_reto) {
+            var retos = [];
+            try { retos = JSON.parse(localStorage.getItem('RETOS_LISTA')) || []; } catch(e) {}
+            retos.push({
+                id: 'R' + Date.now(),
+                tipo: 'caserito',
+                fecha: new Date().toISOString(),
+                j1: nom1, d1: _reto.doc1 || '',
+                j2: nom2, d2: _reto.doc2 || '',
+                ganador: ganador,
+                pr1: pr1, pr2: pr2,
+                ms1: d.ms1, ms2: d.ms2,
+                e1: d.e1, e2: d.e2,
+                inscripcion: _reto.inscripcion || 0,
+                bolsaTotal: _reto.bolsaTotal || 0,
+                bolsaGanador: _reto.bolsaGanador || 0,
+                bolsaFee: _reto.bolsaFee || 0,
+                modalidad: cfg.modal
+            });
+            localStorage.setItem('RETOS_LISTA', JSON.stringify(retos));
+            localStorage.removeItem('PARTIDA_ACTIVA');
+            _reto = null;
+        }
+
+        location.href = 'index.html';
+    }
+
+    function nuevaPartida() {
+        location.href = 'duelo.html';
+    }
+
+</script>
+<script src="whitelabel.js"></script>
+</body>
+</html>
