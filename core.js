@@ -1,7 +1,71 @@
 /* ============================================================
-   MASTER VIP — CORE ENGINE v2.0
+   MASTER VIP — CORE ENGINE v3.0
    Motor central: Sede, Jugadores, Torneos, Ranking
+   ✅ Supabase integrado — localStorage como respaldo offline
    ============================================================ */
+
+// ─────────────────────────────────────────
+// CONFIGURACIÓN SUPABASE
+// ─────────────────────────────────────────
+const SUPABASE_URL = 'https://iwvogyloebvieloequzr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
+
+const DB = {
+    // Método base para llamadas a Supabase
+    _fetch: async function(endpoint, options = {}) {
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
+                ...options,
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': options.prefer || 'return=representation',
+                    ...options.headers
+                }
+            });
+            if (!res.ok) {
+                const err = await res.text();
+                console.warn('[DB] Error:', err);
+                return null;
+            }
+            const text = await res.text();
+            return text ? JSON.parse(text) : [];
+        } catch (e) {
+            console.warn('[DB] Sin conexión, usando localStorage:', e.message);
+            return null;
+        }
+    },
+
+    // GET — leer registros
+    get: async function(tabla, filtros = '') {
+        return await this._fetch(`${tabla}?${filtros}&order=created_at.desc`);
+    },
+
+    // INSERT — crear registro
+    insert: async function(tabla, datos) {
+        return await this._fetch(tabla, {
+            method: 'POST',
+            body: JSON.stringify(datos)
+        });
+    },
+
+    // UPDATE — actualizar registro
+    update: async function(tabla, id, datos) {
+        return await this._fetch(`${tabla}?id=eq.${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(datos),
+            prefer: 'return=representation'
+        });
+    },
+
+    // DELETE — eliminar registro
+    delete: async function(tabla, id) {
+        return await this._fetch(`${tabla}?id=eq.${id}`, {
+            method: 'DELETE'
+        });
+    }
+};
 
 const MasterVIP = {
 
@@ -19,26 +83,114 @@ const MasterVIP = {
         return config;
     },
 
+    // Obtener club_id activo desde localStorage (lo guarda whitelabel.js)
+    getClubId: function () {
+        const perfil = JSON.parse(localStorage.getItem('mi_perfil')) || {};
+        return perfil.club_id || null;
+    },
+
     // ─────────────────────────────────────────
-    // 2. JUGADORES REGISTRADOS EN LA PLATAFORMA
+    // 2. JUGADORES
     // ─────────────────────────────────────────
     getJugadores: function () {
         return JSON.parse(localStorage.getItem('JUGADORES_PLATAFORMA')) || [];
     },
 
-    guardarJugador: function (jugador) {
+    // Cargar jugadores desde Supabase y sincronizar localStorage
+    cargarJugadoresNube: async function () {
+        const clubId = this.getClubId();
+        const filtro = clubId ? `club_id=eq.${clubId}&activo=eq.true` : 'activo=eq.true';
+        const data = await DB.get('jugadores', filtro);
+        if (data && data.length > 0) {
+            // Convertir formato Supabase → formato local
+            const jugadores = data.map(j => ({
+                id: j.id,
+                nombre: j.nombre,
+                alias: j.alias || '',
+                promedio: parseFloat(j.promedio) || 0,
+                categoria: j.categoria || 'INICIACION',
+                nivel: j.nivel || 'BRONCE',
+                puntos: j.puntos || 0,
+                partidas: j.partidas || 0,
+                victorias: j.victorias || 0,
+                mejor_serie: j.mejor_serie || 0,
+                foto_url: j.foto_url || '',
+                club_id: j.club_id || null,
+                club: j.club || '',
+                ciudad: j.ciudad || '',
+                whatsapp: j.whatsapp || '',
+                activo: j.activo,
+                fechaRegistro: j.created_at
+            }));
+            localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(jugadores));
+            return jugadores;
+        }
+        // Sin conexión → usar localStorage
+        return this.getJugadores();
+    },
+
+    guardarJugador: async function (jugador) {
         let lista = this.getJugadores();
         const idx = lista.findIndex(j => j.nombre === jugador.nombre);
+
         if (idx >= 0) {
+            // Actualizar existente
             lista[idx] = { ...lista[idx], ...jugador };
+            localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(lista));
+
+            // Sincronizar con Supabase si tiene ID de nube
+            if (lista[idx].id && lista[idx].id.length > 10) {
+                await DB.update('jugadores', lista[idx].id, {
+                    nombre: jugador.nombre,
+                    promedio: parseFloat(jugador.promedio) || 0,
+                    alias: jugador.alias || null,
+                    nivel: jugador.nivel || 'BRONCE',
+                    puntos: jugador.puntos || 0,
+                    partidas: jugador.partidas || 0,
+                    victorias: jugador.victorias || 0,
+                    mejor_serie: jugador.mejor_serie || 0,
+                    foto_url: jugador.foto_url || null,
+                    whatsapp: jugador.whatsapp || null,
+                    updated_at: new Date().toISOString()
+                });
+            }
+            return lista[idx];
         } else {
-            jugador.id = 'J' + Date.now();
+            // Crear nuevo
+            jugador.id = 'J' + Date.now(); // ID temporal local
             jugador.fechaRegistro = new Date().toISOString();
             jugador.promedio = parseFloat(jugador.promedio) || 0;
             lista.push(jugador);
+            localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(lista));
+
+            // Guardar en Supabase
+            const clubId = this.getClubId();
+            const datosNube = {
+                nombre: jugador.nombre,
+                alias: jugador.alias || null,
+                club_id: clubId || null,
+                club: jugador.club || this.getSede().nombre,
+                ciudad: jugador.ciudad || null,
+                whatsapp: jugador.whatsapp || null,
+                pin: jugador.pin || null,
+                nivel: jugador.nivel || 'BRONCE',
+                puntos: 0,
+                partidas: 0,
+                victorias: 0,
+                promedio: 0,
+                foto_url: jugador.foto_url || null,
+                activo: true
+            };
+            const resultado = await DB.insert('jugadores', datosNube);
+            if (resultado && resultado[0]) {
+                // Reemplazar ID local por ID real de Supabase
+                jugador.id = resultado[0].id;
+                const idx2 = lista.findIndex(j => j.nombre === jugador.nombre);
+                if (idx2 >= 0) lista[idx2].id = resultado[0].id;
+                localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(lista));
+            }
+            return jugador;
         }
-        localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(lista));
-        return jugador;
     },
 
     buscarJugador: function (nombre) {
@@ -58,14 +210,49 @@ const MasterVIP = {
         return this.getTorneos().find(t => t.id === id) || null;
     },
 
-    crearTorneo: function (config) {
+    // Cargar torneos desde Supabase
+    cargarTorneosNube: async function () {
+        const clubId = this.getClubId();
+        const filtro = clubId ? `club_id=eq.${clubId}` : '';
+        const data = await DB.get('torneos', filtro);
+        if (data && data.length > 0) {
+            const torneos = data.map(t => ({
+                id: t.id,
+                codigo: t.codigo || '',
+                nombre: t.nombre,
+                sede: t.club_id || '',
+                sistema: t.sistema || t.formato || 'brackets',
+                cupoMax: t.cupo_max || 16,
+                inscripcion: parseFloat(t.inscripcion) || 0,
+                baseClub: parseFloat(t.base_club) || 0,
+                pctPremios: parseFloat(t.pct_premios) || 80,
+                pctFee: parseFloat(t.pct_fee) || 20,
+                entradaObjetivo: t.entrada_objetivo || 0,
+                tiempoEntrada: t.tiempo_entrada || 40,
+                modalidad: t.modalidad || 'Libre',
+                reglamento: t.reglamento || '',
+                estado: t.estado || 'ABIERTO',
+                inscritos: [],
+                rondas: [],
+                posiciones: [],
+                fechaCreacion: t.created_at,
+                fechaInicio: t.fecha_inicio || null,
+                campeon: null
+            }));
+            localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
+            return torneos;
+        }
+        return this.getTorneos();
+    },
+
+    crearTorneo: async function (config) {
         let torneos = this.getTorneos();
         const torneo = {
-            id: 'T' + Date.now(),
+            id: 'T' + Date.now(), // ID temporal
             codigo: 'MV-' + new Date().getFullYear() + '-' + String(torneos.length + 1).padStart(4, '0'),
             nombre: config.nombre.toUpperCase(),
             sede: this.getSede().nombre,
-            sistema: config.sistema,         // 'brackets' | 'grupos' | 'survivor'
+            sistema: config.sistema,
             cupoMax: parseInt(config.cupoMax),
             inscripcion: parseFloat(config.inscripcion) || 0,
             baseClub: parseFloat(config.baseClub) || 0,
@@ -75,7 +262,7 @@ const MasterVIP = {
             tiempoEntrada: parseInt(config.tiempoEntrada) || 40,
             modalidad: config.modalidad || 'Libre',
             reglamento: config.reglamento || '',
-            estado: 'ABIERTO',              // ABIERTO | CERRADO | EN_CURSO | FINALIZADO
+            estado: 'ABIERTO',
             inscritos: [],
             rondas: [],
             posiciones: [],
@@ -86,20 +273,57 @@ const MasterVIP = {
         torneos.push(torneo);
         localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
         localStorage.setItem('TORNEO_ACTIVO_ID', torneo.id);
+
+        // Guardar en Supabase
+        const clubId = this.getClubId();
+        const datosNube = {
+            nombre: torneo.nombre,
+            club_id: clubId || null,
+            codigo: torneo.codigo,
+            sistema: torneo.sistema,
+            formato: torneo.sistema,
+            modalidad: torneo.modalidad,
+            cupo_max: torneo.cupoMax,
+            inscripcion: torneo.inscripcion,
+            base_club: torneo.baseClub,
+            pct_premios: torneo.pctPremios,
+            pct_fee: torneo.pctFee,
+            entrada_objetivo: torneo.entradaObjetivo,
+            tiempo_entrada: torneo.tiempoEntrada,
+            reglamento: torneo.reglamento,
+            estado: 'ABIERTO',
+            fecha_inicio: torneo.fechaInicio || null
+        };
+        const resultado = await DB.insert('torneos', datosNube);
+        if (resultado && resultado[0]) {
+            torneo.id = resultado[0].id;
+            const idx = torneos.findIndex(t => t.codigo === torneo.codigo);
+            if (idx >= 0) torneos[idx].id = resultado[0].id;
+            localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
+            localStorage.setItem('TORNEO_ACTIVO_ID', torneo.id);
+        }
         return torneo;
     },
 
-    actualizarTorneo: function (torneo) {
+    actualizarTorneo: async function (torneo) {
         let torneos = this.getTorneos();
         const idx = torneos.findIndex(t => t.id === torneo.id);
         if (idx >= 0) torneos[idx] = torneo;
         localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
+
+        // Sincronizar estado con Supabase si tiene ID real
+        if (torneo.id && torneo.id.length > 10) {
+            await DB.update('torneos', torneo.id, {
+                estado: torneo.estado,
+                updated_at: new Date().toISOString()
+            });
+        }
     },
 
     // ─────────────────────────────────────────
     // 4. INSCRIPCIONES
     // ─────────────────────────────────────────
-    inscribirJugador: function (torneoId, jugador) {
+    inscribirJugador: async function (torneoId, jugador) {
         let torneos = this.getTorneos();
         const idx = torneos.findIndex(t => t.id === torneoId);
         if (idx < 0) return { ok: false, msg: 'Torneo no encontrado' };
@@ -119,6 +343,22 @@ const MasterVIP = {
 
         torneos[idx] = t;
         localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
+
+        // Guardar inscripción en Supabase
+        const jugadorLocal = this.buscarJugador(jugador.nombre);
+        if (jugadorLocal && jugadorLocal.id && jugadorLocal.id.length > 10 &&
+            torneoId && torneoId.length > 10) {
+            await DB.insert('inscripciones', {
+                torneo_id: torneoId,
+                jugador_id: jugadorLocal.id,
+                club_id: this.getClubId() || null,
+                numero_orden: t.inscritos.length,
+                estado: 'ACTIVO',
+                pagado: false,
+                handicap: parseFloat(jugador.promedio) || 0
+            });
+        }
+
         return { ok: true, msg: 'Inscrito correctamente', total: t.inscritos.length };
     },
 
@@ -133,10 +373,8 @@ const MasterVIP = {
         const t = torneos[idx];
         if (t.inscritos.length < 2) return { ok: false, msg: 'Se necesitan al menos 2 jugadores' };
 
-        // Mezcla aleatoria
         let jugadores = [...t.inscritos].sort(() => Math.random() - 0.5);
 
-        // Manejo de número impar → BYE al mejor promedio
         if (jugadores.length % 2 !== 0) {
             jugadores.sort((a, b) => b.promedio - a.promedio);
             jugadores[0].bye = true;
@@ -144,11 +382,9 @@ const MasterVIP = {
         }
 
         if (t.sistema === 'survivor') {
-            // Survivor: solo una tabla ordenada, sin brackets
             t.posiciones = jugadores.map((j, i) => ({ ...j, pos: i + 1, promTorneo: j.promedio, partidasJugadas: 0 }));
             t.rondas = [{ numero: 1, estado: 'EN_CURSO', partidas: this._generarRondaSurvivor(jugadores) }];
         } else {
-            // Brackets o Grupos
             t.rondas = [{ numero: 1, estado: 'EN_CURSO', partidas: this._generarPartidas(jugadores, 1) }];
         }
 
@@ -157,6 +393,12 @@ const MasterVIP = {
         torneos[idx] = t;
         localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
         localStorage.setItem('TORNEO_ACTIVO_ID', t.id);
+
+        // Actualizar estado en Supabase
+        if (t.id && t.id.length > 10) {
+            DB.update('torneos', t.id, { estado: 'EN_CURSO', updated_at: new Date().toISOString() });
+        }
+
         return { ok: true, torneo: t };
     },
 
@@ -174,8 +416,8 @@ const MasterVIP = {
                 prom2: j2 ? j2.promedio : 0,
                 pts1: 0,
                 pts2: 0,
-                ganador: j2 ? null : j1.nombre,  // BYE avanza solo
-                estado: j2 ? 'PENDIENTE' : 'BYE', // PENDIENTE | LISTO_J1 | LISTO_J2 | EN_JUEGO | TERMINADA | BYE
+                ganador: j2 ? null : j1.nombre,
+                estado: j2 ? 'PENDIENTE' : 'BYE',
                 listoJ1: false,
                 listoJ2: false,
                 promFinalJ1: 0,
@@ -186,7 +428,6 @@ const MasterVIP = {
     },
 
     _generarRondaSurvivor: function (jugadores) {
-        // En survivor todos juegan contra el siguiente en la tabla
         const partidas = [];
         for (let i = 0; i < jugadores.length; i += 2) {
             if (jugadores[i + 1]) {
@@ -209,7 +450,7 @@ const MasterVIP = {
     // ─────────────────────────────────────────
     // 6. REGISTRAR RESULTADO DE PARTIDA
     // ─────────────────────────────────────────
-    registrarResultado: function (torneoId, partidaId, resultado) {
+    registrarResultado: async function (torneoId, partidaId, resultado) {
         let torneos = this.getTorneos();
         const idx = torneos.findIndex(t => t.id === torneoId);
         if (idx < 0) return { ok: false };
@@ -217,7 +458,6 @@ const MasterVIP = {
         let torneo = torneos[idx];
         let partidaEncontrada = false;
 
-        // Buscar la partida en todas las rondas
         for (let r of torneo.rondas) {
             const pIdx = r.partidas.findIndex(p => p.id === partidaId);
             if (pIdx >= 0) {
@@ -237,10 +477,27 @@ const MasterVIP = {
 
         if (!partidaEncontrada) return { ok: false, msg: 'Partida no encontrada' };
 
-        // Actualizar promedio del jugador en el historial general
         this._actualizarHistorial(resultado);
 
-        // Verificar si la ronda terminó y generar siguiente
+        // Guardar partida en Supabase
+        const j1 = this.buscarJugador(resultado.j1);
+        const j2 = this.buscarJugador(resultado.j2);
+        const ganador = this.buscarJugador(resultado.ganador);
+        await DB.insert('partidas', {
+            club_id: this.getClubId() || null,
+            torneo_id: (torneoId && torneoId.length > 10) ? torneoId : null,
+            jugador1_id: (j1 && j1.id && j1.id.length > 10) ? j1.id : null,
+            jugador2_id: (j2 && j2.id && j2.id.length > 10) ? j2.id : null,
+            entrada_objetivo: torneo.entradaObjetivo || 0,
+            carambolas_j1: resultado.pts1 || 0,
+            carambolas_j2: resultado.pts2 || 0,
+            promedio_j1: resultado.promFinalJ1 || 0,
+            promedio_j2: resultado.promFinalJ2 || 0,
+            ganador_id: (ganador && ganador.id && ganador.id.length > 10) ? ganador.id : null,
+            tipo: 'TORNEO',
+            ronda: resultado.ronda || null
+        });
+
         const rondaActual = torneo.rondas[torneo.rondas.length - 1];
         const todasTerminadas = rondaActual.partidas.every(p => p.estado === 'TERMINADA' || p.estado === 'BYE');
 
@@ -249,6 +506,15 @@ const MasterVIP = {
             if (siguiente === 'CAMPEON') {
                 torneo.estado = 'FINALIZADO';
                 torneo.campeon = this._determinarCampeon(torneo);
+                // Actualizar torneo finalizado en Supabase
+                if (torneo.id && torneo.id.length > 10) {
+                    const campeonJugador = this.buscarJugador(torneo.campeon);
+                    await DB.update('torneos', torneo.id, {
+                        estado: 'FINALIZADO',
+                        ganador_id: (campeonJugador && campeonJugador.id && campeonJugador.id.length > 10) ? campeonJugador.id : null,
+                        updated_at: new Date().toISOString()
+                    });
+                }
             } else if (siguiente) {
                 torneo.rondas.push(siguiente);
             }
@@ -286,7 +552,7 @@ const MasterVIP = {
     },
 
     // ─────────────────────────────────────────
-    // 7. CONFIRMACIÓN DE JUGADORES (los 2 listos)
+    // 7. CONFIRMACIÓN DE JUGADORES
     // ─────────────────────────────────────────
     confirmarListo: function (torneoId, partidaId, jugador) {
         let torneos = this.getTorneos();
@@ -323,15 +589,38 @@ const MasterVIP = {
     // ─────────────────────────────────────────
     // 8. RANKING E HISTORIAL
     // ─────────────────────────────────────────
-    _actualizarHistorial: function (resultado) {
+    _actualizarHistorial: async function (resultado) {
         let h = JSON.parse(localStorage.getItem('ranking_historico_club')) || [];
         h.push({ nombre: resultado.j1, promedio: resultado.promFinalJ1, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
         h.push({ nombre: resultado.j2, promedio: resultado.promFinalJ2, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
         localStorage.setItem('ranking_historico_club', JSON.stringify(h));
 
-        // Actualizar promedio en jugadores plataforma
         this._recalcularPromedio(resultado.j1);
         this._recalcularPromedio(resultado.j2);
+
+        // Guardar en ranking_historico Supabase
+        const clubId = this.getClubId();
+        const j1 = this.buscarJugador(resultado.j1);
+        const j2 = this.buscarJugador(resultado.j2);
+
+        if (j1 && j1.id && j1.id.length > 10) {
+            await DB.insert('ranking_historico', {
+                club_id: clubId || null,
+                jugador_id: j1.id,
+                promedio: resultado.promFinalJ1 || 0,
+                puntos: resultado.pts1 || 0,
+                fecha: new Date().toISOString().split('T')[0]
+            });
+        }
+        if (j2 && j2.id && j2.id.length > 10) {
+            await DB.insert('ranking_historico', {
+                club_id: clubId || null,
+                jugador_id: j2.id,
+                promedio: resultado.promFinalJ2 || 0,
+                puntos: resultado.pts2 || 0,
+                fecha: new Date().toISOString().split('T')[0]
+            });
+        }
     },
 
     _recalcularPromedio: function (nombre) {
@@ -345,6 +634,15 @@ const MasterVIP = {
         if (idx >= 0) {
             jugadores[idx].promedio = parseFloat(prom.toFixed(3));
             localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(jugadores));
+
+            // Actualizar promedio en Supabase
+            if (jugadores[idx].id && jugadores[idx].id.length > 10) {
+                DB.update('jugadores', jugadores[idx].id, {
+                    promedio: jugadores[idx].promedio,
+                    partidas: jugadores[idx].partidas || partidas.length,
+                    updated_at: new Date().toISOString()
+                });
+            }
         }
     },
 
@@ -359,12 +657,12 @@ const MasterVIP = {
 
     getCategoria: function (promedio) {
         const p = parseFloat(promedio);
-        if (p >= 1.100) return { nombre: 'CLASE ÉLITE', color: '#f1c40f', emoji: '🏆' };
-        if (p >= 0.900) return { nombre: 'MAESTRO', color: '#d4af37', emoji: '⭐' };
-        if (p >= 0.700) return { nombre: 'PRIMERA', color: '#c0c0c0', emoji: '🥇' };
-        if (p >= 0.500) return { nombre: 'SEGUNDA', color: '#cd7f32', emoji: '🥈' };
-        if (p >= 0.350) return { nombre: 'TERCERA', color: '#3498db', emoji: '🥉' };
-        return { nombre: 'INICIACIÓN', color: '#555', emoji: '🎱' };
+        if (p >= 1.100) return { nombre: 'CLASE ÉLITE',  color: '#f1c40f', emoji: '🏆' };
+        if (p >= 0.900) return { nombre: 'MAESTRO',      color: '#d4af37', emoji: '⭐' };
+        if (p >= 0.700) return { nombre: 'PRIMERA',      color: '#c0c0c0', emoji: '🥇' };
+        if (p >= 0.500) return { nombre: 'SEGUNDA',      color: '#cd7f32', emoji: '🥈' };
+        if (p >= 0.350) return { nombre: 'TERCERA',      color: '#3498db', emoji: '🥉' };
+        return            { nombre: 'INICIACIÓN',        color: '#555',    emoji: '🎱' };
     },
 
     calcularBolsa: function (torneo) {
@@ -375,16 +673,22 @@ const MasterVIP = {
     },
 
     // ─────────────────────────────────────────
-    // 9. SINCRONIZACIÓN (preparado para nube)
+    // 9. SINCRONIZACIÓN
     // ─────────────────────────────────────────
     sincronizar: async function (accion, datos) {
-        // Aquí se conectará la URL real del backend cuando esté en Netlify
-        // Por ahora guarda localmente y simula éxito
         console.log('[MasterVIP] Sincronizando:', accion, datos);
         const log = JSON.parse(localStorage.getItem('SYNC_PENDIENTE')) || [];
         log.push({ accion, datos, ts: new Date().toISOString() });
         localStorage.setItem('SYNC_PENDIENTE', JSON.stringify(log));
         return { ok: true, offline: true };
+    },
+
+    // Inicializar app: cargar datos frescos desde Supabase
+    init: async function () {
+        console.log('[MasterVIP] Iniciando sincronización con Supabase...');
+        await this.cargarJugadoresNube();
+        await this.cargarTorneosNube();
+        console.log('[MasterVIP] ✅ Datos sincronizados');
     },
 
     // ─────────────────────────────────────────
