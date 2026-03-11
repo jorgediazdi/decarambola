@@ -14,8 +14,12 @@ const DB = {
     // Método base para llamadas a Supabase
     _fetch: async function(endpoint, options = {}) {
         try {
+            // Timeout de 5 segundos — evita el reloj infinito en páginas
+            const controller = new AbortController();
+            const timer = setTimeout(function() { controller.abort(); }, 5000);
             const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
                 ...options,
+                signal: controller.signal,
                 headers: {
                     'apikey': SUPABASE_KEY,
                     'Authorization': `Bearer ${SUPABASE_KEY}`,
@@ -24,6 +28,7 @@ const DB = {
                     ...options.headers
                 }
             });
+            clearTimeout(timer);
             if (!res.ok) {
                 const err = await res.text();
                 console.warn('[DB] Error:', err);
@@ -32,7 +37,7 @@ const DB = {
             const text = await res.text();
             return text ? JSON.parse(text) : [];
         } catch (e) {
-            console.warn('[DB] Sin conexión, usando localStorage:', e.message);
+            console.warn('[DB] Sin conexión o timeout, usando localStorage:', e.message);
             return null;
         }
     },
@@ -213,36 +218,96 @@ const MasterVIP = {
     // Cargar torneos desde Supabase
     cargarTorneosNube: async function () {
         const clubId = this.getClubId();
-        const filtro = clubId ? `club_id=eq.${clubId}` : '';
+        const filtro = clubId ? 'club_id=eq.' + clubId + '&order=created_at.desc' : 'order=created_at.desc';
         const data = await DB.get('torneos', filtro);
         if (data && data.length > 0) {
-            const torneos = data.map(t => ({
-                id: t.id,
-                codigo: t.codigo || '',
-                nombre: t.nombre,
-                sede: t.club_id || '',
-                sistema: t.sistema || t.formato || 'brackets',
-                cupoMax: t.cupo_max || 16,
-                inscripcion: parseFloat(t.inscripcion) || 0,
-                baseClub: parseFloat(t.base_club) || 0,
-                pctPremios: parseFloat(t.pct_premios) || 80,
-                pctFee: parseFloat(t.pct_fee) || 20,
-                entradaObjetivo: t.entrada_objetivo || 0,
-                tiempoEntrada: t.tiempo_entrada || 40,
-                modalidad: t.modalidad || 'Libre',
-                reglamento: t.reglamento || '',
-                estado: t.estado || 'ABIERTO',
-                inscritos: [],
-                rondas: [],
-                posiciones: [],
-                fechaCreacion: t.created_at,
-                fechaInicio: t.fecha_inicio || null,
-                campeon: null
-            }));
+            const locales = this.getTorneos();
+            const torneos = data.map(t => {
+                const local = locales.find(l => l.codigo === t.codigo || l.id === t.id) || {};
+                return {
+                    id: t.id,
+                    codigo: t.codigo || local.codigo || '',
+                    nombre: t.nombre,
+                    sede: t.club_id || '',
+                    sistema: t.sistema || t.formato || local.sistema || 'brackets',
+                    cupoMax: t.cupo_max || local.cupoMax || 16,
+                    inscripcion: parseFloat(t.inscripcion) || 0,
+                    baseClub: parseFloat(t.base_club) || 0,
+                    pctPremios: parseFloat(t.pct_premios) || 80,
+                    pctFee: parseFloat(t.pct_fee) || 20,
+                    entradaObjetivo: t.entrada_objetivo || local.entradaObjetivo || 0,
+                    tiempoEntrada: t.tiempo_entrada || local.tiempoEntrada || 40,
+                    modalidad: t.modalidad || local.modalidad || 'Libre',
+                    reglamento: t.reglamento || local.reglamento || '',
+                    estado: t.estado || 'ABIERTO',
+                    // Si el local ya tiene inscritos, los respetamos (pueden tener bye/eliminado)
+                    // Si no hay local o está vacío, se llenará en _recuperarInscritos()
+                    inscritos: local.inscritos || [],
+                    rondas: local.rondas || [],
+                    posiciones: local.posiciones || [],
+                    fechaCreacion: t.created_at,
+                    fechaInicio: t.fecha_inicio || local.fechaInicio || null,
+                    campeon: local.campeon || null
+                };
+            });
             localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
-            return torneos;
+            const activo = torneos.find(t => t.estado === 'EN_CURSO') ||
+                           torneos.find(t => t.estado === 'ABIERTO') ||
+                           torneos[0];
+            if (activo) localStorage.setItem('TORNEO_ACTIVO_ID', activo.id);
+
+            // Recuperar inscritos desde Supabase para torneos activos
+            // que llegaron con inscritos vacíos (dispositivo nuevo o caché borrada)
+            for (var i = 0; i < torneos.length; i++) {
+                var t2 = torneos[i];
+                if ((t2.estado === 'ABIERTO' || t2.estado === 'EN_CURSO') &&
+                    t2.inscritos.length === 0 &&
+                    t2.id && t2.id.length > 10) {
+                    await this._recuperarInscritos(t2.id);
+                }
+            }
+
+            return this.getTorneos(); // re-leer con inscritos ya recuperados
         }
         return this.getTorneos();
+    },
+
+    // Recupera los inscritos de un torneo desde Supabase tabla inscripciones
+    // y actualiza el torneo en localStorage. Solo se llama cuando inscritos=[].
+    _recuperarInscritos: async function (torneoId) {
+        try {
+            // Traer inscripciones activas con datos del jugador
+            const rows = await DB._fetch(
+                'inscripciones?torneo_id=eq.' + torneoId +
+                '&estado=eq.ACTIVO&select=numero_orden,jugador_id,jugadores(nombre,promedio,categoria)',
+                { headers: { 'Accept': 'application/json' } }
+            );
+            if (!rows || rows.length === 0) return;
+
+            const inscritos = rows
+                .sort(function(a, b) { return (a.numero_orden || 0) - (b.numero_orden || 0); })
+                .map(function(r) {
+                    var jug = r.jugadores || {};
+                    return {
+                        nombre:    jug.nombre    || '—',
+                        promedio:  parseFloat(jug.promedio) || 0,
+                        categoria: jug.categoria || 'INICIACION',
+                        eliminado: false,
+                        bye:       false
+                    };
+                });
+
+            // Actualizar el torneo en localStorage con los inscritos recuperados
+            var torneos = this.getTorneos();
+            var idx = torneos.findIndex(function(t) { return t.id === torneoId; });
+            if (idx >= 0 && inscritos.length > 0) {
+                torneos[idx].inscritos = inscritos;
+                localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
+                console.log('[MasterVIP] Inscritos recuperados de Supabase para torneo', torneoId, '→', inscritos.length, 'jugadores');
+            }
+        } catch (e) {
+            console.warn('[MasterVIP] No se pudieron recuperar inscritos:', e.message);
+        }
     },
 
     crearTorneo: async function (config) {
@@ -421,7 +486,9 @@ const MasterVIP = {
                 listoJ1: false,
                 listoJ2: false,
                 promFinalJ1: 0,
-                promFinalJ2: 0
+                promFinalJ2: 0,
+                entradas1: 0,
+                entradas2: 0
             });
         }
         return partidas;
@@ -438,6 +505,7 @@ const MasterVIP = {
                     j2: jugadores[i + 1].nombre,
                     pts1: 0, pts2: 0,
                     promFinalJ1: 0, promFinalJ2: 0,
+                    entradas1: 0, entradas2: 0,
                     ganador: null,
                     estado: 'PENDIENTE',
                     listoJ1: false, listoJ2: false
@@ -465,6 +533,8 @@ const MasterVIP = {
                     ...r.partidas[pIdx],
                     pts1: resultado.pts1,
                     pts2: resultado.pts2,
+                    entradas1: resultado.entradas1 || 0,
+                    entradas2: resultado.entradas2 || 0,
                     promFinalJ1: resultado.promFinalJ1,
                     promFinalJ2: resultado.promFinalJ2,
                     ganador: resultado.ganador,
@@ -491,6 +561,8 @@ const MasterVIP = {
             entrada_objetivo: torneo.entradaObjetivo || 0,
             carambolas_j1: resultado.pts1 || 0,
             carambolas_j2: resultado.pts2 || 0,
+            entradas_j1: resultado.entradas1 || 0,
+            entradas_j2: resultado.entradas2 || 0,
             promedio_j1: resultado.promFinalJ1 || 0,
             promedio_j2: resultado.promFinalJ2 || 0,
             ganador_id: (ganador && ganador.id && ganador.id.length > 10) ? ganador.id : null,
@@ -591,8 +663,16 @@ const MasterVIP = {
     // ─────────────────────────────────────────
     _actualizarHistorial: async function (resultado) {
         let h = JSON.parse(localStorage.getItem('ranking_historico_club')) || [];
-        h.push({ nombre: resultado.j1, promedio: resultado.promFinalJ1, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
-        h.push({ nombre: resultado.j2, promedio: resultado.promFinalJ2, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
+        // Guardar promedio real (carambolas / entradas) si hay entradas disponibles
+        const promJ1 = resultado.entradas1 > 0
+            ? parseFloat((resultado.pts1 / resultado.entradas1).toFixed(3))
+            : resultado.promFinalJ1;
+        const promJ2 = resultado.entradas2 > 0
+            ? parseFloat((resultado.pts2 / resultado.entradas2).toFixed(3))
+            : resultado.promFinalJ2;
+
+        h.push({ nombre: resultado.j1, promedio: promJ1, carambolas: resultado.pts1 || 0, entradas: resultado.entradas1 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
+        h.push({ nombre: resultado.j2, promedio: promJ2, carambolas: resultado.pts2 || 0, entradas: resultado.entradas2 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
         localStorage.setItem('ranking_historico_club', JSON.stringify(h));
 
         this._recalcularPromedio(resultado.j1);
@@ -607,8 +687,9 @@ const MasterVIP = {
             await DB.insert('ranking_historico', {
                 club_id: clubId || null,
                 jugador_id: j1.id,
-                promedio: resultado.promFinalJ1 || 0,
+                promedio: promJ1,
                 puntos: resultado.pts1 || 0,
+                entradas: resultado.entradas1 || 0,
                 fecha: new Date().toISOString().split('T')[0]
             });
         }
@@ -616,8 +697,9 @@ const MasterVIP = {
             await DB.insert('ranking_historico', {
                 club_id: clubId || null,
                 jugador_id: j2.id,
-                promedio: resultado.promFinalJ2 || 0,
+                promedio: promJ2,
                 puntos: resultado.pts2 || 0,
+                entradas: resultado.entradas2 || 0,
                 fecha: new Date().toISOString().split('T')[0]
             });
         }
@@ -627,7 +709,14 @@ const MasterVIP = {
         const h = JSON.parse(localStorage.getItem('ranking_historico_club')) || [];
         const partidas = h.filter(x => x.nombre.toUpperCase() === nombre.toUpperCase());
         if (partidas.length === 0) return;
-        const prom = partidas.reduce((acc, x) => acc + parseFloat(x.promedio), 0) / partidas.length;
+
+        // Fórmula real billar tres bandas: total carambolas / total entradas
+        // Si hay entradas guardadas las usamos; si no, promediamos los promedios (fallback)
+        const totalCar = partidas.reduce((acc, x) => acc + (parseInt(x.carambolas) || 0), 0);
+        const totalEnt = partidas.reduce((acc, x) => acc + (parseInt(x.entradas)   || 0), 0);
+        const prom = totalEnt > 0
+            ? totalCar / totalEnt
+            : partidas.reduce((acc, x) => acc + parseFloat(x.promedio), 0) / partidas.length;
 
         let jugadores = this.getJugadores();
         const idx = jugadores.findIndex(j => j.nombre.toUpperCase() === nombre.toUpperCase());
@@ -686,9 +775,13 @@ const MasterVIP = {
     // Inicializar app: cargar datos frescos desde Supabase
     init: async function () {
         console.log('[MasterVIP] Iniciando sincronización con Supabase...');
-        await this.cargarJugadoresNube();
-        await this.cargarTorneosNube();
-        console.log('[MasterVIP] ✅ Datos sincronizados');
+        // Correr en paralelo — si uno falla, el otro sigue
+        await Promise.allSettled([
+            this.cargarJugadoresNube(),
+            this.cargarTorneosNube()
+        ]);
+        LIMPIEZA.ejecutar().catch(function(e){ console.warn('[LIMPIEZA]', e); });
+        console.log('[MasterVIP] ✅ Sincronización completada');
     },
 
     // ─────────────────────────────────────────
@@ -709,5 +802,636 @@ const MasterVIP = {
 
     totalRondas: function (numJugadores) {
         return Math.ceil(Math.log2(numJugadores));
+    },
+
+    // ─────────────────────────────────────────
+    // 11. MÉTODOS DE COMPATIBILIDAD
+    //     (usados por perfil, brackets, organizador)
+    // ─────────────────────────────────────────
+
+    // _get: leer localStorage con valor por defecto
+    _get: function (key, defaultVal) {
+        try {
+            var v = localStorage.getItem(key);
+            if (v === null || v === undefined) return defaultVal;
+            return JSON.parse(v);
+        } catch (e) {
+            return defaultVal;
+        }
+    },
+
+    // applyDesign: aplica whitelabel si está disponible (no-op si no hay WL)
+    applyDesign: function () {
+        // whitelabel.js se encarga — este método existe para compatibilidad
+        if (window.WL && typeof window.WL.getNombreClub === 'function') {
+            var nombre = window.WL.getNombreClub();
+            if (nombre) {
+                var tituloEl = document.querySelector('.titulo, h1, .header h1');
+                if (tituloEl) {
+                    var PAGINAS_NO_REEMPLAZAR = ['CATEGORÍAS','RANKING','INSCRIPCIONES','TORNEOS','BRACKETS','PERFIL','DUELO','RETO','SENSEI','CERTIFICADOS','POSICIONES','ENTRENAMIENTO'];
+                    var texto = (tituloEl.textContent || '').trim().toUpperCase();
+                    var esPagina = PAGINAS_NO_REEMPLAZAR.some(function(p) { return texto.indexOf(p) >= 0; });
+                    if (!esPagina) tituloEl.textContent = nombre;
+                }
+            }
+        }
+    },
+
+    // getFoto: obtiene foto guardada de un jugador desde localStorage
+    getFoto: function (nombre) {
+        try {
+            // Leer del mismo storage que usa perfil.html
+            var fotos = JSON.parse(localStorage.getItem('FOTOS_JUGADORES')) || {};
+            return fotos[(nombre || '').toUpperCase()] || null;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    // guardarFotoJugador: guarda foto en localStorage
+    guardarFotoJugador: function (nombre, base64) {
+        try {
+            var fotos = JSON.parse(localStorage.getItem('FOTOS_JUGADORES')) || {};
+            fotos[(nombre || '').toUpperCase()] = base64;
+            localStorage.setItem('FOTOS_JUGADORES', JSON.stringify(fotos));
+        } catch (e) {}
+    },
+
+    // getAvatarHTML: genera HTML del avatar de un jugador
+    getAvatarHTML: function (nombre, size) {
+        size = size || 40;
+        var foto = this.getFoto(nombre);
+        var jugador = this.buscarJugador(nombre);
+        var cat = this.getCategoria((jugador && jugador.promedio) || 0);
+        var inicial = (nombre || '?').charAt(0).toUpperCase();
+
+        if (foto) {
+            return '<img src="' + foto + '" ' +
+                'style="width:' + size + 'px;height:' + size + 'px;' +
+                'border-radius:50%;object-fit:cover;' +
+                'border:2px solid ' + cat.color + ';" ' +
+                'alt="' + inicial + '">';
+        }
+        // Sin foto → círculo con inicial
+        var fontSize = Math.round(size * 0.4);
+        return '<div style="width:' + size + 'px;height:' + size + 'px;' +
+            'border-radius:50%;background:#1a1a1a;' +
+            'border:2px solid ' + cat.color + ';' +
+            'display:flex;align-items:center;justify-content:center;' +
+            'font-family:Arial Black,sans-serif;font-size:' + fontSize + 'px;' +
+            'color:' + cat.color + ';font-weight:900;">' +
+            inicial + '</div>';
+    },
+
+    // getDesign: retorna configuración visual del club activo
+    getDesign: function () {
+        return {
+            color: localStorage.getItem('wl_club_color') || '#d4af37',
+            logo:  localStorage.getItem('wl_club_logo_url') || null,
+            nombre: localStorage.getItem('wl_club_nombre') || null
+        };
+    },
+
+    // getLogoHTML: genera HTML del logo del club activo
+    getLogoHTML: function (size) {
+        size = size || 34;
+        var logoUrl = window.WL ? window.WL.getLogoUrl() : null;
+        var nombre = window.WL ? window.WL.getNombreClub() : null;
+
+        if (logoUrl) {
+            return '<img src="' + logoUrl + '" ' +
+                'style="width:' + size + 'px;height:' + size + 'px;' +
+                'border-radius:50%;object-fit:contain;background:#111;padding:2px;" ' +
+                'alt="' + (nombre || 'Club') + '">';
+        }
+        // Sin logo → bola de billar por defecto
+        return '<span style="font-size:' + size + 'px;">🎱</span>';
     }
 };
+
+/* ============================================================
+   MÓDULO DE SESIÓN, HISTORIAL Y ESTADÍSTICAS
+   v1.0 — Marzo 2026
+   ─ Gestión de inactividad por rol
+   ─ Historial últimas 50 partidas por jugador
+   ─ Estadísticas de evolución para IA
+   ============================================================ */
+
+const SESSION = {
+
+    // ─────────────────────────────────────────
+    // CONFIGURACIÓN
+    // ─────────────────────────────────────────
+    TIMEOUTS: {
+        jugador:      60 * 60 * 1000,   // 60 min
+        organizador:  15 * 60 * 1000,   // 15 min
+        partida:      30 * 60 * 1000,   // 30 min → aviso árbitro
+        aviso:         2 * 60 * 1000    //  2 min de gracia tras aviso
+    },
+
+    _timer:      null,
+    _avisoTimer: null,
+    _rol:        null,
+    _avisoActivo: false,
+
+    // ─────────────────────────────────────────
+    // INICIAR SESIÓN CON ROL
+    // rol: 'jugador' | 'organizador' | 'partida'
+    // ─────────────────────────────────────────
+    iniciar: function(rol) {
+        this._rol = rol;
+        localStorage.setItem('session_rol', rol);
+        localStorage.setItem('session_inicio', Date.now().toString());
+        this._registrarActividad();
+        this._escucharActividad();
+        console.log('[SESSION] Iniciada — rol:', rol);
+    },
+
+    // ─────────────────────────────────────────
+    // REGISTRAR ACTIVIDAD (resetea el timer)
+    // ─────────────────────────────────────────
+    _registrarActividad: function() {
+        localStorage.setItem('session_ultimo_act', Date.now().toString());
+        this._iniciarTimer();
+    },
+
+    // ─────────────────────────────────────────
+    // ESCUCHAR EVENTOS DE ACTIVIDAD DEL USUARIO
+    // ─────────────────────────────────────────
+    _escucharActividad: function() {
+        const eventos = ['click', 'touchstart', 'keydown', 'scroll'];
+        const self = this;
+        eventos.forEach(function(ev) {
+            document.addEventListener(ev, function() {
+                // Si había aviso activo y el usuario toca → cancelar cierre
+                if (self._avisoActivo) self._cancelarAviso();
+                self._registrarActividad();
+            }, { passive: true });
+        });
+    },
+
+    // ─────────────────────────────────────────
+    // INICIAR / REINICIAR TIMER DE INACTIVIDAD
+    // ─────────────────────────────────────────
+    _iniciarTimer: function() {
+        if (this._timer) clearTimeout(this._timer);
+        const timeout = this.TIMEOUTS[this._rol] || this.TIMEOUTS.jugador;
+        const self = this;
+
+        this._timer = setTimeout(function() {
+            if (self._rol === 'partida') {
+                self._avisarArbitro();
+            } else if (self._rol === 'organizador') {
+                self._avisarOrganizador();
+            } else {
+                self.cerrar('inactividad');
+            }
+        }, timeout);
+    },
+
+    // ─────────────────────────────────────────
+    // AVISO AL ÁRBITRO — partida sin actividad 30 min
+    // ─────────────────────────────────────────
+    _avisarArbitro: function() {
+        this._avisoActivo = true;
+        const self = this;
+
+        // Overlay de aviso
+        const overlay = document.createElement('div');
+        overlay.id = 'session-aviso-overlay';
+        overlay.style.cssText = [
+            'position:fixed;top:0;left:0;width:100%;height:100%;',
+            'background:rgba(0,0,0,0.92);z-index:99999;',
+            'display:flex;flex-direction:column;align-items:center;',
+            'justify-content:center;text-align:center;padding:30px;'
+        ].join('');
+
+        overlay.innerHTML = [
+            '<div style="font-size:3.5rem;margin-bottom:16px;">⏱️</div>',
+            '<div style="color:#d4af37;font-size:0.7rem;letter-spacing:4px;margin-bottom:10px;">',
+            'AVISO DE ÁRBITRO</div>',
+            '<div style="color:#fff;font-size:1.4rem;font-family:Arial Black;margin-bottom:12px;">',
+            'PARTIDA SIN ACTIVIDAD</div>',
+            '<div style="color:#aaa;font-size:0.85rem;margin-bottom:24px;">',
+            'Han pasado 30 minutos sin registrar jugadas.<br>',
+            'Si la partida continúa, toca CONTINUAR.</div>',
+            '<div id="session-countdown" style="color:#ff4444;font-size:2rem;',
+            'font-family:Arial Black;margin-bottom:24px;">2:00</div>',
+            '<button onclick="SESSION._continuarPartida()" style="',
+            'background:#d4af37;color:#000;border:none;padding:16px 40px;',
+            'border-radius:20px;font-size:1rem;font-weight:bold;cursor:pointer;',
+            'margin-bottom:12px;">✅ CONTINUAR PARTIDA</button>',
+            '<button onclick="SESSION._abandonarPartida()" style="',
+            'background:#333;color:#aaa;border:1px solid #555;padding:12px 30px;',
+            'border-radius:16px;font-size:0.85rem;cursor:pointer;">',
+            '🚩 REGISTRAR ABANDONO</button>'
+        ].join('');
+
+        document.body.appendChild(overlay);
+
+        // Countdown visual de 2 minutos
+        let segsRestantes = 120;
+        const countdownEl = document.getElementById('session-countdown');
+        const intervalo = setInterval(function() {
+            segsRestantes--;
+            const m = Math.floor(segsRestantes / 60);
+            const s = segsRestantes % 60;
+            if (countdownEl) countdownEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+            if (segsRestantes <= 0) {
+                clearInterval(intervalo);
+                self._abandonarPartida();
+            }
+        }, 1000);
+
+        this._avisoCountdown = intervalo;
+
+        // Guardar que hay aviso pendiente
+        localStorage.setItem('session_aviso_ts', Date.now().toString());
+    },
+
+    // ─────────────────────────────────────────
+    // AVISO AL ORGANIZADOR — 15 min inactividad
+    // ─────────────────────────────────────────
+    _avisarOrganizador: function() {
+        this._avisoActivo = true;
+        const self = this;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'session-aviso-overlay';
+        overlay.style.cssText = [
+            'position:fixed;top:0;left:0;width:100%;height:100%;',
+            'background:rgba(0,0,0,0.88);z-index:99999;',
+            'display:flex;flex-direction:column;align-items:center;',
+            'justify-content:center;text-align:center;padding:30px;'
+        ].join('');
+
+        overlay.innerHTML = [
+            '<div style="font-size:3rem;margin-bottom:16px;">😴</div>',
+            '<div style="color:#d4af37;font-size:0.7rem;letter-spacing:4px;margin-bottom:8px;">',
+            'SESIÓN INACTIVA</div>',
+            '<div style="color:#fff;font-size:1.2rem;font-family:Arial Black;margin-bottom:10px;">',
+            '¿Sigues ahí?</div>',
+            '<div style="color:#aaa;font-size:0.85rem;margin-bottom:20px;">',
+            '15 minutos sin actividad.<br>La sesión se cerrará en:</div>',
+            '<div id="session-countdown" style="color:#ff4444;font-size:2.5rem;',
+            'font-family:Arial Black;margin-bottom:24px;">2:00</div>',
+            '<button onclick="SESSION._cancelarAviso()" style="',
+            'background:#d4af37;color:#000;border:none;padding:14px 36px;',
+            'border-radius:18px;font-size:1rem;font-weight:bold;cursor:pointer;">',
+            '✅ SEGUIR TRABAJANDO</button>'
+        ].join('');
+
+        document.body.appendChild(overlay);
+
+        let segsRestantes = 120;
+        const countdownEl = document.getElementById('session-countdown');
+        const intervalo = setInterval(function() {
+            segsRestantes--;
+            const m = Math.floor(segsRestantes / 60);
+            const s = segsRestantes % 60;
+            if (countdownEl) countdownEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+            if (segsRestantes <= 0) {
+                clearInterval(intervalo);
+                self.cerrar('inactividad');
+            }
+        }, 1000);
+
+        this._avisoCountdown = intervalo;
+    },
+
+    // ─────────────────────────────────────────
+    // CONTINUAR PARTIDA (árbitro confirmó)
+    // ─────────────────────────────────────────
+    _continuarPartida: function() {
+        this._cancelarAviso();
+    },
+
+    // ─────────────────────────────────────────
+    // REGISTRAR ABANDONO DE PARTIDA
+    // ─────────────────────────────────────────
+    _abandonarPartida: function() {
+        this._cancelarAviso();
+        // Guardar walkover en localStorage para que control_torneo lo recoja
+        const partidaActiva = JSON.parse(localStorage.getItem('PARTIDA_ACTIVA') || '{}');
+        if (partidaActiva && partidaActiva.torneoId) {
+            partidaActiva.walkover   = true;
+            partidaActiva.motivo     = 'timeout_arbitro';
+            partidaActiva.timestamp  = Date.now();
+            localStorage.setItem('PARTIDA_WALKOVER', JSON.stringify(partidaActiva));
+            localStorage.removeItem('PARTIDA_ACTIVA');
+        }
+        location.href = 'control_torneo.html';
+    },
+
+    // ─────────────────────────────────────────
+    // CANCELAR AVISO (usuario reactivó)
+    // ─────────────────────────────────────────
+    _cancelarAviso: function() {
+        this._avisoActivo = false;
+        if (this._avisoCountdown) clearInterval(this._avisoCountdown);
+        const overlay = document.getElementById('session-aviso-overlay');
+        if (overlay) overlay.remove();
+        localStorage.removeItem('session_aviso_ts');
+        this._registrarActividad();
+    },
+
+    // ─────────────────────────────────────────
+    // CERRAR SESIÓN
+    // ─────────────────────────────────────────
+    cerrar: function(motivo) {
+        if (this._timer) clearTimeout(this._timer);
+        if (this._avisoCountdown) clearInterval(this._avisoCountdown);
+
+        const rol = localStorage.getItem('session_rol');
+        console.log('[SESSION] Cerrando por:', motivo, '| rol:', rol);
+
+        // Limpiar claves de sesión (NO datos del jugador)
+        const clavesLimpiar = [
+            'session_rol', 'session_inicio', 'session_ultimo_act',
+            'session_aviso_ts', 'PARTIDA_ACTIVA', 'TORNEO_ACTIVO_ID'
+        ];
+        clavesLimpiar.forEach(function(k) { localStorage.removeItem(k); });
+
+        // Redirigir
+        location.href = 'index.html';
+    },
+
+    // ─────────────────────────────────────────
+    // VERIFICAR AL CARGAR (restaurar sesión o cerrar si expiró)
+    // ─────────────────────────────────────────
+    verificarAlCargar: function(rol) {
+        const ultimoAct = parseInt(localStorage.getItem('session_ultimo_act') || '0');
+        const ahora     = Date.now();
+        const timeout   = this.TIMEOUTS[rol] || this.TIMEOUTS.jugador;
+
+        if (ultimoAct && (ahora - ultimoAct) > timeout) {
+            // Sesión expirada — limpiar y redirigir
+            this.cerrar('expirada');
+            return false;
+        }
+
+        // Sesión válida — reanudar
+        this.iniciar(rol);
+        return true;
+    }
+};
+
+/* ============================================================
+   MÓDULO DE HISTORIAL DE JUGADOR
+   ─ Últimas 50 partidas por jugador
+   ─ Estadísticas para IA: evolución del promedio
+   ============================================================ */
+
+const HISTORIAL = {
+
+    MAX_PARTIDAS: 50,
+
+    // ─────────────────────────────────────────
+    // GUARDAR RESULTADO DE PARTIDA DEL JUGADOR
+    // Llamar desde duelo.html al terminar cada partida
+    // ─────────────────────────────────────────
+    guardarPartida: async function(datos) {
+        /*
+          datos = {
+            jugador_id, jugador_nombre,
+            rival_nombre, rival_promedio,
+            entrada_objetivo,
+            entradas_jugador, carambolas_jugador,
+            promedio_partida,   // carambolas / entradas
+            gano: true/false,
+            tipo: 'torneo' | 'reto' | 'entrenamiento',
+            torneo_nombre,
+            serie_mayor,
+            fecha
+          }
+        */
+        const registro = {
+            jugador_id:        datos.jugador_id,
+            jugador_nombre:    datos.jugador_nombre,
+            rival_nombre:      datos.rival_nombre      || null,
+            rival_promedio:    datos.rival_promedio     || 0,
+            entrada_objetivo:  datos.entrada_objetivo   || 0,
+            entradas:          datos.entradas_jugador   || 0,
+            carambolas:        datos.carambolas_jugador || 0,
+            promedio_partida:  datos.promedio_partida   || 0,
+            gano:              datos.gano               || false,
+            tipo:              datos.tipo               || 'torneo',
+            torneo_nombre:     datos.torneo_nombre      || null,
+            serie_mayor:       datos.serie_mayor        || 0,
+            fecha:             datos.fecha              || new Date().toISOString()
+        };
+
+        // 1. Guardar en Supabase tabla partidas
+        await DB.insert('partidas', {
+            jugador_id:     registro.jugador_id,
+            rival_nombre:   registro.rival_nombre,
+            promedio:       registro.promedio_partida,
+            entradas:       registro.entradas,
+            carambolas:     registro.carambolas,
+            gano:           registro.gano,
+            tipo:           registro.tipo,
+            serie_mayor:    registro.serie_mayor,
+            created_at:     registro.fecha
+        });
+
+        // 2. Mantener en localStorage las últimas 50
+        const clave = 'historial_' + (datos.jugador_id || datos.jugador_nombre);
+        let lista = [];
+        try { lista = JSON.parse(localStorage.getItem(clave)) || []; } catch(e) {}
+
+        lista.unshift(registro);                              // más reciente primero
+        if (lista.length > this.MAX_PARTIDAS) lista = lista.slice(0, this.MAX_PARTIDAS);
+
+        localStorage.setItem(clave, JSON.stringify(lista));
+
+        // 3. Actualizar mejor serie si aplica
+        const perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        if (registro.serie_mayor > (perfil.mejor_serie || 0)) {
+            perfil.mejor_serie = registro.serie_mayor;
+            localStorage.setItem('mi_perfil', JSON.stringify(perfil));
+        }
+
+        return registro;
+    },
+
+    // ─────────────────────────────────────────
+    // OBTENER HISTORIAL DE UN JUGADOR
+    // ─────────────────────────────────────────
+    obtener: async function(jugador_id, jugador_nombre) {
+        // Intentar primero desde Supabase (últimas 50)
+        const clave = 'historial_' + (jugador_id || jugador_nombre);
+
+        const datos = await DB.get('partidas',
+            'jugador_id=eq.' + jugador_id +
+            '&order=created_at.desc&limit=50'
+        );
+
+        if (datos && datos.length > 0) {
+            localStorage.setItem(clave, JSON.stringify(datos));
+            return datos;
+        }
+
+        // Fallback localStorage
+        try { return JSON.parse(localStorage.getItem(clave)) || []; }
+        catch(e) { return []; }
+    },
+
+    // ─────────────────────────────────────────
+    // CALCULAR ESTADÍSTICAS PARA IA
+    // Retorna objeto completo para enviar a Claude/Sensei
+    // ─────────────────────────────────────────
+    calcularEstadisticas: function(historial) {
+        if (!historial || historial.length === 0) {
+            return { sin_datos: true };
+        }
+
+        const total        = historial.length;
+        const ganadas      = historial.filter(function(p){ return p.gano; }).length;
+        const perdidas     = total - ganadas;
+        const promedios    = historial.map(function(p){ return parseFloat(p.promedio_partida) || 0; });
+        const series       = historial.map(function(p){ return parseInt(p.serie_mayor) || 0; });
+        const entradas     = historial.map(function(p){ return parseInt(p.entradas) || 0; });
+
+        // Promedio general
+        const promGeneral  = promedios.reduce(function(a,b){ return a+b; }, 0) / total;
+
+        // Tendencia: últimas 10 vs anteriores
+        const ult10        = promedios.slice(0, 10);
+        const ant10        = promedios.slice(10, 20);
+        const promUlt10    = ult10.length   ? ult10.reduce(function(a,b){ return a+b; },0) / ult10.length   : 0;
+        const promAnt10    = ant10.length   ? ant10.reduce(function(a,b){ return a+b; },0) / ant10.length   : 0;
+        const tendencia    = promUlt10 > promAnt10 ? 'subiendo' :
+                             promUlt10 < promAnt10 ? 'bajando'  : 'estable';
+
+        // Evolución mes a mes (para gráfica de IA)
+        const porMes = {};
+        historial.forEach(function(p) {
+            const mes = (p.fecha || p.created_at || '').substring(0, 7); // YYYY-MM
+            if (!mes) return;
+            if (!porMes[mes]) porMes[mes] = { suma: 0, n: 0 };
+            porMes[mes].suma += parseFloat(p.promedio_partida) || 0;
+            porMes[mes].n++;
+        });
+        const evolucion = Object.keys(porMes).sort().map(function(mes) {
+            return { mes: mes, promedio: +(porMes[mes].suma / porMes[mes].n).toFixed(3) };
+        });
+
+        // Mejor racha ganadora
+        let rachaMax = 0, rachaActual = 0;
+        historial.slice().reverse().forEach(function(p) {
+            if (p.gano) { rachaActual++; rachaMax = Math.max(rachaMax, rachaActual); }
+            else rachaActual = 0;
+        });
+
+        // Racha actual (desde el inicio del historial — más reciente)
+        let rachaVigenteGanando = 0;
+        for (let i = 0; i < historial.length; i++) {
+            if (historial[i].gano) rachaVigenteGanando++;
+            else break;
+        }
+
+        // Eficiencia por tipo
+        const tipos = {};
+        historial.forEach(function(p) {
+            const t = p.tipo || 'torneo';
+            if (!tipos[t]) tipos[t] = { total: 0, ganadas: 0, prom_suma: 0 };
+            tipos[t].total++;
+            if (p.gano) tipos[t].ganadas++;
+            tipos[t].prom_suma += parseFloat(p.promedio_partida) || 0;
+        });
+        Object.keys(tipos).forEach(function(t) {
+            tipos[t].promedio    = +(tipos[t].prom_suma / tipos[t].total).toFixed(3);
+            tipos[t].win_rate    = +((tipos[t].ganadas / tipos[t].total) * 100).toFixed(1);
+            delete tipos[t].prom_suma;
+        });
+
+        return {
+            total_partidas:     total,
+            ganadas:            ganadas,
+            perdidas:           perdidas,
+            win_rate:           +((ganadas / total) * 100).toFixed(1),
+            promedio_general:   +promGeneral.toFixed(3),
+            promedio_ult10:     +promUlt10.toFixed(3),
+            promedio_anterior:  +promAnt10.toFixed(3),
+            tendencia:          tendencia,
+            mejor_serie:        Math.max(...series),
+            serie_promedio:     +(series.reduce(function(a,b){return a+b;},0)/total).toFixed(1),
+            entrada_promedio:   +(entradas.reduce(function(a,b){return a+b;},0)/total).toFixed(1),
+            racha_mejor:        rachaMax,
+            racha_vigente:      rachaVigenteGanando,
+            evolucion_mensual:  evolucion,
+            por_tipo:           tipos
+        };
+    },
+
+    // ─────────────────────────────────────────
+    // LIMPIAR HISTORIAL LOCAL (sin borrar Supabase)
+    // ─────────────────────────────────────────
+    limpiarLocal: function(jugador_id) {
+        localStorage.removeItem('historial_' + jugador_id);
+    }
+};
+
+/* ============================================================
+   MÓDULO DE LIMPIEZA — Supabase y localStorage
+   ─ Marca jugadores inactivos (+30 días sin partida)
+   ─ Limpia torneos borrador viejos (+7 días)
+   ─ Limpia localStorage de sesiones antiguas
+   ============================================================ */
+
+const LIMPIEZA = {
+
+    // Llamar una vez al día — desde MasterVIP.init()
+    ejecutar: async function() {
+        const ultimaLimpieza = parseInt(localStorage.getItem('ultima_limpieza') || '0');
+        const UN_DIA = 24 * 60 * 60 * 1000;
+
+        if (Date.now() - ultimaLimpieza < UN_DIA) return; // solo una vez al día
+
+        console.log('[LIMPIEZA] Ejecutando limpieza diaria...');
+
+        await this._marcarJugadoresInactivos();
+        await this._limpiarTorneosBorrador();
+        this._limpiarLocalStorageViejo();
+
+        localStorage.setItem('ultima_limpieza', Date.now().toString());
+        console.log('[LIMPIEZA] Completa.');
+    },
+
+    // Marcar jugadores sin partidas en 30 días como inactivos
+    _marcarJugadoresInactivos: async function() {
+        const hace30dias = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        // Actualizar en Supabase: activo=false donde updated_at < hace30dias
+        await DB._fetch('jugadores?updated_at=lt.' + hace30dias + '&activo=eq.true', {
+            method: 'PATCH',
+            body: JSON.stringify({ activo: false }),
+            headers: { 'Prefer': 'return=minimal' }
+        });
+    },
+
+    // Eliminar torneos en BORRADOR con más de 7 días sin tocar
+    _limpiarTorneosBorrador: async function() {
+        const hace7dias = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        await DB._fetch('torneos?estado=eq.BORRADOR&updated_at=lt.' + hace7dias, {
+            method: 'DELETE',
+            headers: { 'Prefer': 'return=minimal' }
+        });
+    },
+
+    // Limpiar localStorage de claves viejas de sesión
+    _limpiarLocalStorageViejo: function() {
+        const clavesObsoletas = [
+            'session_aviso_ts', 'PARTIDA_WALKOVER',
+            'CONFIG_SEDE_ACTIVA' // reemplazado por mi_perfil.club_id
+        ];
+        clavesObsoletas.forEach(function(k) {
+            if (localStorage.getItem(k)) {
+                const ts = parseInt(localStorage.getItem(k));
+                // Si es timestamp y tiene más de 2 horas, limpiar
+                if (!isNaN(ts) && Date.now() - ts > 2 * 60 * 60 * 1000) {
+                    localStorage.removeItem(k);
+                }
+            }
+        });
+    }
+};s
