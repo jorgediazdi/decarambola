@@ -650,6 +650,12 @@ function toggleClave() {
 }
 
 async function inscribirNuevo() {
+    // Bloqueo suave — requiere cédula para inscribir en torneos
+    var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+    if (!jugActivo || !jugActivo.cedula) {
+        alert('⚠️ Para inscribir jugadores en torneos debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
+        return;
+    }
     var nombre    = document.getElementById('inp-nombre').value.trim().toUpperCase();
     var tipoDoc   = document.getElementById('inp-tipo-doc').value;
     var documento = document.getElementById('inp-documento').value.trim().toUpperCase();

@@ -176,8 +176,8 @@ window.onload = async function() {
     try { await MasterVIP.init();
         SESSION.verificarAlCargar('jugador'); } catch(e) { console.warn('Init offline:', e); }
     MasterVIP.applyDesign();
-    var sede = MasterVIP.getSede();
-    document.getElementById('lbl-sede').innerText = sede.nombre !== 'GLOBAL' ? sede.nombre : 'DECARAMBOLA';
+    var _nombreSede = localStorage.getItem('wl_club_nombre') || 'GLOBAL';
+    document.getElementById('lbl-sede').innerText = _nombreSede !== 'GLOBAL' ? _nombreSede : 'DECARAMBOLA';
     cargar();
 };
 

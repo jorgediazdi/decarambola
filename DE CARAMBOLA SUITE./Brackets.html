@@ -110,7 +110,7 @@
             <div style="display:flex;align-items:center;gap:10px;">
                 <div id="club-logo-hdr"></div>
                 <div>
-                    <div class="header-titulo" id="lbl-torneo">LLAVES</div>
+                    <div class="header-titulo" id="lbl-torneo">BRACKETS</div>
                     <div class="header-sub" id="lbl-sub">CARGANDO...</div>
                 </div>
             </div>
@@ -154,8 +154,9 @@ window.onload = async function() {
     try { await MasterVIP.init();
         SESSION.verificarAlCargar('jugador'); } catch(e) { console.warn('Init offline:', e); }
     MasterVIP.applyDesign();
-    var sede = MasterVIP.getSede();
-    if (sede.nombre && sede.nombre !== 'GLOBAL') {
+    // wl_club_nombre reemplaza getSede() obsoleto
+    var clubNom = localStorage.getItem('wl_club_nombre');
+    if (clubNom) {
         var hdr = document.getElementById('club-logo-hdr');
         if (hdr) hdr.innerHTML = MasterVIP.getLogoHTML(34);
     }
@@ -176,11 +177,17 @@ function cambiarVista(v) {
     if (v === 'info' && torneo) dibujarInfo();
 }
 
-function cargar() {
+async function cargar() {
     torneo = MasterVIP.getTorneoActivo();
     if (!torneo) {
         document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.<br>Crea uno desde el menú principal.</p></div>';
         return;
+    }
+    // Si el torneo existe pero no tiene inscritos, intentar recuperarlos de Supabase
+    if ((!torneo.inscritos || torneo.inscritos.length === 0) && torneo.id) {
+        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>⏳</div><p>Recuperando inscritos...</p></div>';
+        await MasterVIP._recuperarInscritos(torneo.id);
+        torneo = MasterVIP.getTorneoActivo(); // releer con inscritos actualizados
     }
     document.getElementById('lbl-torneo').innerText = torneo.nombre;
     document.getElementById('lbl-sub').innerText = torneo.codigo + ' · ' + (torneo.modalidad || '') + ' · ' + (torneo.inscritos || []).length + ' JUG.';

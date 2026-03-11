@@ -510,6 +510,11 @@ function getPromedio(nombre) {
    EXPORTAR
 ═══════════════════════ */
 function descargar() {
+    var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+    if (!jugActivo || !jugActivo.cedula) {
+        alert('⚠️ Para descargar certificados debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
+        return;
+    }
     var canvas = document.getElementById('cert-canvas');
     if (canvas.style.display === 'none') { alert('Primero genera el certificado'); return; }
     var nombre = getNombre() || 'certificado';

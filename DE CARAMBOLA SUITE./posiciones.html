@@ -117,8 +117,8 @@ window.onload = async function() {
     try { await MasterVIP.init();
         SESSION.verificarAlCargar('jugador'); } catch(e) { console.warn('Init offline:', e); }
     MasterVIP.applyDesign();
-    var sede = MasterVIP.getSede();
-    if (sede.nombre && sede.nombre !== 'GLOBAL') {
+    var clubNom = localStorage.getItem('wl_club_nombre');
+    if (clubNom) {
         var hdr = document.getElementById('club-logo-hdr');
         if (hdr) hdr.innerHTML = MasterVIP.getLogoHTML(34);
     }
@@ -134,11 +134,17 @@ function cambiarVista(v) {
     renderVista();
 }
 
-function cargar() {
+async function cargar() {
     torneo = MasterVIP.getTorneoActivo();
     if (!torneo) {
         document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.</p></div>';
         return;
+    }
+    // Si no hay inscritos recuperarlos de Supabase
+    if ((!torneo.inscritos || torneo.inscritos.length === 0) && torneo.id) {
+        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>⏳</div><p>Recuperando datos...</p></div>';
+        await MasterVIP._recuperarInscritos(torneo.id);
+        torneo = MasterVIP.getTorneoActivo();
     }
     document.getElementById('lbl-torneo').innerText = torneo.nombre;
     document.getElementById('lbl-sub').innerText = torneo.codigo + ' · ' + (torneo.inscritos || []).length + ' JUGADORES';

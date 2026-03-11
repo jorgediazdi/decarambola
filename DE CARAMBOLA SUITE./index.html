@@ -381,7 +381,7 @@
 
         /* ── ACCIONES RÁPIDAS ── */
         .rapidas-grid {
-            display:grid; grid-template-columns:repeat(3,1fr);
+            display:grid; grid-template-columns:repeat(2,1fr);
             gap:8px; margin-bottom:6px;
         }
         .rapida-btn {
@@ -405,6 +405,12 @@
             color:var(--oro);
         }
         .rapida-btn.r-oro:active { border-color:var(--oro); }
+        .rapida-btn.r-rojo {
+            background:rgba(231,76,60,0.05);
+            border:1px solid rgba(231,76,60,0.25);
+            color:var(--rojo);
+        }
+        .rapida-btn.r-rojo:active { border-color:var(--rojo); }
 
         /* ── ITEM DESTACADO ── */
         .mli-destacado {
@@ -538,10 +544,60 @@
         <!-- Bienvenida jugador -->
         <div class="bienvenida" id="bienvenida-box">
             <div class="bienvenida-avatar" id="jug-avatar">&#128100;</div>
-            <div>
+            <div style="flex:1;">
                 <div class="bienvenida-nombre" id="jug-nombre">INVITADO</div>
-                <div class="bienvenida-sub" id="jug-sub">Identifícate en Mi Perfil</div>
+                <div class="bienvenida-sub" id="jug-sub">Identifícate para acceder a tu perfil</div>
             </div>
+            <button id="btn-identificar" onclick="mostrarFormIdentificacion()"
+                style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);
+                color:#d4af37;border-radius:12px;padding:8px 14px;font-size:0.45rem;
+                font-family:'Arial Black',sans-serif;letter-spacing:1px;cursor:pointer;flex-shrink:0;">
+                ENTRAR
+            </button>
+            <button id="btn-salir" onclick="cerrarSesionJugador()" style="display:none;
+                background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.2);
+                color:#e74c3c;border-radius:12px;padding:8px 14px;font-size:0.45rem;
+                font-family:'Arial Black',sans-serif;letter-spacing:1px;cursor:pointer;flex-shrink:0;">
+                SALIR
+            </button>
+        </div>
+
+        <!-- FORMULARIO IDENTIFICACIÓN POR CÉDULA -->
+        <div id="form-identificacion" style="display:none;background:#0a0a0a;border:1px solid rgba(212,175,55,0.2);
+            border-radius:18px;padding:20px;margin-bottom:16px;">
+            <div style="color:#d4af37;font-size:0.5rem;letter-spacing:2px;margin-bottom:12px;font-family:'Arial Black',sans-serif;">
+                🎱 IDENTIFICACIÓN DEL JUGADOR
+            </div>
+            <div style="color:#555;font-size:0.5rem;letter-spacing:1px;margin-bottom:6px;">CÉDULA O PASAPORTE</div>
+            <input id="inp-cedula" type="text" placeholder="Ej: 1234567890"
+                style="width:100%;background:transparent;border:none;border-bottom:1px solid #333;
+                color:#fff;font-family:'Courier New',monospace;font-size:1.2rem;
+                padding:8px 0;outline:none;letter-spacing:3px;text-align:center;box-sizing:border-box;"
+                oninput="this.value=this.value.replace(/[^0-9A-Za-z]/g,'')"
+                onkeydown="if(event.key==='Enter') buscarJugadorPorCedula()">
+            <div style="color:#333;font-size:0.4rem;margin-top:6px;text-align:center;">
+                Extranjeros ingresan número de pasaporte
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px;">
+                <button onclick="buscarJugadorPorCedula()"
+                    style="flex:1;padding:12px;background:rgba(212,175,55,0.15);
+                    border:1px solid rgba(212,175,55,0.4);color:#d4af37;border-radius:14px;
+                    font-size:0.5rem;font-family:'Arial Black',sans-serif;letter-spacing:2px;cursor:pointer;">
+                    ENTRAR &#8594;
+                </button>
+                <button onclick="document.getElementById('form-identificacion').style.display='none'"
+                    style="padding:12px 16px;background:#111;border:1px solid #222;
+                    color:#555;border-radius:14px;font-size:0.5rem;cursor:pointer;letter-spacing:1px;">
+                    CANCELAR
+                </button>
+            </div>
+            <div id="msg-cedula" style="margin-top:10px;font-size:0.48rem;text-align:center;letter-spacing:1px;display:none;"></div>
+            <button id="btn-registrar-nuevo" onclick="registrarNuevoJugador()" style="display:none;
+                width:100%;margin-top:10px;padding:12px;background:rgba(52,152,219,0.15);
+                border:1px solid rgba(52,152,219,0.4);color:#3498db;border-radius:14px;
+                font-size:0.5rem;font-family:'Arial Black',sans-serif;letter-spacing:2px;cursor:pointer;">
+                ✚ REGISTRARME COMO NUEVO JUGADOR
+            </button>
         </div>
 
         <!-- ACCIONES RÁPIDAS -->
@@ -569,6 +625,19 @@
                     <line x1="13" y1="15" x2="21" y2="15"/>
                 </svg>
                 INSCRIBIR
+            </a>
+            <a href="reto_crear.html" class="rapida-btn r-rojo">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/>
+                    <path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                    <path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/>
+                    <path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/>
+                    <path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z"/>
+                    <path d="M15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>
+                    <path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z"/>
+                    <path d="M8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z"/>
+                </svg>
+                RETOS
             </a>
         </div>
 
@@ -1086,17 +1155,116 @@ function abrirPanel(tipo) {
     if (tipo === 'club') cargarMisClubes();
 }
 
+// ── Identificación por cédula ──
+function mostrarFormIdentificacion() {
+    const u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+    if (u && u.cedula) { cerrarSesionJugador(); return; }
+    document.getElementById('form-identificacion').style.display = 'block';
+    setTimeout(() => document.getElementById('inp-cedula').focus(), 100);
+}
+
+async function buscarJugadorPorCedula() {
+    const cedula = (document.getElementById('inp-cedula').value || '').trim();
+    if (!cedula || cedula.length < 5) {
+        mostrarMsgCedula('Ingresa una cédula válida', '#e74c3c'); return;
+    }
+    mostrarMsgCedula('Buscando...', '#d4af37');
+    try {
+        const SUPA_URL = 'https://iwvogyloebvieloequzr.supabase.co/rest/v1';
+        const SUPA_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
+        const resp = await fetch(SUPA_URL + '/jugadores?cedula=eq.' + cedula + '&select=*&limit=1', {
+            headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+        });
+        const data = await resp.json();
+        if (data && data.length > 0) {
+            // Jugador existe — cargar su perfil
+            const jug = data[0];
+            localStorage.setItem('jugador_activo', JSON.stringify(jug));
+            localStorage.setItem('mi_perfil', JSON.stringify({
+                nombre: jug.nombre, cedula: jug.cedula,
+                promedio: jug.promedio || 0, club: jug.club_id,
+                carambolas: jug.carambolas || 0, entradas: jug.entradas || 0
+            }));
+            document.getElementById('form-identificacion').style.display = 'none';
+            cargarDatosJugador();
+            mostrarMsgCedula('', '#d4af37');
+        } else {
+            // Jugador no existe — preguntar si quiere registrarse
+            mostrarMsgCedula('No encontrado. ¿Nuevo jugador?', '#3498db');
+            document.getElementById('btn-registrar-nuevo').style.display = 'block';
+        }
+    } catch(e) {
+        // Offline — buscar en localStorage
+        const perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        if (perfil.cedula === cedula) {
+            localStorage.setItem('jugador_activo', JSON.stringify(perfil));
+            document.getElementById('form-identificacion').style.display = 'none';
+            cargarDatosJugador();
+        } else {
+            mostrarMsgCedula('Sin conexión. Cédula no reconocida offline.', '#e74c3c');
+        }
+    }
+}
+
+function mostrarMsgCedula(txt, color) {
+    const el = document.getElementById('msg-cedula');
+    if (!el) return;
+    el.style.display = txt ? 'block' : 'none';
+    el.style.color = color || '#d4af37';
+    el.innerText = txt;
+}
+
+async function registrarNuevoJugador() {
+    const cedula = (document.getElementById('inp-cedula').value || '').trim();
+    const nombre = (prompt('Tu nombre completo:') || '').trim().toUpperCase();
+    if (!nombre) return;
+    const clubId = localStorage.getItem('wl_club_id') || null;
+    const nac = cedula.match(/^[0-9]+$/) ? 'CO' : 'EXT';
+    try {
+        const SUPA_URL = 'https://iwvogyloebvieloequzr.supabase.co/rest/v1';
+        const SUPA_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
+        const resp = await fetch(SUPA_URL + '/jugadores', {
+            method: 'POST',
+            headers: {
+                'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY,
+                'Content-Type': 'application/json', 'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({ nombre, cedula, club_id: clubId, nacionalidad: nac, promedio: 0, carambolas: 0, entradas: 0 })
+        });
+        const data = await resp.json();
+        const jug = Array.isArray(data) ? data[0] : data;
+        localStorage.setItem('jugador_activo', JSON.stringify(jug));
+        localStorage.setItem('mi_perfil', JSON.stringify({ nombre: jug.nombre, cedula: jug.cedula, promedio: 0, club: clubId }));
+        document.getElementById('form-identificacion').style.display = 'none';
+        document.getElementById('btn-registrar-nuevo').style.display = 'none';
+        cargarDatosJugador();
+    } catch(e) {
+        mostrarMsgCedula('Error al registrar. Intenta de nuevo.', '#e74c3c');
+    }
+}
+
+function cerrarSesionJugador() {
+    localStorage.removeItem('jugador_activo');
+    document.getElementById('jug-nombre').innerText = 'INVITADO';
+    document.getElementById('jug-sub').innerText = 'Identifícate para acceder a tu perfil';
+    document.getElementById('jug-avatar').innerText = '👤';
+    document.getElementById('btn-identificar').style.display = 'block';
+    document.getElementById('btn-salir').style.display = 'none';
+}
+
 // ── Datos jugador ──
 function cargarDatosJugador() {
     try {
-        const u = JSON.parse(sessionStorage.getItem('usuarioLogueado') || 'null');
+        const u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
         if (u && u.nombre) {
             document.getElementById('jug-nombre').innerText = u.nombre;
             const cat = typeof MasterVIP !== 'undefined' ? MasterVIP.getCategoria(u.promedio || 0) : null;
             document.getElementById('jug-sub').innerText = cat
-                ? cat.nombre + ' · PROMEDIO ' + (u.promedio || 0)
+                ? cat.nombre + ' · PROMEDIO ' + (u.promedio || 0).toFixed(3)
                 : 'Promedio: ' + (u.promedio || 0);
-            document.querySelector('.bienvenida-avatar').innerText = cat ? cat.emoji : '🎱';
+            document.getElementById('jug-avatar').innerText = cat ? cat.emoji : '🎱';
+            document.getElementById('btn-identificar').style.display = 'none';
+            document.getElementById('btn-salir').style.display = 'block';
         }
     } catch(e) {}
     cargarRankingMini();
@@ -1348,11 +1516,9 @@ var _sliderTimer = null;
 function iniciarSlider() {
     _sliderSlides = [];
 
-    // Leer sede y diseño desde core
-    var sede  = (typeof MasterVIP !== 'undefined') ? MasterVIP.getSede()   : { nombre: 'GLOBAL' };
-    var dsgn  = (typeof MasterVIP !== 'undefined') ? MasterVIP.getDesign() : {};
-    var nombreSede = sede.nombre || '';
-    var color = dsgn.color || '#d4af37';
+    // Leer sede y diseño desde localStorage
+    var nombreSede = localStorage.getItem('wl_club_nombre') || 'GLOBAL';
+    var color = localStorage.getItem('wl_club_color') || '#d4af37';
 
     // Slide club — si hay sede configurada con nombre real
     if (nombreSede && nombreSede !== 'GLOBAL') {
@@ -1439,16 +1605,16 @@ window.onload = function() {
     cargarSede();
     cargarTorneoActivo();
     iniciarSlider();
-    // Abrir panel jugador por defecto si hay usuario logueado
-    const u = JSON.parse(sessionStorage.getItem('usuarioLogueado') || 'null');
-    if (u && u.nombre) abrirPanel('jug');
+    // Abrir panel jugador si ya está identificado
+    const u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+    if (u && u.nombre) { abrirPanel('jug'); }
 };
 
 function cargarSede() {
     try {
-        const sede = typeof MasterVIP !== 'undefined' ? MasterVIP.getSede() : null;
-        if (sede && sede.nombre && sede.nombre !== 'GLOBAL') {
-            document.getElementById('lbl-sede').innerHTML = '&#127963; ' + sede.nombre;
+        const nom = localStorage.getItem('wl_club_nombre');
+        if (nom && nom !== 'GLOBAL') {
+            document.getElementById('lbl-sede').innerHTML = '&#127963; ' + nom;
         }
     } catch(e) {}
 }

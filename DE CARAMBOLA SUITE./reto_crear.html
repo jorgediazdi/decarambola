@@ -483,6 +483,11 @@ function resumenHTML(r) {
    PASO 1 → CREAR
 ════════════════════════════════ */
 function crearReto() {
+    var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+    if (!jugActivo || !jugActivo.cedula) {
+        alert('⚠️ Para crear retos debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
+        return;
+    }
     var n1 = document.getElementById('r-n1').value.trim().toUpperCase();
     if (!n1) { alert('Ingresa tu nombre'); return; }
 
