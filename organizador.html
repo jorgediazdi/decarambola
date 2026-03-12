@@ -43,7 +43,7 @@
             color: var(--oro); font-size: 1rem; letter-spacing: 3px;
         }
         .header-marca small {
-            color: #333; font-size: 0.48rem; letter-spacing: 3px;
+            color: #333; font-size: 0.65rem; letter-spacing: 3px;
         }
         .header-sede {
             background: var(--gris2);
@@ -100,7 +100,7 @@
         .kpi.rojo .kpi-val { color: var(--rojo); }
 
         .kpi-lbl { color: #444; font-size: 0.5rem; letter-spacing: 2px; }
-        .kpi-sub { color: #333; font-size: 0.48rem; letter-spacing: 1px; margin-top: 2px; }
+        .kpi-sub { color: #333; font-size: 0.65rem; letter-spacing: 1px; margin-top: 2px; }
 
         /* ══ SECCIÓN TÍTULO ══ */
         .sec-titulo {
@@ -145,7 +145,7 @@
         .torneo-card::before {
             content: '🟢 EN VIVO';
             position: absolute; top: 12px; right: 14px;
-            font-size: 0.48rem; color: var(--neon);
+            font-size: 0.65rem; color: var(--neon);
             letter-spacing: 2px;
         }
         .torneo-nombre {
@@ -163,7 +163,7 @@
             padding: 8px; text-align: center;
         }
         .ts b { color: #fff; font-size: 1.1rem; display: block; font-family: 'Courier New', monospace; }
-        .ts small { color: #444; font-size: 0.45rem; letter-spacing: 1px; }
+        .ts small { color: #444; font-size: 0.65rem; letter-spacing: 1px; }
 
         .bolsa-row {
             display: flex; align-items: center;
@@ -237,13 +237,13 @@
         .j-pos.top { color: var(--oro); font-size: 1rem; }
         .j-info { flex: 1; }
         .j-nom { font-size: 0.85rem; color: #fff; }
-        .j-det { font-size: 0.48rem; color: #444; letter-spacing: 1px; margin-top: 2px; }
+        .j-det { font-size: 0.65rem; color: #444; letter-spacing: 1px; margin-top: 2px; }
         .j-prom {
             font-size: 1rem; color: var(--neon);
             font-family: 'Courier New', monospace;
         }
         .j-badge {
-            font-size: 0.45rem; padding: 3px 8px;
+            font-size: 0.65rem; padding: 3px 8px;
             border-radius: 8px; letter-spacing: 1px;
             background: rgba(46,255,112,0.1);
             color: var(--neon);
@@ -262,10 +262,10 @@
         }
         .hist-info { flex: 1; }
         .hist-nom { font-size: 0.8rem; color: #aaa; }
-        .hist-det { font-size: 0.48rem; color: #333; letter-spacing: 1px; margin-top: 3px; }
+        .hist-det { font-size: 0.65rem; color: #333; letter-spacing: 1px; margin-top: 3px; }
         .hist-campeon { font-size: 0.55rem; color: var(--oro); margin-top: 4px; }
         .hist-estado {
-            font-size: 0.48rem; padding: 4px 10px;
+            font-size: 0.65rem; padding: 4px 10px;
             border-radius: 8px; letter-spacing: 1px;
             background: rgba(212,175,55,0.1);
             color: var(--oro);
@@ -295,7 +295,7 @@
         .accion-card:active { transform: scale(0.95); border-color: var(--oro); }
         .accion-ico { font-size: 1.8rem; }
         .accion-nom { font-size: 0.6rem; color: #aaa; letter-spacing: 1px; }
-        .accion-det { font-size: 0.48rem; color: #444; letter-spacing: 1px; }
+        .accion-det { font-size: 0.65rem; color: #444; letter-spacing: 1px; }
 
         /* ══ REPORTE / EXPORTAR ══ */
         .reporte-card {
@@ -307,7 +307,7 @@
             justify-content: space-between;
             margin-bottom: 10px;
         }
-        .reporte-info small { color: #444; font-size: 0.48rem; letter-spacing: 2px; display: block; }
+        .reporte-info small { color: #444; font-size: 0.65rem; letter-spacing: 2px; display: block; }
         .reporte-info b { color: var(--neon); font-size: 0.8rem; margin-top: 3px; display: block; }
         .btn-exportar {
             background: rgba(46,255,112,0.1);
@@ -452,36 +452,43 @@
 <script src="core.js"></script>
 <script>
 
-    window.onload = function () {
-        const sede = MasterVIP.getSede();
-        document.getElementById('lbl-sede').innerText =
-            sede.nombre !== 'GLOBAL' ? sede.nombre : 'SIN CONFIGURAR';
+    window.onload = async function () {
+        try { await MasterVIP.init();
+        SESSION.verificarAlCargar('organizador'); } catch(e) { console.warn('Init offline:', e); }
+        MasterVIP.applyDesign();
+        // Leer nombre del club desde whitelabel (fuente correcta)
+        const nombreClub = localStorage.getItem('wl_club_nombre') || null;
+        document.getElementById('lbl-sede').innerText = nombreClub || 'SIN CONFIGURAR';
 
-        cargarKPIs();
+        await cargarKPIs();
         cargarTorneoActivo();
         cargarRanking();
         cargarHistorial();
     };
 
     /* ══ KPIs ══ */
-    function cargarKPIs() {
+    async function cargarKPIs() {
         const torneos   = MasterVIP.getTorneos();
         const jugadores = MasterVIP.getJugadores();
-        const historial = JSON.parse(localStorage.getItem('ranking_historico_club')) || [];
         const torneo    = MasterVIP.getTorneoActivo();
 
         const activos = torneos.filter(t => t.estado === 'EN_CURSO' || t.estado === 'ABIERTO').length;
         document.getElementById('kpi-torneos').innerText     = torneos.length;
         document.getElementById('kpi-torneos-sub').innerText = activos > 0 ? activos + ' en curso' : 'ninguno activo';
         document.getElementById('kpi-jugadores').innerText   = jugadores.length;
-        document.getElementById('kpi-partidas').innerText    = Math.floor(historial.length / 2);
+
+        // Contar partidas reales desde Supabase
+        const clubId = MasterVIP.getClubId();
+        const filtroPartidas = clubId ? 'club_id=eq.' + clubId + '&select=id' : 'select=id';
+        const partidas = await DB.get('partidas', filtroPartidas);
+        document.getElementById('kpi-partidas').innerText = (partidas && partidas.length) ? partidas.length : '—';
 
         if (torneo) {
             const bolsa = MasterVIP.calcularBolsa(torneo);
-            document.getElementById('kpi-bolsa').innerText    = MasterVIP.formatearPesos(bolsa);
+            document.getElementById('kpi-bolsa').innerText     = MasterVIP.formatearPesos(bolsa);
             document.getElementById('kpi-bolsa-sub').innerText = torneo.nombre.substring(0, 20);
         } else {
-            document.getElementById('kpi-bolsa').innerText    = '$0';
+            document.getElementById('kpi-bolsa').innerText     = '$0';
             document.getElementById('kpi-bolsa-sub').innerText = 'sin torneo activo';
         }
     }
@@ -577,43 +584,31 @@
     }
 
     /* ══ RANKING DEL CLUB ══ */
-    function cargarRanking() {
-        const zona     = document.getElementById('zona-ranking');
-        const historial = JSON.parse(localStorage.getItem('ranking_historico_club')) || [];
-        const jugadores = MasterVIP.getJugadores();
+    async function cargarRanking() {
+        const zona = document.getElementById('zona-ranking');
+        zona.innerHTML = '<div class="empty">Cargando ranking...</div>';
 
-        if (!historial.length && !jugadores.length) {
+        const clubId = MasterVIP.getClubId();
+        const filtro = clubId
+            ? 'club_id=eq.' + clubId + '&activo=eq.true&promedio=gt.0&order=promedio.desc&limit=5'
+            : 'activo=eq.true&promedio=gt.0&order=promedio.desc&limit=5';
+        const data = await DB.get('jugadores', filtro);
+
+        // Si Supabase devuelve datos, usarlos; si no, caer en localStorage
+        const jugadores = (data && data.length)
+            ? data.map(j => ({ nombre: j.nombre, promedio: parseFloat(j.promedio) || 0 }))
+            : MasterVIP.getJugadores()
+                .filter(j => j.promedio > 0)
+                .sort((a, b) => b.promedio - a.promedio)
+                .slice(0, 5);
+
+        if (!jugadores.length) {
             zona.innerHTML = '<div class="empty">Sin partidas registradas aún</div>';
             return;
         }
 
-        // Construir ranking
-        const resumen = {};
-        historial.forEach(p => {
-            const nom = p.nombre.toUpperCase().trim();
-            if (!resumen[nom]) resumen[nom] = { nombre: nom, suma: 0, total: 0 };
-            resumen[nom].suma  += parseFloat(p.promedio) || 0;
-            resumen[nom].total++;
-        });
-        jugadores.forEach(j => {
-            const nom = j.nombre.toUpperCase().trim();
-            if (!resumen[nom] && j.promedio > 0) {
-                resumen[nom] = { nombre: nom, suma: j.promedio, total: 1 };
-            }
-        });
-
-        const lista = Object.values(resumen)
-            .map(j => ({ nombre: j.nombre, promedio: j.suma / j.total }))
-            .sort((a,b) => b.promedio - a.promedio)
-            .slice(0, 5);
-
-        if (!lista.length) {
-            zona.innerHTML = '<div class="empty">Sin datos de ranking</div>';
-            return;
-        }
-
         const medallas = ['🥇','🥈','🥉'];
-        zona.innerHTML = lista.map((j, i) => {
+        zona.innerHTML = jugadores.map((j, i) => {
             const cat = MasterVIP.getCategoria(j.promedio);
             return `
             <div class="jugador-row">
@@ -628,12 +623,31 @@
     }
 
     /* ══ HISTORIAL ══ */
-    function cargarHistorial() {
-        const zona    = document.getElementById('zona-historial');
-        const torneos = MasterVIP.getTorneos()
-            .filter(t => t.estado === 'FINALIZADO')
-            .sort((a,b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion))
-            .slice(0, 5);
+    async function cargarHistorial() {
+        const zona = document.getElementById('zona-historial');
+        zona.innerHTML = '<div class="empty">Cargando historial...</div>';
+
+        const clubId = MasterVIP.getClubId();
+        const filtro = (clubId ? 'club_id=eq.' + clubId + '&' : '') +
+            'estado=eq.FINALIZADO&order=created_at.desc&limit=5';
+        const data = await DB.get('torneos', filtro);
+
+        // Supabase primero, localStorage como fallback
+        let torneos = [];
+        if (data && data.length) {
+            torneos = data.map(t => ({
+                nombre:       t.nombre,
+                codigo:       t.codigo || '',
+                fechaCreacion: t.created_at,
+                campeon:      t.campeon_nombre || null,
+                inscritos:    []   // no crítico para mostrar el historial
+            }));
+        } else {
+            torneos = MasterVIP.getTorneos()
+                .filter(t => t.estado === 'FINALIZADO')
+                .sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion))
+                .slice(0, 5);
+        }
 
         if (!torneos.length) {
             zona.innerHTML = '<div class="empty">Sin torneos finalizados aún</div>';
@@ -646,7 +660,7 @@
             <div class="hist-row">
                 <div class="hist-info">
                     <div class="hist-nom">${t.nombre}</div>
-                    <div class="hist-det">${t.codigo} · ${fecha} · ${t.inscritos?.length || 0} jugadores</div>
+                    <div class="hist-det">${t.codigo} · ${fecha}</div>
                     ${t.campeon ? `<div class="hist-campeon">🏆 ${t.campeon}</div>` : ''}
                 </div>
                 <div class="hist-estado">FINALIZADO</div>
@@ -716,5 +730,6 @@
     <a href="torneo_crear.html" class="btn-nav"><span class="nav-ico">&#127942;</span> CREAR TORNEO</a>
 </div>
 
+<script src="whitelabel.js"></script>
 </body>
 </html>

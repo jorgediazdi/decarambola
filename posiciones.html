@@ -14,7 +14,7 @@
         .header-sub { color: #333; font-size: 0.55rem; margin-top: 5px; letter-spacing: 1px; }
         .fase-badge { background: rgba(52,152,219,0.15); border: 1px solid rgba(52,152,219,0.3); color: var(--azul); padding: 6px 12px; border-radius: 15px; font-size: 0.5rem; letter-spacing: 1px; }
         .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde); position: sticky; top: 64px; z-index: 40; }
-        .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: #444; font-size: 0.45rem; font-family: 'Arial Black', sans-serif; letter-spacing: 2px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
+        .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: #444; font-size: 0.65rem; font-family: 'Arial Black', sans-serif; letter-spacing: 2px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
         .tab-btn.activa { color: var(--oro); border-bottom-color: var(--oro); }
         .contenido { padding: 15px; max-width: 600px; margin: 0 auto; padding-bottom: 120px; }
         .clasificacion-info { background: rgba(46,255,112,0.05); border: 1px solid rgba(46,255,112,0.2); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
@@ -76,7 +76,7 @@
         .empty-state div { font-size: 3rem; margin-bottom: 15px; }
         .empty-state p { font-size: 0.7rem; line-height: 1.8; }
         .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, #000 40%); padding: 10px 15px 20px; display: flex; gap: 8px; }
-        .btn-nav { flex: 1; padding: 13px 8px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; color: #777; font-size: 0.45rem; cursor: pointer; text-align: center; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
+        .btn-nav { flex: 1; padding: 13px 8px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; color: #777; font-size: 0.65rem; cursor: pointer; text-align: center; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
         .btn-nav:active { border-color: var(--oro); color: var(--oro); }
     </style>
 </head>
@@ -113,10 +113,12 @@ var torneo = null;
 var vistaActual = 'tabla';
 var esOrganizador = true;
 
-window.onload = function() {
+window.onload = async function() {
+    try { await MasterVIP.init();
+        SESSION.verificarAlCargar('jugador'); } catch(e) { console.warn('Init offline:', e); }
     MasterVIP.applyDesign();
-    var sede = MasterVIP.getSede();
-    if (sede.nombre && sede.nombre !== 'GLOBAL') {
+    var clubNom = localStorage.getItem('wl_club_nombre');
+    if (clubNom) {
         var hdr = document.getElementById('club-logo-hdr');
         if (hdr) hdr.innerHTML = MasterVIP.getLogoHTML(34);
     }
@@ -132,11 +134,17 @@ function cambiarVista(v) {
     renderVista();
 }
 
-function cargar() {
+async function cargar() {
     torneo = MasterVIP.getTorneoActivo();
     if (!torneo) {
         document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.</p></div>';
         return;
+    }
+    // Si no hay inscritos recuperarlos de Supabase
+    if ((!torneo.inscritos || torneo.inscritos.length === 0) && torneo.id) {
+        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>⏳</div><p>Recuperando datos...</p></div>';
+        await MasterVIP._recuperarInscritos(torneo.id);
+        torneo = MasterVIP.getTorneoActivo();
     }
     document.getElementById('lbl-torneo').innerText = torneo.nombre;
     document.getElementById('lbl-sub').innerText = torneo.codigo + ' · ' + (torneo.inscritos || []).length + ' JUGADORES';
@@ -232,5 +240,6 @@ function confirmarYAvanzar() {
     }
 }
 </script>
+<script src="whitelabel.js"></script>
 </body>
 </html>

@@ -450,49 +450,64 @@
 
         /* ══ COLUMNA CENTRO: bola gigante ══ */
         .bola {
-            width: 96px; height: 96px;
+            width: 118px; height: 118px;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
             transition: transform 0.1s;
+            position: relative;
         }
         .bola:active { transform: scale(0.88); }
-        .bola-blanca {
-            background: radial-gradient(circle at 32% 32%,
-                #ffffff 0%, #eeeeee 20%, #bbbbbb 50%, #777 80%, #222 100%);
-            box-shadow:
-                inset -10px -10px 20px rgba(0,0,0,0.6),
-                inset 4px 4px 10px rgba(255,255,255,0.3),
-                6px 6px 20px rgba(0,0,0,0.9),
-                0 0 0 2px #1a1a1a;
+
+        /* Reflejo superior — da el efecto 3D real de una bola de billar */
+        .bola::after {
+            content: '';
+            position: absolute;
+            top: 12%; left: 18%;
+            width: 30%; height: 22%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.75) 0%, transparent 80%);
+            border-radius: 50%;
+            pointer-events: none;
         }
-        #bola2 .j-pts { color: #000; text-shadow: 0 1px 2px rgba(255,220,0,0.3); }
-        .bola-dorada {
-            background: radial-gradient(circle at 32% 32%,
-                #fff9c4 0%, #f5d020 20%, #d4af37 50%, #8a6a00 80%, #2a1a00 100%);
+
+        .bola-blanca {
+            background: radial-gradient(circle at 35% 32%,
+                #ffffff 0%, #f0f0f0 15%, #d0d0d0 35%, #999 60%, #555 85%, #1a1a1a 100%);
             box-shadow:
-                inset -10px -10px 20px rgba(0,0,0,0.6),
-                inset 4px 4px 10px rgba(255,220,80,0.3),
-                6px 6px 20px rgba(0,0,0,0.9),
-                0 0 0 2px #1a1a1a;
+                inset -14px -14px 28px rgba(0,0,0,0.65),
+                inset 6px 6px 14px rgba(255,255,255,0.35),
+                8px 10px 28px rgba(0,0,0,0.95),
+                0 0 0 2px #111;
+        }
+        .bola-dorada {
+            background: radial-gradient(circle at 35% 32%,
+                #fffde0 0%, #fce84a 12%, #e8c020 30%, #c89a00 55%, #7a5500 80%, #2a1800 100%);
+            box-shadow:
+                inset -14px -14px 28px rgba(0,0,0,0.6),
+                inset 6px 6px 14px rgba(255,230,80,0.4),
+                8px 10px 28px rgba(0,0,0,0.95),
+                0 0 0 2px #111,
+                0 0 22px rgba(212,175,55,0.18);
         }
         @keyframes bump {
             0%   { transform: scale(1); }
-            30%  { transform: scale(1.2); filter: brightness(1.6); }
+            30%  { transform: scale(1.18); filter: brightness(1.5); }
             100% { transform: scale(1); }
         }
         .bola.bump { animation: bump 0.22s ease-out; }
 
-        /* Número GIGANTE dentro de la bola */
+        /* Número dentro de la bola */
         .j-pts {
-            font-size: 3.2rem;
+            font-size: 3.6rem;
             font-weight: 900;
-            color: #000;
+            color: #111;
             line-height: 1;
             user-select: none;
-            text-shadow: 0 1px 3px rgba(255,255,255,0.2);
+            text-shadow: 0 2px 4px rgba(255,255,255,0.25);
+            position: relative;
+            z-index: 1;
         }
-        /* J2 número oscuro igual que J1 */
+        #bola2 .j-pts { color: #1a0f00; text-shadow: 0 1px 3px rgba(255,200,0,0.2); }
 
         /* ══ COLUMNA DERECHA: serie ══ */
         .j-col-serie {
@@ -746,6 +761,108 @@
         }
         .btn-guardar:active { transform: scale(0.97); }
 
+
+        /* ── SELECTOR FORMATO (pequeño, debajo de config) ── */
+        .fmt-row {
+            width: 100%; max-width: 440px;
+            display: flex; gap: 6px;
+            margin-bottom: 8px;
+        }
+        .fmt-chip {
+            flex: 1; padding: 9px 4px;
+            background: #0a0a0a;
+            border: 1.5px solid #1a1a1a;
+            border-radius: 12px;
+            color: #444;
+            font-family: 'Arial Black', sans-serif;
+            font-size: 0.38rem;
+            letter-spacing: 1px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.18s;
+            line-height: 1.5;
+        }
+        .fmt-chip .fc-ico { display:block; font-size:1rem; margin-bottom:2px; }
+        .fmt-chip.on {
+            border-color: var(--oro);
+            color: var(--oro);
+            background: rgba(212,175,55,0.07);
+        }
+        .fmt-lbl-desc {
+            width: 100%; max-width: 440px;
+            font-size: 0.38rem; color: #444;
+            letter-spacing: 1px; text-align: center;
+            margin-bottom: 14px; padding: 0 4px;
+        }
+
+        /* ── INDICADOR DE SETS — tipo tenis ── */
+        .sets-bar {
+            display: none;  /* solo visible en bo3/bo5/bo7 */
+            position: fixed;
+            top: 52px; left: 0; right: 0;
+            z-index: 45;
+            background: #000;
+            border-bottom: 1px solid #111;
+            padding: 5px 14px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            height: 34px;
+        }
+        .sets-bar.visible { display: flex; }
+
+        /* Ajustar el campo cuando hay sets-bar */
+        .sets-bar.visible ~ .campo-juego {
+            top: 86px;
+        }
+
+        .sb-nombre {
+            font-size: 0.42rem; color: #555;
+            letter-spacing: 2px; min-width: 70px;
+            white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sb-nombre.der { text-align: right; }
+
+        .sb-sets {
+            display: flex; align-items: center; gap: 4px;
+        }
+        .sb-dot {
+            width: 12px; height: 12px;
+            border-radius: 3px;
+            border: 1.5px solid #2a2a2a;
+            background: #0a0a0a;
+            transition: 0.2s;
+        }
+        .sb-dot.j1-won {
+            background: #fff;
+            border-color: #fff;
+            box-shadow: 0 0 6px rgba(255,255,255,0.4);
+        }
+        .sb-dot.j2-won {
+            background: var(--oro);
+            border-color: var(--oro);
+            box-shadow: 0 0 6px rgba(212,175,55,0.5);
+        }
+        .sb-dot.current {
+            border-color: #444;
+            animation: pulse-dot 1.4s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%,100% { opacity:0.4; } 50% { opacity:1; }
+        }
+
+        .sb-score {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            font-weight: 900;
+            min-width: 28px;
+            text-align: center;
+        }
+        .sb-score.j1 { color: #fff; }
+        .sb-score.j2 { color: var(--oro); }
+        .sb-vs { color: #222; font-size: 0.5rem; }
     </style>
 </head>
 <body>
@@ -864,6 +981,28 @@
         </div>
     </div>
 
+    <!-- ── FORMATO — pequeño, discreto ── -->
+    <div class="divider-reg" style="margin-top:4px;">
+        <div class="div-line"></div>
+        <span class="div-txt">FORMATO</span>
+        <div class="div-line"></div>
+    </div>
+    <div class="fmt-row">
+        <button class="fmt-chip on" onclick="selFmt(1,this)">
+            <span class="fc-ico">🎱</span>PARTIDA<br>ÚNICA
+        </button>
+        <button class="fmt-chip" onclick="selFmt(3,this)">
+            <span class="fc-ico">3️⃣</span>MEJOR<br>DE 3
+        </button>
+        <button class="fmt-chip" onclick="selFmt(5,this)">
+            <span class="fc-ico">5️⃣</span>MEJOR<br>DE 5
+        </button>
+        <button class="fmt-chip" onclick="selFmt(7,this)">
+            <span class="fc-ico">7️⃣</span>MEJOR<br>DE 7
+        </button>
+    </div>
+    <div class="fmt-lbl-desc" id="fmt-desc">Una sola partida decide al campeón</div>
+
     <button class="btn-intercambiar" onclick="intercambiar()">⇅ INTERCAMBIAR POSICIONES</button>
     <button class="btn-iniciar" onclick="empezar()">▶ INICIAR DUELO</button>
     <button class="btn-volver-reg" onclick="location.href='index.html'">← VOLVER AL MENÚ</button>
@@ -910,8 +1049,17 @@
         </div>
     </div>
 
+    <!-- BARRA DE SETS — solo visible en bo3/bo5/bo7 -->
+    <div class="sets-bar" id="sets-bar">
+        <span class="sb-nombre" id="sb-n1">J1</span>
+        <div class="sb-sets" id="sb-dots"></div>
+        <span class="sb-vs">SETS</span>
+        <div class="sb-sets" id="sb-dots2"></div>
+        <span class="sb-nombre der" id="sb-n2">J2</span>
+    </div>
+
     <!-- CAMPO DE JUEGO (mitad1 + mitad2) -->
-    <div class="campo-juego">
+    <div class="campo-juego" id="campo-juego">
 
         <!-- ══ JUGADOR 1 — Arriba ══ -->
         <!-- Grid: [stats izq] | [bola centro] | [serie der] -->
@@ -1133,11 +1281,75 @@
     };
 
     let cfg = {
-        meta1: 0, meta2: 0,   // 0 = sin límite
-        hnd1: 0, hnd2: 0,     // hándicap (puntos de ventaja)
+        meta1: 0, meta2: 0,
+        hnd1: 0, hnd2: 0,
         tiempo: 40,
-        modal: '3 Bandas'
+        modal: '3 Bandas',
+        bestOf: 1             // 1 | 3 | 5 | 7
     };
+
+    // Estado de la serie (bo3/bo5/bo7)
+    let serie = {
+        wins1: 0, wins2: 0,
+        setActual: 1,
+        hist: []  // [{set, p1, p2, e1, e2, gan}]
+    };
+
+    var _fmtDesc = {
+        1: 'Una sola partida decide al campeón',
+        3: 'Gana quien primero gane 2 sets',
+        5: 'Gana quien primero gane 3 sets',
+        7: 'Gana quien primero gane 4 sets'
+    };
+
+    function selFmt(n, el) {
+        cfg.bestOf = n;
+        document.querySelectorAll('.fmt-chip').forEach(function(b){ b.classList.remove('on'); });
+        el.classList.add('on');
+        document.getElementById('fmt-desc').innerText = _fmtDesc[n];
+    }
+
+    /* ── ACTUALIZAR BARRA DE SETS ── */
+    function actualizarSetsBar() {
+        var bar = document.getElementById('sets-bar');
+        var campo = document.getElementById('campo-juego');
+        if (!bar) return;
+
+        if (cfg.bestOf <= 1) {
+            bar.classList.remove('visible');
+            if (campo) campo.style.top = '52px';
+            return;
+        }
+
+        bar.classList.add('visible');
+        if (campo) campo.style.top = '86px';
+
+        var nom1 = document.getElementById('lbl1').innerText || 'J1';
+        var nom2 = document.getElementById('lbl2').innerText || 'J2';
+        document.getElementById('sb-n1').innerText = nom1.split(' ')[0];
+        document.getElementById('sb-n2').innerText = nom2.split(' ')[0];
+
+        // Dibujar dots — uno por set posible
+        function renderDots(containerId, ganadorNum) {
+            var el = document.getElementById(containerId);
+            if (!el) return;
+            var need = Math.ceil(cfg.bestOf / 2);
+            var dots = '';
+            for (var i = 0; i < need; i++) {
+                var won  = serie.hist.filter(function(s){ return s.gan === ganadorNum; }).length;
+                var cls  = 'sb-dot';
+                if (i < won) {
+                    cls += ganadorNum === 1 ? ' j1-won' : ' j2-won';
+                } else if (i === won && serie.setActual <= cfg.bestOf) {
+                    cls += ' current';
+                }
+                dots += '<div class="' + cls + '"></div>';
+            }
+            el.innerHTML = dots;
+        }
+        renderDots('sb-dots',  1);
+        renderDots('sb-dots2', 2);
+    }
 
     let tiempoRestante = 40;
     let timer = null;
@@ -1148,8 +1360,7 @@
     function mostrarSplashMarca(onDone) {
         try {
             var cfg  = JSON.parse(localStorage.getItem('CLUB_CONFIG') || '{}');
-            var sede = JSON.parse(localStorage.getItem('CONFIG_SEDE_ACTIVA') || '{}');
-            var nombre = sede.nombre || '';
+            var nombre = localStorage.getItem('wl_club_nombre') || '';
             if (!nombre || nombre === 'GLOBAL') { if (onDone) onDone(); return; }
             var color = cfg.color || '#d4af37';
             var bg    = cfg.colorBg || '#0b0b0b';
@@ -1176,19 +1387,63 @@
         } catch(e) { if (onDone) onDone(); }
     }
 
+    /* ── CASERITO: datos del reto activo para guardar al final ── */
+    var _reto = null;
+
     /* ── INICIO ── */
     window.onload = function () {
         mostrarSplashMarca(function() {});
 
-        // Verificar si viene de un torneo
-        const ctx = JSON.parse(localStorage.getItem('PARTIDA_ACTIVA'));
+        var ctx = null;
+        try { ctx = JSON.parse(localStorage.getItem('PARTIDA_ACTIVA') || 'null'); } catch(e) {}
+
+        if (ctx && ctx.tipo === 'caserito') {
+            // Pre-llenar setup con los datos del caserito
+            _reto = ctx;
+            partidaActiva = ctx;
+            document.getElementById('n1').value      = ctx.j1 || '';
+            document.getElementById('n2').value      = ctx.j2 || '';
+            document.getElementById('cfg-tiempo').value = ctx.tiempoEntrada || 40;
+            if (ctx.meta1) {
+                document.getElementById('meta-num1').value = ctx.meta1;
+                regMeta[1] = ctx.meta1;
+            }
+            if (ctx.meta2) {
+                document.getElementById('meta-num2').value = ctx.meta2;
+                regMeta[2] = ctx.meta2;
+            }
+            if (ctx.modalidad) document.getElementById('cfg-modal').value = ctx.modalidad;
+            if (ctx.bestOf && ctx.bestOf > 1) {
+                cfg.bestOf = ctx.bestOf;
+                // Marcar el chip correcto
+                document.querySelectorAll('.fmt-chip').forEach(function(b){ b.classList.remove('on'); });
+                var chip = document.querySelector('.fmt-chip[onclick*="selFmt('+ctx.bestOf+',"]');
+                // fallback: recorrer todos
+                document.querySelectorAll('.fmt-chip').forEach(function(b){
+                    var m = b.getAttribute('onclick').match(/selFmt\((\d+)/);
+                    if(m && parseInt(m[1])===ctx.bestOf){ b.classList.add('on'); }
+                });
+                document.getElementById('fmt-desc').innerText = _fmtDesc[ctx.bestOf] || '';
+            }
+
+            // Banner de bolsa si hay inscripción
+            if (ctx.inscripcion > 0) {
+                var b = document.createElement('div');
+                b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999;background:rgba(46,255,112,0.1);border-bottom:2px solid rgba(46,255,112,0.3);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;font-family:Arial Black,sans-serif;';
+                b.innerHTML = '<span style="font-size:0.45rem;color:#2eff70;letter-spacing:1px;">🏆 BOLSA CASERITO — GANADOR RECIBE: <b>$' + (ctx.bolsaGanador||0).toLocaleString('es-CO') + '</b></span>' +
+                              '<span style="font-size:0.38rem;color:#555;">Fee plataforma: $' + (ctx.bolsaFee||0).toLocaleString('es-CO') + '</span>';
+                document.body.appendChild(b);
+                // Ajustar p-registro para no quedar debajo del banner
+                document.getElementById('p-registro').style.paddingTop = '52px';
+            }
+            return;
+        }
+
         if (ctx) {
             partidaActiva = ctx;
-            document.getElementById('n1').value = ctx.j1;
-            document.getElementById('n2').value = ctx.j2;
-            // En torneo el tiempo viene del core
+            document.getElementById('n1').value = ctx.j1 || '';
+            document.getElementById('n2').value = ctx.j2 || '';
             document.getElementById('cfg-tiempo').value = ctx.tiempoEntrada || 40;
-            // En torneo la meta viene del torneo
             if (ctx.entradaObjetivo) {
                 document.getElementById('meta-num1').value = ctx.entradaObjetivo;
                 document.getElementById('meta-num2').value = ctx.entradaObjetivo;
@@ -1211,7 +1466,7 @@
         return _histCache;
     }
     function _getJugadores() {
-        if (!_jugsCache) _jugsCache = MasterVIP.getJugadores();
+        try { if (!_jugsCache) _jugsCache = MasterVIP.getJugadores(); } catch(e) { _jugsCache = []; }
         return _jugsCache;
     }
 
@@ -1397,20 +1652,12 @@
         if (!nom1 || nom1 === 'MAESTRO 1') { alert('Ingresa el nombre del Jugador 1'); return; }
         if (!nom2 || nom2 === 'MAESTRO 2') { alert('Ingresa el nombre del Jugador 2'); return; }
 
-        var j1 = MasterVIP.buscarJugador(nom1);
-        var j2 = MasterVIP.buscarJugador(nom2);
-
-        // Guardar/actualizar jugador con cédula si se ingresó
-        if (doc1) {
-            var datos1 = j1 ? Object.assign({}, j1, { cedula: doc1 }) : { nombre: nom1, cedula: doc1, promedio: 0 };
-            MasterVIP.guardarJugador(datos1);
-            j1 = MasterVIP.buscarJugador(nom1);
-        }
-        if (doc2) {
-            var datos2 = j2 ? Object.assign({}, j2, { cedula: doc2 }) : { nombre: nom2, cedula: doc2, promedio: 0 };
-            MasterVIP.guardarJugador(datos2);
-            j2 = MasterVIP.buscarJugador(nom2);
-        }
+        try {
+            var j1 = MasterVIP.buscarJugador(nom1);
+            var j2 = MasterVIP.buscarJugador(nom2);
+            if (doc1) { var d1o = j1 ? Object.assign({},j1,{cedula:doc1}) : {nombre:nom1,cedula:doc1,promedio:0}; MasterVIP.guardarJugador(d1o); }
+            if (doc2) { var d2o = j2 ? Object.assign({},j2,{cedula:doc2}) : {nombre:nom2,cedula:doc2,promedio:0}; MasterVIP.guardarJugador(d2o); }
+        } catch(e) {}
 
         cfg.meta1  = parseInt(document.getElementById('meta-num1').value) || 0;
         cfg.meta2  = parseInt(document.getElementById('meta-num2').value) || 0;
@@ -1429,6 +1676,10 @@
         actualizarMetaTop();
 
         d.t = document.getElementById('s1').checked ? 1 : 2;
+
+        // Resetear serie
+        serie = { wins1:0, wins2:0, setActual:1, hist:[] };
+        actualizarSetsBar();
 
         document.getElementById('p-registro').classList.remove('activa');
         document.getElementById('p-juego').classList.add('activa');
@@ -1519,6 +1770,12 @@
             clearInterval(timer);
             pausado = false;
 
+            // Si es serie (bo3/bo5/bo7) → terminar set
+            if (cfg.bestOf > 1) {
+                terminarSet(d.t);
+                return;
+            }
+
             const nom = document.getElementById('lbl' + d.t).innerText;
             const p1  = d.p1, p2 = d.p2;
 
@@ -1574,6 +1831,126 @@
             };
             document.body.appendChild(overlay);
         }
+    }
+
+
+    /* ══ SERIES — terminar set ══ */
+    function terminarSet(ganNum) {
+        // Guardar stats del set
+        serie.hist.push({
+            set: serie.setActual,
+            p1: d.p1, p2: d.p2,
+            e1: d.e1 || 1, e2: d.e2 || 1,
+            gan: ganNum
+        });
+        if (ganNum === 1) serie.wins1++;
+        else              serie.wins2++;
+
+        const need  = Math.ceil(cfg.bestOf / 2);
+        const nom1  = document.getElementById('lbl1').innerText;
+        const nom2  = document.getElementById('lbl2').innerText;
+        const nomG  = ganNum === 1 ? nom1 : nom2;
+        const wG    = ganNum === 1 ? serie.wins1 : serie.wins2;
+        const wL    = ganNum === 1 ? serie.wins2 : serie.wins1;
+
+        // ¿Ya ganó la serie?
+        if (wG >= need) {
+            mostrarCampeonSerie(ganNum);
+            return;
+        }
+
+        // Resumen del set — overlay entre sets
+        const histHTML = serie.hist.map(function(s) {
+            var g1cls = s.gan===1 ? 'color:var(--oro);font-weight:900;' : 'color:#555;';
+            var g2cls = s.gan===2 ? 'color:var(--oro);font-weight:900;' : 'color:#555;';
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #111;">' +
+                '<span style="font-size:0.45rem;color:#444;letter-spacing:1px;">SET '+s.set+'</span>' +
+                '<span style="font-family:Courier New,monospace;font-size:1rem;'+g1cls+'">'+s.p1+'</span>' +
+                '<span style="color:#333;font-size:0.6rem;">—</span>' +
+                '<span style="font-family:Courier New,monospace;font-size:1rem;'+g2cls+'">'+s.p2+'</span>' +
+                '</div>';
+        }).join('');
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;';
+        overlay.innerHTML =
+            '<div style="color:#555;font-size:0.42rem;letter-spacing:3px;">SET '+serie.setActual+' TERMINADO</div>' +
+            '<div style="color:var(--oro);font-size:1.4rem;letter-spacing:2px;">'+nomG+' GANÓ</div>' +
+            '<div style="color:#aaa;font-size:0.55rem;letter-spacing:2px;">'+serie.wins1+' — '+serie.wins2+' en la serie</div>' +
+            '<div style="width:100%;max-width:320px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:14px;padding:12px 16px;margin:8px 0;">' +
+                '<div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid #1a1a1a;margin-bottom:4px;">' +
+                    '<span style="font-size:0.38rem;color:#555;letter-spacing:2px;">SETS</span>' +
+                    '<span style="font-size:0.38rem;color:#888;letter-spacing:2px;">'+nom1.split(' ')[0]+'</span>' +
+                    '<span style="font-size:0.38rem;color:#555;">VS</span>' +
+                    '<span style="font-size:0.38rem;color:#888;letter-spacing:2px;">'+nom2.split(' ')[0]+'</span>' +
+                '</div>' +
+                histHTML +
+            '</div>' +
+            '<div style="color:#666;font-size:0.4rem;letter-spacing:1px;">FALTAN '+(need-wG)+' sets para ganar la serie</div>' +
+            '<button style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:16px 40px;border-radius:14px;font-size:0.9rem;font-weight:900;font-family:Arial Black,sans-serif;letter-spacing:2px;cursor:pointer;margin-top:6px;">▶ SET '+(serie.setActual+1)+'</button>';
+
+        overlay.querySelector('button').onclick = function() {
+            document.body.removeChild(overlay);
+            // Resetear estado para el siguiente set
+            serie.setActual++;
+            d.p1=0; d.p2=0; d.e1=0; d.e2=0; d.s1=0; d.s2=0;
+            d.t = ganNum === 1 ? 2 : 1;
+            tiempoRestante = cfg.tiempo;
+            actualizarSetsBar();
+            iniciarReloj();
+            actualizarUI();
+        };
+        document.body.appendChild(overlay);
+    }
+
+    /* ══ CAMPEÓN DE LA SERIE ══ */
+    function mostrarCampeonSerie(ganNum) {
+        const nom1 = document.getElementById('lbl1').innerText;
+        const nom2 = document.getElementById('lbl2').innerText;
+        const nomG = ganNum === 1 ? nom1 : nom2;
+        const need = Math.ceil(cfg.bestOf / 2);
+
+        // Resumen de todos los sets
+        const histHTML = serie.hist.map(function(s) {
+            var g1cls = s.gan===1 ? 'color:var(--oro);font-weight:900;' : 'color:#555;';
+            var g2cls = s.gan===2 ? 'color:var(--oro);font-weight:900;' : 'color:#555;';
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #0f0f0f;">' +
+                '<span style="font-size:0.42rem;color:#444;letter-spacing:1px;">SET '+s.set+'</span>' +
+                '<span style="font-family:Courier New,monospace;font-size:1rem;'+g1cls+'">'+s.p1+'</span>' +
+                '<span style="color:#222;font-size:0.6rem;">—</span>' +
+                '<span style="font-family:Courier New,monospace;font-size:1rem;'+g2cls+'">'+s.p2+'</span>' +
+                '</div>';
+        }).join('');
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;';
+        overlay.innerHTML =
+            '<div style="font-size:3.5rem;">🏆</div>' +
+            '<div style="color:#555;font-size:0.42rem;letter-spacing:4px;">CAMPEÓN DE LA SERIE</div>' +
+            '<div style="color:var(--oro);font-size:1.8rem;letter-spacing:2px;text-align:center;text-shadow:0 0 20px rgba(212,175,55,0.4);">'+nomG+'</div>' +
+            '<div style="color:#aaa;font-size:0.65rem;letter-spacing:2px;">GANÓ '+need+' DE '+cfg.bestOf+'</div>' +
+            '<div style="color:#d4af37;font-size:1.2rem;letter-spacing:3px;">'+serie.wins1+' — '+serie.wins2+'</div>' +
+            '<div style="width:100%;max-width:320px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:14px;padding:12px 16px;margin:8px 0;">' +
+                '<div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid #1a1a1a;margin-bottom:4px;">' +
+                    '<span style="font-size:0.38rem;color:#555;letter-spacing:1px;">SETS</span>' +
+                    '<span style="font-size:0.38rem;color:#888;">'+nom1.split(' ')[0]+'</span>' +
+                    '<span style="font-size:0.38rem;color:#555;">VS</span>' +
+                    '<span style="font-size:0.38rem;color:#888;">'+nom2.split(' ')[0]+'</span>' +
+                '</div>' +
+                histHTML +
+            '</div>' +
+            '<button style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:16px 36px;border-radius:14px;font-size:0.9rem;font-weight:900;font-family:Arial Black,sans-serif;letter-spacing:2px;cursor:pointer;">VER CERTIFICADO →</button>';
+
+        // El certificado muestra los totales acumulados — rellenar d con totales
+        overlay.querySelector('button').onclick = function() {
+            document.body.removeChild(overlay);
+            // Acumular totales de todos los sets para el certificado
+            var tp1=0,tp2=0,te1=0,te2=0;
+            serie.hist.forEach(function(s){ tp1+=s.p1; tp2+=s.p2; te1+=s.e1; te2+=s.e2; });
+            d.p1=tp1; d.p2=tp2; d.e1=te1; d.e2=te2;
+            mostrarCertificado();
+        };
+        document.body.appendChild(overlay);
     }
 
     /* ── UI ── */
@@ -1809,10 +2186,12 @@
         localStorage.setItem('ranking_historico_club', JSON.stringify(h));
 
         // Actualizar promedios de los jugadores en el club
-        var j1 = MasterVIP.buscarJugador(nom1);
-        var j2 = MasterVIP.buscarJugador(nom2);
-        if (j1) { j1.promedio = pr1; MasterVIP.guardarJugador(j1); }
-        if (j2) { j2.promedio = pr2; MasterVIP.guardarJugador(j2); }
+        try {
+            var j1 = MasterVIP.buscarJugador(nom1);
+            var j2 = MasterVIP.buscarJugador(nom2);
+            if (j1) { j1.promedio = pr1; MasterVIP.guardarJugador(j1); }
+            if (j2) { j2.promedio = pr2; MasterVIP.guardarJugador(j2); }
+        } catch(e) {}
 
         // Si viene de torneo
         if (partidaActiva) {
@@ -1822,14 +2201,39 @@
                 serieMayorJ1: d.ms1, serieMayorJ2: d.ms2,
                 ganador: ganador, fecha: new Date().toISOString()
             };
-            var res = MasterVIP.registrarResultado(
+            var res = null; try {             var res = MasterVIP.registrarResultado(
                 partidaActiva.torneoId, partidaActiva.partidaId, resultado
-            );
+            ); } catch(e) {}
             localStorage.removeItem('PARTIDA_ACTIVA');
             if (res && res.ok) {
                 location.href = 'control_torneo.html';
                 return;
             }
+        }
+
+        // Si es caserito, guardar en RETOS_LISTA
+        if (_reto) {
+            var retos = [];
+            try { retos = JSON.parse(localStorage.getItem('RETOS_LISTA')) || []; } catch(e) {}
+            retos.push({
+                id: 'R' + Date.now(),
+                tipo: 'caserito',
+                fecha: new Date().toISOString(),
+                j1: nom1, d1: _reto.doc1 || '',
+                j2: nom2, d2: _reto.doc2 || '',
+                ganador: ganador,
+                pr1: pr1, pr2: pr2,
+                ms1: d.ms1, ms2: d.ms2,
+                e1: d.e1, e2: d.e2,
+                inscripcion: _reto.inscripcion || 0,
+                bolsaTotal: _reto.bolsaTotal || 0,
+                bolsaGanador: _reto.bolsaGanador || 0,
+                bolsaFee: _reto.bolsaFee || 0,
+                modalidad: cfg.modal
+            });
+            localStorage.setItem('RETOS_LISTA', JSON.stringify(retos));
+            localStorage.removeItem('PARTIDA_ACTIVA');
+            _reto = null;
         }
 
         location.href = 'index.html';
@@ -1840,5 +2244,6 @@
     }
 
 </script>
+<script src="whitelabel.js"></script>
 </body>
 </html>

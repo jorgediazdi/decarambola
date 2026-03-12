@@ -202,9 +202,9 @@ function dibujar() {
     document.getElementById('cert-canvas').style.display = 'block';
 
     var d        = MasterVIP.getDesign();
-    var sede     = MasterVIP.getSede();
-    var clubNom  = (sede.nombre && sede.nombre !== 'GLOBAL') ? sede.nombre : 'DeCarambola';
-    var colorOro = d.color     || '#d4af37';
+    // Nombre del club desde whitelabel (fuente correcta) — getSede() está obsoleto
+    var clubNom  = localStorage.getItem('wl_club_nombre') || 'DeCarambola';
+    var colorOro = localStorage.getItem('wl_club_color') || d.color || '#d4af37';
     var colorVerde = d.colorNeon || '#2eff70';
     var fecha    = torneoActual.fechaFin
         ? new Date(torneoActual.fechaFin).toLocaleDateString('es-CO')
@@ -399,7 +399,9 @@ function dibujar() {
     /* ─── FOOTER ─── */
     ctx.font      = 'bold 13px Arial';
     ctx.fillStyle = 'rgba(212,175,55,0.55)';
-    ctx.fillText(clubNom + '  ·  DeCarambola', W/2, H-72);
+    // Nombre del club a la izquierda · DeCarambola como firma de la plataforma
+    var footerTxt = clubNom !== 'DeCarambola' ? clubNom + '  ·  DeCarambola' : 'DeCarambola';
+    ctx.fillText(footerTxt, W/2, H-72);
 
     ctx.font      = '11px Arial';
     ctx.fillStyle = 'rgba(255,255,255,0.18)';
@@ -508,6 +510,11 @@ function getPromedio(nombre) {
    EXPORTAR
 ═══════════════════════ */
 function descargar() {
+    var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+    if (!jugActivo || !jugActivo.cedula) {
+        alert('⚠️ Para descargar certificados debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
+        return;
+    }
     var canvas = document.getElementById('cert-canvas');
     if (canvas.style.display === 'none') { alert('Primero genera el certificado'); return; }
     var nombre = getNombre() || 'certificado';
@@ -519,18 +526,19 @@ function descargar() {
 
 function compartirWA() {
     if (!torneoActual) { alert('Selecciona un torneo'); return; }
-    var nombre = getNombre() || '—';
-    var sede   = MasterVIP.getSede();
-    var txt = '🏆 *CERTIFICADO DeCarambola*\n\n';
+    var nombre  = getNombre() || '—';
+    var clubNom = localStorage.getItem('wl_club_nombre') || 'DeCarambola';
+    var txt = '🏆 *CERTIFICADO ' + clubNom.toUpperCase() + '*\n\n';
     if (tipoActual==='campeon') txt += '🥇 CAMPEÓN: *' + nombre + '*\n';
     if (tipoActual==='segundo') txt += '🥈 SUBCAMPEÓN: *' + nombre + '*\n';
     if (tipoActual==='part')    txt += '🎱 PARTICIPANTE: *' + nombre + '*\n';
     txt += '🏆 Torneo: ' + torneoActual.nombre + '\n';
-    txt += '🏛 Club: ' + sede.nombre + '\n';
+    txt += '🏛 Club: ' + clubNom + '\n';
     txt += '📅 ' + new Date().toLocaleDateString('es-CO');
     window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
 }
 
 </script>
+<script src="whitelabel.js"></script>
 </body>
 </html>

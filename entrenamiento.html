@@ -183,8 +183,7 @@ function mvGuardar(obj){
 function mostrarSplashMarca(onDone) {
   try {
     var cfg  = JSON.parse(localStorage.getItem('CLUB_CONFIG') || '{}');
-    var sede = JSON.parse(localStorage.getItem('CONFIG_SEDE_ACTIVA') || '{}');
-    var nombre = sede.nombre || cfg.nombre || '';
+    var nombre = localStorage.getItem('wl_club_nombre') || cfg.nombre || '';
     if (!nombre || nombre === 'GLOBAL') { if (onDone) onDone(); return; }
     var color = cfg.color || '#d4af37';
     var bg    = cfg.colorBg || '#0b0b0b';
@@ -217,7 +216,7 @@ window.onload=function(){
   });
   // Primero sesion activa
   try{
-    var u=JSON.parse(sessionStorage.getItem('usuarioLogueado'));
+    var u=JSON.parse(localStorage.getItem('jugador_activo') || 'null');
     if(u&&u.nombre){
       document.getElementById('nom').value=u.nombre;
       prom=parseFloat(u.promedio)||0;
@@ -333,6 +332,11 @@ function resumen(){
 }
 
 function guardar(){
+  var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+  if (!jugActivo || !jugActivo.cedula) {
+    alert('⚠️ Para guardar tu entrenamiento en el perfil debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
+    return;
+  }
   var p = st.e===0 ? 0 : parseFloat((st.c/st.e).toFixed(3));
 
   // 1. Guardar en historial — alimenta ranking y torneos
@@ -368,7 +372,7 @@ function guardar(){
 
   // 3. Guardar sesión local para autocompletar
   localStorage.setItem('mi_perfil', JSON.stringify({nombre:nom, cedula:doc, promedio:p}));
-  sessionStorage.setItem('usuarioLogueado', JSON.stringify({nombre:nom, promedio:p}));
+  localStorage.setItem('jugador_activo', JSON.stringify({nombre:nom, cedula:doc, promedio:p}));
 
   alert('✅ GUARDADO — Tu promedio ya suma al ranking y torneos');
   location.href='index.html';
@@ -376,5 +380,6 @@ function guardar(){
 
 function reiniciar(){st={c:0,e:0,s:0,sm:0};show('p-ini');}
 </script>
+<script src="whitelabel.js"></script>
 </body>
 </html>

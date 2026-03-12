@@ -86,7 +86,7 @@
         .emoji-opt.activo { border-color:var(--oro); background:rgba(212,175,55,0.1); }
         .emoji-opt:active { transform:scale(0.9); }
 
-        /* ── PIN ── */
+    /* ── PIN ── */
         .pin-row { display:flex; gap:8px; }
         .pin-digit {
             flex:1; height:52px; background:var(--g3); border:2px solid var(--g1);
@@ -322,6 +322,32 @@
         </div>
     </div>
 
+
+    <!-- ══ MESAS Y LAYOUT ══ -->
+    <div class="sec-titulo">MESAS Y LAYOUT</div>
+
+    <div class="campo">
+        <label>Número de Mesas</label>
+        <div style="display:flex;align-items:center;gap:16px;margin-top:8px;">
+            <button onclick="ajustarMesas(-1)" style="width:44px;height:44px;background:#111;border:1px solid #2a2a2a;border-radius:12px;color:#fff;font-size:1.4rem;cursor:pointer;">−</button>
+            <div style="flex:1;text-align:center;">
+                <div id="lbl-num-mesas" style="font-size:2.2rem;color:var(--club-color);font-family:Courier New,monospace;font-weight:900;line-height:1;">4</div>
+                <div style="font-size:0.42rem;color:#444;letter-spacing:2px;margin-top:2px;">MESAS</div>
+            </div>
+            <button onclick="ajustarMesas(+1)" style="width:44px;height:44px;background:#111;border:1px solid #2a2a2a;border-radius:12px;color:#fff;font-size:1.4rem;cursor:pointer;">+</button>
+        </div>
+    </div>
+
+    <div class="campo">
+        <label>Disposición del Salón</label>
+        <div id="layout-opciones" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;"></div>
+    </div>
+
+    <div class="campo">
+        <label>Vista Previa del Salón — toca una mesa para renombrarla</label>
+        <div id="layout-preview" style="background:#050505;border:1px solid #1a1a1a;border-radius:16px;padding:16px;min-height:100px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;overflow-x:auto;"></div>
+    </div>
+
     <!-- ══ SEGURIDAD ══ -->
     <div class="sec-titulo">SEGURIDAD</div>
 
@@ -365,7 +391,12 @@
 
     var colorActual = '#d4af37';
     var emojiActual = '🎱';
-    var logoBase64  = '';
+    var logoBase64  = ''; // Solo para preview local
+    var logoUrl     = ''; // URL real en Supabase Storage
+
+    var SUPABASE_URL = 'https://iwvogyloebvieloequzr.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
+    var BUCKET       = 'logos-clubes'; // bucket público en Supabase Storage
 
     /* ══ FUNCIONES DE LOGO ══════════════════════════════════════ */
     function cargarLogo(input) {
@@ -376,13 +407,68 @@
             input.value = '';
             return;
         }
+
+        // 1. Preview local inmediato (no se guarda)
         var reader = new FileReader();
         reader.onload = function(e) {
             logoBase64 = e.target.result;
             mostrarLogoPreview(logoBase64);
         };
-        reader.onerror = function() { alert('Error leyendo el archivo. Intenta de nuevo.'); };
         reader.readAsDataURL(file);
+
+        // 2. Subir a Supabase Storage en segundo plano
+        subirLogoASupabase(file);
+    }
+
+    async function subirLogoASupabase(file) {
+        var label = document.getElementById('logo-upload-label');
+        if (label) label.innerText = '⏳ SUBIENDO...';
+
+        try {
+            // Nombre único: club_timestamp.ext
+            var ext  = file.name.split('.').pop().toLowerCase();
+            var nom  = document.getElementById('inp-nombre') ? document.getElementById('inp-nombre').value.trim() : 'club';
+            var slug = nom.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'club';
+            var fileName = slug + '_' + Date.now() + '.' + ext;
+            var path = 'logos/' + fileName;
+
+            var res = await fetch(
+                SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + path,
+                {
+                    method: 'POST',
+                    headers: {
+                        'apikey':        SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_KEY,
+                        'Content-Type':  file.type,
+                        'x-upsert':      'true'
+                    },
+                    body: file  // archivo directo, sin base64
+                }
+            );
+
+            if (res.ok) {
+                // URL pública del logo en Supabase
+                logoUrl = SUPABASE_URL + '/storage/v1/object/public/' + BUCKET + '/' + path;
+                if (label) label.innerText = '✅ LOGO SUBIDO — TOCA PARA CAMBIAR';
+                console.log('[WL] Logo subido a Supabase:', logoUrl);
+
+                // Actualizar whitelabel con URL real
+                if (window.WL) {
+                    window.WL.setClub({ logo_url: logoUrl });
+                }
+                localStorage.setItem('wl_club_logo_url', logoUrl);
+            } else {
+                var err = await res.text();
+                console.error('[WL] Error subiendo logo:', err);
+                if (label) label.innerText = '⚠️ ERROR — Guardado local como respaldo';
+                // Fallback: guardar base64 solo si falla Supabase
+                logoUrl = logoBase64;
+            }
+        } catch(e) {
+            console.error('[WL] Sin conexión:', e);
+            if (label) label.innerText = '⚠️ Sin conexión — Logo guardado local';
+            logoUrl = logoBase64; // fallback offline
+        }
     }
 
     function mostrarLogoPreview(src) {
@@ -401,6 +487,7 @@
     function quitarLogo(e) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
         logoBase64 = '';
+        logoUrl    = '';
         var circle = document.getElementById('logo-preview-circle');
         var label  = document.getElementById('logo-upload-label');
         var btnRm  = document.getElementById('btn-remove-logo');
@@ -441,7 +528,10 @@
         grid.firstChild.classList.add('activo');
 
         // Cargar configuración guardada
-        var sede = MasterVIP.getSede();
+        var sede = {
+            nombre: localStorage.getItem('wl_club_nombre') || 'GLOBAL',
+            color: localStorage.getItem('wl_club_color') || '#d4af37'
+        };
         var config = JSON.parse(localStorage.getItem('CLUB_CONFIG')) || {};
 
         if (sede.nombre !== 'GLOBAL') {
@@ -483,6 +573,15 @@
 
         actualizarPreview();
         actualizarAnuncioPreview();
+
+        // Init mesas
+        initLayouts();
+        var savedMesas = JSON.parse(localStorage.getItem('CLUB_MESAS') || '{}');
+        if (savedMesas.numMesas) { numMesas = savedMesas.numMesas; document.getElementById('lbl-num-mesas').innerText = numMesas; }
+        if (savedMesas.layout)  { layoutActual = savedMesas.layout; }
+        if (savedMesas.nombres) { nombresMesas = savedMesas.nombres; }
+        initLayouts();
+        renderLayoutPreview();
     };
 
     /* ── COLOR ── */
@@ -576,6 +675,81 @@
         }
     }
 
+
+    /* ══ MESAS Y LAYOUT ══════════════════════════════════════ */
+    var numMesas = 4;
+    var layoutActual = 'fila';
+    var nombresMesas = {};
+    var LAYOUTS = [
+        {id:'fila', label:'UNA FILA'},
+        {id:'dos-filas', label:'DOS FILAS'},
+        {id:'l-shape', label:'EN L'},
+        {id:'libre', label:'LIBRE'}
+    ];
+
+    function ajustarMesas(delta) {
+        numMesas = Math.max(1, Math.min(20, numMesas + delta));
+        document.getElementById('lbl-num-mesas').innerText = numMesas;
+        renderLayoutPreview();
+    }
+
+    function elegirLayout(id) {
+        layoutActual = id;
+        document.querySelectorAll('.layout-opt').forEach(function(el) {
+            var a = el.dataset.lid === id;
+            el.style.borderColor = a ? colorActual : '#1a1a1a';
+            el.querySelector('.lo-lbl').style.color = a ? colorActual : '#555';
+        });
+        renderLayoutPreview();
+    }
+
+    function renderLayoutPreview() {
+        var cont = document.getElementById('layout-preview');
+        if (!cont) return;
+        cont.innerHTML = '';
+        var sz = numMesas <= 6 ? 70 : 52;
+        for (var i = 1; i <= numMesas; i++) {
+            var mesa = document.createElement('div');
+            mesa.style.cssText =
+                'width:'+sz+'px;height:'+(sz*0.6)+'px;' +
+                'background:linear-gradient(135deg,#0d4a28,#073320);' +
+                'border:2px solid '+colorActual+';border-radius:8px;' +
+                'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+                'cursor:pointer;flex-shrink:0;transition:0.15s;';
+            var nom = nombresMesas[i] || ('M'+i);
+            mesa.innerHTML =
+                '<div style="font-size:0.45rem;color:'+colorActual+';font-family:Arial Black,sans-serif;letter-spacing:1px;">'+nom+'</div>' +
+                '<div style="font-size:0.65rem;">🎱</div>';
+            mesa.onclick = (function(idx) {
+                return function() {
+                    var nuevo = prompt('Nombre de la mesa '+idx+':', nombresMesas[idx] || 'Mesa '+idx);
+                    if (nuevo !== null) { nombresMesas[idx] = nuevo.trim() || ('Mesa '+idx); renderLayoutPreview(); }
+                };
+            })(i);
+            cont.appendChild(mesa);
+            if (layoutActual === 'dos-filas' && i === Math.ceil(numMesas/2)) {
+                var br = document.createElement('div');
+                br.style.cssText = 'width:100%;height:0;flex-basis:100%;';
+                cont.appendChild(br);
+            }
+        }
+        cont.style.flexWrap = (layoutActual === 'fila' && numMesas <= 6) ? 'nowrap' : 'wrap';
+        cont.style.overflowX = (layoutActual === 'fila' && numMesas > 6) ? 'auto' : 'visible';
+    }
+
+    function initLayouts() {
+        var cont = document.getElementById('layout-opciones');
+        if (!cont) return;
+        cont.innerHTML = LAYOUTS.map(function(l) {
+            var a = l.id === layoutActual;
+            return '<div class="layout-opt" data-lid="'+l.id+'" onclick="elegirLayout(\''+l.id+'\')" ' +
+                'style="background:#0a0a0a;border:2px solid '+(a?'var(--club-color)':'#1a1a1a')+';' +
+                'border-radius:14px;padding:14px 8px;text-align:center;cursor:pointer;transition:0.2s;">' +
+                '<div class="lo-lbl" style="font-size:0.5rem;letter-spacing:2px;font-family:Arial Black,sans-serif;color:'+(a?'var(--club-color)':'#555')+';">'+l.label+'</div>' +
+                '</div>';
+        }).join('');
+    }
+
     /* ── PIN ── */
     function moverPin(el, sigId) {
         if (el.value.length === 1) {
@@ -613,14 +787,15 @@
 
         // Guardar config — clave correcta: logoUrl
         var config = { ciudad:ciu, pais:pais, color:colorActual, emoji:emojiActual, tel:tel, ig:ig, fb:fb, modalidad:mod };
-        if (logoBase64) {
-            config.logoUrl = logoBase64;
+        if (logoUrl) {
+            config.logoUrl = logoUrl; // URL de Supabase Storage (liviana)
         } else {
             var prevConfig = JSON.parse(localStorage.getItem('CLUB_CONFIG') || '{}');
             var prevLogo = prevConfig.logoUrl || prevConfig.logo || '';
             if (prevLogo) config.logoUrl = prevLogo;
         }
         localStorage.setItem('CLUB_CONFIG', JSON.stringify(config));
+        localStorage.setItem('CLUB_MESAS', JSON.stringify({numMesas:numMesas, layout:layoutActual, nombres:nombresMesas}));
 
         // Guardar anuncio
         if (tit) {
@@ -655,5 +830,6 @@
     }
 
 </script>
+<script src="whitelabel.js"></script>
 </body>
 </html>

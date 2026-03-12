@@ -69,6 +69,21 @@
         .resultado-analisis { margin-top:22px; padding:20px; background:#050400; border:1px solid rgba(212,175,55,0.2); border-radius:14px; }
         .resultado-texto { color:#bbb; font-size:1rem; line-height:1.8; font-family:Arial,sans-serif; font-weight:normal; }
         .video-preview { width:100%; max-height:220px; border-radius:14px; margin-top:18px; background:#000; }
+        /* TTS BUTTON */
+        .btn-hablar {
+            display:inline-flex; align-items:center; gap:6px;
+            background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.2);
+            color:#888; padding:7px 12px; border-radius:20px; font-size:0.8rem;
+            cursor:pointer; margin-top:10px; transition:0.2s; font-family:Arial,sans-serif;
+            letter-spacing:1px;
+        }
+        .btn-hablar:hover { background:rgba(212,175,55,0.15); color:var(--oro); }
+        .btn-hablar.hablando { background:rgba(212,175,55,0.2); border-color:var(--oro); color:var(--oro); animation:pulse-tts 1.2s ease infinite; }
+        @keyframes pulse-tts { 0%,100%{opacity:1} 50%{opacity:0.6} }
+        .voz-selector { display:flex; align-items:center; gap:10px; padding:10px 16px; background:#080600; border-top:1px solid rgba(212,175,55,0.1); }
+        .voz-selector select { background:#0a0800; border:1px solid rgba(212,175,55,0.2); color:#888; padding:6px 10px; border-radius:8px; font-size:0.8rem; font-family:Arial,sans-serif; outline:none; flex:1; }
+        .voz-lbl { color:#555; font-size:0.75rem; letter-spacing:1px; white-space:nowrap; }
+
         
         /* BIBLIOTECA - Lista de temas */
         .biblioteca-lista { display:flex; flex-direction:column; }
@@ -518,8 +533,48 @@
     const API="https://sensei-billar-api.onrender.com";
     
     // CHAT
-    function addMsg(text,type){const msgs=document.getElementById("mensajes");const div=document.createElement("div");div.className="mensaje "+type;if(type==="sensei"){div.innerHTML='<span class="sensei-label">SENSEI</span>'+text;}else{div.textContent=text;}msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;}
-    async function send(){const input=document.getElementById("input");const btn=document.getElementById("send");const text=input.value.trim();if(!text)return;addMsg(text,"user");input.value="";btn.disabled=true;btn.innerHTML='<span class="loading"></span>';try{const res=await fetch(API+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mensaje:text+" (Modalidad: "+modalidadActual+")"})});const data=await res.json();addMsg(data.respuesta,"sensei");}catch(e){addMsg("Error de conexión.","sensei");}btn.disabled=false;btn.textContent="ENVIAR";}
+    function addMsg(text,type){
+        const msgs=document.getElementById("mensajes");
+        const div=document.createElement("div");
+        div.className="mensaje "+type;
+        if(type==="sensei"){
+            div.innerHTML='<span class="sensei-label">SENSEI</span>'+text+
+                '<br><button class="btn-hablar" onclick="hablarMensaje(this,'+JSON.stringify(text).replace(/</g,'&lt;')+')" title="Escuchar al Sensei">🔊 ESCUCHAR</button>';
+        }else{
+            div.textContent=text;
+        }
+        msgs.appendChild(div);
+        msgs.scrollTop=msgs.scrollHeight;
+    }
+    async function send(){
+        const input=document.getElementById("input");
+        const btn=document.getElementById("send");
+        const text=input.value.trim();
+        if(!text)return;
+        addMsg(text,"user");
+        input.value="";
+        btn.disabled=true;
+        btn.innerHTML='<span class="loading"></span>';
+        try{
+            const res=await fetch(API+"/chat",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({mensaje:text+" (Modalidad: "+modalidadActual+")"})
+            });
+            const data=await res.json();
+            addMsg(data.respuesta,"sensei");
+            // Auto-voz si está activa
+            if(autoHablar) {
+                setTimeout(function() {
+                    var lastBtn = document.querySelectorAll(".btn-hablar");
+                    var ultimo = lastBtn[lastBtn.length-1];
+                    if(ultimo) hablarMensaje(ultimo, data.respuesta);
+                }, 300);
+            }
+        }catch(e){addMsg("Error de conexión.","sensei");}
+        btn.disabled=false;
+        btn.textContent="ENVIAR";
+    }
     function ask(q){document.getElementById("input").value=q;send();}
     
     // BIBLIOTECA - Modal pantalla completa
@@ -570,8 +625,88 @@
         }
     }
     
+
+    // ══════════════════════════════════════
+    //  TTS — VOZ DEL SENSEI (Web Speech API)
+    // ══════════════════════════════════════
+    var vocesCargadas = [];
+    var vozSeleccionada = null;
+    var hablando = false;
+
+    function cargarVoces() {
+        vocesCargadas = window.speechSynthesis.getVoices().filter(function(v) {
+            return v.lang.startsWith('es');
+        });
+        var sel = document.getElementById('voz-select');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- Auto --</option>' +
+            vocesCargadas.map(function(v, i) {
+                return '<option value="'+i+'">' + v.name + ' (' + v.lang + ')</option>';
+            }).join('');
+    }
+
+    if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = cargarVoces;
+        setTimeout(cargarVoces, 500);
+    }
+
+    function hablarMensaje(btn, texto) {
+        if (!window.speechSynthesis) { alert('Tu navegador no soporta voz.'); return; }
+
+        // Si ya está hablando, parar
+        if (hablando) {
+            window.speechSynthesis.cancel();
+            hablando = false;
+            if (btn) { btn.classList.remove('hablando'); btn.innerHTML = '🔊 ESCUCHAR'; }
+            return;
+        }
+
+        var textoLimpio = texto.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        var utterance = new SpeechSynthesisUtterance(textoLimpio);
+        utterance.lang = 'es-CO';
+        utterance.rate = 0.88;
+        utterance.pitch = 0.75;  // Voz más grave — el Sensei es serio
+        utterance.volume = 1;
+
+        // Aplicar voz seleccionada
+        var sel = document.getElementById('voz-select');
+        if (sel && sel.value !== '') {
+            var idx = parseInt(sel.value);
+            if (vocesCargadas[idx]) utterance.voice = vocesCargadas[idx];
+        } else if (vocesCargadas.length > 0) {
+            // Preferir voces masculinas
+            var vozMasc = vocesCargadas.find(function(v) { return v.name.toLowerCase().includes('male') || v.name.includes('Jorge') || v.name.includes('Carlos') || v.name.includes('Juan'); });
+            utterance.voice = vozMasc || vocesCargadas[0];
+        }
+
+        hablando = true;
+        if (btn) { btn.classList.add('hablando'); btn.innerHTML = '⏹ DETENER'; }
+
+        utterance.onend = function() {
+            hablando = false;
+            if (btn) { btn.classList.remove('hablando'); btn.innerHTML = '🔊 ESCUCHAR'; }
+        };
+        utterance.onerror = function() {
+            hablando = false;
+            if (btn) { btn.classList.remove('hablando'); btn.innerHTML = '🔊 ESCUCHAR'; }
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // Hablar automáticamente si el usuario lo activa
+    var autoHablar = false;
+    function toggleAutoHablar(btn) {
+        autoHablar = !autoHablar;
+        btn.innerText = autoHablar ? '🔊 VOZ: ON' : '🔇 VOZ: OFF';
+        btn.style.color = autoHablar ? 'var(--oro)' : '#555';
+        btn.style.borderColor = autoHablar ? 'rgba(212,175,55,0.4)' : '#1a1a1a';
+        if (!autoHablar) window.speechSynthesis && window.speechSynthesis.cancel();
+    }
+
     // ANALIZAR VIDEO
     async function procesarArchivo(input){if(!input.files||!input.files[0])return;const archivo=input.files[0];const esVideo=archivo.type.startsWith('video/');const esImagen=archivo.type.startsWith('image/');const previewCont=document.getElementById('preview-container');if(esVideo){previewCont.innerHTML='<video class="video-preview" controls><source src="'+URL.createObjectURL(archivo)+'" type="'+archivo.type+'"></video>';}else if(esImagen){previewCont.innerHTML='<img class="video-preview" src="'+URL.createObjectURL(archivo)+'" alt="Preview">';}const resultadoCont=document.getElementById('resultado-analisis');resultadoCont.innerHTML='<div style="text-align:center;padding:25px;"><span class="loading loading-grande"></span><div style="color:#888;font-size:1rem;margin-top:12px;">El Sensei está analizando tu '+(tipoAnalisis==='chiripa'?'posible chiripa':'jugada')+'...</div></div>';const formData=new FormData();formData.append(esVideo?'video':'imagen',archivo);formData.append('tipo',tipoAnalisis);try{const endpoint=esVideo?'/analizar-video':'/analizar-imagen';const res=await fetch(API+endpoint,{method:'POST',body:formData});const data=await res.json();resultadoCont.innerHTML='<div class="resultado-analisis"><span class="sensei-label">SENSEI</span><div class="resultado-texto">'+data.respuesta+'</div></div>';}catch(e){resultadoCont.innerHTML='<div class="resultado-analisis"><span class="sensei-label">SENSEI</span><div class="resultado-texto">¡Ups! Hubo un problema. Intenta con un archivo más pequeño.</div></div>';}input.value='';}
     </script>
+<script src="whitelabel.js"></script>
 </body>
 </html>

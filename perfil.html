@@ -1,630 +1,848 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="estilos.css">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Perfil — DeCarambola</title>
-    <style>
-        
-        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --rojo:#e74c3c; --azul:#3498db; --g1:#1a1a1a; --g2:#111111; --g3:#0f0f0f; }
-        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding-bottom:50px; }
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
-        .header-titulo { color:var(--oro); font-size:1rem; letter-spacing:3px; }
-        .header-sub { color:#333; font-size:0.48rem; letter-spacing:2px; margin-top:2px; }
-        .btn-hdr { background:none; border:1px solid var(--g1); color:#444; padding:7px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; letter-spacing:1px; font-family:'Arial Black',sans-serif; text-decoration:none; }
-        .wrap { width:95vw; max-width:500px; padding-top:16px; }
-        .buscador { background:var(--g3); border:1px solid var(--g1); border-radius:16px; padding:13px 16px; display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-        .buscador input { background:transparent; border:none; color:#fff; font-family:'Arial Black',sans-serif; font-size:1rem; outline:none; flex:1; }
-        .buscador input::placeholder { color:#555; font-weight:normal; }
-        .lista-sug { background:var(--g3); border:1px solid var(--g1); border-radius:12px; overflow:hidden; margin-bottom:14px; display:none; }
-        .sug-fila { padding:11px 16px; cursor:pointer; border-bottom:1px solid var(--g1); font-size:0.8rem; transition:0.15s; display:flex; justify-content:space-between; align-items:center; }
-        .sug-fila:last-child { border:none; }
-        .sug-fila:active { background:var(--g2); }
-        .sug-fila small { color:#444; font-size:0.48rem; }
+<title>Perfil — DeCarambola</title>
+<link rel="stylesheet" href="estilos.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;800&display=swap');
 
-        /* CARNET */
-        .carnet { background:linear-gradient(160deg,#0f0f0f 0%,#050505 100%); border:1px solid var(--g1); border-radius:24px; margin-bottom:14px; overflow:hidden; position:relative; }
-        .carnet-franja { height:5px; background:linear-gradient(90deg,transparent,var(--oro),transparent); }
-        .carnet-bg { position:absolute; top:5px; right:-20px; font-size:8rem; opacity:0.04; pointer-events:none; line-height:1; }
-        .carnet-body { padding:20px 20px 16px; position:relative; }
-        .carnet-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
-        .carnet-avatar { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#1a1a00,#3a2a00); border:2px solid var(--oro); display:flex; align-items:center; justify-content:center; font-size:2.2rem; font-weight:900; color:var(--oro); flex-shrink:0; box-shadow:0 0 24px rgba(212,175,55,0.25); overflow:hidden; position:relative; cursor:pointer; }
-        .carnet-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-        .av-cam { position:absolute; inset:0; background:rgba(0,0,0,0.55); border-radius:50%; display:none; align-items:center; justify-content:center; font-size:1.3rem; pointer-events:none; }
-        .carnet-avatar:active .av-cam { display:flex; }
-        #inp-foto-perfil { display:none; }
-        .carnet-info { flex:1; }
-        .carnet-nom { font-size:1.3rem; color:#fff; line-height:1.1; margin-bottom:4px; }
-        .carnet-club { font-size:0.55rem; color:var(--oro); letter-spacing:2px; margin-bottom:2px; }
-        .carnet-loc { font-size:0.48rem; color:#444; letter-spacing:1px; }
-        .carnet-cat { display:flex; flex-direction:column; align-items:center; gap:3px; background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:8px 12px; flex-shrink:0; min-width:58px; }
-        .carnet-cat-ico { font-size:1.4rem; line-height:1; }
-        .carnet-cat-nom { font-size:0.4rem; color:#555; letter-spacing:1px; text-align:center; }
+:root{
+  --oro:#d4af37;--oro2:#f5e070;--negro:#050505;
+  --g1:#0f0f0f;--g2:#161616;--g3:#1e1e1e;
+  --neon:#2eff70;--rojo:#e74c3c;--azul:#3498db;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--negro);color:#fff;
+  font-family:'Barlow Condensed',sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding-bottom:60px;}
 
-        /* STATS */
-        .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
-        .stat-box { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:10px 8px; text-align:center; }
-        .stat-box.dest { border-color:rgba(212,175,55,0.3); background:rgba(212,175,55,0.04); }
-        .stat-val { font-size:1.4rem; font-weight:900; font-family:'Courier New',monospace; line-height:1; color:#fff; }
-        .stat-box.dest .stat-val { color:var(--oro); }
-        .stat-lbl { font-size:0.42rem; color:#444; letter-spacing:1px; margin-top:3px; }
+/* ── HEADER ── */
+.hdr{width:100%;background:#000;border-bottom:1px solid #1a1a1a;
+  padding:12px 18px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;}
+.hdr h1{font-family:'Bebas Neue';font-size:1.2rem;color:var(--oro);letter-spacing:4px;}
+.hdr p{font-size:0.5rem;color:#2a2a2a;letter-spacing:3px;}
+.btn-hdr{background:none;border:1px solid #1e1e1e;color:#333;padding:8px 14px;
+  border-radius:10px;font-size:0.6rem;cursor:pointer;letter-spacing:1px;
+  font-family:'Barlow Condensed';font-weight:600;text-decoration:none;}
+.btn-hdr:active{border-color:var(--oro);color:var(--oro);}
 
-        /* NIVEL */
-        .nivel-wrap { margin-bottom:14px; }
-        .nivel-head { display:flex; justify-content:space-between; font-size:0.48rem; color:#444; letter-spacing:1px; margin-bottom:5px; }
-        .nivel-barra { height:6px; background:var(--g2); border-radius:10px; overflow:hidden; }
-        .nivel-fill { height:100%; background:linear-gradient(90deg,var(--oro),#ffe066); border-radius:10px; transition:width 0.6s ease; }
+.wrap{width:95vw;max-width:520px;padding-top:16px;}
 
-        /* RANKING BADGE */
-        .rank-badge { display:flex; align-items:center; gap:10px; background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.2); border-radius:14px; padding:10px 14px; margin-bottom:14px; }
-        .rank-pos { font-size:2rem; color:var(--oro); line-height:1; }
-        .rank-info small { color:#444; font-size:0.48rem; letter-spacing:2px; display:block; }
-        .rank-info b { color:#fff; font-size:0.75rem; }
+/* ── BUSCADOR ── */
+.buscador{background:var(--g2);border:1px solid #222;border-radius:14px;
+  padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.buscador:focus-within{border-color:var(--oro);}
+.buscador input{background:transparent;border:none;color:#fff;
+  font-family:'Barlow Condensed';font-size:1.1rem;font-weight:600;outline:none;flex:1;}
+.buscador input::placeholder{color:#2a2a2a;}
+.lista-sug{background:var(--g2);border:1px solid #1e1e1e;border-radius:12px;
+  overflow:hidden;margin-bottom:14px;display:none;}
+.sug-fila{padding:12px 16px;cursor:pointer;border-bottom:1px solid #1a1a1a;
+  display:flex;justify-content:space-between;align-items:center;}
+.sug-fila:last-child{border:none;}
+.sug-fila:active{background:#0f0f0f;}
+.sug-n{font-size:0.9rem;font-weight:700;color:#ddd;}
+.sug-c{font-size:0.6rem;color:#333;margin-top:1px;}
+.sug-p{font-family:'Bebas Neue';font-size:1.2rem;color:var(--oro);}
 
-        /* FOOTER CARNET */
-        .carnet-footer { background:var(--g3); border-top:1px solid var(--g1); padding:10px 20px; display:flex; align-items:center; justify-content:space-between; }
-        .carnet-id { font-size:0.42rem; color:#333; letter-spacing:2px; font-family:'Courier New',monospace; }
-        .carnet-marca { font-size:0.55rem; color:var(--oro); letter-spacing:2px; }
+/* ════════════════════════════════════
+   CARNET FIFA — HORIZONTAL
+════════════════════════════════════ */
+.carnet-wrap{
+  width:100%;
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:16px;
+  position:relative;
+  /* Ratio aproximado carnet FIFA: ~1.6:1 */
+  border:1px solid #2a2a2a;
+}
 
-        /* INSIGNIAS */
-        .sec-titulo { color:#fff; font-size:0.65rem; letter-spacing:3px; margin:18px 0 10px; border-left:3px solid var(--oro); padding-left:10px; }
-        .ins-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
-        .ins { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:10px 6px; text-align:center; }
-        .ins.ok { border-color:rgba(212,175,55,0.3); background:rgba(212,175,55,0.06); }
-        .ins.ok.verde { border-color:rgba(46,255,112,0.3); background:rgba(46,255,112,0.05); }
-        .ins.off { opacity:0.25; }
-        .ins-ico { font-size:1.5rem; line-height:1; margin-bottom:4px; }
-        .ins-nom { font-size:0.4rem; color:#555; letter-spacing:1px; }
-        .ins.ok .ins-nom { color:var(--oro); }
-        .ins.ok.verde .ins-nom { color:var(--neon); }
+/* FONDO DEL CARNET */
+.carnet-bg{
+  position:relative;
+  background:linear-gradient(135deg, #0a0800 0%, #060606 40%, #0a0a00 100%);
+  overflow:hidden;
+}
 
-        /* HISTORIAL */
-        .hist-row { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
-        .hist-pos { font-size:1.3rem; min-width:30px; text-align:center; }
-        .hist-info { flex:1; }
-        .hist-nom { font-size:0.8rem; }
-        .hist-det { font-size:0.45rem; color:#444; margin-top:2px; letter-spacing:1px; }
+/* Textura de paño de billar sutil */
+.carnet-bg::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(212,175,55,0.015) 3px,rgba(212,175,55,0.015) 4px),
+    repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(212,175,55,0.015) 3px,rgba(212,175,55,0.015) 4px);
+  pointer-events:none;
+}
 
-        /* BOTONES */
-        .btn-comp { width:100%; padding:16px; background:linear-gradient(135deg,var(--azul),#1460a0); color:#fff; border:none; border-radius:16px; font-size:0.9rem; font-weight:bold; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:2px; margin-bottom:10px; transition:0.15s; }
-        .btn-comp:active { transform:scale(0.97); }
-        .btn-link { width:100%; padding:14px; background:var(--g3); border:1px solid var(--g1); color:#666; border-radius:16px; font-size:0.7rem; font-weight:bold; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:1px; margin-bottom:14px; transition:0.15s; }
-        .btn-link:active { border-color:var(--oro); color:var(--oro); }
+/* Número grande de fondo */
+.carnet-num-bg{
+  position:absolute;right:-20px;bottom:-30px;
+  font-family:'Bebas Neue';font-size:280px;
+  line-height:1;color:var(--oro);opacity:0.03;
+  pointer-events:none;user-select:none;
+}
 
-        .empty-perfil { text-align:center; padding:50px 20px; }
-        .empty-perfil .ico { font-size:3rem; margin-bottom:12px; }
-        .empty-perfil p { color:#333; font-size:0.65rem; line-height:2.2; letter-spacing:1px; }
-        .vacio { text-align:center; padding:20px; color:#333; font-size:0.6rem; letter-spacing:1px; }
-    </style>
+/* Franja diagonal de categoría */
+.carnet-diagonal{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;overflow:hidden;
+}
+.carnet-diagonal::after{
+  content:'';position:absolute;
+  top:-60px;left:-80px;
+  width:160px;height:400px;
+  transform:rotate(15deg);
+  opacity:0.08;
+}
+
+/* ── LAYOUT INTERNO DEL CARNET ── */
+.carnet-inner{
+  display:flex;
+  position:relative;z-index:2;
+  min-height:180px;
+}
+
+/* LADO IZQUIERDO — FOTO + CATEGORÍA */
+.carnet-left{
+  width:130px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:16px 10px 12px;
+  position:relative;
+}
+.carnet-left::after{
+  content:'';position:absolute;right:0;top:10%;height:80%;
+  width:1px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,0.06),transparent);
+}
+
+/* FOTO */
+.foto-wrap{
+  width:84px;height:84px;border-radius:50%;
+  overflow:hidden;cursor:pointer;
+  position:relative;flex-shrink:0;
+  margin-bottom:8px;
+}
+.foto-wrap img{width:100%;height:100%;object-fit:cover;}
+.foto-ini{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue';font-size:2.8rem;line-height:1;
+}
+.foto-cam{
+  position:absolute;inset:0;border-radius:50%;
+  background:rgba(0,0,0,0.65);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;opacity:0;transition:0.2s;
+}
+.foto-wrap:active .foto-cam{opacity:1;}
+#inp-foto{display:none;}
+
+/* BADGE CATEGORÍA */
+.cat-box{
+  border-radius:8px;padding:4px 10px;
+  text-align:center;border:1px solid;
+  margin-bottom:6px;width:100%;
+}
+.cat-box-ico{font-size:1rem;line-height:1;}
+.cat-box-nom{font-size:0.45rem;letter-spacing:2px;font-weight:700;margin-top:2px;}
+
+/* PUESTO RANKING CLUB */
+.rank-club-box{
+  background:rgba(255,255,255,0.03);
+  border:1px solid #1e1e1e;border-radius:8px;
+  padding:4px 8px;text-align:center;width:100%;
+}
+.rank-club-lbl{font-size:0.38rem;color:#333;letter-spacing:2px;}
+.rank-club-num{font-family:'Bebas Neue';font-size:1.4rem;line-height:1;}
+
+/* LADO DERECHO — INFO */
+.carnet-right{
+  flex:1;padding:14px 16px 12px 14px;
+  display:flex;flex-direction:column;gap:0;
+  overflow:hidden;
+}
+
+/* NOMBRE */
+.c-nombre{
+  font-family:'Bebas Neue';
+  font-size:1.7rem;letter-spacing:1px;line-height:1;
+  color:#fff;margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* CLUB ROW */
+.c-club-row{
+  display:flex;align-items:center;gap:6px;margin-bottom:8px;
+}
+.c-club-logo{width:14px;height:14px;border-radius:50%;object-fit:contain;}
+.c-club-nom{font-size:0.65rem;font-weight:700;letter-spacing:2px;}
+.c-ciudad{font-size:0.58rem;color:#333;letter-spacing:1px;margin-left:auto;}
+
+/* PROMEDIO GRANDE */
+.c-prom-row{
+  display:flex;align-items:flex-end;gap:10px;margin-bottom:8px;
+}
+.c-prom-num{
+  font-family:'Bebas Neue';font-size:3.2rem;line-height:0.85;letter-spacing:-1px;
+}
+.c-prom-meta{display:flex;flex-direction:column;gap:2px;}
+.c-prom-lbl{font-size:0.42rem;color:#333;letter-spacing:2px;}
+.c-prom-mejor{font-size:0.55rem;font-weight:700;}
+.c-prom-cat{font-size:0.45rem;letter-spacing:1px;}
+
+/* STATS HORIZONTALES */
+.c-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:5px;margin-bottom:8px;
+}
+.c-stat{
+  background:rgba(255,255,255,0.02);border:1px solid #1e1e1e;
+  border-radius:7px;padding:5px 4px;text-align:center;
+}
+.c-stat-val{font-family:'Bebas Neue';font-size:1.1rem;line-height:1;color:#fff;}
+.c-stat-lbl{font-size:0.35rem;color:#2a2a2a;letter-spacing:1px;margin-top:2px;}
+
+/* RANKINGS GEOGRÁFICOS */
+.c-rankings{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:5px;margin-bottom:8px;
+}
+.c-rank{
+  border-radius:7px;padding:5px 4px;text-align:center;
+  border:1px solid;
+}
+.c-rank-val{font-family:'Bebas Neue';font-size:1rem;line-height:1;}
+.c-rank-lbl{font-size:0.32rem;letter-spacing:1px;margin-top:2px;opacity:0.6;}
+
+/* TROFEOS */
+.c-trofeos{
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+}
+.trofeo-item{
+  display:flex;align-items:center;gap:3px;
+  background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);
+  border-radius:6px;padding:3px 7px;
+}
+.trofeo-ico{font-size:0.75rem;}
+.trofeo-txt{font-size:0.42rem;color:#888;letter-spacing:1px;font-weight:700;}
+.trofeo-num{font-family:'Bebas Neue';font-size:0.9rem;color:var(--oro);}
+
+/* FRANJA INFERIOR — MARCA */
+.carnet-footer{
+  background:rgba(0,0,0,0.7);
+  border-top:1px solid #1a1a1a;
+  padding:7px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:2;
+}
+.c-id{font-size:0.42rem;color:#1e1e1e;font-family:monospace;letter-spacing:2px;}
+.c-marca{font-size:0.42rem;letter-spacing:3px;font-weight:700;}
+.c-foto-btn{font-size:0.45rem;color:#333;letter-spacing:1px;cursor:pointer;
+  border:1px solid #1e1e1e;border-radius:6px;padding:3px 8px;}
+.c-foto-btn:active{border-color:var(--oro);color:var(--oro);}
+
+/* ════════════════════════════════════
+   SECCIÓN ANÁLISIS EXPERTO
+════════════════════════════════════ */
+.analisis{
+  background:var(--g1);border:1px solid #1e1e1e;
+  border-radius:16px;padding:16px 18px;margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.analisis::before{
+  content:'🎱';position:absolute;right:12px;bottom:8px;
+  font-size:3rem;opacity:0.04;
+}
+.analisis-titulo{
+  font-family:'Bebas Neue';font-size:0.85rem;color:var(--oro);
+  letter-spacing:4px;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.analisis-titulo::after{content:'';flex:1;height:1px;background:#1e1e1e;}
+.analisis-texto{
+  font-size:0.82rem;font-weight:400;color:#888;
+  line-height:1.7;letter-spacing:0.3px;
+}
+.analisis-texto strong{color:#ccc;font-weight:700;}
+.analisis-highlight{
+  display:inline-block;
+  background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);
+  border-radius:6px;padding:2px 8px;margin:2px 0;
+  font-size:0.78rem;color:var(--oro);font-weight:700;letter-spacing:0.5px;
+}
+
+/* ════════════════════════════════════
+   INSIGNIAS
+════════════════════════════════════ */
+.sec-tit{
+  font-family:'Bebas Neue';font-size:0.8rem;color:#222;
+  letter-spacing:4px;margin:16px 0 10px;
+  display:flex;align-items:center;gap:8px;
+}
+.sec-tit::after{content:'';flex:1;height:1px;background:#111;}
+
+.ins-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.ins{background:var(--g2);border:1px solid #1a1a1a;
+  border-radius:12px;padding:10px 4px;text-align:center;}
+.ins.ok{border-color:rgba(212,175,55,0.3);background:rgba(212,175,55,0.05);}
+.ins.ok.v{border-color:rgba(46,255,112,0.25);background:rgba(46,255,112,0.04);}
+.ins.off{opacity:0.15;filter:grayscale(1);}
+.ins-ico{font-size:1.5rem;line-height:1;margin-bottom:3px;}
+.ins-nom{font-size:0.38rem;letter-spacing:1px;color:#222;}
+.ins.ok .ins-nom{color:var(--oro);}
+.ins.ok.v .ins-nom{color:var(--neon);}
+
+/* ════════════════════════════════════
+   HISTORIAL
+════════════════════════════════════ */
+.hist-item{
+  background:var(--g2);border:1px solid #1a1a1a;
+  border-radius:12px;padding:11px 14px;margin-bottom:7px;
+  display:flex;align-items:center;gap:10px;
+}
+.hist-ico{font-size:1.2rem;min-width:26px;text-align:center;}
+.hist-info{flex:1;}
+.hist-nom{font-size:0.82rem;font-weight:700;color:#ccc;}
+.hist-det{font-size:0.55rem;color:#2a2a2a;letter-spacing:1px;margin-top:2px;}
+.hist-prom{font-family:'Bebas Neue';font-size:1.1rem;}
+
+/* BOTONES */
+.btn-share{width:100%;padding:15px;margin-bottom:10px;
+  background:linear-gradient(135deg,#1a60c0,#0d3d80);
+  color:#fff;border:none;border-radius:14px;
+  font-family:'Bebas Neue';font-size:1rem;letter-spacing:3px;
+  cursor:pointer;transition:0.15s;}
+.btn-share:active{transform:scale(0.97);}
+.btn-link{width:100%;padding:12px;margin-bottom:20px;
+  background:var(--g2);border:1px solid #1e1e1e;color:#333;
+  border-radius:12px;font-family:'Barlow Condensed';font-size:0.75rem;
+  font-weight:700;letter-spacing:2px;cursor:pointer;}
+.btn-link:active{border-color:var(--oro);color:var(--oro);}
+
+/* ESTADO VACÍO */
+.estado-vacio{display:flex;flex-direction:column;align-items:center;
+  padding:40px 20px 20px;text-align:center;}
+@keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.bola-3d{width:110px;height:110px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,
+    #fff9c4 0%,#f5d020 15%,#d4af37 45%,#8a6a00 75%,#2a1a00 100%);
+  box-shadow:inset -12px -12px 24px rgba(0,0,0,0.7),
+    inset 6px 6px 14px rgba(255,220,80,0.3),
+    0 12px 40px rgba(0,0,0,0.9),0 0 50px rgba(212,175,55,0.12);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:22px;animation:flotar 4s ease-in-out infinite;}
+.bola-num{font-family:'Bebas Neue';font-size:3.2rem;color:#000;opacity:0.7;line-height:1;}
+
+/* DIRECTORIO */
+.dir-item{display:flex;align-items:center;gap:12px;
+  padding:11px 14px;border-radius:12px;margin-bottom:7px;
+  cursor:pointer;border:1px solid transparent;}
+.dir-item:active{opacity:0.8;}
+.dir-pos{font-family:'Bebas Neue';font-size:1.2rem;color:#1e1e1e;
+  width:26px;text-align:center;flex-shrink:0;}
+.dir-info{flex:1;}
+.dir-nom{font-size:0.85rem;font-weight:700;color:#ccc;}
+.dir-cat{font-size:0.55rem;color:#333;letter-spacing:1px;margin-top:2px;}
+.dir-prom{font-family:'Bebas Neue';font-size:1.3rem;}
+
+.vacio{text-align:center;padding:20px;color:#1e1e1e;font-size:0.6rem;letter-spacing:2px;}
+
+/* TORNEO VIVO */
+.torneo-vivo{display:flex;align-items:center;gap:8px;
+  border-radius:8px;padding:6px 10px;margin-bottom:10px;}
+.t-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+@keyframes pulseD{0%,100%{opacity:1}50%{opacity:0.2}}
+.t-dot.vivo{animation:pulseD 1.5s infinite;}
+</style>
 </head>
 <body>
 
-<div class="header">
-    <div>
-        <div class="header-titulo">PERFIL</div>
-        <div class="header-sub">CARNET DEL JUGADOR</div>
+<div class="hdr">
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="hdr-logo"></div>
+      <div>
+        <div style="font-family:'Bebas Neue';font-size:1.1rem;color:var(--oro);letter-spacing:4px;">PERFIL</div>
+        <div style="font-size:0.48rem;color:#222;letter-spacing:3px;">CARNET DEL JUGADOR</div>
+      </div>
     </div>
-    <a href="index.html" class="btn-hdr">← MENÚ</a>
+  </div>
+  <a href="index.html" class="btn-hdr">← MENÚ</a>
 </div>
 
 <div class="wrap">
-    <div class="buscador">
-        <span style="color:#444;font-size:1.2rem;">🔍</span>
-        <input type="text" id="busq" placeholder="Busca un maestro por nombre..."
-            oninput="buscarJugador(this.value)">
-    </div>
-    <div class="lista-sug" id="lista-sug"></div>
-    <div id="zona-perfil">
-        <div class="empty-perfil">
-            <div class="ico">🎱</div>
-            <p>BUSCA UN MAESTRO<br>PARA VER SU PERFIL<br>Y ESTADÍSTICAS</p>
-        </div>
-    </div>
+  <div class="buscador">
+    <span style="color:#2a2a2a;font-size:1rem;">🔍</span>
+    <input type="text" id="busq" placeholder="Busca un jugador…"
+      oninput="buscarJugador(this.value)" autocomplete="off">
+  </div>
+  <div class="lista-sug" id="lista-sug"></div>
+  <div id="zona"></div>
 </div>
-
 
 <script src="core.js"></script>
 <script>
-    var jugActivo = null;
+var jugActivo = null;
 
-    window.onload = function () {
-        MasterVIP.applyDesign();
+window.onload = async function(){
+  try{ await MasterVIP.init(); }catch(e){ console.warn(e); }
+  SESSION.verificarAlCargar('jugador');
+  MasterVIP.applyDesign();
+  var lw = document.getElementById('hdr-logo');
+  if(lw) lw.innerHTML = MasterVIP.getLogoHTML(28);
 
-        // 1. ¿Viene por URL con jugador=?
-        var params = window.location.search;
-        var matchJug = params.match(/jugador=([^&]+)/);
-        if (matchJug) {
-            var jUrl = MasterVIP.buscarJugador(decodeURIComponent(matchJug[1]));
-            if (jUrl) { mostrarPerfil(jUrl); return; }
-        }
+  var mJ = window.location.search.match(/jugador=([^&]+)/);
+  if(mJ){ var j=MasterVIP.buscarJugador(decodeURIComponent(mJ[1])); if(j){mostrarPerfil(j);return;} }
+  var mp = MasterVIP._get('mi_perfil',null);
+  if(mp&&mp.nombre){ var jm=MasterVIP.buscarJugador(mp.nombre); if(jm){mostrarPerfil(jm);return;} }
+  mostrarDirectorio();
+};
 
-        // 2. ¿Hay "mi perfil" guardado?
-        var miPerfil = MasterVIP._get('mi_perfil', null);
-        if (miPerfil && miPerfil.nombre) {
-            var jMio = MasterVIP.buscarJugador(miPerfil.nombre);
-            if (jMio) { mostrarPerfil(jMio); return; }
-        }
+/* ══ DIRECTORIO ══ */
+function mostrarDirectorio(){
+  var zona=document.getElementById('zona');
+  var todos=MasterVIP.getJugadores().slice().sort(function(a,b){return (b.promedio||0)-(a.promedio||0);});
+  if(!todos.length){
+    zona.innerHTML='<div class="estado-vacio">'+
+      '<div class="bola-3d"><span class="bola-num">3</span></div>'+
+      '<div style="font-family:Bebas Neue;font-size:1.5rem;color:var(--oro);letter-spacing:6px;margin-bottom:4px;">DeCarambola</div>'+
+      '<div style="font-size:0.65rem;color:#2a2a2a;letter-spacing:3px;margin-bottom:20px;">BILLAR TRES BANDAS</div>'+
+      '<div style="font-size:0.8rem;color:#333;line-height:2.2;">INSCRIBE JUGADORES<br>PARA VER SUS CARNETS</div>'+
+    '</div>';
+    return;
+  }
+  var medals=['🥇','🥈','🥉'];
+  var topBg=['rgba(212,175,55,0.07)','rgba(180,180,180,0.04)','rgba(180,100,40,0.04)'];
+  var topBd=['rgba(212,175,55,0.25)','rgba(180,180,180,0.1)','rgba(180,100,40,0.1)'];
+  var html='<div style="font-family:Bebas Neue;font-size:0.75rem;color:#1e1e1e;letter-spacing:4px;text-align:center;padding:12px 0 10px;">'+todos.length+' JUGADORES REGISTRADOS</div>';
+  todos.forEach(function(j,i){
+    var cat=MasterVIP.getCategoria(j.promedio||0);
+    var esT=i<3;
+    html+='<div class="dir-item" data-nombre="'+encodeURIComponent(j.nombre)+'" onclick="selBtn(this)" '+
+      'style="background:'+(esT?topBg[i]:'rgba(255,255,255,0.01)')+';border-color:'+(esT?topBd[i]:'#111')+';">'+
+      '<div class="dir-pos">'+(esT?medals[i]:'<span style="font-family:Bebas Neue;font-size:1rem;color:#1e1e1e;">'+(i+1)+'</span>')+'</div>'+
+      MasterVIP.getAvatarHTML(j.nombre,38)+
+      '<div class="dir-info"><div class="dir-nom">'+j.nombre+'</div>'+
+      '<div class="dir-cat">'+cat.emoji+' '+cat.nombre+(j.club?' · '+j.club:'')+'</div></div>'+
+      '<div class="dir-prom" style="color:'+(i===0?'var(--oro)':i<3?'#888':'#333')+';">'+(j.promedio||0).toFixed(3)+'</div>'+
+    '</div>';
+  });
+  zona.innerHTML=html;
+}
 
-        // 3. Estado vacío — mostrar bola 3D invitando a buscar
-        mostrarVacio();
-    };
+/* ══ BUSCAR ══ */
+function buscarJugador(txt){
+  var lista=document.getElementById('lista-sug');
+  if(!txt||txt.length<2){lista.style.display='none';return;}
+  var up=txt.toUpperCase();
+  var fil=MasterVIP.getJugadores().filter(function(j){return j.nombre.toUpperCase().indexOf(up)>=0;}).slice(0,6);
+  if(!fil.length){lista.style.display='none';return;}
+  lista.style.display='block';
+  lista.innerHTML=fil.map(function(j){
+    var cat=MasterVIP.getCategoria(j.promedio||0);
+    return '<div class="sug-fila" data-nombre="'+encodeURIComponent(j.nombre)+'" onclick="selBtn(this)">'+
+      '<div><div class="sug-n">'+j.nombre+'</div><div class="sug-c">'+cat.emoji+' '+cat.nombre+' · '+(j.club||'—')+'</div></div>'+
+      '<div class="sug-p">'+(j.promedio||0).toFixed(3)+'</div></div>';
+  }).join('');
+}
+function selBtn(el){
+  var n=decodeURIComponent(el.getAttribute('data-nombre')||'');
+  var j=MasterVIP.buscarJugador(n);
+  if(j) mostrarPerfil(j);
+  document.getElementById('busq').value='';
+  document.getElementById('lista-sug').style.display='none';
+  window.scrollTo(0,0);
+}
 
-    function mostrarVacio() {
-        var zona = document.getElementById('zona-perfil');
-        var todos = MasterVIP.getJugadores();
-        todos.sort(function(a,b){ return (b.promedio||0)-(a.promedio||0); });
-        var sede = MasterVIP.getSede();
-        var nJugs = todos.length;
+/* ══════════════════════════════════════════
+   MOSTRAR PERFIL — CARNET FIFA COMPLETO
+══════════════════════════════════════════ */
+function mostrarPerfil(j){
+  jugActivo=j;
+  var zona=document.getElementById('zona');
 
-        // ── SIN JUGADORES: pantalla de bienvenida con diseño completo
-        if (nJugs === 0) {
-            zona.innerHTML =
-            '<style>@keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}@keyframes pulso{0%,100%{opacity:.4}50%{opacity:1}}</style>'+
-            '<div style="display:flex;flex-direction:column;align-items:center;padding:30px 20px 20px;">'+
+  var cat=MasterVIP.getCategoria(j.promedio||0);
+  var prom=j.promedio||0;
+  var CC=cat.color||'#d4af37';
+  var ini=(j.nombre||'?').trim()[0].toUpperCase();
 
-            // BOLA 3D
-            '<div style="width:130px;height:130px;border-radius:50%;'+
-                'background:radial-gradient(circle at 32% 32%,#fff9c4 0%,#f5d020 20%,#d4af37 50%,#8a6a00 80%,#2a1a00 100%);'+
-                'box-shadow:inset -12px -12px 24px rgba(0,0,0,.6),inset 5px 5px 12px rgba(255,220,80,.3),8px 8px 30px rgba(0,0,0,.9),0 0 40px rgba(212,175,55,.15);'+
-                'display:flex;align-items:center;justify-content:center;margin-bottom:20px;'+
-                'animation:flotar 4s ease-in-out infinite;">'+
-                '<span style="font-size:3rem;color:#000;font-family:Courier New;font-weight:900;">3</span>'+
+  /* ── Historial ── */
+  var hist=MasterVIP._get('ranking_historico_club',[]);
+  var mias=hist.filter(function(h){return (h.nombre||'').toUpperCase()===j.nombre.toUpperCase();});
+  var torneos=MasterVIP.getTorneos();
+  var misTorn=torneos.filter(function(t){
+    return t.estado==='FINALIZADO'&&(t.inscritos||[]).some(function(i){return (i.nombre||'').toUpperCase()===j.nombre.toUpperCase();});
+  });
+
+  /* ── Stats ── */
+  var nPart=mias.length;
+  var vics=mias.filter(function(m){return m.resultado==='GANÓ';}).length;
+  var pctV=nPart>0?Math.round((vics/nPart)*100):0;
+  var serieM=Math.max.apply(null,[0].concat(mias.map(function(m){return parseInt(m.serieMayor)||0;})));
+  var promMej=Math.max.apply(null,[0].concat(mias.map(function(m){return parseFloat(m.promedio)||0;})));
+
+  /* ── Caseros (retos ganados) ── */
+  var retos=MasterVIP._get('RETOS_LISTA',[]);
+  var caserosG=retos.filter(function(r){
+    return (r.ganador||'').toUpperCase()===j.nombre.toUpperCase()&&r.tipo==='caserito';
+  }).length;
+  var caserosT=retos.filter(function(r){
+    return ((r.j1||'').toUpperCase()===j.nombre.toUpperCase()||(r.j2||'').toUpperCase()===j.nombre.toUpperCase())&&r.tipo==='caserito';
+  }).length;
+
+  /* ── Fuera de categoría (victorias vs jugadores de cat superior) ── */
+  var fueraCategoria=0;
+  mias.forEach(function(m){
+    if(m.resultado==='GANÓ'&&m.promedio){
+      var promRival=parseFloat(m.promedioRival)||0;
+      if(promRival>prom) fueraCategoria++;
+    }
+  });
+
+  /* ── Rankings ── */
+  var todos=MasterVIP.getJugadores().slice().sort(function(a,b){return (b.promedio||0)-(a.promedio||0);});
+  var posClub=0;
+  todos.forEach(function(x,i){if((x.nombre||'').toUpperCase()===j.nombre.toUpperCase())posClub=i+1;});
+
+  /* Ranking por ciudad, departamento, nacional — filtrando del total */
+  var ciudad=j.ciudad||'';var depto=j.departamento||'';
+  var mismaC=todos.filter(function(x){return (x.ciudad||'').toUpperCase()===(ciudad||'').toUpperCase()&&ciudad;});
+  var mismoD=todos.filter(function(x){return (x.departamento||'').toUpperCase()===(depto||'').toUpperCase()&&depto;});
+  var posC=0,posD=0;
+  mismaC.forEach(function(x,i){if((x.nombre||'').toUpperCase()===j.nombre.toUpperCase())posC=i+1;});
+  mismoD.forEach(function(x,i){if((x.nombre||'').toUpperCase()===j.nombre.toUpperCase())posD=i+1;});
+  var posN=posClub; /* Por ahora todos son nacionales */
+
+  /* ── Trofeos ── */
+  var trofeosTitulos=misTorn.filter(function(t){return (t.campeon||'').toUpperCase()===j.nombre.toUpperCase();}).length;
+  var trofeosSubcamp=misTorn.filter(function(t){return (t.subcampeon||'').toUpperCase()===j.nombre.toUpperCase();}).length;
+
+  /* ── Torneo activo ── */
+  var tornActivo=MasterVIP.getTorneoActivo();
+  var tornActivoHtml='';
+  if(tornActivo&&tornActivo.estado==='EN_CURSO'){
+    var enJuego=false,eliminado=false;
+    var rAct=(tornActivo.rondas||[]).slice(-1)[0];
+    if(rAct)(rAct.partidas||[]).forEach(function(p){
+      if((p.j1||'').toUpperCase()===j.nombre.toUpperCase()||(p.j2||'').toUpperCase()===j.nombre.toUpperCase())
+        if(p.estado==='EN_JUEGO')enJuego=true;
+    });
+    (tornActivo.inscritos||[]).forEach(function(i){if((i.nombre||'').toUpperCase()===j.nombre.toUpperCase()&&i.eliminado)eliminado=true;});
+    var tC=enJuego?'#2eff70':eliminado?'#e74c3c':'#d4af37';
+    var tBg=enJuego?'rgba(46,255,112,0.07)':eliminado?'rgba(231,76,60,0.06)':'rgba(212,175,55,0.06)';
+    var tLbl=enJuego?'● EN JUEGO':eliminado?'✗ ELIMINADO':'⏳ EN TORNEO';
+    tornActivoHtml='<div class="torneo-vivo" style="background:'+tBg+';border:1px solid '+tC+'22;">'+
+      '<div class="t-dot vivo" style="background:'+tC+';"></div>'+
+      '<div style="font-size:0.65rem;font-weight:700;color:'+tC+';letter-spacing:1px;">'+tLbl+'</div>'+
+      '<div style="flex:1;font-size:0.55rem;color:#333;text-align:right;">'+tornActivo.nombre+'</div>'+
+    '</div>';
+  }
+
+  /* ── Foto ── */
+  var fotoSrc=MasterVIP.getFoto(j.nombre);
+  var fotoInner=fotoSrc
+    ?'<img src="'+fotoSrc+'" style="width:100%;height:100%;object-fit:cover;">'
+    :'<div class="foto-ini" style="background:linear-gradient(135deg,#1a1200,#0a0a00);color:'+CC+';">'+ini+'</div>';
+
+  /* ── Club logo ── */
+  var logoUrl=window.WL?window.WL.getLogoUrl():null;
+  var clubNom=window.WL?window.WL.getNombreClub():(j.club||'SIN CLUB');
+  var clubLogoHtml=logoUrl?'<img class="c-club-logo" src="'+logoUrl+'">':'';
+
+  /* ── Nivel ── */
+  var nivel=calcNivel(prom);
+
+  /* ── Análisis experto automático ── */
+  var analisis=generarAnalisis(j,{prom,promMej,nPart,vics,pctV,serieM,cat,posClub,todos,fueraCategoria,caserosG,caserosT,misTorn,trofeosTitulos});
+
+  /* ── Insignias ── */
+  var ins=calcInsignias(j,mias,misTorn,vics,serieM,fueraCategoria,caserosG);
+
+  /* ══ HTML DEL CARNET FIFA ══ */
+  zona.innerHTML=
+
+  /* CARNET HORIZONTAL */
+  '<div class="carnet-wrap">'+
+    '<div class="carnet-bg">'+
+      '<div class="carnet-num-bg">3</div>'+
+      /* Franja diagonal color categoría */
+      '<div style="position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;">'+
+        '<div style="position:absolute;top:-40px;left:-60px;width:120px;height:300px;'+
+          'background:'+CC+';opacity:0.05;transform:rotate(15deg);"></div>'+
+      '</div>'+
+
+      '<div class="carnet-inner">'+
+
+        /* ── IZQUIERDA ── */
+        '<div class="carnet-left">'+
+          tornActivoHtml+
+          '<div class="foto-wrap" onclick="abrirFoto()" '+
+            'style="border:2.5px solid '+CC+';box-shadow:0 0 16px '+CC+'33;">'+
+            fotoInner+
+            '<div class="foto-cam">📷</div>'+
+          '</div>'+
+          '<input type="file" id="inp-foto" accept="image/*" onchange="guardarFoto(event)">'+
+
+          '<div class="cat-box" style="border-color:'+CC+'44;background:'+CC+'08;">'+
+            '<div class="cat-box-ico">'+cat.emoji+'</div>'+
+            '<div class="cat-box-nom" style="color:'+CC+';">'+cat.nombre+'</div>'+
+          '</div>'+
+
+          '<div class="rank-club-box">'+
+            '<div class="rank-club-lbl">RANKING CLUB</div>'+
+            '<div class="rank-club-num" style="color:'+CC+';">'+(posClub>0?'#'+posClub:'—')+'</div>'+
+          '</div>'+
+        '</div>'+
+
+        /* ── DERECHA ── */
+        '<div class="carnet-right">'+
+
+          /* NOMBRE + CLUB */
+          '<div class="c-nombre">'+j.nombre+'</div>'+
+          '<div class="c-club-row">'+
+            clubLogoHtml+
+            '<span class="c-club-nom" style="color:'+CC+';">'+clubNom+'</span>'+
+            '<span class="c-ciudad">📍 '+(j.ciudad||'—')+'</span>'+
+          '</div>'+
+
+          /* PROMEDIO GRANDE */
+          '<div class="c-prom-row">'+
+            '<div class="c-prom-num" style="color:'+CC+';">'+prom.toFixed(3)+'</div>'+
+            '<div class="c-prom-meta">'+
+              '<div class="c-prom-lbl">PROMEDIO</div>'+
+              '<div class="c-prom-mejor" style="color:'+CC+'55;">MÁX '+promMej.toFixed(3)+'</div>'+
+              '<div class="c-prom-cat" style="color:#333;">'+nivel.siguiente+' → '+nivel.hasta.toFixed(3)+'</div>'+
             '</div>'+
+          '</div>'+
 
-            // MARCA
-            '<div style="font-size:1.4rem;color:var(--oro);letter-spacing:6px;margin-bottom:4px;">DeCarambola</div>'+
-            '<div style="font-size:0.42rem;color:#333;letter-spacing:4px;margin-bottom:28px;">'+sede.nombre+'</div>'+
+          /* BARRA NIVEL */
+          '<div style="height:3px;background:#111;border-radius:3px;margin-bottom:8px;overflow:hidden;">'+
+            '<div style="height:100%;width:'+nivel.pct+'%;background:'+CC+';border-radius:3px;transition:width 1s;"></div>'+
+          '</div>'+
 
-            // TARJETA INFO
-            '<div style="width:100%;background:#0f0f0f;border:1px solid #1a1a1a;border-radius:20px;padding:20px;margin-bottom:14px;">'+
-                '<div style="font-size:0.45rem;color:#333;letter-spacing:3px;margin-bottom:14px;border-left:3px solid var(--oro);padding-left:10px;">QUE PUEDES HACER</div>'+
-                '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'+
-                    '<div style="font-size:1.4rem;width:36px;text-align:center;">&#127942;</div>'+
-                    '<div><div style="font-size:0.65rem;color:#ccc;">Torneos de billar</div><div style="font-size:0.42rem;color:#444;margin-top:2px;">Crea y gestiona torneos con llaves</div></div>'+
-                '</div>'+
-                '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'+
-                    '<div style="font-size:1.4rem;width:36px;text-align:center;">&#9889;</div>'+
-                    '<div><div style="font-size:0.65rem;color:#ccc;">Entrenamiento personal</div><div style="font-size:0.42rem;color:#444;margin-top:2px;">Lleva tu promedio y progreso</div></div>'+
-                '</div>'+
-                '<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'+
-                    '<div style="font-size:1.4rem;width:36px;text-align:center;">&#128200;</div>'+
-                    '<div><div style="font-size:0.65rem;color:#ccc;">Ranking del club</div><div style="font-size:0.42rem;color:#444;margin-top:2px;">Clasifica a todos tus jugadores</div></div>'+
-                '</div>'+
-                '<div style="display:flex;align-items:center;gap:12px;">'+
-                    '<div style="font-size:1.4rem;width:36px;text-align:center;">&#127941;</div>'+
-                    '<div><div style="font-size:0.65rem;color:#ccc;">Insignias y logros</div><div style="font-size:0.42rem;color:#444;margin-top:2px;">Perfil completo por jugador</div></div>'+
-                '</div>'+
-            '</div>'+
+          /* STATS 4 columnas */
+          '<div class="c-stats">'+
+            '<div class="c-stat"><div class="c-stat-val">'+nPart+'</div><div class="c-stat-lbl">PARTIDAS</div></div>'+
+            '<div class="c-stat"><div class="c-stat-val" style="color:var(--neon);">'+pctV+'%</div><div class="c-stat-lbl">VICTORIAS</div></div>'+
+            '<div class="c-stat"><div class="c-stat-val">'+serieM+'</div><div class="c-stat-lbl">SERIE MÁX.</div></div>'+
+            '<div class="c-stat"><div class="c-stat-val" style="color:var(--oro);">'+misTorn.length+'</div><div class="c-stat-lbl">TORNEOS</div></div>'+
+          '</div>'+
 
-            // PASO A PASO
-            '<div style="width:100%;background:#0a0a0a;border:1px solid #111;border-radius:16px;padding:16px 18px;">'+
-                '<div style="font-size:0.45rem;color:#333;letter-spacing:3px;margin-bottom:12px;border-left:3px solid #2eff70;padding-left:10px;">COMO EMPEZAR</div>'+
-                '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'+
-                    '<div style="background:var(--oro);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:900;flex-shrink:0;">1</div>'+
-                    '<div style="font-size:0.55rem;color:#666;">Ve al <b style="color:#aaa;">Menu Principal</b> e inscribe jugadores</div>'+
-                '</div>'+
-                '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'+
-                    '<div style="background:#333;color:#888;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:900;flex-shrink:0;">2</div>'+
-                    '<div style="font-size:0.55rem;color:#444;">Crea un torneo o inicia entrenamiento</div>'+
-                '</div>'+
-                '<div style="display:flex;align-items:center;gap:10px;">'+
-                    '<div style="background:#333;color:#888;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:900;flex-shrink:0;">3</div>'+
-                    '<div style="font-size:0.55rem;color:#444;">Los perfiles se llenan automaticamente</div>'+
-                '</div>'+
-            '</div>'+
+          /* RANKINGS GEOGRÁFICOS */
+          '<div class="c-rankings">'+
+            mkRank('#'+posClub,'CLUB',CC)+
+            mkRank(posC>0?'#'+posC:'—','CIUDAD','#3498db')+
+            mkRank(posD>0?'#'+posD:'—','DEPTO','#9b59b6')+
+            mkRank('#'+posN,'NACIONAL','#2ecc71')+
+          '</div>'+
 
-            '</div>';
-            return;
-        }
+          /* TROFEOS + CASEROS + FUERA CAT */
+          '<div class="c-trofeos">'+
+            (trofeosTitulos>0?'<div class="trofeo-item"><span class="trofeo-ico">🏆</span><span class="trofeo-num">'+trofeosTitulos+'</span><span class="trofeo-txt">TÍTULOS</span></div>':'')+
+            (trofeosSubcamp>0?'<div class="trofeo-item"><span class="trofeo-ico">🥈</span><span class="trofeo-num">'+trofeosSubcamp+'</span><span class="trofeo-txt">SUBCAMPEÓN</span></div>':'')+
+            (fueraCategoria>0?'<div class="trofeo-item" style="border-color:rgba(231,76,60,0.3);">'+
+              '<span class="trofeo-ico">⚔️</span><span class="trofeo-num" style="color:#e74c3c;">'+fueraCategoria+'</span>'+
+              '<span class="trofeo-txt">FUERA CAT.</span></div>':'')+
+            (caserosG>0?'<div class="trofeo-item" style="border-color:rgba(46,255,112,0.2);">'+
+              '<span class="trofeo-ico">🎯</span><span class="trofeo-num" style="color:var(--neon);">'+caserosG+'/'+caserosT+'</span>'+
+              '<span class="trofeo-txt">CASEROS</span></div>':'')+
+            (trofeosTitulos===0&&trofeosSubcamp===0&&fueraCategoria===0&&caserosG===0?
+              '<span style="font-size:0.55rem;color:#1e1e1e;letter-spacing:1px;">SIN TROFEOS AÚN — A JUGAR 🎱</span>':'')+
+          '</div>'+
 
-        // ── CON JUGADORES: directorio del club
-        var topHtml = '';
-        var medals = ['&#127942;','&#129352;','&#129353;'];
-        var bords = ['rgba(212,175,55,0.5)','rgba(192,192,192,0.3)','rgba(205,127,50,0.3)'];
-        var bgs   = ['rgba(212,175,55,0.07)','rgba(192,192,192,0.04)','rgba(205,127,50,0.04)'];
-        var top = todos.slice(0,3);
-        for (var i = 0; i < top.length; i++) {
-            var jt = top[i]; var cat = MasterVIP.getCategoria(jt.promedio||0);
-            topHtml += '<div data-nombre="'+encodeURIComponent(jt.nombre)+'" onclick="selBtn(this)" style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:'+bgs[i]+';border:1px solid '+bords[i]+';border-radius:16px;margin-bottom:10px;cursor:pointer;">'+
-                '<div style="font-size:1.5rem;width:30px;text-align:center;">'+medals[i]+'</div>'+
-                MasterVIP.getAvatarHTML(jt.nombre,46)+
-                '<div style="flex:1;"><div style="font-size:0.8rem;color:#ddd;margin-bottom:3px;">'+jt.nombre+'</div>'+
-                '<div style="font-size:0.42rem;color:#555;">'+cat.emoji+' '+cat.nombre+(jt.club?' &middot; '+jt.club:'')+'</div></div>'+
-                '<div style="text-align:right;"><div style="font-family:Courier New;font-size:1.1rem;color:#fff;">'+(jt.promedio||0).toFixed(3)+'</div>'+
-                '<div style="font-size:0.38rem;color:#333;margin-top:2px;">'+(jt.ciudad||'')+'</div></div></div>';
-        }
-        var restHtml = '';
-        var resto = todos.slice(3,12);
-        for (var j2=0; j2<resto.length; j2++) {
-            var jr=resto[j2]; var catr=MasterVIP.getCategoria(jr.promedio||0);
-            restHtml += '<div data-nombre="'+encodeURIComponent(jr.nombre)+'" onclick="selBtn(this)" style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;margin-bottom:7px;cursor:pointer;">'+
-                '<div style="font-size:0.55rem;color:#333;width:20px;text-align:right;">'+(j2+4)+'</div>'+
-                MasterVIP.getAvatarHTML(jr.nombre,34)+
-                '<div style="flex:1;font-size:0.65rem;color:#bbb;">'+jr.nombre+'</div>'+
-                '<div style="font-size:0.45rem;color:#444;margin-right:6px;">'+catr.emoji+'</div>'+
-                '<div style="font-family:Courier New;font-size:0.75rem;color:#888;">'+(jr.promedio||0).toFixed(3)+'</div></div>';
-        }
-        zona.innerHTML =
-            '<div style="text-align:center;padding:20px 0 14px;">'+
-                '<div style="font-size:0.42rem;letter-spacing:4px;color:#333;margin-bottom:6px;">DIRECTORIO DEL CLUB</div>'+
-                '<div style="font-size:0.75rem;color:#444;letter-spacing:2px;">'+nJugs+' JUGADORES REGISTRADOS</div>'+
-            '</div>'+
-            '<div style="font-size:0.45rem;color:#333;letter-spacing:3px;margin-bottom:10px;border-left:3px solid var(--oro);padding-left:10px;">&#127942; TOP RANKING</div>'+topHtml+
-            (restHtml ? '<div style="font-size:0.45rem;color:#333;letter-spacing:3px;margin:16px 0 10px;border-left:3px solid #222;padding-left:10px;">TODOS LOS JUGADORES</div>'+restHtml : '');
-    }
+        '</div>'+ /* fin carnet-right */
+      '</div>'+ /* fin carnet-inner */
 
+      /* FOOTER */
+      '<div class="carnet-footer">'+
+        '<span class="c-id">DC-'+j.nombre.replace(/\s/g,'').toUpperCase().substr(0,8)+'</span>'+
+        '<span style="font-size:0.38rem;color:#111;letter-spacing:1px;">▦▦▦</span>'+
+        '<span class="c-marca" style="color:'+CC+';">'+clubNom+'</span>'+
+        '<span class="c-foto-btn" onclick="abrirFoto()">📷 FOTO</span>'+
+      '</div>'+
 
-    function selBtn(el) {
-        var nombre = decodeURIComponent(el.getAttribute('data-nombre') || '');
-        var j = MasterVIP.buscarJugador(nombre);
-        if (j) mostrarPerfil(j);
-    }
+    '</div>'+ /* fin carnet-bg */
+  '</div>'+ /* fin carnet-wrap */
 
-    function buscarJugador(txt) {
-        var lista = document.getElementById('lista-sug');
-        if (!txt || txt.length < 2) { lista.style.display = 'none'; return; }
-        var todos = MasterVIP.getJugadores();
-        var fil = [];
-        var up = txt.toUpperCase();
-        for (var i = 0; i < todos.length; i++) {
-            if (todos[i].nombre.toUpperCase().indexOf(up) >= 0) {
-                fil.push(todos[i]);
-                if (fil.length >= 6) break;
-            }
-        }
-        if (!fil.length) { lista.style.display = 'none'; return; }
-        lista.style.display = 'block';
-        var html = '';
-        for (var k = 0; k < fil.length; k++) {
-            var jf = fil[k];
-            var cat = MasterVIP.getCategoria(jf.promedio||0);
-            html += '<div class="sug-fila" data-nombre="' + encodeURIComponent(jf.nombre) + '" onclick="selBtn(this)">' +
-                '<div>' + jf.nombre + '<small>' + cat.emoji + ' ' + cat.nombre + ' · ' + (jf.club||'—') + '</small></div>' +
-                '<small>' + (jf.promedio||0).toFixed(3) + '</small>' +
-            '</div>';
-        }
-        lista.innerHTML = html;
-    }
+  /* ANÁLISIS EXPERTO */
+  '<div class="analisis">'+
+    '<div class="analisis-titulo">🤖 ANÁLISIS DEL JUGADOR</div>'+
+    '<div class="analisis-texto">'+analisis+'</div>'+
+  '</div>'+
 
-    function sel(nombre) {
-        var j = MasterVIP.buscarJugador(nombre);
-        if (!j) return;
-        document.getElementById('busq').value = '';
-        document.getElementById('lista-sug').style.display = 'none';
-        mostrarPerfil(j);
-        setTimeout(function(){ if (jugActivo) cargarFotoGuardada(jugActivo.nombre); }, 50);
-    }
+  /* INSIGNIAS */
+  '<div class="sec-tit">INSIGNIAS</div>'+
+  '<div class="ins-grid">'+renderIns(ins)+'</div>'+
 
-    function mostrarPerfil(j) {
-        jugActivo = j;
-        var zona   = document.getElementById('zona-perfil');
-        var hist   = MasterVIP._get('ranking_historico_club', []);
-        var mias   = [];
-        var nom_up = j.nombre.toUpperCase();
-        for (var i = 0; i < hist.length; i++) {
-            if (hist[i].nombre.toUpperCase() === nom_up) mias.push(hist[i]);
-        }
-        var torneos = MasterVIP.getTorneos();
-        var misTorn = [];
-        for (var t = 0; t < torneos.length; t++) {
-            if (torneos[t].estado === 'FINALIZADO') {
-                var ins2 = torneos[t].inscritos || [];
-                for (var x = 0; x < ins2.length; x++) {
-                    if (ins2[x].nombre.toUpperCase() === nom_up) { misTorn.push(torneos[t]); break; }
-                }
-            }
-        }
-        // Torneo activo — estado actual del jugador
-        var torneoActivo = MasterVIP.getTorneoActivo();
-        var estadoEnTorneo = null;
-        if (torneoActivo) {
-            var rondaAct = torneoActivo.rondas && torneoActivo.rondas[torneoActivo.rondas.length - 1];
-            if (rondaAct) {
-                for (var p2 = 0; p2 < rondaAct.partidas.length; p2++) {
-                    var part = rondaAct.partidas[p2];
-                    if ((part.j1||'').toUpperCase() === nom_up || (part.j2||'').toUpperCase() === nom_up) {
-                        estadoEnTorneo = part;
-                        break;
-                    }
-                }
-            }
-        }
+  /* BOTONES */
+  '<button class="btn-share" onclick="compartir()">📤 COMPARTIR CARNET</button>'+
+  '<button class="btn-link" onclick="copiarLink()">🔗 COPIAR ENLACE</button>'+
 
-        var cat    = MasterVIP.getCategoria(j.promedio||0);
-        var prom   = j.promedio||0;
-        var ini    = j.nombre.trim()[0].toUpperCase();
-        var nPart  = mias.length;
-        var vics   = 0;
-        for (var v = 0; v < mias.length; v++) { if (mias[v].resultado === 'GANÓ') vics++; }
-        var pctV   = nPart > 0 ? Math.round((vics/nPart)*100) : 0;
-        var serieM = 0;
-        for (var s = 0; s < mias.length; s++) { serieM = Math.max(serieM, parseInt(mias[s].serieMayor)||0); }
-        var promMejor = 0;
-        for (var pm = 0; pm < mias.length; pm++) { promMejor = Math.max(promMejor, parseFloat(mias[pm].promedio)||0); }
-        var todos   = MasterVIP.getJugadores();
-        var sorted  = todos.slice().sort(function(a,b){ return (b.promedio||0)-(a.promedio||0); });
-        var pos     = 0;
-        for (var r = 0; r < sorted.length; r++) { if (sorted[r].nombre.toUpperCase() === nom_up) { pos = r+1; break; } }
-        var nivel   = calcNivel(prom);
-        var insignias = calcIns(j, mias, misTorn, vics, serieM);
+  /* HISTORIAL */
+  '<div class="sec-tit">TORNEOS</div>'+
+  renderTorneos(misTorn,j.nombre)+
 
-        // ── Colores por categoría
-        var catColor = cat.color || '#d4af37';
+  '<div class="sec-tit">ÚLTIMAS PARTIDAS</div>'+
+  renderPartidas(mias);
+}
 
-        // ── Foto
-        var fotoSrc = MasterVIP.getFoto(j.nombre);
-        var avatarInner = fotoSrc
-            ? '<img src="' + fotoSrc + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">'
-            : '<span id="av-ini" style="font-size:2.2rem;font-weight:900;color:' + catColor + ';">' + ini + '</span>';
+/* ══ ANÁLISIS AUTOMÁTICO EXPERTO ══ */
+function generarAnalisis(j,d){
+  var p=d.prom, cat=d.cat, pos=d.posClub, total=d.todos.length;
+  var nombre=j.nombre.split(' ')[0];
+  var txt='';
 
-        // ── Torneo activo badge
-        var tornActivoHtml = '';
-        if (torneoActivo && torneoActivo.estado === 'EN_CURSO') {
-            var enJuego = estadoEnTorneo && estadoEnTorneo.estado === 'EN_JUEGO';
-            var pendiente = estadoEnTorneo && estadoEnTorneo.estado === 'PENDIENTE';
-            var eliminado = false;
-            var insTs = torneoActivo.inscritos || [];
-            for (var ei = 0; ei < insTs.length; ei++) {
-                if (insTs[ei].nombre.toUpperCase() === nom_up && insTs[ei].eliminado) { eliminado = true; break; }
-            }
-            var bgT = enJuego ? 'rgba(46,255,112,0.08)' : eliminado ? 'rgba(231,76,60,0.06)' : 'rgba(212,175,55,0.06)';
-            var brT = enJuego ? 'rgba(46,255,112,0.25)'  : eliminado ? 'rgba(231,76,60,0.2)'  : 'rgba(212,175,55,0.15)';
-            var txT = enJuego ? '#2eff70' : eliminado ? '#e74c3c' : '#d4af37';
-            var lblT = enJuego ? '● EN JUEGO' : eliminado ? '✗ ELIMINADO' : '⏳ EN TORNEO';
-            tornActivoHtml =
-                '<div style="background:' + bgT + ';border:1px solid ' + brT + ';border-radius:12px;' +
-                'padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">' +
-                '<div style="font-size:0.42rem;letter-spacing:2px;color:' + txT + ';">' + lblT + '</div>' +
-                '<div style="flex:1;font-size:0.55rem;color:#ddd;">' + (torneoActivo.nombre||'') + '</div>' +
-                (estadoEnTorneo ? '<div style="font-size:0.42rem;color:#444;">R' + (estadoEnTorneo.ronda||'?') + '</div>' : '') +
-                '</div>';
-        }
+  /* Nivel del jugador */
+  if(p>=1.1) txt='<strong>'+nombre+'</strong> pertenece a la <span class="analisis-highlight">CLASE ÉLITE</span> del billar colombiano. ';
+  else if(p>=0.9) txt='<strong>'+nombre+'</strong> es un jugador de nivel <span class="analisis-highlight">MAESTRO</span>, entre los mejores del club. ';
+  else if(p>=0.7) txt='<strong>'+nombre+'</strong> juega en <span class="analisis-highlight">PRIMERA CATEGORÍA</span>, con promedio sólido y consistente. ';
+  else if(p>=0.5) txt='<strong>'+nombre+'</strong> compite en <span class="analisis-highlight">SEGUNDA CATEGORÍA</span>, en desarrollo constante. ';
+  else if(p>=0.35) txt='<strong>'+nombre+'</strong> está en <span class="analisis-highlight">TERCERA CATEGORÍA</span>, construyendo su base técnica. ';
+  else txt='<strong>'+nombre+'</strong> está en etapa de <span class="analisis-highlight">INICIACIÓN</span>, comenzando su camino en las tres bandas. ';
 
-        zona.innerHTML =
-        '<div class="carnet">' +
-            '<div class="carnet-franja" style="background:linear-gradient(90deg,transparent,' + catColor + ',transparent);"></div>' +
-            '<div class="carnet-bg">🎱</div>' +
-            '<div class="carnet-body">' +
-                tornActivoHtml +
-                '<div class="carnet-head">' +
-                    '<div class="carnet-avatar" id="av-wrap" onclick="abrirFoto()" ' +
-                        'style="border-color:' + catColor + ';box-shadow:0 0 24px ' + catColor + '44;">' +
-                        avatarInner +
-                        '<div class="av-cam">📷</div>' +
-                    '</div>' +
-                    '<input type="file" id="inp-foto-perfil" accept="image/*" onchange="guardarFoto(event)">' +
-                    '<div class="carnet-info">' +
-                        '<div class="carnet-nom">' + j.nombre + '</div>' +
-                        '<div class="carnet-club">' + (j.club||'SIN CLUB') + '</div>' +
-                        '<div class="carnet-loc">📍 ' + (j.ciudad||'—') + ', ' + (j.pais||'COLOMBIA') + '</div>' +
-                        (j.tel ? '<div style="font-size:0.42rem;color:#333;margin-top:3px;letter-spacing:1px;">📱 ' + j.tel + '</div>' : '') +
-                    '</div>' +
-                    '<div class="carnet-cat">' +
-                        '<div class="carnet-cat-ico">' + cat.emoji + '</div>' +
-                        '<div class="carnet-cat-nom" style="color:' + catColor + ';">' + cat.nombre + '</div>' +
-                    '</div>' +
-                '</div>' +
+  /* Ranking */
+  if(pos===1) txt+='Es el <strong>líder absoluto</strong> del ranking del club. ';
+  else if(pos<=3) txt+='Ocupa el <strong>top 3</strong> del ranking con '+(total-pos)+' jugadores detrás. ';
+  else if(pos<=Math.ceil(total*0.25)) txt+='Está en el <strong>cuartil élite</strong> del club (#'+pos+' de '+total+'). ';
+  else txt+='Ocupa el puesto <strong>#'+pos+'</strong> de '+total+' jugadores en el club. ';
 
-                // STATS PRINCIPALES
-                '<div class="stats-grid">' +
-                    '<div class="stat-box dest"><div class="stat-val" style="color:' + catColor + ';">' + prom.toFixed(3) + '</div><div class="stat-lbl">PROMEDIO</div></div>' +
-                    '<div class="stat-box"><div class="stat-val">' + nPart + '</div><div class="stat-lbl">PARTIDAS</div></div>' +
-                    '<div class="stat-box"><div class="stat-val">' + (pctV||0) + '%</div><div class="stat-lbl">VICTORIAS</div></div>' +
-                    '<div class="stat-box"><div class="stat-val">' + serieM + '</div><div class="stat-lbl">SERIE MÁXIMA</div></div>' +
-                    '<div class="stat-box"><div class="stat-val">' + misTorn.length + '</div><div class="stat-lbl">TORNEOS</div></div>' +
-                    '<div class="stat-box"><div class="stat-val" style="color:' + catColor + ';">' + promMejor.toFixed(3) + '</div><div class="stat-lbl">MEJOR PROM.</div></div>' +
-                '</div>' +
+  /* Efectividad */
+  if(d.pctV>=70) txt+='Su efectividad del <span class="analisis-highlight">'+d.pctV+'% de victorias</span> es excepcional para su nivel. ';
+  else if(d.pctV>=50) txt+='Gana más de la mitad de sus partidas <strong>('+d.pctV+'%)</strong>, señal de consistencia. ';
+  else if(d.nPart>0) txt+='Con un '+d.pctV+'% de victorias, tiene margen de mejora en la efectividad. ';
 
-                // BARRA DE NIVEL
-                '<div class="nivel-wrap">' +
-                    '<div class="nivel-head">' +
-                        '<span>' + nivel.desde.toFixed(3) + ' — ' + cat.nombre.toUpperCase() + '</span>' +
-                        '<span>SIGUIENTE: ' + nivel.siguiente + ' ' + nivel.hasta.toFixed(3) + '</span>' +
-                    '</div>' +
-                    '<div class="nivel-barra">' +
-                        '<div class="nivel-fill" style="width:' + nivel.pct + '%;background:linear-gradient(90deg,' + catColor + ',#ffe066);"></div>' +
-                    '</div>' +
-                '</div>' +
+  /* Serie máxima */
+  if(d.serieM>=15) txt+='Su <span class="analisis-highlight">serie máxima de '+d.serieM+'</span> demuestra capacidad de concentración élite. ';
+  else if(d.serieM>=8) txt+='Ha logrado series de hasta <strong>'+d.serieM+' carambolas</strong>, mostrando solidez en momentos clave. ';
+  else if(d.serieM>=3) txt+='Serie máxima de '+d.serieM+'. Trabajar la continuidad mejorará el promedio significativamente. ';
 
-                // RANKING BADGE
-                '<div class="rank-badge" style="border-color:' + catColor + '33;">' +
-                    '<div class="rank-pos" style="color:' + catColor + ';">' + (pos>0?'#'+pos:'—') + '</div>' +
-                    '<div class="rank-info">' +
-                        '<small>RANKING DEL CLUB</small>' +
-                        '<b>' + (pos===1?'🏆 LÍDER':pos<=3?'🥈 TOP 3':'DE '+todos.length+' JUGADORES') + '</b>' +
-                    '</div>' +
-                    '<div style="text-align:right;">' +
-                        '<div style="font-size:0.42rem;color:#444;letter-spacing:1px;">REGISTRO</div>' +
-                        '<div style="font-size:0.48rem;color:#666;">' + (j.fechaRegistro ? new Date(j.fechaRegistro).toLocaleDateString('es-CO') : '—') + '</div>' +
-                    '</div>' +
-                '</div>' +
-            '</div>' +
+  /* Fuera de categoría */
+  if(d.fueraCategoria>=3) txt+='Ha vencido a jugadores de categoría superior <span class="analisis-highlight">'+d.fueraCategoria+' veces</span> — mentalidad competitiva alta. ';
+  else if(d.fueraCategoria>=1) txt+='Con '+d.fueraCategoria+' victorias fuera de categoría, demuestra que puede competir arriba. ';
 
-            '<div class="carnet-footer">' +
-                '<span class="carnet-id">DC-' + j.nombre.replace(/\s/g,'').toUpperCase().substr(0,6) + '</span>' +
-                '<span class="carnet-marca">DeCarambola</span>' +
-            '</div>' +
-        '</div>' +
+  /* Caseros */
+  if(d.caserosG>=5) txt+='Domina los <strong>duelos caseros</strong> con '+d.caserosG+' victorias en '+d.caserosT+' partidas. ';
+  else if(d.caserosG>0) txt+='Ha ganado '+d.caserosG+' de '+d.caserosT+' retos caseros. ';
 
-        '<div class="sec-titulo">INSIGNIAS</div>' +
-        '<div class="ins-grid">' + renderInsignias(insignias) + '</div>' +
+  /* Trofeos */
+  if(d.trofeosTitulos>=3) txt+='Con <span class="analisis-highlight">'+d.trofeosTitulos+' títulos</span>, es uno de los más ganadores de la historia del club. ';
+  else if(d.trofeosTitulos>=1) txt+='<strong>Campeón</strong> en '+d.trofeosTitulos+' torneo'+(d.trofeosTitulos>1?'s':'')+' del club. ';
 
-        '<button class="btn-comp" onclick="compartir()">📤 COMPARTIR PERFIL</button>' +
-        '<button class="btn-link" onclick="copiarLink()">🔗 COPIAR ENLACE</button>' +
+  /* Sin historial */
+  if(d.nPart===0) txt='<strong>'+nombre+'</strong> está registrado con promedio <span class="analisis-highlight">'+p.toFixed(3)+'</span>. Aún no tiene partidas registradas en el sistema — una vez juegue, aquí verás su análisis completo como experto. 🎱';
 
-        '<div class="sec-titulo">HISTORIAL DE TORNEOS</div>' +
-        renderHistorial(misTorn, j.nombre) +
+  /* Recomendación final */
+  if(d.nPart>0){
+    if(p<0.5) txt+='<br><br><strong>Recomendación:</strong> Enfocarse en el control de la bola y reducir las entradas fallidas.';
+    else if(p<0.8) txt+='<br><br><strong>Recomendación:</strong> Trabajar la consistencia en la segunda y tercera banda para subir de categoría.';
+    else if(p<1.1) txt+='<br><br><strong>Recomendación:</strong> En este nivel la diferencia la hace la táctica y la lectura de la mesa.';
+    else txt+='<br><br><strong>Objetivo:</strong> Competir en los torneos nacionales y representar al club en el alto rendimiento.';
+  }
 
-        '<div class="sec-titulo">ÚLTIMAS PARTIDAS</div>' +
-        renderUltimasPartidas(mias, j.nombre);
+  return txt;
+}
 
-    }
+/* ══ HELPERS ══ */
+function mkRank(val,lbl,color){
+  return '<div class="c-rank" style="border-color:'+color+'22;background:'+color+'08;">'+
+    '<div class="c-rank-val" style="color:'+color+';">'+val+'</div>'+
+    '<div class="c-rank-lbl" style="color:'+color+';">'+lbl+'</div>'+
+  '</div>';
+}
 
-    function renderInsignias(ins) {
-        var html = '';
-        for (var i = 0; i < ins.length; i++) {
-            var x = ins[i];
-            var cls = x.ok ? ('ok' + (x.v ? ' verde' : '')) : 'off';
-            html += '<div class="ins ' + cls + '">';
-            if (!x.ok) html += '<span class="ins-lock">&#128274;</span>';
-            html += '<div class="ins-ico">' + x.ico + '</div>';
-            html += '<span class="ins-nom">' + x.nom + '</span>';
-            html += '</div>';
-        }
-        return html;
-    }
+function calcNivel(p){
+  var nivs=[{d:0,h:0.2,n:'AFICIONADO'},{d:0.2,h:0.35,n:'TERCERA'},{d:0.35,h:0.5,n:'SEGUNDA'},
+    {d:0.5,h:0.7,n:'PRIMERA'},{d:0.7,h:0.9,n:'MAESTRO'},{d:0.9,h:1.1,n:'ÉLITE'},{d:1.1,h:9.9,n:'CIMA'}];
+  var act=nivs[0],idx=0;
+  for(var i=0;i<nivs.length;i++){if(p>=nivs[i].d&&p<nivs[i].h){act=nivs[i];idx=i;break;}}
+  var sig=idx<nivs.length-1?nivs[idx+1]:null;
+  var pct=Math.min(100,Math.round(((p-act.d)/(act.h-act.d))*100));
+  return{pct,desde:act.d,hasta:act.h,siguiente:sig?sig.n:'★'};
+}
 
-    function renderHistorial(misTorn, nombre) {
-        if (!misTorn.length) return '<div class="vacio">Sin torneos finalizados aún</div>';
-        var html = '';
-        var lista = misTorn.slice(0, 8);
-        for (var i = 0; i < lista.length; i++) {
-            var t = lista[i];
-            var campeon = (t.campeon||'').toUpperCase() === nombre.toUpperCase();
-            var sub     = (t.subcampeon||'').toUpperCase() === nombre.toUpperCase();
-            var ico = campeon ? '🥇' : sub ? '🥈' : '🎱';
-            html += '<div class="hist-row">' +
-                '<div class="hist-pos">' + ico + '</div>' +
-                '<div class="hist-info">' +
-                    '<div class="hist-nom">' + t.nombre + '</div>' +
-                    '<div class="hist-det">' + t.codigo + ' · ' + new Date(t.fechaCreacion).toLocaleDateString('es-CO') + ' · ' + (t.modalidad||'3 BANDAS') + '</div>' +
-                '</div></div>';
-        }
-        return html;
-    }
+function calcInsignias(j,mias,torns,vics,serieM,fueraCat,caseros){
+  var p=j.promedio||0;
+  var esCamp=torns.some(function(t){return (t.campeon||'').toUpperCase()===j.nombre.toUpperCase();});
+  return[
+    {ico:'🏆',nom:'CAMPEÓN',   ok:esCamp,              v:false},
+    {ico:'🎯',nom:'SHARP 1.0', ok:p>=1.0,              v:false},
+    {ico:'🔥',nom:'SERIE×10',  ok:serieM>=10,          v:true },
+    {ico:'⚡',nom:'MVP×5',     ok:vics>=5,             v:true },
+    {ico:'⚔️',nom:'FUERA CAT', ok:fueraCat>=3,         v:false},
+    {ico:'👑',nom:'REY 2.0',   ok:p>=2.0,              v:false},
+    {ico:'🎱',nom:'CASERO',    ok:caseros>=3,          v:true },
+    {ico:'⭐',nom:'3 TÍTULOS', ok:torns.filter(function(t){return (t.campeon||'').toUpperCase()===j.nombre.toUpperCase();}).length>=3,v:false}
+  ];
+}
+function renderIns(ins){
+  return ins.map(function(x){
+    var cls=x.ok?('ins ok'+(x.v?' v':'')):'ins off';
+    return '<div class="'+cls+'"><div class="ins-ico">'+x.ico+'</div><div class="ins-nom">'+x.nom+'</div></div>';
+  }).join('');
+}
 
-    function renderUltimasPartidas(mias, nombre) {
-        var partidas = mias.filter(function(m){ return m.tipo === 'Torneo' || m.tipo === 'Entrenamiento'; });
-        partidas = partidas.slice(-8).reverse();
-        if (!partidas.length) return '<div class="vacio">Sin partidas registradas aún</div>';
-        var html = '';
-        for (var i = 0; i < partidas.length; i++) {
-            var m = partidas[i];
-            var esTorneo = m.tipo === 'Torneo';
-            var ico  = esTorneo ? '🏆' : '🎯';
-            var prom = parseFloat(m.promedio)||0;
-            var color = prom >= 1.0 ? 'var(--neon)' : prom >= 0.7 ? 'var(--oro)' : '#888';
-            html += '<div class="hist-row">' +
-                '<div class="hist-pos">' + ico + '</div>' +
-                '<div class="hist-info">' +
-                    '<div class="hist-nom">' + (esTorneo ? 'PARTIDA TORNEO' : 'ENTRENAMIENTO') + '</div>' +
-                    '<div class="hist-det">' + (m.fecha||'—') +
-                        (m.carambolas ? ' · ' + m.carambolas + ' car.' : '') +
-                        (m.entradas   ? ' · ' + m.entradas + ' ent.' : '') +
-                    '</div>' +
-                '</div>' +
-                '<div style="font-family:Courier New;font-size:0.85rem;color:' + color + ';">' + prom.toFixed(3) + '</div>' +
-            '</div>';
-        }
-        return html;
-    }
+function renderTorneos(torns,nombre){
+  if(!torns.length)return'<div class="vacio">— SIN TORNEOS FINALIZADOS —</div>';
+  return torns.slice(0,8).map(function(t){
+    var eC=(t.campeon||'').toUpperCase()===nombre.toUpperCase();
+    var eS=(t.subcampeon||'').toUpperCase()===nombre.toUpperCase();
+    return'<div class="hist-item">'+
+      '<div class="hist-ico">'+(eC?'🥇':eS?'🥈':'🎱')+'</div>'+
+      '<div class="hist-info"><div class="hist-nom">'+t.nombre+'</div>'+
+      '<div class="hist-det">'+t.codigo+' · '+new Date(t.fechaCreacion).toLocaleDateString('es-CO')+'</div></div>'+
+      (eC?'<div style="font-family:Bebas Neue;color:var(--oro);font-size:0.85rem;letter-spacing:1px;">CAMPEÓN</div>':'')+
+    '</div>';
+  }).join('');
+}
+function renderPartidas(mias){
+  var p=mias.filter(function(m){return m.tipo==='Torneo'||m.tipo==='Entrenamiento';}).slice(-8).reverse();
+  if(!p.length)return'<div class="vacio">— SIN PARTIDAS REGISTRADAS —</div>';
+  return p.map(function(m){
+    var pr=parseFloat(m.promedio)||0;
+    var col=pr>=1.0?'var(--neon)':pr>=0.7?'var(--oro)':'#333';
+    return'<div class="hist-item">'+
+      '<div class="hist-ico">'+(m.tipo==='Torneo'?'🏆':'🎯')+'</div>'+
+      '<div class="hist-info"><div class="hist-nom">'+(m.tipo==='Torneo'?'TORNEO':'ENTRENAMIENTO')+'</div>'+
+      '<div class="hist-det">'+(m.fecha||'—')+(m.carambolas?' · '+m.carambolas+' car.':'')+(m.entradas?' · '+m.entradas+' ent.':'')+'</div></div>'+
+      '<div class="hist-prom" style="color:'+col+';">'+pr.toFixed(3)+'</div>'+
+    '</div>';
+  }).join('');
+}
 
-    function calcNivel(p) {
-        var nivs = [
-            {d:0,    h:0.200, n:'NOVATO'},
-            {d:0.200,h:0.400, n:'AFICIONADO'},
-            {d:0.400,h:0.600, n:'INTERMEDIO'},
-            {d:0.600,h:0.800, n:'AVANZADO'},
-            {d:0.800,h:1.200, n:'EXPERTO'},
-            {d:1.200,h:2.000, n:'MAESTRO'},
-            {d:2.000,h:9.999, n:'GRAN MAESTRO'}
-        ];
-        var act = nivs[0];
-        for (var i = 0; i < nivs.length; i++) { if (p >= nivs[i].d && p < nivs[i].h) { act = nivs[i]; break; } }
-        var idx = 0;
-        for (var j = 0; j < nivs.length; j++) { if (nivs[j].d === act.d) { idx = j; break; } }
-        var sig = idx < nivs.length-1 ? nivs[idx+1] : null;
-        var rng = act.h - act.d;
-        var pct = Math.min(100, Math.round(((p-act.d)/rng)*100));
-        return { pct:pct, desde:act.d, hasta:act.h, siguiente: sig?sig.n:'★ CIMA' };
-    }
+/* ── FOTO ── */
+function abrirFoto(){document.getElementById('inp-foto').click();}
+function guardarFoto(e){
+  if(!jugActivo)return;
+  var f=e.target.files[0];if(!f)return;
+  if(f.size>500000){alert('Máximo 500KB');return;}
+  var r=new FileReader();
+  r.onload=function(ev){MasterVIP.guardarFotoJugador(jugActivo.nombre,ev.target.result);mostrarPerfil(jugActivo);};
+  r.readAsDataURL(f);
+}
 
-    function calcIns(j, mias, torns, vics, serieM) {
-        var p = j.promedio||0;
-        var esCampeon = false;
-        for (var i = 0; i < torns.length; i++) {
-            if ((torns[i].campeon||'').toUpperCase() === j.nombre.toUpperCase()) { esCampeon = true; break; }
-        }
-        return [
-            { ico:'&#127942;', nom:'CAMPEON',  ok: esCampeon,       v:false },
-            { ico:'&#127919;', nom:'SHARP',    ok: p>=1.0,          v:false },
-            { ico:'&#128293;', nom:'RACHA',    ok: serieM>=10,      v:true  },
-            { ico:'&#9889;',   nom:'MVP',      ok: vics>=5,         v:true  },
-            { ico:'&#127377;', nom:'VETERANO', ok: mias.length>=20, v:false },
-            { ico:'&#128081;', nom:'REY',      ok: p>=2.0,          v:false },
-            { ico:'&#128200;', nom:'PROGRESO', ok: mias.length>=5,  v:true  },
-            { ico:'&#11088;',  nom:'ESTRELLA', ok: torns.length>=3, v:false }
-        ];
-    }
-
-    function compartir() {
-        if (!jugActivo) return;
-        var p = (jugActivo.promedio||0).toFixed(3);
-        var cat = MasterVIP.getCategoria(jugActivo.promedio||0);
-        var txt = '🎱 *'+jugActivo.nombre+'*\n'+
-            cat.emoji+' '+cat.nombre+' · Promedio '+p+'\n'+
-            '🏛 '+(jugActivo.club||'SIN CLUB')+' · '+(jugActivo.ciudad||'')+'\n'+
-            '\n📊 Perfil en DeCarambola';
-        if (navigator.share) {
-            navigator.share({title:'Perfil DeCarambola', text:txt}).catch(function(){});
-        } else {
-            navigator.clipboard.writeText(txt).then(function(){
-                alert('✅ Perfil copiado\nPégalo en WhatsApp');
-            });
-        }
-    }
-
-
-    /* ── FOTO DE PERFIL ── */
-    function abrirFoto() {
-        var inp = document.getElementById('inp-foto-perfil');
-        if (inp) inp.click();
-    }
-
-    function guardarFoto(event) {
-        if (!jugActivo) return;
-        var file = event.target.files[0];
-        if (!file) return;
-        if (file.size > 500000) { alert('Foto muy pesada. Máximo 500KB'); return; }
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var base64 = e.target.result;
-            var fotos = JSON.parse(localStorage.getItem('FOTOS_JUGADORES')) || {};
-            fotos[jugActivo.nombre.toUpperCase()] = base64;
-            localStorage.setItem('FOTOS_JUGADORES', JSON.stringify(fotos));
-            mostrarFotoEnAvatar(base64);
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function mostrarFotoEnAvatar(src) {
-        var img = document.getElementById('av-img');
-        var ini = document.getElementById('av-ini');
-        if (img && src) {
-            img.src = src;
-            img.style.display = 'block';
-            if (ini) ini.style.display = 'none';
-        }
-    }
-
-    function cargarFotoGuardada(nombre) {
-        var fotos = JSON.parse(localStorage.getItem('FOTOS_JUGADORES')) || {};
-        var src = fotos[nombre.toUpperCase()];
-        if (src) mostrarFotoEnAvatar(src);
-    }
-
-    function copiarLink() {
-        if (!jugActivo) return;
-        var url = window.location.origin + window.location.pathname +
-            '?jugador=' + encodeURIComponent(jugActivo.nombre);
-        navigator.clipboard.writeText(url).then(function(){
-            var b = document.querySelector('.btn-link');
-            b.innerText = '✅ ENLACE COPIADO';
-            setTimeout(function(){ b.innerText = '🔗 COPIAR ENLACE'; }, 2000);
-        });
-    }
+/* ── COMPARTIR ── */
+function compartir(){
+  if(!jugActivo)return;
+  var cat=MasterVIP.getCategoria(jugActivo.promedio||0);
+  var txt='🎱 *'+jugActivo.nombre+'*\n'+cat.emoji+' '+cat.nombre+' · Promedio '+(jugActivo.promedio||0).toFixed(3)+
+    '\n🏛 '+(jugActivo.club||'SIN CLUB')+' · '+(jugActivo.ciudad||'')+
+    '\n\n📊 Carnet en DeCarambola — decarambola.com';
+  if(navigator.share)navigator.share({title:'Carnet DeCarambola',text:txt}).catch(function(){});
+  else navigator.clipboard.writeText(txt).then(function(){alert('✅ Copiado para WhatsApp');});
+}
+function copiarLink(){
+  if(!jugActivo)return;
+  var url=location.origin+location.pathname+'?jugador='+encodeURIComponent(jugActivo.nombre);
+  navigator.clipboard.writeText(url).then(function(){
+    var b=document.querySelector('.btn-link');
+    b.innerText='✅ ENLACE COPIADO';
+    setTimeout(function(){b.innerText='🔗 COPIAR ENLACE';},2000);
+  });
+}
 </script>
+<script src="whitelabel.js"></script>
 </body>
 </html>
