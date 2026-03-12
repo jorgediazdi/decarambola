@@ -796,5 +796,48 @@
 </div>
 
 <script src="whitelabel.js"></script>
+<script>
+// Ajuste de textos por deporte usando WL.getDeporte()
+(function () {
+    if (!window.WL || typeof WL.getDeporte !== 'function') return;
+    var deporte = (WL.getDeporte() || 'billar').toLowerCase();
+
+    var hMarca = document.querySelector('.header-marca span');
+    var hSub   = document.querySelector('.header-marca small');
+
+    if (!hMarca || !hSub) return;
+
+    var textos = {
+        billar: {
+            titulo: 'DECARAMBOLA · BILLAR',
+            subt:   'PANEL ORGANIZADOR · TOUR DE BILLAR'
+        },
+        futbol: {
+            titulo: 'DECARAMBOLA · FÚTBOL 5',
+            subt:   'PANEL ORGANIZADOR · LIGAS & TORNEOS'
+        },
+        padel: {
+            titulo: 'DECARAMBOLA · PÁDEL',
+            subt:   'PANEL ORGANIZADOR · CIRCUITO PÁDEL'
+        },
+        equitacion: {
+            titulo: 'DECARAMBOLA · EQUESTRIAN',
+            subt:   'PANEL ORGANIZADOR · ESCUELA & TORNEOS'
+        },
+        tenis: {
+            titulo: 'DECARAMBOLA · TENIS',
+            subt:   'PANEL ORGANIZADOR · LIGAS & TORNEOS'
+        },
+        basquet: {
+            titulo: 'DECARAMBOLA · BÁSQUET',
+            subt:   'PANEL ORGANIZADOR · LIGAS & TORNEOS'
+        }
+    };
+
+    var conf = textos[deporte] || textos.billar;
+    hMarca.textContent = conf.titulo;
+    hSub.textContent   = conf.subt;
+})();
+</script>
 </body>
 </html>

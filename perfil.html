@@ -900,5 +900,47 @@ function copiarLink(){
 }
 </script>
 <script src="whitelabel.js"></script>
+<script>
+// Textos dinámicos por deporte para el portal jugador
+(function () {
+  if (!window.WL || typeof WL.getDeporte !== 'function') return;
+  var deporte = (WL.getDeporte() || 'billar').toLowerCase();
+
+  var h1   = document.querySelector('.hdr h1');
+  var pSub = document.querySelector('.hdr p');
+  if (!h1 || !pSub) return;
+
+  var textos = {
+    billar: {
+      titulo: 'PERFIL JUGADOR · BILLAR',
+      subt:   'Ranking, promedio y currículum de billar'
+    },
+    futbol: {
+      titulo: 'PERFIL JUGADOR · FÚTBOL 5',
+      subt:   'Stats, goles y rendimiento en cancha'
+    },
+    padel: {
+      titulo: 'PERFIL JUGADOR · PÁDEL',
+      subt:   'Historial de partidos y ranking de pádel'
+    },
+    equitacion: {
+      titulo: 'PERFIL JINETE · EQUESTRIAN',
+      subt:   'Caballos, pruebas y resultados oficiales'
+    },
+    tenis: {
+      titulo: 'PERFIL JUGADOR · TENIS',
+      subt:   'Ranking, torneos y desempeño en cancha'
+    },
+    basquet: {
+      titulo: 'PERFIL JUGADOR · BÁSQUET',
+      subt:   'Promedios, minutos y rendimiento en juego'
+    }
+  };
+
+  var conf = textos[deporte] || textos.billar;
+  h1.textContent   = conf.titulo;
+  pSub.textContent = conf.subt;
+})();
+</script>
 </body>
 </html>
