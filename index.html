@@ -1291,52 +1291,6 @@ function mostrarMsgCedula(txt, color) {
     el.innerText = txt;
 }
 
-// ── Branding por deporte (multi‑deporte) ──
-(function() {
-    try {
-        var deporte = (window.WL && typeof WL.getDeporte === 'function')
-            ? WL.getDeporte()
-            : (document.body.getAttribute('data-deporte') || 'billar');
-        deporte = String(deporte || 'billar').toLowerCase();
-
-        var config = {
-            billar: {
-                tagline: 'BILLAR · TRES BANDAS',
-                footer:  'DECARAMBOLA · BILLAR TRES BANDAS'
-            },
-            futbol: {
-                tagline: 'FÚTBOL 5 · LIGAS Y TORNEOS',
-                footer:  'DECARAMBOLA · LIGAS DE FÚTBOL 5'
-            },
-            padel: {
-                tagline: 'PÁDEL · CIRCUITOS Y LIGAS',
-                footer:  'DECARAMBOLA · CIRCUITOS DE PÁDEL'
-            },
-            equitacion: {
-                tagline: 'ECUESTRE · ESCUELAS Y CAMPEONATOS',
-                footer:  'DECARAMBOLA · DEPORTE ECUESTRE'
-            },
-            tenis: {
-                tagline: 'TENIS · TORNEOS Y RANKINGS',
-                footer:  'DECARAMBOLA · TENIS DE CAMPO'
-            },
-            basquet: {
-                tagline: 'BÁSQUET · LIGAS Y TORNEOS',
-                footer:  'DECARAMBOLA · LIGAS DE BÁSQUET'
-            }
-        };
-
-        var cfg = config[deporte] || config.billar;
-        var sub = document.querySelector('.subtitulo');
-        if (sub && cfg.tagline) sub.textContent = cfg.tagline;
-        var foot = document.querySelector('.footer-txt');
-        if (foot && cfg.footer) foot.textContent = cfg.footer;
-    } catch(e) {
-        // silencioso — nunca romper home
-        console && console.warn && console.warn('branding deporte error', e);
-    }
-})();
-
 async function registrarNuevoJugador() {
     const cedula = (document.getElementById('inp-cedula').value || '').trim();
     const nombre = (prompt('Tu nombre completo:') || '').trim().toUpperCase();
@@ -1652,8 +1606,19 @@ function iniciarSlider() {
         if (slideClub) {
             slideClub.style.display = '';
             if (lblClub) lblClub.innerText = nombreSede;
-            // ── Logo del badge: solo whitelabel.js maneja esto ──
-            // No tocar logoEl aquí; WL.setClub() ya lo inyecta.
+            // ── Logo del club en el badge del slider ──
+            // whitelabel.js es la única fuente de verdad del logo.
+            // Solo inyectar aquí si el elemento está vacío (WL no ha corrido aún).
+            if (logoEl && !logoEl.querySelector('img')) {
+                var logoUrl = (window.WL && window.WL.getLogoUrl && window.WL.getLogoUrl())
+                    || localStorage.getItem('wl_club_logo_url')
+                    || '';
+                if (logoUrl) {
+                    logoEl.innerHTML = '<img src="' + logoUrl + '" alt="Logo" style="width:22px;height:22px;border-radius:4px;object-fit:cover;box-shadow:none;border:1px solid ' + color + '44;">';
+                } else {
+                    logoEl.innerHTML = '<span style="font-size:14px;">&#127963;</span>';
+                }
+            }
             if (badgeClub) {
                 badgeClub.style.background = color + '18';
                 badgeClub.style.border     = '1px solid ' + color + '44';

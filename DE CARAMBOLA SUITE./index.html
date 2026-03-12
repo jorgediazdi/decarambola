@@ -40,7 +40,7 @@
             border-radius:50%;
             filter:drop-shadow(0 0 25px rgba(212,175,55,0.5));
             animation: flotar 4s ease-in-out infinite;
-            mix-blend-mode:normal;
+            mix-blend-mode:lighten;
         }
         @keyframes flotar {
             0%,100% { transform:translateY(0); }
@@ -1529,8 +1529,19 @@ function iniciarSlider() {
         if (slideClub) {
             slideClub.style.display = '';
             if (lblClub) lblClub.innerText = nombreSede;
-            // ── Logo del badge: solo whitelabel.js maneja esto ──
-            // No tocar logoEl aquí; WL.setClub() ya lo inyecta.
+            // ── Logo del club en el badge del slider ──
+            // whitelabel.js es la única fuente de verdad del logo.
+            // Solo inyectar aquí si el elemento está vacío (WL no ha corrido aún).
+            if (logoEl && !logoEl.querySelector('img')) {
+                var logoUrl = (window.WL && window.WL.getLogoUrl && window.WL.getLogoUrl())
+                    || localStorage.getItem('wl_club_logo_url')
+                    || '';
+                if (logoUrl) {
+                    logoEl.innerHTML = '<img src="' + logoUrl + '" alt="Logo" style="width:22px;height:22px;border-radius:4px;object-fit:cover;box-shadow:none;border:1px solid ' + color + '44;">';
+                } else {
+                    logoEl.innerHTML = '<span style="font-size:14px;">&#127963;</span>';
+                }
+            }
             if (badgeClub) {
                 badgeClub.style.background = color + '18';
                 badgeClub.style.border     = '1px solid ' + color + '44';
@@ -1597,23 +1608,6 @@ function cambiarSlide(idx) {
     if (actual) { actual.className = 'marca-slide saliendo'; }
     setTimeout(function() { mostrarSlide(idx); }, 350);
 }
-
-// ── Limpiar club anterior si ?club= cambió ──
-(function() {
-    try {
-        var params = new URLSearchParams(window.location.search);
-        var slugUrl = params.get('club');
-        if (slugUrl) {
-            var slugGuardado = localStorage.getItem('wl_club_slug');
-            if (slugGuardado && slugGuardado !== slugUrl) {
-                // Cambió el club en la URL → limpiar todo el white label anterior
-                ['wl_club_id','wl_club_nombre','wl_club_logo_url','wl_club_color','wl_club_slug',
-                 'wl_club_cache','club_activo','mis_clubes'].forEach(function(k){ localStorage.removeItem(k); });
-                console.log('[index] Club cambió de "' + slugGuardado + '" a "' + slugUrl + '" → caché limpiado');
-            }
-        }
-    } catch(e) {}
-})();
 
 // ── Carga inicial ──
 window.onload = function() {
