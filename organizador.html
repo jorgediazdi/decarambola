@@ -452,13 +452,76 @@
 <script src="core.js"></script>
 <script>
 
+    // ═══════════════════════════════════════
+    //  CONFIG MULTI‑DEPORTE (billar, fútbol, pádel…)
+    //  Usa WL.getDeporte() para ajustar textos e iconos
+    // ═══════════════════════════════════════
+    const CONFIG_DEPORTE = {
+        billar: {
+            emojiTorneoVacio: '🎱',
+            modalidadDefault: '3 BANDAS',
+            labelJugadores: 'JUGADORES',
+            labelRankingClub: 'Top Ranking del Club'
+        },
+        futbol: {
+            emojiTorneoVacio: '⚽',
+            modalidadDefault: 'FÚTBOL 5',
+            labelJugadores: 'JUGADORES',
+            labelRankingClub: 'Top Ranking del Equipo'
+        },
+        padel: {
+            emojiTorneoVacio: '🎾',
+            modalidadDefault: 'PÁDEL',
+            labelJugadores: 'JUGADORES',
+            labelRankingClub: 'Top Ranking del Club'
+        },
+        equitacion: {
+            emojiTorneoVacio: '🐎',
+            modalidadDefault: 'ESCUELA',
+            labelJugadores: 'JINETES',
+            labelRankingClub: 'Top Ranking de la Escuela'
+        }
+    };
+
+    function getDeporteActivo() {
+        try {
+            if (window.WL && typeof WL.getDeporte === 'function') {
+                return String(WL.getDeporte() || 'billar').toLowerCase();
+            }
+        } catch (e) {}
+        return 'billar';
+    }
+
+    function getConfigDeporte() {
+        const dep = getDeporteActivo();
+        return CONFIG_DEPORTE[dep] || CONFIG_DEPORTE.billar;
+    }
+
     window.onload = async function () {
-        try { await MasterVIP.init();
-        SESSION.verificarAlCargar('organizador'); } catch(e) { console.warn('Init offline:', e); }
+        try {
+            await MasterVIP.init();
+            SESSION.verificarAlCargar('organizador');
+        } catch(e) {
+            console.warn('Init offline:', e);
+        }
         MasterVIP.applyDesign();
-        // Leer nombre del club desde whitelabel (fuente correcta)
+
+        // Nombre del club desde whitelabel
         const nombreClub = localStorage.getItem('wl_club_nombre') || null;
         document.getElementById('lbl-sede').innerText = nombreClub || 'SIN CONFIGURAR';
+
+        // Ajustar etiquetas por deporte (sin romper el diseño existente)
+        const cfg = getConfigDeporte();
+        try {
+            const kpiJugLbl = document.querySelector('.kpi.neon .kpi-lbl');
+            if (kpiJugLbl) kpiJugLbl.textContent = cfg.labelJugadores;
+
+            const secRanking = Array.from(document.querySelectorAll('.sec-titulo h3'))
+                .find(h => h.textContent.trim().toUpperCase().startsWith('TOP RANKING'));
+            if (secRanking) secRanking.textContent = cfg.labelRankingClub;
+        } catch (e) {
+            console.warn('No se pudieron ajustar algunos textos por deporte:', e);
+        }
 
         await cargarKPIs();
         cargarTorneoActivo();
@@ -499,9 +562,10 @@
         const zona   = document.getElementById('zona-torneo');
 
         if (!torneo) {
+            const cfg = getConfigDeporte();
             zona.innerHTML = `
                 <div class="no-torneo">
-                    <div class="icono">🎱</div>
+                    <div class="icono">${cfg.emojiTorneoVacio}</div>
                     <p>NO HAY TORNEO ACTIVO<br>CREA UNO Y EMPIEZA A INSCRIBIR</p>
                 </div>`;
             return;
@@ -515,10 +579,11 @@
             ? MasterVIP.nombreRonda(totalRondas, rondaActual)
             : 'INSCRIPCIONES';
 
+        const cfg = getConfigDeporte();
         zona.innerHTML = `
             <div class="torneo-card">
                 <div class="torneo-nombre">${torneo.nombre}</div>
-                <div class="torneo-codigo">${torneo.codigo} · ${torneo.modalidad || '3 BANDAS'}</div>
+                <div class="torneo-codigo">${torneo.codigo} · ${torneo.modalidad || cfg.modalidadDefault}</div>
 
                 <div class="torneo-stats">
                     <div class="ts">

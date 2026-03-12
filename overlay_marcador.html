@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overlay Marcador — DeCarambola</title>
+  <style>
+    :root {
+      --oro:#d4af37;
+      --negro:#050505;
+      --verde:#00ff88;
+      --rojo:#ff4444;
+      --gris:#111;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      background:transparent;
+      font-family:'Arial Black',Arial,sans-serif;
+      color:#fff;
+    }
+    .overlay-root{
+      position:relative;
+      width:100vw;
+      height:100vh;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      padding:16px;
+      pointer-events:none;
+    }
+    .score-bar{
+      width:96%;
+      max-width:1180px;
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      align-items:center;
+      gap:12px;
+      background:rgba(0,0,0,0.82);
+      border-radius:18px;
+      border:1px solid rgba(212,175,55,0.5);
+      padding:10px 16px;
+      box-shadow:0 0 30px rgba(0,0,0,0.8);
+    }
+    .player{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .player.right{
+      flex-direction:row-reverse;
+      text-align:right;
+    }
+    .avatar{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background:#111;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.4rem;
+      border:2px solid rgba(212,175,55,0.6);
+    }
+    .player-info{
+      display:flex;
+      flex-direction:column;
+      max-width:220px;
+    }
+    .name{
+      font-size:1.05rem;
+      letter-spacing:1px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .meta{
+      font-size:0.65rem;
+      color:#bbb;
+      letter-spacing:1px;
+      margin-top:2px;
+    }
+    .score-center{
+      min-width:150px;
+      text-align:center;
+    }
+    .markers{
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      gap:18px;
+      margin-bottom:2px;
+    }
+    .score{
+      font-size:2.6rem;
+      line-height:1;
+    }
+    .score.j1{color:var(--verde);}
+    .score.j2{color:var(--rojo);}
+    .target{
+      font-size:1.1rem;
+      color:#888;
+    }
+    .set{
+      font-size:0.75rem;
+      color:#aaa;
+      letter-spacing:1px;
+    }
+    .extra-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size:0.7rem;
+      color:#777;
+      letter-spacing:1px;
+      margin-top:3px;
+    }
+    .badge-live{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:0.7rem;
+      letter-spacing:2px;
+      color:var(--verde);
+    }
+    .dot-live{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:var(--verde);
+      box-shadow:0 0 10px var(--verde);
+      animation:blink 1.4s infinite;
+    }
+    .tour-name{
+      font-size:0.75rem;
+      color:#ccc;
+      letter-spacing:1px;
+      max-width:260px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    @keyframes blink{
+      0%,100%{opacity:1;}
+      50%{opacity:0.25;}
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay-root" id="overlay-root">
+    <div class="score-bar">
+      <div class="player" id="p1">
+        <div class="avatar" id="p1-avatar">J1</div>
+        <div class="player-info">
+          <div class="name" id="p1-name">Jugador 1</div>
+          <div class="meta" id="p1-meta">PROM 0.000 · ENTRADAS 0</div>
+        </div>
+      </div>
+      <div class="score-center">
+        <div class="markers">
+          <div class="score j1" id="p1-score">0</div>
+          <div class="target" id="target-score">/ 0</div>
+          <div class="score j2" id="p2-score">0</div>
+        </div>
+        <div class="set" id="set-label">Ronda 1 · Mesa 1</div>
+      </div>
+      <div class="player right" id="p2">
+        <div class="avatar" id="p2-avatar">J2</div>
+        <div class="player-info">
+          <div class="name" id="p2-name">Jugador 2</div>
+          <div class="meta" id="p2-meta">PROM 0.000 · ENTRADAS 0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      'use strict';
+
+      var API_BASE = 'https://sensei-billar-api.onrender.com';
+      var pollMs   = 2500;
+      var timer    = null;
+
+      function qs(id){return document.getElementById(id);}
+
+      function getMatchId(){
+        try{
+          var p = new URLSearchParams(window.location.search);
+          return p.get('match') || p.get('partida_id') || null;
+        }catch(e){
+          return null;
+        }
+      }
+
+      function avatarInicial(nombre){
+        nombre = (nombre || '?').trim();
+        return nombre ? nombre[0].toUpperCase() : '?';
+      }
+
+      function applyState(s){
+        if(!s) return;
+        qs('p1-name').textContent   = s.j1_nombre || 'Jugador 1';
+        qs('p2-name').textContent   = s.j2_nombre || 'Jugador 2';
+        qs('p1-avatar').textContent = avatarInicial(s.j1_nombre);
+        qs('p2-avatar').textContent = avatarInicial(s.j2_nombre);
+
+        qs('p1-score').textContent  = s.j1_carambolas ?? 0;
+        qs('p2-score').textContent  = s.j2_carambolas ?? 0;
+        qs('target-score').textContent = '/ ' + (s.objetivo || 0);
+
+        var ent1 = s.j1_entradas ?? 0;
+        var ent2 = s.j2_entradas ?? 0;
+        var prom1 = s.j1_promedio ?? 0;
+        var prom2 = s.j2_promedio ?? 0;
+
+        qs('p1-meta').textContent = 'PROM ' + Number(prom1).toFixed(3) + ' · ENTRADAS ' + ent1;
+        qs('p2-meta').textContent = 'PROM ' + Number(prom2).toFixed(3) + ' · ENTRADAS ' + ent2;
+
+        var ronda = s.ronda_nombre || s.ronda || 'Ronda';
+        var mesa  = s.mesa || 1;
+        var estado = (s.estado || 'EN JUEGO').toUpperCase();
+        qs('set-label').textContent = ronda + ' · Mesa ' + mesa + ' · ' + estado;
+
+        var root = document.getElementById('overlay-root');
+        if(s.torneo_nombre){
+          if(!root.dataset.badge){
+            var row = document.createElement('div');
+            row.className = 'extra-row';
+            row.innerHTML = '' +
+              '<div class="badge-live"><span class="dot-live"></span> EN VIVO</div>' +
+              '<div class="tour-name" id="tour-name"></div>';
+            root.querySelector('.score-bar').appendChild(row);
+            root.dataset.badge = '1';
+          }
+          var nameEl = document.getElementById('tour-name');
+          if(nameEl) nameEl.textContent = s.torneo_nombre;
+        }
+      }
+
+      async function fetchState(){
+        var matchId = getMatchId();
+        if(!matchId) return;
+        try{
+          var url = API_BASE + '/overlay/state?match_id=' + encodeURIComponent(matchId);
+          var res = await fetch(url);
+          if(!res.ok) return;
+          var data = await res.json();
+          applyState(data);
+        }catch(e){
+          // silencioso para no romper el overlay en vivo
+        }
+      }
+
+      function start(){
+        fetchState();
+        timer = setInterval(fetchState, pollMs);
+      }
+
+      if(document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', start);
+      }else{
+        start();
+      }
+    })();
+  </script>
+</body>
+</html>
+
