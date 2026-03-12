@@ -391,7 +391,12 @@
 
     var colorActual = '#d4af37';
     var emojiActual = '🎱';
-    var logoBase64  = '';
+    var logoBase64  = ''; // Solo para preview local
+    var logoUrl     = ''; // URL real en Supabase Storage
+
+    var SUPABASE_URL = 'https://iwvogyloebvieloequzr.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
+    var BUCKET       = 'logos-clubes'; // bucket público en Supabase Storage
 
     /* ══ FUNCIONES DE LOGO ══════════════════════════════════════ */
     function cargarLogo(input) {
@@ -402,13 +407,68 @@
             input.value = '';
             return;
         }
+
+        // 1. Preview local inmediato (no se guarda)
         var reader = new FileReader();
         reader.onload = function(e) {
             logoBase64 = e.target.result;
             mostrarLogoPreview(logoBase64);
         };
-        reader.onerror = function() { alert('Error leyendo el archivo. Intenta de nuevo.'); };
         reader.readAsDataURL(file);
+
+        // 2. Subir a Supabase Storage en segundo plano
+        subirLogoASupabase(file);
+    }
+
+    async function subirLogoASupabase(file) {
+        var label = document.getElementById('logo-upload-label');
+        if (label) label.innerText = '⏳ SUBIENDO...';
+
+        try {
+            // Nombre único: club_timestamp.ext
+            var ext  = file.name.split('.').pop().toLowerCase();
+            var nom  = document.getElementById('inp-nombre') ? document.getElementById('inp-nombre').value.trim() : 'club';
+            var slug = nom.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'club';
+            var fileName = slug + '_' + Date.now() + '.' + ext;
+            var path = 'logos/' + fileName;
+
+            var res = await fetch(
+                SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + path,
+                {
+                    method: 'POST',
+                    headers: {
+                        'apikey':        SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_KEY,
+                        'Content-Type':  file.type,
+                        'x-upsert':      'true'
+                    },
+                    body: file  // archivo directo, sin base64
+                }
+            );
+
+            if (res.ok) {
+                // URL pública del logo en Supabase
+                logoUrl = SUPABASE_URL + '/storage/v1/object/public/' + BUCKET + '/' + path;
+                if (label) label.innerText = '✅ LOGO SUBIDO — TOCA PARA CAMBIAR';
+                console.log('[WL] Logo subido a Supabase:', logoUrl);
+
+                // Actualizar whitelabel con URL real
+                if (window.WL) {
+                    window.WL.setClub({ logo_url: logoUrl });
+                }
+                localStorage.setItem('wl_club_logo_url', logoUrl);
+            } else {
+                var err = await res.text();
+                console.error('[WL] Error subiendo logo:', err);
+                if (label) label.innerText = '⚠️ ERROR — Guardado local como respaldo';
+                // Fallback: guardar base64 solo si falla Supabase
+                logoUrl = logoBase64;
+            }
+        } catch(e) {
+            console.error('[WL] Sin conexión:', e);
+            if (label) label.innerText = '⚠️ Sin conexión — Logo guardado local';
+            logoUrl = logoBase64; // fallback offline
+        }
     }
 
     function mostrarLogoPreview(src) {
@@ -427,6 +487,7 @@
     function quitarLogo(e) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
         logoBase64 = '';
+        logoUrl    = '';
         var circle = document.getElementById('logo-preview-circle');
         var label  = document.getElementById('logo-upload-label');
         var btnRm  = document.getElementById('btn-remove-logo');
@@ -726,8 +787,8 @@
 
         // Guardar config — clave correcta: logoUrl
         var config = { ciudad:ciu, pais:pais, color:colorActual, emoji:emojiActual, tel:tel, ig:ig, fb:fb, modalidad:mod };
-        if (logoBase64) {
-            config.logoUrl = logoBase64;
+        if (logoUrl) {
+            config.logoUrl = logoUrl; // URL de Supabase Storage (liviana)
         } else {
             var prevConfig = JSON.parse(localStorage.getItem('CLUB_CONFIG') || '{}');
             var prevLogo = prevConfig.logoUrl || prevConfig.logo || '';

@@ -14,8 +14,12 @@ const DB = {
     // Método base para llamadas a Supabase
     _fetch: async function(endpoint, options = {}) {
         try {
+            // Timeout de 5 segundos — evita el reloj infinito en páginas
+            const controller = new AbortController();
+            const timer = setTimeout(function() { controller.abort(); }, 5000);
             const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
                 ...options,
+                signal: controller.signal,
                 headers: {
                     'apikey': SUPABASE_KEY,
                     'Authorization': `Bearer ${SUPABASE_KEY}`,
@@ -24,6 +28,7 @@ const DB = {
                     ...options.headers
                 }
             });
+            clearTimeout(timer);
             if (!res.ok) {
                 const err = await res.text();
                 console.warn('[DB] Error:', err);
@@ -32,7 +37,7 @@ const DB = {
             const text = await res.text();
             return text ? JSON.parse(text) : [];
         } catch (e) {
-            console.warn('[DB] Sin conexión, usando localStorage:', e.message);
+            console.warn('[DB] Sin conexión o timeout, usando localStorage:', e.message);
             return null;
         }
     },
@@ -770,10 +775,13 @@ const MasterVIP = {
     // Inicializar app: cargar datos frescos desde Supabase
     init: async function () {
         console.log('[MasterVIP] Iniciando sincronización con Supabase...');
-        await this.cargarJugadoresNube();
-        await this.cargarTorneosNube();
+        // Correr en paralelo — si uno falla, el otro sigue
+        await Promise.allSettled([
+            this.cargarJugadoresNube(),
+            this.cargarTorneosNube()
+        ]);
         LIMPIEZA.ejecutar().catch(function(e){ console.warn('[LIMPIEZA]', e); });
-        console.log('[MasterVIP] ✅ Datos sincronizados');
+        console.log('[MasterVIP] ✅ Sincronización completada');
     },
 
     // ─────────────────────────────────────────
@@ -1426,4 +1434,4 @@ const LIMPIEZA = {
             }
         });
     }
-};
+};s

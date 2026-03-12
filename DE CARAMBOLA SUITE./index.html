@@ -1529,8 +1529,18 @@ function iniciarSlider() {
         if (slideClub) {
             slideClub.style.display = '';
             if (lblClub) lblClub.innerText = nombreSede;
-            if (logoEl && typeof MasterVIP !== 'undefined') {
-                logoEl.innerHTML = MasterVIP.getLogoHTML(22, 'box-shadow:none;border-width:1px;');
+            // ── Logo del club en el badge del slider ──
+            // whitelabel.js es la única fuente de verdad del logo.
+            // Solo inyectar aquí si el elemento está vacío (WL no ha corrido aún).
+            if (logoEl && !logoEl.querySelector('img')) {
+                var logoUrl = (window.WL && window.WL.getLogoUrl && window.WL.getLogoUrl())
+                    || localStorage.getItem('wl_club_logo_url')
+                    || '';
+                if (logoUrl) {
+                    logoEl.innerHTML = '<img src="' + logoUrl + '" alt="Logo" style="width:22px;height:22px;border-radius:4px;object-fit:cover;box-shadow:none;border:1px solid ' + color + '44;">';
+                } else {
+                    logoEl.innerHTML = '<span style="font-size:14px;">&#127963;</span>';
+                }
             }
             if (badgeClub) {
                 badgeClub.style.background = color + '18';

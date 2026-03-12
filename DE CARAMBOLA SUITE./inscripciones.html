@@ -434,7 +434,7 @@
                 </div>
                 <div class="form-grupo">
                     <label class="form-label">CIUDAD</label>
-                    <input type="text" class="form-input small" id="inp-ciudad" placeholder="Ciudad..." readonly style="color:#666;cursor:not-allowed;">
+                    <input type="text" class="form-input small" id="inp-ciudad" placeholder="Ciudad...">
                 </div>
             </div>
             
@@ -493,8 +493,7 @@ var torneo = null;
 var tabActual = 'nuevo';
 
 window.onload = async function() {
-    try { await MasterVIP.init();
-        SESSION.verificarAlCargar('jugador'); } catch(e) { console.warn('Init offline:', e); }
+    try { await MasterVIP.init(); } catch(e) { console.warn('Init offline:', e); }
     MasterVIP.applyDesign();
     await cargarClubesSelect();
     cargar();
@@ -650,12 +649,6 @@ function toggleClave() {
 }
 
 async function inscribirNuevo() {
-    // Bloqueo suave — requiere cédula para inscribir en torneos
-    var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
-    if (!jugActivo || !jugActivo.cedula) {
-        alert('⚠️ Para inscribir jugadores en torneos debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
-        return;
-    }
     var nombre    = document.getElementById('inp-nombre').value.trim().toUpperCase();
     var tipoDoc   = document.getElementById('inp-tipo-doc').value;
     var documento = document.getElementById('inp-documento').value.trim().toUpperCase();
@@ -717,7 +710,7 @@ async function inscribirNuevo() {
     }
 }
 
-function inscribirExistente(nombre) {
+async function inscribirExistente(nombre) {
     var jugador = MasterVIP.buscarJugador(nombre);
     
     if (!jugador) {

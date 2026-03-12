@@ -151,8 +151,22 @@ var torneo = null;
 var vistaActual = 'lista';
 
 window.onload = async function() {
-    try { await MasterVIP.init();
-        SESSION.verificarAlCargar('jugador'); } catch(e) { console.warn('Init offline:', e); }
+    // Timeout de seguridad — si algo cuelga, la página igual carga en 3 seg
+    var initTimeout = setTimeout(function() {
+        console.warn('Init timeout — cargando brackets sin sesión completa');
+        cargar();
+    }, 3000);
+
+    try {
+        await Promise.race([
+            MasterVIP.init(),
+            new Promise(function(_, rej) { setTimeout(function() { rej(new Error('timeout')); }, 2500); })
+        ]);
+        SESSION.verificarAlCargar('jugador');
+    } catch(e) {
+        console.warn('Init parcial:', e);
+    }
+    clearTimeout(initTimeout);
     MasterVIP.applyDesign();
     // wl_club_nombre reemplaza getSede() obsoleto
     var clubNom = localStorage.getItem('wl_club_nombre');
