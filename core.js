@@ -238,6 +238,8 @@ const MasterVIP = {
                     entradaObjetivo: t.entrada_objetivo || local.entradaObjetivo || 0,
                     tiempoEntrada: t.tiempo_entrada || local.tiempoEntrada || 40,
                     modalidad: t.modalidad || local.modalidad || 'Libre',
+                    sitioEvento: t.sitio_evento || local.sitioEvento || '',
+                    multisala: (typeof t.multisala === 'boolean') ? t.multisala : !!local.multisala,
                     reglamento: t.reglamento || local.reglamento || '',
                     estado: t.estado || 'ABIERTO',
                     // Si el local ya tiene inscritos, los respetamos (pueden tener bye/eliminado)
@@ -326,6 +328,8 @@ const MasterVIP = {
             entradaObjetivo: parseInt(config.entradaObjetivo) || 0,
             tiempoEntrada: parseInt(config.tiempoEntrada) || 40,
             modalidad: config.modalidad || 'Libre',
+            sitioEvento: config.sitioEvento || '',
+            multisala: !!config.multisala,
             reglamento: config.reglamento || '',
             estado: 'ABIERTO',
             inscritos: [],

@@ -55,6 +55,8 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
 .fmt-chip { flex:1; padding:10px 4px; background:#0a0a0a; border:1.5px solid #1a1a1a; border-radius:12px; color:#444; font-family:'Arial Black',sans-serif; font-size:0.38rem; letter-spacing:1px; text-align:center; cursor:pointer; transition:0.18s; line-height:1.5; }
 .fmt-chip .ico { display:block; font-size:1rem; margin-bottom:2px; }
 .fmt-chip.on { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.07); }
+.sede-chip { flex:1; padding:10px 4px; background:#0a0a0a; border:1.5px solid #1a1a1a; border-radius:12px; color:#444; font-family:'Arial Black',sans-serif; font-size:0.38rem; letter-spacing:1px; text-align:center; cursor:pointer; transition:0.18s; line-height:1.5; }
+.sede-chip.on { border-color:var(--azul); color:var(--azul); background:rgba(52,152,219,0.07); }
 
 /* ── SEPARADOR ── */
 .sep { display:flex; align-items:center; gap:10px; margin:12px 0 8px; }
@@ -253,6 +255,16 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
         </div>
     </div>
 
+    <div class="sep"><div class="sep-line"></div><span class="sep-txt">📍 SITIO</span><div class="sep-line"></div></div>
+    <div class="campo">
+        <label>Sitio donde se jugará el reto</label>
+        <input type="text" id="r-sitio" placeholder="Ej: CLUB BILLARES CENTRO · MESA 4" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="fmt-row">
+        <button class="sede-chip on" onclick="selModoSede(false,this)">SALA ÚNICA</button>
+        <button class="sede-chip" onclick="selModoSede(true,this)">MULTISALA</button>
+    </div>
+
     <!-- Bolsa -->
     <div class="sep"><div class="sep-line"></div><span class="sep-txt">💰 BOLSA</span><div class="sep-line"></div></div>
     <div class="bolsa-box">
@@ -394,6 +406,7 @@ var _bo     = 1;
 var _tipo   = 'publico';
 var _reto   = null;
 var _cdInterval = null;
+var _multiSala = false;
 
 /* ── Tipo de reto ── */
 function selTipo(t, el) {
@@ -412,6 +425,12 @@ function selTipo(t, el) {
 function selFmt(n, el) {
     _bo = n;
     document.querySelectorAll('.fmt-chip').forEach(function(b){ b.classList.remove('on'); });
+    el.classList.add('on');
+}
+
+function selModoSede(esMulti, el) {
+    _multiSala = !!esMulti;
+    document.querySelectorAll('.sede-chip').forEach(function(b){ b.classList.remove('on'); });
     el.classList.add('on');
 }
 
@@ -472,6 +491,8 @@ function resumenHTML(r) {
     return '<div class="rc-fila"><span class="rc-lbl">RETADOR</span><span class="rc-val oro">'+r.j1+'</span></div>' +
            '<div class="rc-fila"><span class="rc-lbl">RETADO</span>'+rival+'</div>' +
            '<div class="rc-fila"><span class="rc-lbl">📅 FECHA Y HORA</span><span class="rc-val oro">'+fechaFmt+'</span></div>' +
+           '<div class="rc-fila"><span class="rc-lbl">📍 SITIO</span><span class="rc-val">'+(r.sitio || '—')+'</span></div>' +
+           '<div class="rc-fila"><span class="rc-lbl">SALAS</span><span class="rc-val">'+(r.multisala ? 'MULTISALA' : 'SALA ÚNICA')+'</span></div>' +
            '<div class="rc-fila"><span class="rc-lbl">MODALIDAD</span><span class="rc-val">'+r.modalidad+'</span></div>' +
            '<div class="rc-fila"><span class="rc-lbl">FORMATO</span><span class="rc-val">'+_fmtLbl[r.bestOf]+'</span></div>' +
            '<div class="rc-fila"><span class="rc-lbl">METAS</span><span class="rc-val">'+r.meta1+' vs '+r.meta2+'</span></div>' +
@@ -493,6 +514,8 @@ function crearReto() {
 
     var fecha = document.getElementById('r-fecha').value;
     if (!fecha) { alert('⏰ La fecha y hora del reto es obligatoria'); return; }
+    var sitio = document.getElementById('r-sitio').value.trim().toUpperCase();
+    if (!sitio) { alert('📍 Debes indicar el sitio del reto'); return; }
 
     var fechaReto = new Date(fecha);
     if (fechaReto < new Date()) { alert('⏰ La fecha debe ser en el futuro'); return; }
@@ -515,6 +538,8 @@ function crearReto() {
         creado:       Date.now(),
         fechaReto:    fecha,        // ISO string de la fecha del partido
         woDeadline:   fechaReto.getTime() + 15*60*1000, // +15 min = W/O
+        sitio:        sitio,
+        multisala:    _multiSala,
         j1:           n1,
         j2:           n2 || '',     // vacío si es público
         confirmJ1:    false,
@@ -566,6 +591,8 @@ function compartirWA() {
               '🤜 Retador: *'+r.j1+'*\n' +
               rival + '\n\n' +
               '📅 Fecha: *'+fechaStr+'*\n' +
+              '📍 Sitio: *'+(r.sitio || 'POR DEFINIR')+'*\n' +
+              '🏟️ Salas: *'+(r.multisala ? 'MULTISALA' : 'SALA ÚNICA')+'*\n' +
               '🏓 Modalidad: *'+r.modalidad+'*\n' +
               '🏆 Formato: *'+_fmtLbl[r.bestOf]+'*\n' +
               '⚖️ Metas: *'+r.meta1+' vs '+r.meta2+'*' +
@@ -741,6 +768,12 @@ window.onload = function() {
     document.getElementById('r-fecha').min =
         minDate.getFullYear()+'-'+pad(minDate.getMonth()+1)+'-'+pad(minDate.getDate())+
         'T'+pad(minDate.getHours())+':'+pad(minDate.getMinutes());
+
+    // Sugerir sitio por club activo para ahorrar pasos
+    var clubNom = localStorage.getItem('wl_club_nombre') || '';
+    if (clubNom && clubNom !== 'GLOBAL') {
+        document.getElementById('r-sitio').value = (clubNom + ' · MESA PRINCIPAL').toUpperCase();
+    }
 
     // Detectar si viene con ?reto=CODIGO (rival aceptando)
     var params = new URLSearchParams(window.location.search);

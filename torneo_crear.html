@@ -510,6 +510,31 @@ body {
 
     <div class="card">
         <div class="card-lbl">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            SITIO DEL EVENTO
+        </div>
+        <input type="text" class="input-base" id="t-sitio"
+               placeholder="Ej: CLUB BILLARES EL CENTRO · MESA 1-4"
+               oninput="this.value=this.value.toUpperCase()">
+    </div>
+
+    <div class="card">
+        <div class="card-lbl">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="6" height="6" rx="1"/><rect x="15" y="4" width="6" height="6" rx="1"/><rect x="3" y="14" width="6" height="6" rx="1"/><rect x="15" y="14" width="6" height="6" rx="1"/></svg>
+            CONFIGURACIÓN DE SALAS
+        </div>
+        <div class="modal-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="modal-pill sel" onclick="selMultiSala(false,this)">
+                <b>SALA ÚNICA</b><span>UN SOLO SITIO DE JUEGO</span>
+            </div>
+            <div class="modal-pill" onclick="selMultiSala(true,this)">
+                <b>MULTISALA</b><span>VARIAS MESAS / ZONAS</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-lbl">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
             MODALIDAD DE JUEGO
         </div>
@@ -818,6 +843,7 @@ body {
 <script>
 var estado = {
     paso:0, nombre:'', fecha:'', modalidad:'3 Bandas',
+    sitio:'', multisala:false,
     sistema:'', cupo:0, tiempo:40, meta:10, reglamento:'',
     inscripcion:50000, base:100000,
     pctPremios:80, pctFee:20, dist1:50, dist2:30, dist3:20,
@@ -828,6 +854,9 @@ window.onload = function() {
     try { MasterVIP.applyDesign(); } catch(e){}
     var sede = MasterVIP.getSede();
     document.getElementById('lbl-sede').innerText = sede.nombre !== 'GLOBAL' ? sede.nombre : 'GLOBAL';
+    if (sede && sede.nombre && sede.nombre !== 'GLOBAL') {
+        document.getElementById('t-sitio').value = (sede.nombre + ' · SEDE PRINCIPAL').toUpperCase();
+    }
     var hoy = new Date().toISOString().split('T')[0];
     document.getElementById('t-fecha').min = hoy;
     calcBolsa();
@@ -855,8 +884,10 @@ function validar(num) {
     if (num===0) {
         estado.nombre   = (document.getElementById('t-nombre').value||'').trim();
         estado.fecha    = document.getElementById('t-fecha').value;
+        estado.sitio    = (document.getElementById('t-sitio').value||'').trim();
         if (!estado.nombre) { showToast('Ponle un nombre al torneo'); return false; }
         if (!estado.fecha)  { showToast('Define la fecha del torneo'); return false; }
+        if (!estado.sitio)  { showToast('Define el sitio del evento'); return false; }
     }
     if (num===1) {
         if (!estado.sistema && !estado.formatoImportado) { showToast('Elige el sistema de torneo'); return false; }
@@ -885,8 +916,20 @@ function validar(num) {
 
 /* ── PASO 1 ── */
 function selModalidad(val, el) {
-    document.querySelectorAll('.modal-pill').forEach(function(p){ p.classList.remove('sel'); });
+    var cont = el.parentElement;
+    if (cont) {
+        cont.querySelectorAll('.modal-pill').forEach(function(p){ p.classList.remove('sel'); });
+    }
     el.classList.add('sel'); estado.modalidad = val;
+}
+
+function selMultiSala(val, el) {
+    var cont = el.parentElement;
+    if (cont) {
+        cont.querySelectorAll('.modal-pill').forEach(function(p){ p.classList.remove('sel'); });
+    }
+    el.classList.add('sel');
+    estado.multisala = !!val;
 }
 
 /* ── PASO 2 ── */
@@ -999,6 +1042,8 @@ function generarResumen() {
     }
     var h='';
     h+=row('MODALIDAD', estado.modalidad);
+    h+=row('SITIO', estado.sitio || '—');
+    h+=row('SALAS', estado.multisala ? 'MULTISALA' : 'SALA ÚNICA');
     h+=row('FORMATO', sisteNom);
     h+=row('CUPO', estado.cupo+' jugadores');
     h+=row('TIEMPO', estado.tiempo+'s por entrada');
@@ -1017,6 +1062,7 @@ function crearTorneo() {
     var fmt = estado.formatoImportado;
     var torneo = MasterVIP.crearTorneo({
         nombre: estado.nombre, fechaInicio: estado.fecha, modalidad: estado.modalidad,
+        sitioEvento: estado.sitio, multisala: estado.multisala,
         sistema: estado.sistema||(fmt?fmt.formatoId:'brackets'),
         cupoMax: estado.cupo, tiempoEntrada: estado.tiempo,
         entradaObjetivo: estado.meta, reglamento: estado.reglamento,
