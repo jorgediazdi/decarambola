@@ -487,6 +487,36 @@
             text-align:center;
             padding:8px 0 10px;
         }
+        .buscador-mis-clubes {
+            margin-bottom:10px;
+        }
+        .buscador-mis-clubes input {
+            width:100%;
+            background:#090909;
+            border:1px solid #1a1a1a;
+            border-radius:12px;
+            color:#ddd;
+            padding:11px 13px;
+            font-size:0.55rem;
+            letter-spacing:1px;
+            outline:none;
+            transition:0.2s;
+        }
+        .buscador-mis-clubes input:focus {
+            border-color:rgba(52,152,219,0.45);
+            box-shadow:0 0 0 2px rgba(52,152,219,0.08);
+        }
+        .buscador-mis-clubes input::placeholder {
+            color:#444;
+        }
+        .sin-resultados-mis-clubes {
+            display:none;
+            color:#666;
+            font-size:0.5rem;
+            letter-spacing:1px;
+            text-align:center;
+            padding:8px 0 10px;
+        }
 
         /* ── ACCIONES RÁPIDAS ── */
         .rapidas-grid {
@@ -988,6 +1018,17 @@
         <!-- SECCIÓN: MIS CLUBES -->
         <div id="sec-mis-clubes" class="club-seccion" style="display:none;">
             <div class="seccion-label" style="margin-top:16px;">&#127970; MIS CLUBES</div>
+            <div class="buscador-mis-clubes">
+                <input
+                    id="inp-buscar-mis-clubes"
+                    type="text"
+                    placeholder="🔎 Buscar mis clubes por nombre o código"
+                    oninput="filtrarMisClubes(this.value)"
+                    autocomplete="off">
+            </div>
+            <div id="sin-resultados-mis-clubes" class="sin-resultados-mis-clubes">
+                No se encontraron clubes con ese texto
+            </div>
             <div id="lista-mis-clubes">
                 <div style="color:#333;font-size: 0.65rem;text-align:center;padding:20px;">
                     No perteneces a ningún club todavía
@@ -1328,7 +1369,11 @@ function abrirPanel(tipo) {
 
     if (tipo === 'org') resetFiltroProyectos();
     if (tipo === 'jug') cargarDatosJugador();
-    if (tipo === 'club') cargarMisClubes();
+    if (tipo === 'club') {
+        var inpClub = document.getElementById('inp-buscar-mis-clubes');
+        if (inpClub) inpClub.value = '';
+        cargarMisClubes('');
+    }
 }
 
 // ── Identificación por cédula ──
@@ -1519,7 +1564,11 @@ function mostrarSeccion(id) {
         var el = document.getElementById(s);
         if(el) el.style.display = (s===id && el.style.display==='none') ? 'block' : 'none';
     });
-    if(id==='sec-mis-clubes') cargarMisClubes();
+    if(id==='sec-mis-clubes') {
+        var inp = document.getElementById('inp-buscar-mis-clubes');
+        if (inp) inp.value = '';
+        cargarMisClubes('');
+    }
     if(id==='sec-admin-club') {
         var clubes = JSON.parse(localStorage.getItem('mis_clubes')||'[]');
         var adminClub = clubes.find(function(cl){ return cl.admin === true; });
@@ -1632,15 +1681,42 @@ async function unirseClub() {
     }
 }
 
-function cargarMisClubes() {
+function filtrarMisClubes(texto) {
+    cargarMisClubes(texto);
+}
+
+function cargarMisClubes(texto) {
     var clubes = JSON.parse(localStorage.getItem('mis_clubes')||'[]');
     var cont = document.getElementById('lista-mis-clubes');
+    var msgSinResultados = document.getElementById('sin-resultados-mis-clubes');
     if(!cont) return;
+    if (msgSinResultados) msgSinResultados.style.display = 'none';
     if(!clubes.length){
         cont.innerHTML='<div style="color:#333;font-size: 0.65rem;text-align:center;padding:20px;">No perteneces a ningún club</div>';
         return;
     }
-    cont.innerHTML = clubes.map(function(c){
+
+    var inp = document.getElementById('inp-buscar-mis-clubes');
+    var criterioRaw = typeof texto === 'string' ? texto : (inp ? inp.value : '');
+    var criterio = normalizarTextoBusqueda(criterioRaw).trim();
+    var filtrados = clubes.filter(function(c) {
+        if (!criterio) return true;
+        var contenido = normalizarTextoBusqueda([
+            c.nombre || '',
+            c.codigo || '',
+            c.ciudad || '',
+            c.admin ? 'ADMIN' : ''
+        ].join(' '));
+        return contenido.indexOf(criterio) >= 0;
+    });
+
+    if (!filtrados.length) {
+        cont.innerHTML = '';
+        if (msgSinResultados) msgSinResultados.style.display = 'block';
+        return;
+    }
+
+    cont.innerHTML = filtrados.map(function(c){
         var cod = c.codigo;
         return '<div class="menu-lista-item" onclick="activarClub(this.dataset.cod)" data-cod="'+cod+'" style="border-color:'+c.color+'33;">'+
             '<span style="width:10px;height:10px;border-radius:50%;background:'+c.color+';flex-shrink:0;display:block;"></span>'+
