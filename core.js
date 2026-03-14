@@ -72,6 +72,31 @@ const DB = {
     }
 };
 
+// Evita pantallas bloqueadas por JSON corrupto en localStorage
+(function sanearStorageJSON() {
+    var defaults = {
+        mi_perfil: '{}',
+        jugador_activo: 'null',
+        club_activo: 'null',
+        mis_clubes: '[]',
+        RETOS_PENDIENTES: '{}',
+        TORNEOS_LISTA: '[]',
+        JUGADORES_PLATAFORMA: '[]',
+        ranking_historico_club: '[]',
+        wl_club_cache: '{}'
+    };
+    Object.keys(defaults).forEach(function (k) {
+        var raw = localStorage.getItem(k);
+        if (raw === null || raw === undefined || raw === '') return;
+        try {
+            JSON.parse(raw);
+        } catch (e) {
+            console.warn('[Storage] JSON inválido en', k, '→ restaurando valor seguro');
+            localStorage.setItem(k, defaults[k]);
+        }
+    });
+})();
+
 const MasterVIP = {
 
     // ─────────────────────────────────────────
