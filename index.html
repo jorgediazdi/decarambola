@@ -1051,7 +1051,7 @@
                 </div>
                 <span class="mli-arrow">›</span>
             </a>
-            <a href="Configurador_formato.html" class="menu-lista-item">
+            <a href="Configurador formato.html" class="menu-lista-item">
                 <span class="mli-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
                         <circle cx="12" cy="12" r="3"/>
@@ -1240,7 +1240,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="Configurador_formato.html" class="menu-lista-item">
+        <a href="Configurador formato.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round">
                     <circle cx="12" cy="12" r="3"/>
@@ -1608,6 +1608,34 @@ function generarCodigo(nombre) {
     return prefix + '-' + num;
 }
 
+function sincronizarWhitelabelClub(club) {
+    if (!club || !club.nombre) return;
+    try {
+        if (club.id) localStorage.setItem('wl_club_id', String(club.id));
+        localStorage.setItem('wl_club_nombre', club.nombre || '');
+        localStorage.setItem('wl_club_color', club.color || '#3498db');
+        localStorage.setItem('wl_club_logo_url', club.logo_url || '');
+        localStorage.setItem('wl_club_cache', JSON.stringify({
+            id: club.id || null,
+            codigo: club.codigo || '',
+            nombre: club.nombre || '',
+            ciudad: club.ciudad || '',
+            color_primario: club.color || '#3498db',
+            logo_url: club.logo_url || ''
+        }));
+    } catch (e) {}
+
+    if (window.WL && typeof window.WL.setClub === 'function') {
+        window.WL.setClub({
+            id: club.id,
+            codigo: club.codigo,
+            nombre: club.nombre,
+            logo_url: club.logo_url || '',
+            color_primario: club.color || '#3498db'
+        });
+    }
+}
+
 function crearClub() {
     var nombre = (document.getElementById('inp-club-nombre').value||'').trim();
     var ciudad = (document.getElementById('inp-club-ciudad').value||'').trim();
@@ -1622,6 +1650,7 @@ function crearClub() {
     clubes.unshift(club);
     localStorage.setItem('mis_clubes', JSON.stringify(clubes));
     localStorage.setItem('club_activo', JSON.stringify(club));
+    sincronizarWhitelabelClub(club);
     actualizarHeaderClub(club);
     document.getElementById('sec-crear-club').style.display = 'none';
     document.getElementById('sec-admin-club').style.display = 'block';
@@ -1674,16 +1703,7 @@ async function unirseClub() {
         clubes.push(club);
         localStorage.setItem('mis_clubes', JSON.stringify(clubes));
         localStorage.setItem('club_activo', JSON.stringify(club));
-
-        // Activar whitelabel con datos del club
-        if(window.WL) {
-            window.WL.setClub({
-                id: club.id,
-                nombre: club.nombre,
-                logo_url: club.logo_url,
-                color_primario: club.color
-            });
-        }
+        sincronizarWhitelabelClub(club);
 
         // Actualizar perfil del jugador con club_id
         var perfil = JSON.parse(localStorage.getItem('mi_perfil')||'null');
@@ -1757,6 +1777,7 @@ function activarClub(el) { var codigo = typeof el === 'string' ? el : el.dataset
     var club = clubes.find(function(c){ return c.codigo===codigo; });
     if(!club) return;
     localStorage.setItem('club_activo', JSON.stringify(club));
+    sincronizarWhitelabelClub(club);
     actualizarHeaderClub(club);
     if(club.admin){
         document.getElementById('sec-admin-club').style.display='block';
@@ -1931,6 +1952,7 @@ function restaurarConexionPortales() {
     }
 
     if (club && club.nombre) {
+        sincronizarWhitelabelClub(club);
         actualizarHeaderClub(club);
         var secAdmin = document.getElementById('sec-admin-club');
         var lblCodigo = document.getElementById('lbl-codigo-club');

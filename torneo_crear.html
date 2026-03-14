@@ -1,308 +1,1041 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ranking — DeCarambola</title>
-    <style>
-        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
-        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DeCarambola — Crear Torneo</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root {
+    --oro:#d4af37; --neon:#2eff70; --rojo:#e74c3c; --azul:#3498db;
+    --bg:#080808; --card:#0f0f0f; --borde:#1a1a1a;
+}
+html { font-size:16px; }
+body {
+    background:var(--bg); color:#e0e0e0;
+    font-family:'Arial Black',Arial,sans-serif;
+    padding-bottom:130px;
+}
 
-        /* HEADER */
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
-        .header-tit { color:var(--oro); font-size:1.1rem; letter-spacing:3px; }
-        .header-sub { color:#333; font-size: 0.65rem; letter-spacing:2px; margin-top:2px; }
-        .btn-hdr { background:none; border:1px solid var(--g1); color:#444; padding:7px 14px; border-radius:10px; font-size:0.5rem; cursor:pointer; letter-spacing:1px; font-family:'Arial Black',sans-serif; text-decoration:none; }
+/* ═══ HEADER ═══ */
+.header {
+    background:#0a0a0a; border-bottom:2px solid var(--borde);
+    padding:20px 18px 18px;
+    position:sticky; top:0; z-index:60;
+    display:flex; align-items:center; gap:14px;
+}
+.back-btn {
+    width:42px; height:42px; border-radius:12px;
+    background:#111; border:1px solid #222;
+    display:flex; align-items:center; justify-content:center;
+    text-decoration:none; color:#666; flex-shrink:0; transition:0.2s;
+}
+.back-btn:active { border-color:var(--oro); color:var(--oro); }
+.h-titulo { font-size:1.1rem; letter-spacing:2px; color:var(--oro); }
+.h-sub    { font-size:0.62rem; letter-spacing:2px; color:#444; margin-top:3px; }
+.sede-chip {
+    margin-left:auto; background:#111; border:1px solid #1e1e1e;
+    border-radius:10px; padding:5px 14px;
+    font-size:0.54rem; letter-spacing:2px; color:#555; white-space:nowrap;
+}
 
-        .wrap { width:95vw; max-width:500px; padding-top:14px; padding-bottom:100px; }
+/* ═══ PROGRESS BAR ═══ */
+.prog-wrap {
+    background:#080808; border-bottom:1px solid var(--borde);
+    padding:16px 18px 14px;
+    position:sticky; top:70px; z-index:59;
+}
+.prog-rail {
+    display:flex; align-items:flex-start;
+    max-width:540px; margin:0 auto;
+}
+.prog-step { display:flex; flex-direction:column; align-items:center; gap:6px; flex:0; }
+.prog-dot {
+    width:30px; height:30px; border-radius:50%;
+    background:#111; border:2px solid #222;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.65rem; color:#444; transition:all 0.35s;
+    font-weight:900; position:relative; z-index:2; flex-shrink:0;
+}
+.prog-dot.activo {
+    background:var(--oro); border-color:var(--oro); color:#000;
+    box-shadow:0 0 18px rgba(212,175,55,0.45);
+}
+.prog-dot.hecho {
+    background:rgba(46,255,112,0.12); border-color:rgba(46,255,112,0.5); color:var(--neon);
+}
+.prog-lbl {
+    font-size:0.42rem; letter-spacing:1px; color:#333;
+    text-align:center; white-space:nowrap; transition:0.3s; width:54px;
+}
+.prog-lbl.activo { color:var(--oro); }
+.prog-lbl.hecho  { color:rgba(46,255,112,0.6); }
+.prog-linea {
+    flex:1; height:2px; background:#181818;
+    margin:14px 0 0; transition:background 0.4s;
+    border-radius:2px;
+}
+.prog-linea.hecha { background:rgba(46,255,112,0.25); }
 
-        /* PODIO TOP 3 */
-        .podio { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px; }
-        .podio-card { border-radius:18px; padding:14px 8px 12px; text-align:center; position:relative; overflow:hidden; cursor:pointer; }
-        .podio-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:18px 18px 0 0; }
+/* ═══ WRAP ═══ */
+.wrap { padding:24px 16px; max-width:580px; margin:0 auto; }
 
-        /* ORO */
-        .pod-1 { background:linear-gradient(160deg,#1a1400,#0a0800); border:1px solid rgba(212,175,55,0.5); order:2; }
-        .pod-1::before { background:linear-gradient(90deg,#4a3000,var(--oro),#fff9c4,var(--oro),#4a3000); }
-        /* PLATA */
-        .pod-2 { background:linear-gradient(160deg,#141414,#0a0a0a); border:1px solid rgba(192,192,192,0.3); order:1; }
-        .pod-2::before { background:linear-gradient(90deg,#333,#c0c0c0,#fff,#c0c0c0,#333); }
-        /* BRONCE */
-        .pod-3 { background:linear-gradient(160deg,#140e00,#0a0800); border:1px solid rgba(205,127,50,0.3); order:3; }
-        .pod-3::before { background:linear-gradient(90deg,#3a2000,#cd7f32,#f0b060,#cd7f32,#3a2000); }
+/* ═══ SECCIONES ═══ */
+.seccion { display:none; animation:fadeUp 0.28s ease both; }
+.seccion.visible { display:block; }
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:translateY(0); }
+}
 
-        .pod-corona { font-size:1.4rem; line-height:1; margin-bottom:6px; display:block; }
-        .pod-av { width:46px; height:46px; border-radius:50%; margin:0 auto 6px; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:900; }
-        .pod-1 .pod-av { background:radial-gradient(circle at 35% 35%,#fff9c4,#d4af37,#6a4a00); box-shadow:0 0 14px rgba(212,175,55,0.5); color:#000; }
-        .pod-2 .pod-av { background:radial-gradient(circle at 35% 35%,#f0f0f0,#c0c0c0,#606060); box-shadow:0 0 10px rgba(192,192,192,0.3); color:#000; }
-        .pod-3 .pod-av { background:radial-gradient(circle at 35% 35%,#f0c080,#cd7f32,#6a3a00); box-shadow:0 0 10px rgba(205,127,50,0.3); color:#000; }
+/* ═══ PASO BADGE ═══ */
+.paso-badge {
+    display:inline-flex; align-items:center; gap:10px;
+    background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.2);
+    border-radius:30px; padding:8px 18px; margin-bottom:22px;
+}
+.paso-num {
+    width:26px; height:26px; border-radius:50%;
+    background:var(--oro); color:#000; font-size:0.72rem; font-weight:900;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.paso-lbl { font-size:0.72rem; letter-spacing:2px; color:var(--oro); }
 
-        .pod-nom { font-size:0.5rem; letter-spacing:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; display:block; }
-        .pod-1 .pod-nom { color:var(--oro); }
-        .pod-2 .pod-nom { color:#c0c0c0; }
-        .pod-3 .pod-nom { color:#cd7f32; }
-        .pod-prom { font-family:'Courier New',monospace; font-size:0.9rem; display:block; }
-        .pod-1 .pod-prom { color:var(--oro); }
-        .pod-2 .pod-prom { color:#c0c0c0; }
-        .pod-3 .pod-prom { color:#cd7f32; }
-        .pod-cat { font-size:0.38rem; color:#444; letter-spacing:1px; display:block; margin-top:2px; }
+/* ═══ CARDS ═══ */
+.card {
+    background:var(--card); border:1px solid var(--borde);
+    border-radius:22px; padding:24px 22px; margin-bottom:14px;
+}
+.card-lbl {
+    font-size:0.62rem; letter-spacing:2px; color:#555; margin-bottom:12px;
+    display:flex; align-items:center; gap:8px;
+}
+.card-lbl svg { opacity:0.6; }
 
-        /* KPI */
-        .kpi-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
-        .kpi { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:10px 8px; text-align:center; }
-        .kpi b { color:var(--neon); font-size:1.2rem; display:block; font-family:'Courier New',monospace; line-height:1; }
-        .kpi small { color:#333; font-size: 0.6rem; letter-spacing:1px; margin-top:3px; display:block; }
+/* ═══ INPUTS ═══ */
+.input-base {
+    width:100%; background:transparent; border:none;
+    border-bottom:1px solid #222; color:#fff;
+    font-size:1rem; padding:10px 0; outline:none;
+    font-family:'Arial Black',sans-serif; transition:0.2s;
+    letter-spacing:1px;
+}
+.input-base:focus { border-bottom-color:rgba(212,175,55,0.45); }
+.input-base::placeholder { color:#2a2a2a; font-size:0.8rem; letter-spacing:1px; }
+.input-num {
+    padding:12px 16px; background:#0a0a0a;
+    border:1px solid #222; border-radius:14px;
+    color:#fff; font-family:'Courier New',monospace;
+    font-size:1rem; text-align:center; outline:none; transition:0.2s;
+}
+.input-num:focus { border-color:rgba(212,175,55,0.4); }
 
-        /* FILTROS */
-        .filtros { display:flex; gap:6px; margin-bottom:10px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
-        .filtros::-webkit-scrollbar { display:none; }
-        .filtro-btn { background:var(--g3); border:1px solid var(--g1); color:#444; padding:7px 14px; border-radius:20px; font-size:0.5rem; cursor:pointer; white-space:nowrap; font-family:'Arial Black',sans-serif; transition:0.2s; flex-shrink:0; display:flex; align-items:center; gap:5px; }
-        .filtro-btn.activo { background:rgba(212,175,55,0.1); color:var(--oro); border-color:rgba(212,175,55,0.4); }
-        .filtro-ico { font-size:0.8rem; line-height:1; }
+/* ═══ MODALIDAD PILLS ═══ */
+.modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px; }
+.modal-pill {
+    background:#111; border:2px solid #1a1a1a; border-radius:16px;
+    padding:14px 10px; text-align:center; cursor:pointer; transition:0.2s;
+}
+.modal-pill b { display:block; font-size:0.78rem; color:#777; margin-bottom:3px; }
+.modal-pill span { font-size:0.5rem; color:#333; letter-spacing:1px; }
+.modal-pill.sel { border-color:var(--oro); background:rgba(212,175,55,0.06); }
+.modal-pill.sel b { color:var(--oro); }
+.modal-pill.sel span { color:rgba(212,175,55,0.5); }
+.modal-pill:active { transform:scale(0.97); }
 
-        /* SECCIÓN TÍTULO */
-        .sec-tit { font-size: 0.65rem; color:#333; letter-spacing:3px; margin:18px 0 10px; border-left:3px solid var(--g1); padding-left:10px; }
+/* ═══ SEP ═══ */
+.sep { display:flex; align-items:center; gap:14px; margin:28px 0 20px; }
+.sep-line { flex:1; height:1px; background:var(--borde); }
+.sep-centro { display:flex; align-items:center; gap:10px; }
+.sep-circ {
+    width:28px; height:28px; border-radius:50%;
+    background:var(--oro); color:#000; font-size:0.78rem; font-weight:900;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.sep-txt { font-size:0.75rem; letter-spacing:2px; color:#555; white-space:nowrap; }
 
-        /* FILA */
-        .fila { display:flex; align-items:center; background:var(--g3); border:1px solid var(--g1); border-radius:16px; padding:11px 14px; margin-bottom:8px; gap:10px; cursor:pointer; transition:0.15s; position:relative; overflow:hidden; }
-        .fila:active { transform:scale(0.99); }
+/* ═══ SISTEMA CARDS ═══ */
+.sistema-grid { display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
+.sistema-card {
+    background:var(--card); border:2px solid var(--borde);
+    border-radius:20px; padding:22px 20px;
+    cursor:pointer; transition:0.2s; position:relative; overflow:hidden;
+}
+.sistema-card:active { transform:scale(0.985); }
+.sistema-card.sel {
+    border-color:var(--oro); background:rgba(212,175,55,0.035);
+}
+.sistema-card.sel::before {
+    content:''; position:absolute; top:0; left:0; right:0;
+    height:3px; background:linear-gradient(90deg,transparent,var(--oro),transparent);
+    border-radius:18px 18px 0 0;
+}
+.sc-check {
+    position:absolute; top:16px; right:16px;
+    width:28px; height:28px; border-radius:50%;
+    background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.3);
+    display:none; align-items:center; justify-content:center;
+    color:var(--oro); font-size:0.9rem;
+}
+.sistema-card.sel .sc-check { display:flex; }
+.sc-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:0.58rem; letter-spacing:1px; color:var(--neon);
+    background:rgba(46,255,112,0.07); border:1px solid rgba(46,255,112,0.2);
+    padding:4px 12px; border-radius:20px; margin-bottom:10px;
+}
+.sc-nombre { font-size:0.95rem; color:#eee; letter-spacing:1px; margin-bottom:7px; padding-right:36px; }
+.sc-desc  { font-size:0.7rem; color:#888; line-height:1.8; margin-bottom:12px; }
+.sc-tags  { display:flex; gap:7px; flex-wrap:wrap; }
+.sc-tag {
+    font-size:0.62rem; padding:5px 12px; border-radius:12px;
+    background:#111; border:1px solid #1e1e1e; color:#555;
+}
+.sc-tag.v { border-color:rgba(46,255,112,0.2); color:var(--neon); background:rgba(46,255,112,0.04); }
 
-        /* POSICIÓN BADGE */
-        .pos-badge { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'Courier New',monospace; font-size:0.7rem; font-weight:900; flex-shrink:0; background:#111; color:#333; border:1px solid #1a1a1a; }
+/* Formato importado */
+.fmt-importado {
+    background:rgba(46,255,112,0.04); border:1px solid rgba(46,255,112,0.22);
+    border-radius:20px; padding:20px 22px; margin-bottom:14px;
+}
+.fmt-imp-badge {
+    display:flex; align-items:center; gap:7px;
+    font-size:0.58rem; letter-spacing:2px; color:var(--neon); margin-bottom:10px;
+}
+.fmt-imp-nombre { font-size:0.95rem; color:#eee; letter-spacing:1px; margin-bottom:6px; }
+.fmt-imp-det    { font-size:0.65rem; color:#777; line-height:1.8; }
+.btn-cambiar-fmt {
+    margin-top:12px; background:none; border:1px solid #252525; color:#555;
+    padding:8px 18px; border-radius:12px; font-size:0.6rem; cursor:pointer;
+    font-family:'Arial Black',sans-serif; letter-spacing:1px; transition:0.2s;
+}
+.btn-cambiar-fmt:active { border-color:#555; color:#999; }
 
-        /* AVATAR */
-        .av { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.9rem; font-weight:900; flex-shrink:0; background:linear-gradient(135deg,#1a1a00,#2a2000); border:1.5px solid rgba(212,175,55,0.2); color:#664; }
+.link-config {
+    display:flex; align-items:center; justify-content:center; gap:9px;
+    color:var(--azul); font-size:0.65rem; letter-spacing:1px;
+    text-decoration:none; border:1px solid rgba(52,152,219,0.22);
+    padding:14px 22px; border-radius:18px; margin-top:12px; transition:0.2s;
+    background:rgba(52,152,219,0.03);
+}
+.link-config:active { background:rgba(52,152,219,0.08); }
 
-        /* INFO */
-        .jug-info { flex:1; min-width:0; }
-        .jug-nom { font-size:0.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .jug-det { margin-top:4px; display:flex; align-items:center; gap:5px; }
+/* ═══ CUPO ═══ */
+.cupo-btns { display:flex; gap:8px; margin-bottom:12px; }
+.cupo-btn {
+    flex:1; padding:14px 4px; border-radius:16px;
+    background:#111; border:2px solid #1a1a1a; cursor:pointer; transition:0.15s;
+    text-align:center;
+}
+.cupo-btn b { display:block; font-size:1.4rem; color:#666; line-height:1; font-family:'Courier New',monospace; }
+.cupo-btn span { display:block; font-size:0.46rem; color:#2a2a2a; margin-top:4px; letter-spacing:1px; }
+.cupo-btn.sel { border-color:var(--neon); background:rgba(46,255,112,0.05); }
+.cupo-btn.sel b { color:var(--neon); }
+.cupo-btn.sel span { color:rgba(46,255,112,0.45); }
+.cupo-btn:active { transform:scale(0.96); }
+.cupo-libre {
+    display:flex; align-items:center; gap:12px;
+    background:#0a0a0a; border:1px solid #1e1e1e; border-radius:16px;
+    padding:13px 18px; margin-bottom:10px;
+}
+.cupo-libre-lbl { font-size:0.6rem; color:#444; letter-spacing:1px; white-space:nowrap; }
+.cupo-libre-inp {
+    flex:1; background:transparent; border:none;
+    color:#fff; font-size:1rem; font-family:'Courier New',monospace;
+    text-align:center; outline:none; letter-spacing:3px;
+}
+.cupo-preview {
+    padding:12px 16px; background:rgba(212,175,55,0.04);
+    border:1px solid rgba(212,175,55,0.12); border-radius:14px;
+    font-size:0.68rem; color:#666; line-height:1.8; text-align:center;
+}
+.cupo-preview strong { color:var(--neon); }
 
-        /* CATEGORIA PILL */
-        .cat-pill { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:8px; font-size:0.38rem; letter-spacing:1px; border:1px solid; }
+/* ═══ TIEMPO ═══ */
+.tiempo-grid { display:flex; gap:8px; margin-top:8px; }
+.tiempo-btn {
+    flex:1; padding:18px 6px; border-radius:16px;
+    background:#111; border:2px solid #1a1a1a; cursor:pointer; transition:0.15s;
+    text-align:center;
+}
+.tiempo-btn b { display:block; font-size:1.5rem; color:#666; font-family:'Courier New',monospace; margin-bottom:4px; }
+.tiempo-btn span { font-size:0.52rem; color:#333; letter-spacing:1px; }
+.tiempo-btn.sel { border-color:var(--azul); background:rgba(52,152,219,0.06); }
+.tiempo-btn.sel b { color:var(--azul); }
+.tiempo-btn.sel span { color:rgba(52,152,219,0.6); }
+.tiempo-btn:active { transform:scale(0.96); }
 
-        .jug-prom { font-size:1rem; font-family:'Courier New',monospace; flex-shrink:0; }
+/* ═══ META CARAMBOLAS ═══ */
+.meta-btns { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:12px; }
+.meta-btn {
+    padding:10px 16px; border-radius:22px; min-width:48px;
+    background:#111; border:1px solid #1e1e1e; color:#555;
+    font-size:0.82rem; font-family:'Arial Black',sans-serif;
+    cursor:pointer; transition:0.15s; text-align:center;
+}
+.meta-btn.sel { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.08); }
+.meta-btn:active { transform:scale(0.94); }
+.meta-row { display:flex; align-items:center; gap:10px; }
+.meta-lbl { font-size:0.62rem; color:#444; letter-spacing:1px; white-space:nowrap; }
+.meta-preview {
+    margin-top:12px; padding:11px 16px;
+    background:rgba(46,255,112,0.04); border:1px solid rgba(46,255,112,0.12);
+    border-radius:13px; font-size:0.68rem; color:#777; line-height:1.8;
+}
+.meta-preview strong { color:var(--neon); }
 
-        /* PARTIDAS */
-        .part-badge { font-size:0.38rem; color:#333; background:#111; border:1px solid #1a1a1a; border-radius:6px; padding:2px 6px; flex-shrink:0; }
+/* ═══ BOLSA ═══ */
+.bolsa-hero {
+    text-align:center; padding:28px 20px 22px;
+    background:linear-gradient(160deg,#0b1400,#050a00);
+    border:1px solid rgba(46,255,112,0.14); border-radius:22px; margin-bottom:14px;
+}
+.bolsa-lbl    { font-size:0.58rem; letter-spacing:4px; color:#555; margin-bottom:10px; }
+.bolsa-monto  {
+    font-size:3.4rem; color:var(--neon);
+    font-family:'Courier New',monospace; line-height:1;
+    text-shadow:0 0 40px rgba(46,255,112,0.25);
+}
+.bolsa-sub    { font-size:0.58rem; color:#444; margin-top:10px; letter-spacing:2px; }
 
-        /* EMPTY */
-        .empty { text-align:center; padding:50px 20px; }
-        .empty p { color:#333; font-size:0.65rem; line-height:2.2; letter-spacing:1px; }
+.dinero-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.dinero-card {
+    background:var(--card); border:1px solid var(--borde);
+    border-radius:18px; padding:16px 18px;
+}
+.dinero-lbl { font-size:0.58rem; letter-spacing:2px; color:#555; margin-bottom:8px; }
+.dinero-inp {
+    width:100%; background:transparent; border:none;
+    border-bottom:1px solid #1e1e1e; color:#fff;
+    font-size:1rem; font-family:'Courier New',monospace;
+    padding:6px 0; outline:none; transition:0.2s; letter-spacing:1px;
+}
+.dinero-inp:focus { border-bottom-color:rgba(46,255,112,0.35); }
 
-        /* NAV */
-        .nav-bottom { position:fixed; bottom:0; left:0; right:0; background:linear-gradient(transparent,#000 40%); padding:10px 15px 20px; display:flex; justify-content:center; gap:10px; }
-        .btn-nav { flex:1; max-width:160px; padding:12px; background:var(--g3); border:1px solid var(--g1); color:#666; border-radius:14px; font-size:0.55rem; text-align:center; text-decoration:none; font-family:'Arial Black',sans-serif; letter-spacing:1px; display:flex; align-items:center; justify-content:center; gap:6px; }
-        .btn-nav:active { border-color:var(--oro); color:var(--oro); }
-        .nav-ico { font-size:1rem; line-height:1; }
-    </style>
+/* Distribución */
+.dist-card {
+    background:var(--card); border:1px solid var(--borde);
+    border-radius:22px; overflow:hidden; margin-bottom:14px;
+}
+.dist-head {
+    padding:16px 22px; border-bottom:1px solid var(--borde);
+    font-size:0.62rem; letter-spacing:2px; color:#555;
+}
+.dist-body { padding:20px 22px; }
+.dist-row {
+    display:flex; align-items:center; gap:14px; margin-bottom:16px;
+}
+.dist-row:last-child { margin-bottom:0; }
+.dist-medalla { font-size:1.5rem; width:32px; text-align:center; flex-shrink:0; }
+.dist-info { flex:1; }
+.dist-nombre  { font-size:0.6rem; letter-spacing:2px; color:#555; margin-bottom:3px; }
+.dist-importe { font-size:0.88rem; font-family:'Courier New',monospace; }
+.pct-inp {
+    width:58px; background:#0a0a0a; border:1px solid #222;
+    border-radius:11px; color:#fff; font-size:0.88rem;
+    font-family:'Courier New',monospace;
+    padding:9px 6px; text-align:center; outline:none; transition:0.2s;
+}
+.pct-inp:focus { border-color:rgba(212,175,55,0.4); }
+.pct-sym { font-size:0.65rem; color:#555; flex-shrink:0; }
+
+.dist-barra {
+    background:#111; border-radius:8px; height:10px;
+    overflow:hidden; display:flex; margin:16px 0 8px;
+}
+.db { height:100%; transition:width 0.35s; }
+.db1 { background:linear-gradient(90deg,#8a6000,#d4af37); }
+.db2 { background:linear-gradient(90deg,#555,#c0c0c0); }
+.db3 { background:linear-gradient(90deg,#6a3c00,#cd7f32); }
+.dist-aviso {
+    font-size:0.65rem; text-align:center;
+    padding:4px 0; transition:0.2s; letter-spacing:1px;
+}
+.dist-aviso.ok  { color:var(--neon); }
+.dist-aviso.err { color:var(--rojo); }
+
+/* ═══ RESUMEN FINAL ═══ */
+.res-card {
+    background:var(--card); border:1px solid var(--borde);
+    border-radius:22px; overflow:hidden; margin-bottom:14px;
+}
+.res-top {
+    padding:22px 24px;
+    background:linear-gradient(140deg,rgba(212,175,55,0.07),transparent);
+    border-bottom:1px solid var(--borde);
+    display:flex; align-items:center; gap:16px;
+}
+.res-icon {
+    width:50px; height:50px; border-radius:16px;
+    background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.2);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.res-nombre { font-size:1.05rem; color:var(--oro); letter-spacing:1px; line-height:1.2; }
+.res-fecha  { font-size:0.58rem; color:#444; letter-spacing:2px; margin-top:5px; }
+.res-rows   { padding:6px 0; }
+.res-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:13px 24px; border-bottom:1px solid #0d0d0d;
+}
+.res-row:last-child { border:none; }
+.res-key { font-size:0.62rem; letter-spacing:1px; color:#555; }
+.res-val { font-size:0.75rem; color:#ccc; text-align:right; max-width:55%; }
+.res-val.oro  { color:var(--oro); }
+.res-val.neon { color:var(--neon); }
+
+/* ═══ BOTONES ═══ */
+.btn-sig {
+    width:100%; padding:22px; border-radius:20px; border:none;
+    background:linear-gradient(135deg,#d4af37,#8a6200);
+    color:#000; font-size:0.9rem; font-family:'Arial Black',sans-serif;
+    letter-spacing:3px; cursor:pointer;
+    box-shadow:0 0 40px rgba(212,175,55,0.15);
+    transition:0.2s; margin-top:8px;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+}
+.btn-sig:active { transform:scale(0.975); }
+.btn-sig.neon {
+    background:linear-gradient(135deg,#2eff70,#00a845);
+    box-shadow:0 0 40px rgba(46,255,112,0.18);
+}
+.btn-back {
+    width:100%; padding:16px; border-radius:16px; border:1px solid #1e1e1e;
+    background:transparent; color:#555;
+    font-size:0.7rem; font-family:'Arial Black',sans-serif;
+    letter-spacing:2px; cursor:pointer; margin-top:10px; transition:0.2s;
+}
+.btn-back:active { border-color:#555; color:#888; }
+
+/* ═══ TOAST ═══ */
+.toast {
+    position:fixed; bottom:108px; left:50%;
+    transform:translateX(-50%) translateY(14px);
+    background:#161616; border:1px solid rgba(46,255,112,0.25);
+    color:var(--neon); font-size:0.72rem; letter-spacing:1px;
+    padding:13px 28px; border-radius:50px;
+    opacity:0; transition:0.28s; pointer-events:none;
+    white-space:nowrap; z-index:200;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ═══ NAV BOTTOM ═══ */
+.nav-bottom {
+    position:fixed; bottom:0; left:0; right:0;
+    background:linear-gradient(transparent, #050505 38%);
+    padding:8px 16px 22px;
+    display:flex; gap:10px; z-index:50;
+}
+.btn-nav {
+    flex:1; padding:15px 8px;
+    background:var(--card); border:1px solid var(--borde);
+    color:#666; border-radius:16px; font-size:0.6rem;
+    text-align:center; text-decoration:none;
+    font-family:'Arial Black',sans-serif; letter-spacing:1px;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    transition:0.2s;
+}
+.btn-nav:active { border-color:var(--oro); color:var(--oro); }
+</style>
 </head>
 <body>
 
+<!-- HEADER -->
 <div class="header">
+    <a href="index.html" class="back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
     <div>
-        <div class="header-tit">&#128200; RANKING</div>
-        <div class="header-sub" id="lbl-sede">TODOS LOS JUGADORES · PROMEDIO OFICIAL</div>
+        <div class="h-titulo">CREAR TORNEO</div>
+        <div class="h-sub">NUEVO EVENTO · DECARAMBOLA</div>
     </div>
-    <a href="index.html" class="btn-hdr">&#8592; MENÚ</a>
+    <div class="sede-chip" id="lbl-sede">GLOBAL</div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="prog-wrap">
+    <div class="prog-rail">
+        <div class="prog-step">
+            <div class="prog-dot activo" id="dot0">1</div>
+            <div class="prog-lbl activo" id="lbl0">INFO</div>
+        </div>
+        <div class="prog-linea" id="lin0"></div>
+        <div class="prog-step">
+            <div class="prog-dot" id="dot1">2</div>
+            <div class="prog-lbl" id="lbl1">FORMATO</div>
+        </div>
+        <div class="prog-linea" id="lin1"></div>
+        <div class="prog-step">
+            <div class="prog-dot" id="dot2">3</div>
+            <div class="prog-lbl" id="lbl2">REGLAS</div>
+        </div>
+        <div class="prog-linea" id="lin2"></div>
+        <div class="prog-step">
+            <div class="prog-dot" id="dot3">4</div>
+            <div class="prog-lbl" id="lbl3">BOLSA</div>
+        </div>
+        <div class="prog-linea" id="lin3"></div>
+        <div class="prog-step">
+            <div class="prog-dot" id="dot4">5</div>
+            <div class="prog-lbl" id="lbl4">PUBLICAR</div>
+        </div>
+    </div>
 </div>
 
 <div class="wrap">
 
-    <!-- PODIO TOP 3 -->
-    <div class="podio" id="podio" style="display:none;"></div>
+<!-- ════════════════════════════════
+     PASO 1 — INFORMACIÓN
+════════════════════════════════ -->
+<div class="seccion visible" id="paso0">
 
-    <!-- KPI -->
-    <div class="kpi-bar">
-        <div class="kpi"><b id="stat-total">0</b><small>JUGADORES</small></div>
-        <div class="kpi"><b id="stat-mejor">0.000</b><small>MEJOR PROM.</small></div>
-        <div class="kpi"><b id="stat-partidas">0</b><small>PARTIDAS</small></div>
+    <div class="paso-badge"><div class="paso-num">1</div><div class="paso-lbl">INFORMACIÓN DEL TORNEO</div></div>
+
+    <div class="card">
+        <div class="card-lbl">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+            NOMBRE DEL TORNEO
+        </div>
+        <input type="text" class="input-base" id="t-nombre"
+               placeholder="OPEN MEDELLÍN VIP · ABRIL 2026"
+               oninput="this.value=this.value.toUpperCase()">
     </div>
 
-    <!-- FILTROS CATEGORÍA -->
-    <div class="filtros">
-        <button class="filtro-btn activo" onclick="filtrar('todos',this)">
-            <span class="filtro-ico">&#127922;</span> TODOS
-        </button>
-        <button class="filtro-btn" onclick="filtrar('elite',this)">
-            <span class="filtro-ico">&#127942;</span> ÉLITE
-        </button>
-        <button class="filtro-btn" onclick="filtrar('maestro',this)">
-            <span class="filtro-ico">&#11088;</span> MAESTRO
-        </button>
-        <button class="filtro-btn" onclick="filtrar('primera',this)">
-            <span class="filtro-ico">&#129351;</span> PRIMERA
-        </button>
-        <button class="filtro-btn" onclick="filtrar('segunda',this)">
-            <span class="filtro-ico">&#129352;</span> SEGUNDA
-        </button>
-        <button class="filtro-btn" onclick="filtrar('tercera',this)">
-            <span class="filtro-ico">&#129353;</span> TERCERA
-        </button>
+    <div class="card">
+        <div class="card-lbl">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            FECHA DE INICIO
+        </div>
+        <input type="date" class="input-base" id="t-fecha">
     </div>
 
-    <div class="sec-tit" id="sec-lista">CLASIFICACIÓN GENERAL</div>
-    <div id="contenido">
-        <div class="empty"><p>Cargando ranking...</p></div>
+    <div class="card">
+        <div class="card-lbl">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            MODALIDAD DE JUEGO
+        </div>
+        <div class="modal-grid" style="grid-template-columns:1fr 1fr;">
+            <div class="modal-pill sel" onclick="selModalidad('3 Bandas',this)">
+                <b>3 BANDAS</b><span>MODALIDAD CLÁSICA</span>
+            </div>
+            <div class="modal-pill" onclick="selModalidad('Libre',this)">
+                <b>LIBRE</b><span>CARAMBOLA LIBRE</span>
+            </div>
+        </div>
     </div>
+
+    <button class="btn-sig" onclick="irPaso(1)">
+        SIGUIENTE
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
 </div>
 
+<!-- ════════════════════════════════
+     PASO 2 — FORMATO Y CUPO
+════════════════════════════════ -->
+<div class="seccion" id="paso1">
+
+    <div class="paso-badge"><div class="paso-num">2</div><div class="paso-lbl">FORMATO Y CUPO</div></div>
+
+    <!-- Formato importado del Configurador -->
+    <div class="fmt-importado" id="fmt-importado" style="display:none;">
+        <div class="fmt-imp-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            FORMATO IMPORTADO DEL CONFIGURADOR
+        </div>
+        <div class="fmt-imp-nombre" id="fmt-imp-nombre">—</div>
+        <div class="fmt-imp-det" id="fmt-imp-det">—</div>
+        <button class="btn-cambiar-fmt" onclick="limpiarFormato()">CAMBIAR FORMATO</button>
+    </div>
+
+    <!-- Selector manual de sistema -->
+    <div id="selector-manual">
+        <div class="sistema-grid">
+
+            <div class="sistema-card" id="sc-brackets" onclick="selSistema('brackets',this)">
+                <div class="sc-check">&#10003;</div>
+                <div class="sc-nombre">ELIMINACIÓN DIRECTA</div>
+                <div class="sc-desc">Muerte súbita. Pierdes y sales. El formato más rápido y espectacular para el público presente.</div>
+                <div class="sc-tags">
+                    <div class="sc-tag v">&#10003; Rápido</div>
+                    <div class="sc-tag v">&#10003; Espectacular</div>
+                    <div class="sc-tag v">&#10003; Fácil de seguir</div>
+                </div>
+            </div>
+
+            <div class="sistema-card" id="sc-grupos" onclick="selSistema('grupos',this)">
+                <div class="sc-check">&#10003;</div>
+                <div class="sc-nombre">GRUPOS + ELIMINACIÓN</div>
+                <div class="sc-desc">Fase de grupos primero. Los mejores de cada grupo pasan al cuadro de llaves. Todos juegan mínimo 3 partidas.</div>
+                <div class="sc-tags">
+                    <div class="sc-tag v">&#10003; Más partidas</div>
+                    <div class="sc-tag v">&#10003; Todos juegan mínimo 3</div>
+                    <div class="sc-tag v">&#10003; Más justo</div>
+                </div>
+            </div>
+
+            <div class="sistema-card" id="sc-survivor" onclick="selSistema('survivor',this)">
+                <div class="sc-check">&#10003;</div>
+                <div class="sc-badge">FORMATO ESPECIAL</div>
+                <div class="sc-nombre">SURVIVOR / AMIGOS</div>
+                <div class="sc-desc">Todos juegan rondas acumulando promedios. El de menor promedio en cada ronda es eliminado. Gana el último.</div>
+                <div class="sc-tags">
+                    <div class="sc-tag v">&#10003; Muy social</div>
+                    <div class="sc-tag v">&#10003; Cada punto importa</div>
+                </div>
+            </div>
+
+        </div>
+
+        <a href="Configurador formato.html" class="link-config">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            CONFIGURADOR AVANZADO DE FORMATOS
+        </a>
+    </div>
+
+    <!-- CUPO -->
+    <div class="sep">
+        <div class="sep-line"></div>
+        <div class="sep-centro">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--oro)" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div class="sep-txt">CUPO DE JUGADORES</div>
+        </div>
+        <div class="sep-line"></div>
+    </div>
+
+    <div class="cupo-btns">
+        <div class="cupo-btn" onclick="selCupo(8,this)"><b>8</b><span>RÁPIDO</span></div>
+        <div class="cupo-btn" onclick="selCupo(16,this)"><b>16</b><span>ESTÁNDAR</span></div>
+        <div class="cupo-btn" onclick="selCupo(32,this)"><b>32</b><span>GRANDE</span></div>
+        <div class="cupo-btn" onclick="selCupo(64,this)"><b>64</b><span>ÉLITE</span></div>
+    </div>
+
+    <div class="cupo-libre">
+        <span class="cupo-libre-lbl">NÚMERO EXACTO</span>
+        <input type="number" class="cupo-libre-inp" id="cupo-libre-inp"
+               placeholder="4 — 128" min="4" max="128"
+               oninput="selCupoLibre(parseInt(this.value))">
+        <span class="cupo-libre-lbl">JUGADORES</span>
+    </div>
+
+    <div class="cupo-preview" id="cupo-preview">
+        Elige el cupo para ver el cálculo de rondas y byes
+    </div>
+
+    <button class="btn-sig" onclick="irPaso(2)">
+        SIGUIENTE
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="btn-back" onclick="irPaso(0)">&#8592; ATRÁS</button>
+
+</div>
+
+<!-- ════════════════════════════════
+     PASO 3 — REGLAS DE PARTIDA
+════════════════════════════════ -->
+<div class="seccion" id="paso2">
+
+    <div class="paso-badge"><div class="paso-num">3</div><div class="paso-lbl">REGLAS DE PARTIDA</div></div>
+
+    <div class="card">
+        <div class="card-lbl">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            TIEMPO POR ENTRADA
+        </div>
+        <div class="tiempo-grid">
+            <div class="tiempo-btn" onclick="selTiempo(30,this)"><b>30s</b><span>RÁPIDO</span></div>
+            <div class="tiempo-btn sel" onclick="selTiempo(40,this)"><b>40s</b><span>ESTÁNDAR</span></div>
+            <div class="tiempo-btn" onclick="selTiempo(60,this)"><b>60s</b><span>CLÁSICO</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-lbl">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            META DE CARAMBOLAS
+        </div>
+        <div class="meta-btns">
+            <div class="meta-btn" onclick="setMeta(5)">5</div>
+            <div class="meta-btn" onclick="setMeta(8)">8</div>
+            <div class="meta-btn sel" onclick="setMeta(10)">10</div>
+            <div class="meta-btn" onclick="setMeta(12)">12</div>
+            <div class="meta-btn" onclick="setMeta(15)">15</div>
+            <div class="meta-btn" onclick="setMeta(20)">20</div>
+            <div class="meta-btn" onclick="setMeta(25)">25</div>
+        </div>
+        <div class="meta-row">
+            <span class="meta-lbl">OTRO:</span>
+            <input type="number" class="input-num" id="meta-inp" value="10" min="1" max="200" style="width:80px;"
+                   onchange="setMeta(parseInt(this.value)||10)">
+            <span class="meta-lbl">carambolas para ganar</span>
+        </div>
+        <div class="meta-preview" id="meta-preview">
+            El primero en hacer <strong>10</strong> carambolas gana la partida
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-lbl">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            REGLAMENTO ESPECIAL <span style="color:#333;font-size:0.55rem;margin-left:6px;">OPCIONAL</span>
+        </div>
+        <textarea id="t-reglamento"
+            style="width:100%;background:transparent;border:none;border-bottom:1px solid #1e1e1e;color:#bbb;font-size:0.78rem;padding:10px 0;outline:none;resize:none;height:72px;font-family:'Arial Black',sans-serif;line-height:1.8;"
+            placeholder="Ej: Prohibido uso de prolongadores · Mesa reservada sala VIP..."></textarea>
+    </div>
+
+    <button class="btn-sig" onclick="irPaso(3)">
+        SIGUIENTE
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="btn-back" onclick="irPaso(1)">&#8592; ATRÁS</button>
+
+</div>
+
+<!-- ════════════════════════════════
+     PASO 4 — BOLSA Y PREMIOS
+════════════════════════════════ -->
+<div class="seccion" id="paso3">
+
+    <div class="paso-badge"><div class="paso-num">4</div><div class="paso-lbl">BOLSA Y PREMIOS</div></div>
+
+    <div class="bolsa-hero">
+        <div class="bolsa-lbl">BOLSA ESTIMADA DE PREMIOS</div>
+        <div class="bolsa-monto" id="lbl-bolsa">$ 0</div>
+        <div class="bolsa-sub">CON CUPO LLENO</div>
+    </div>
+
+    <div class="dinero-grid">
+        <div class="dinero-card">
+            <div class="dinero-lbl">INSCRIPCIÓN ($)</div>
+            <input type="number" class="dinero-inp" id="t-inscripcion" value="50000" oninput="calcBolsa()">
+        </div>
+        <div class="dinero-card">
+            <div class="dinero-lbl">APORTE CLUB ($)</div>
+            <input type="number" class="dinero-inp" id="t-base" value="100000" oninput="calcBolsa()">
+        </div>
+        <div class="dinero-card">
+            <div class="dinero-lbl">% PARA PREMIOS</div>
+            <input type="number" class="dinero-inp" id="t-pct-premios" value="80" min="0" max="100" oninput="calcBolsa()">
+        </div>
+        <div class="dinero-card">
+            <div class="dinero-lbl">% FEE ORGANIZADOR</div>
+            <input type="number" class="dinero-inp" id="t-pct-fee" value="20" min="0" max="100" oninput="calcBolsa()">
+        </div>
+    </div>
+
+    <div class="dist-card">
+        <div class="dist-head">DISTRIBUCIÓN DE PREMIOS — SUMA = 100%</div>
+        <div class="dist-body">
+            <div class="dist-row">
+                <div class="dist-medalla">&#129351;</div>
+                <div class="dist-info">
+                    <div class="dist-nombre">CAMPEÓN</div>
+                    <div class="dist-importe" id="imp1" style="color:var(--oro);">$ 0</div>
+                </div>
+                <input type="number" class="pct-inp" id="pct1" value="50" min="0" max="100" oninput="calcBolsa()">
+                <span class="pct-sym">%</span>
+            </div>
+            <div class="dist-row">
+                <div class="dist-medalla">&#129352;</div>
+                <div class="dist-info">
+                    <div class="dist-nombre">SUBCAMPEÓN</div>
+                    <div class="dist-importe" id="imp2" style="color:#c0c0c0;">$ 0</div>
+                </div>
+                <input type="number" class="pct-inp" id="pct2" value="30" min="0" max="100" oninput="calcBolsa()">
+                <span class="pct-sym">%</span>
+            </div>
+            <div class="dist-row">
+                <div class="dist-medalla">&#129353;</div>
+                <div class="dist-info">
+                    <div class="dist-nombre">3er LUGAR</div>
+                    <div class="dist-importe" id="imp3" style="color:#cd7f32;">$ 0</div>
+                </div>
+                <input type="number" class="pct-inp" id="pct3" value="20" min="0" max="100" oninput="calcBolsa()">
+                <span class="pct-sym">%</span>
+            </div>
+            <div class="dist-barra">
+                <div class="db db1" id="bar1" style="width:50%"></div>
+                <div class="db db2" id="bar2" style="width:30%"></div>
+                <div class="db db3" id="bar3" style="width:20%"></div>
+            </div>
+            <div class="dist-aviso ok" id="dist-aviso">TOTAL: 100% ✓</div>
+        </div>
+    </div>
+
+    <button class="btn-sig" onclick="irPaso(4)">
+        SIGUIENTE
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="btn-back" onclick="irPaso(2)">&#8592; ATRÁS</button>
+
+</div>
+
+<!-- ════════════════════════════════
+     PASO 5 — REVISAR Y PUBLICAR
+════════════════════════════════ -->
+<div class="seccion" id="paso4">
+
+    <div class="paso-badge"><div class="paso-num">5</div><div class="paso-lbl">REVISAR Y PUBLICAR</div></div>
+
+    <div class="res-card">
+        <div class="res-top">
+            <div class="res-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--oro)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="6"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
+            </div>
+            <div>
+                <div class="res-nombre" id="res-nombre">—</div>
+                <div class="res-fecha" id="res-fecha">—</div>
+            </div>
+        </div>
+        <div class="res-rows" id="res-rows"><!-- JS --></div>
+    </div>
+
+    <button class="btn-sig neon" onclick="crearTorneo()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        CREAR Y PUBLICAR TORNEO
+    </button>
+    <button class="btn-back" onclick="irPaso(3)">&#8592; ATRÁS</button>
+
+</div>
+
+</div><!-- /wrap -->
+
+<div class="toast" id="toast"></div>
+
 <div class="nav-bottom">
-    <a href="categorias.html" class="btn-nav"><span class="nav-ico">&#128202;</span> CATEGORÍAS</a>
-    <a href="index.html" class="btn-nav"><span class="nav-ico">&#127968;</span> INICIO</a>
+    <a href="index.html" class="btn-nav">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        INICIO
+    </a>
+    <a href="organizador.html" class="btn-nav">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+        ORGANIZADOR
+    </a>
 </div>
 
 <script src="core.js"></script>
 <script>
-var todos = [];
-var filtroActual = 'todos';
-
-// Colores y emojis por categoría
-var CATS = {
-    'CLASE ÉLITE': { color:'#f1c40f', bg:'rgba(241,196,15,0.08)', border:'rgba(241,196,15,0.3)', ico:'&#127942;' },
-    'MAESTRO':     { color:'#d4af37', bg:'rgba(212,175,55,0.08)', border:'rgba(212,175,55,0.3)', ico:'&#11088;' },
-    'PRIMERA':     { color:'#c0c0c0', bg:'rgba(192,192,192,0.06)', border:'rgba(192,192,192,0.25)', ico:'&#129351;' },
-    'SEGUNDA':     { color:'#cd7f32', bg:'rgba(205,127,50,0.06)', border:'rgba(205,127,50,0.25)', ico:'&#129352;' },
-    'TERCERA':     { color:'#3498db', bg:'rgba(52,152,219,0.06)', border:'rgba(52,152,219,0.25)', ico:'&#129353;' },
-    'INICIACIÓN':  { color:'#555',    bg:'rgba(80,80,80,0.06)',    border:'rgba(80,80,80,0.2)',    ico:'&#127922;' }
+var estado = {
+    paso:0, nombre:'', fecha:'', modalidad:'3 Bandas',
+    sistema:'', cupo:0, tiempo:40, meta:10, reglamento:'',
+    inscripcion:50000, base:100000,
+    pctPremios:80, pctFee:20, dist1:50, dist2:30, dist3:20,
+    formatoImportado:null
 };
 
-function getCatStyle(nombre) {
-    return CATS[nombre] || CATS['INICIACIÓN'];
-}
-
-window.onload = async function() {
-    try { await MasterVIP.init();
-        SESSION.verificarAlCargar('jugador'); } catch(e) { console.warn('Init offline:', e); }
-    MasterVIP.applyDesign();
-    var _nombreSede = localStorage.getItem('wl_club_nombre') || 'GLOBAL';
-    document.getElementById('lbl-sede').innerText = _nombreSede !== 'GLOBAL' ? _nombreSede : 'DECARAMBOLA';
-    cargar();
+window.onload = function() {
+    try { MasterVIP.applyDesign(); } catch(e){}
+    var sede = MasterVIP.getSede();
+    document.getElementById('lbl-sede').innerText = sede.nombre !== 'GLOBAL' ? sede.nombre : 'GLOBAL';
+    var hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('t-fecha').min = hoy;
+    calcBolsa();
+    cargarFormatoImportado();
 };
 
-function cargar() {
-    var hist = MasterVIP._get('ranking_historico_club', []);
-    var jugs = MasterVIP.getJugadores();
+/* ── PROGRESS ── */
+function irPaso(num) {
+    if (num > estado.paso && !validar(estado.paso)) return;
+    for (var i=0; i<5; i++) {
+        var d = document.getElementById('dot'+i);
+        var l = document.getElementById('lbl'+i);
+        d.className = 'prog-dot' + (i===num?' activo':i<num?' hecho':'');
+        l.className = 'prog-lbl'  + (i===num?' activo':i<num?' hecho':'');
+        if (i<4) document.getElementById('lin'+i).className = 'prog-linea' + (i<num?' hecha':'');
+    }
+    document.getElementById('paso'+estado.paso).classList.remove('visible');
+    estado.paso = num;
+    document.getElementById('paso'+num).classList.add('visible');
+    if (num===4) generarResumen();
+    window.scrollTo(0,0);
+}
 
-    var res = {};
-    hist.forEach(function(p) {
-        var n = p.nombre.toUpperCase().trim();
-        if (!res[n]) res[n] = { nombre: n, suma: 0, total: 0, partidas: 0 };
-        res[n].suma += parseFloat(p.promedio) || 0;
-        res[n].total++;
-        res[n].partidas++;
+function validar(num) {
+    if (num===0) {
+        estado.nombre   = (document.getElementById('t-nombre').value||'').trim();
+        estado.fecha    = document.getElementById('t-fecha').value;
+        if (!estado.nombre) { showToast('Ponle un nombre al torneo'); return false; }
+        if (!estado.fecha)  { showToast('Define la fecha del torneo'); return false; }
+    }
+    if (num===1) {
+        if (!estado.sistema && !estado.formatoImportado) { showToast('Elige el sistema de torneo'); return false; }
+        if (!estado.cupo) {
+            var libre = parseInt(document.getElementById('cupo-libre-inp').value);
+            if (libre>=4) { estado.cupo=libre; } else { showToast('Elige el cupo de jugadores'); return false; }
+        }
+    }
+    if (num===2) {
+        estado.meta       = parseInt(document.getElementById('meta-inp').value)||10;
+        estado.reglamento = document.getElementById('t-reglamento').value.trim();
+    }
+    if (num===3) {
+        estado.inscripcion = parseFloat(document.getElementById('t-inscripcion').value)||0;
+        estado.base        = parseFloat(document.getElementById('t-base').value)||0;
+        estado.pctPremios  = parseFloat(document.getElementById('t-pct-premios').value)||80;
+        estado.pctFee      = parseFloat(document.getElementById('t-pct-fee').value)||20;
+        estado.dist1 = parseFloat(document.getElementById('pct1').value)||50;
+        estado.dist2 = parseFloat(document.getElementById('pct2').value)||30;
+        estado.dist3 = parseFloat(document.getElementById('pct3').value)||20;
+        if (estado.pctPremios+estado.pctFee>100) { showToast('Premios + fee no puede superar 100%'); return false; }
+        if (estado.dist1+estado.dist2+estado.dist3!==100) { showToast('La distribución debe sumar 100%'); return false; }
+    }
+    return true;
+}
+
+/* ── PASO 1 ── */
+function selModalidad(val, el) {
+    document.querySelectorAll('.modal-pill').forEach(function(p){ p.classList.remove('sel'); });
+    el.classList.add('sel'); estado.modalidad = val;
+}
+
+/* ── PASO 2 ── */
+function cargarFormatoImportado() {
+    try {
+        var fmt = JSON.parse(localStorage.getItem('FORMATO_TORNEO')||'null');
+        if (!fmt || !fmt.formatoNombre) return;
+        estado.formatoImportado = fmt;
+        estado.sistema = fmt.formatoId || 'brackets';
+        if (fmt.numJugadores) { estado.cupo=fmt.numJugadores; actualizarCupoPreview(fmt.numJugadores); }
+        document.getElementById('fmt-imp-nombre').innerText = fmt.formatoNombre;
+        document.getElementById('fmt-imp-det').innerText =
+            (fmt.numJugadores||'?')+' jugadores · '+(fmt.rondas||'?')+' rondas · '+(fmt.totalPartidas||'?')+' partidas'
+            +(fmt.reglas&&fmt.reglas.resumenModo ? '  ·  '+fmt.reglas.resumenModo : '');
+        document.getElementById('fmt-importado').style.display = 'block';
+        document.getElementById('selector-manual').style.display = 'none';
+    } catch(e){}
+}
+
+function limpiarFormato() {
+    estado.formatoImportado=null; estado.sistema='';
+    try { localStorage.removeItem('FORMATO_TORNEO'); } catch(e){}
+    document.getElementById('fmt-importado').style.display='none';
+    document.getElementById('selector-manual').style.display='block';
+}
+
+function selSistema(val, el) {
+    document.querySelectorAll('.sistema-card').forEach(function(c){ c.classList.remove('sel'); });
+    el.classList.add('sel'); estado.sistema = val;
+}
+
+function selCupo(val, el) {
+    document.querySelectorAll('.cupo-btn').forEach(function(b){ b.classList.remove('sel'); });
+    el.classList.add('sel');
+    document.getElementById('cupo-libre-inp').value='';
+    estado.cupo = val; actualizarCupoPreview(val);
+}
+
+function selCupoLibre(val) {
+    if (!val||val<4) return;
+    document.querySelectorAll('.cupo-btn').forEach(function(b){ b.classList.remove('sel'); });
+    estado.cupo = val; actualizarCupoPreview(val); calcBolsa();
+}
+
+function actualizarCupoPreview(n) {
+    var pot = Math.pow(2, Math.ceil(Math.log(n)/Math.log(2)));
+    var rondas = Math.ceil(Math.log(pot)/Math.log(2));
+    var byes = pot - n;
+    var txt = 'Cuadro de <strong>'+n+'</strong> jugadores · <strong>'+rondas+'</strong> rondas · '+((pot-1))+' partidas totales';
+    if (byes>0) txt += '<br><span style="color:var(--oro)">'+byes+' bye'+(byes>1?'s':'')+' en primera ronda</span> (cuadro de '+pot+')';
+    document.getElementById('cupo-preview').innerHTML = txt;
+    calcBolsa();
+}
+
+/* ── PASO 3 ── */
+function selTiempo(val, el) {
+    document.querySelectorAll('.tiempo-btn').forEach(function(b){ b.classList.remove('sel'); });
+    el.classList.add('sel'); estado.tiempo = val;
+}
+
+function setMeta(val) {
+    estado.meta = val;
+    document.getElementById('meta-inp').value = val;
+    document.querySelectorAll('.meta-btn').forEach(function(b){
+        b.classList.toggle('sel', parseInt(b.innerText)===val);
     });
-    jugs.forEach(function(j) {
-        var n = j.nombre.toUpperCase().trim();
-        if (!res[n]) res[n] = { nombre: n, suma: j.promedio || 0, total: 1, partidas: 0 };
+    document.getElementById('meta-preview').innerHTML =
+        'El primero en hacer <strong>'+val+'</strong> carambolas gana la partida';
+}
+
+/* ── PASO 4 ── */
+function pesos(n) {
+    return '$ '+Math.round(parseFloat(n)||0).toLocaleString('es-CO');
+}
+
+function calcBolsa() {
+    var ins  = parseFloat((document.getElementById('t-inscripcion')||{value:0}).value)||0;
+    var base = parseFloat((document.getElementById('t-base')||{value:0}).value)||0;
+    var pct  = parseFloat((document.getElementById('t-pct-premios')||{value:80}).value)||80;
+    var cupo = estado.cupo||16;
+    var bolsa = Math.round(((cupo*ins)+base)*pct/100);
+    var d1 = parseFloat((document.getElementById('pct1')||{value:50}).value)||0;
+    var d2 = parseFloat((document.getElementById('pct2')||{value:30}).value)||0;
+    var d3 = parseFloat((document.getElementById('pct3')||{value:20}).value)||0;
+
+    var lbl=document.getElementById('lbl-bolsa'); if(lbl) lbl.innerText=pesos(bolsa);
+    var b1=document.getElementById('bar1'); if(b1) b1.style.width=d1+'%';
+    var b2=document.getElementById('bar2'); if(b2) b2.style.width=d2+'%';
+    var b3=document.getElementById('bar3'); if(b3) b3.style.width=d3+'%';
+    var tot = d1+d2+d3;
+    var av=document.getElementById('dist-aviso');
+    if(av){ av.innerText=tot===100?'TOTAL: 100% ✓':'TOTAL: '+tot+'%  — DEBE SER 100%'; av.className='dist-aviso '+(tot===100?'ok':'err'); }
+    var i1=document.getElementById('imp1'); if(i1) i1.innerText=pesos(bolsa*d1/100);
+    var i2=document.getElementById('imp2'); if(i2) i2.innerText=pesos(bolsa*d2/100);
+    var i3=document.getElementById('imp3'); if(i3) i3.innerText=pesos(bolsa*d3/100);
+}
+
+/* ── PASO 5 ── */
+var SIST_NOM = {brackets:'ELIMINACIÓN DIRECTA',grupos:'GRUPOS + ELIMINACIÓN',survivor:'SURVIVOR / AMIGOS'};
+
+function generarResumen() {
+    document.getElementById('res-nombre').innerText = estado.nombre||'—';
+    document.getElementById('res-fecha').innerText  = (estado.fecha||'—')+' · '+estado.modalidad;
+    var bolsa = Math.round(((estado.cupo*(estado.inscripcion||0))+(estado.base||0))*((estado.pctPremios||80)/100));
+    var fmt = estado.formatoImportado;
+    var sisteNom = fmt ? fmt.formatoNombre : (SIST_NOM[estado.sistema]||estado.sistema);
+
+    function row(k,v,cls){
+        return '<div class="res-row"><span class="res-key">'+k+'</span><span class="res-val'+(cls?' '+cls:'')+'">'+v+'</span></div>';
+    }
+    var h='';
+    h+=row('MODALIDAD', estado.modalidad);
+    h+=row('FORMATO', sisteNom);
+    h+=row('CUPO', estado.cupo+' jugadores');
+    h+=row('TIEMPO', estado.tiempo+'s por entrada');
+    h+=row('META', estado.meta+' carambolas');
+    h+=row('INSCRIPCIÓN', pesos(estado.inscripcion));
+    h+=row('BOLSA PREMIOS', pesos(bolsa), 'neon');
+    h+=row('CAMPEÓN ('+estado.dist1+'%)', pesos(bolsa*estado.dist1/100), 'oro');
+    h+=row('SUBCAMPEÓN ('+estado.dist2+'%)', pesos(bolsa*estado.dist2/100));
+    h+=row('3er LUGAR ('+estado.dist3+'%)', pesos(bolsa*estado.dist3/100));
+    if(estado.reglamento) h+=row('REGLAMENTO', estado.reglamento);
+    document.getElementById('res-rows').innerHTML = h;
+}
+
+/* ── CREAR ── */
+function crearTorneo() {
+    var fmt = estado.formatoImportado;
+    var torneo = MasterVIP.crearTorneo({
+        nombre: estado.nombre, fechaInicio: estado.fecha, modalidad: estado.modalidad,
+        sistema: estado.sistema||(fmt?fmt.formatoId:'brackets'),
+        cupoMax: estado.cupo, tiempoEntrada: estado.tiempo,
+        entradaObjetivo: estado.meta, reglamento: estado.reglamento,
+        inscripcion: estado.inscripcion, baseClub: estado.base,
+        pctPremios: estado.pctPremios, pctFee: estado.pctFee,
+        dist1: estado.dist1, dist2: estado.dist2, dist3: estado.dist3,
+        formatoDetalle: fmt||null,
+        reglas: fmt&&fmt.reglas ? fmt.reglas : {modo:'directo', metaDirecto:estado.meta, handicap:'no'}
     });
-
-    todos = Object.values(res)
-        .filter(function(j) { return j.total > 0; })
-        .map(function(j) { return { nombre: j.nombre, promedio: j.suma / j.total, partidas: j.partidas }; })
-        .sort(function(a, b) { return b.promedio - a.promedio; });
-
-    document.getElementById('stat-total').innerText = todos.length;
-    document.getElementById('stat-mejor').innerText = todos.length > 0 ? todos[0].promedio.toFixed(3) : '0.000';
-    document.getElementById('stat-partidas').innerText = hist.length > 0 ? Math.floor(hist.length / 2) : 0;
-
-    renderPodio(todos.slice(0, 3));
-    renderizar(todos);
+    try { localStorage.removeItem('FORMATO_TORNEO'); } catch(e){}
+    showToast('&#10003; Torneo creado · '+torneo.codigo);
+    setTimeout(function(){ location.href='inscripciones.html'; }, 1200);
 }
 
-function renderPodio(top) {
-    if (top.length < 1) return;
-    var podio = document.getElementById('podio');
-    podio.style.display = 'grid';
-    var orden = [top[1], top[0], top[2]]; // plata-oro-bronce visualmente
-    var clases = ['pod-2', 'pod-1', 'pod-3'];
-    var coronas = ['&#129352;', '&#127942;', '&#129353;'];
-    var html = '';
-    for (var i = 0; i < 3; i++) {
-        var j = orden[i];
-        if (!j) { html += '<div></div>'; continue; }
-        var cat = MasterVIP.getCategoria(j.promedio);
-        var ini = j.nombre.trim()[0];
-        var foto = MasterVIP.getFoto(j.nombre);
-        var avHtml = foto
-            ? '<img src="' + foto + '" style="width:46px;height:46px;border-radius:50%;object-fit:cover;">'
-            : ini;
-        html += '<div class="podio-card ' + clases[i] + '" onclick="irPerfil(\'' + encodeURIComponent(j.nombre) + '\')">' +
-            '<span class="pod-corona">' + coronas[i] + '</span>' +
-            '<div class="pod-av">' + avHtml + '</div>' +
-            '<span class="pod-nom">' + j.nombre + '</span>' +
-            '<span class="pod-prom">' + j.promedio.toFixed(3) + '</span>' +
-            '<span class="pod-cat">' + cat.emoji + ' ' + cat.nombre + '</span>' +
-        '</div>';
-    }
-    podio.innerHTML = html;
-}
-
-function filtrar(tipo, btn) {
-    filtroActual = tipo;
-    document.querySelectorAll('.filtro-btn').forEach(function(b) { b.classList.remove('activo'); });
-    btn.classList.add('activo');
-    var rangos = {
-        todos:    function(p) { return true; },
-        elite:    function(p) { return p >= 1.1; },
-        maestro:  function(p) { return p >= 0.9 && p < 1.1; },
-        primera:  function(p) { return p >= 0.7 && p < 0.9; },
-        segunda:  function(p) { return p >= 0.5 && p < 0.7; },
-        tercera:  function(p) { return p >= 0.35 && p < 0.5; }
-    };
-    var filtrados = tipo === 'todos' ? todos : todos.filter(function(j) { return rangos[tipo](j.promedio); });
-    document.getElementById('sec-lista').innerText = tipo === 'todos' ? 'CLASIFICACIÓN GENERAL' : 'FILTRO: ' + tipo.toUpperCase();
-    renderizar(filtrados);
-}
-
-function renderizar(lista) {
-    var cont = document.getElementById('contenido');
-    if (!lista.length) {
-        cont.innerHTML = '<div class="empty"><p>SIN JUGADORES<br>EN ESTA CATEGORÍA</p></div>';
-        return;
-    }
-    // Ocultar podio si se filtra
-    document.getElementById('podio').style.display = filtroActual === 'todos' ? 'grid' : 'none';
-
-    var html = '';
-    // Saltar top 3 si es vista "todos" (ya están en podio)
-    var desde = filtroActual === 'todos' ? 3 : 0;
-    for (var i = desde; i < lista.length; i++) {
-        html += filaHTML(lista[i], i + 1);
-    }
-    cont.innerHTML = html || '<div class="empty"><p>EL TOP 3 ESTÁ EN EL PODIO</p></div>';
-}
-
-function filaHTML(j, pos) {
-    var cat = MasterVIP.getCategoria(j.promedio);
-    var cs = getCatStyle(cat.nombre);
-    var ini = j.nombre.trim()[0];
-    var foto = MasterVIP.getFoto(j.nombre);
-    var avHtml = foto
-        ? '<img src="' + foto + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
-        : '<div class="av">' + ini + '</div>';
-
-    return '<div class="fila" onclick="irPerfil(\'' + encodeURIComponent(j.nombre) + '\')">' +
-        '<div class="pos-badge">' + pos + '</div>' +
-        avHtml +
-        '<div class="jug-info">' +
-            '<div class="jug-nom">' + j.nombre + '</div>' +
-            '<div class="jug-det">' +
-                '<span class="cat-pill" style="color:' + cs.color + ';background:' + cs.bg + ';border-color:' + cs.border + ';">' +
-                    cs.ico + ' ' + cat.nombre +
-                '</span>' +
-            '</div>' +
-        '</div>' +
-        '<div class="part-badge">' + (j.partidas || 0) + ' PART.</div>' +
-        '<div class="jug-prom" style="color:' + cs.color + ';">' + j.promedio.toFixed(3) + '</div>' +
-    '</div>';
-}
-
-function irPerfil(nombreEnc) {
-    window.location.href = 'perfil.html?jugador=' + nombreEnc;
+function showToast(msg) {
+    var t=document.getElementById('toast');
+    t.innerHTML=msg; t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2400);
 }
 </script>
-<script src="whitelabel.js"></script>
 </body>
 </html>
