@@ -690,7 +690,7 @@ body {
         </div>
         <div class="meta-row">
             <span class="meta-lbl">OTRO:</span>
-            <input type="number" class="input-num" id="meta-inp" value="10" min="1" max="200" style="width:80px;"
+            <input type="number" class="input-num" id="meta-inp" value="10" min="8" max="200" style="width:80px;"
                    onchange="setMeta(parseInt(this.value)||10)">
             <span class="meta-lbl">carambolas para ganar</span>
         </div>
@@ -899,6 +899,8 @@ function validar(num) {
     if (num===2) {
         estado.meta       = parseInt(document.getElementById('meta-inp').value)||10;
         estado.reglamento = document.getElementById('t-reglamento').value.trim();
+        if (estado.meta < 8) { showToast('Meta mínima: 8 carambolas'); return false; }
+        if (estado.tiempo < 30) { showToast('Tiempo mínimo por entrada: 30 segundos'); return false; }
     }
     if (num===3) {
         estado.inscripcion = parseFloat(document.getElementById('t-inscripcion').value)||0;
@@ -986,11 +988,13 @@ function actualizarCupoPreview(n) {
 
 /* ── PASO 3 ── */
 function selTiempo(val, el) {
+    val = Math.max(30, parseInt(val,10) || 40);
     document.querySelectorAll('.tiempo-btn').forEach(function(b){ b.classList.remove('sel'); });
     el.classList.add('sel'); estado.tiempo = val;
 }
 
 function setMeta(val) {
+    val = Math.max(8, Math.min(200, parseInt(val,10) || 10));
     estado.meta = val;
     document.getElementById('meta-inp').value = val;
     document.querySelectorAll('.meta-btn').forEach(function(b){
@@ -1048,6 +1052,7 @@ function generarResumen() {
     h+=row('CUPO', estado.cupo+' jugadores');
     h+=row('TIEMPO', estado.tiempo+'s por entrada');
     h+=row('META', estado.meta+' carambolas');
+    h+=row('REGLAS BASE', 'Meta mínima 8 · Tiempo mínimo 30s');
     h+=row('INSCRIPCIÓN', pesos(estado.inscripcion));
     h+=row('BOLSA PREMIOS', pesos(bolsa), 'neon');
     h+=row('CAMPEÓN ('+estado.dist1+'%)', pesos(bolsa*estado.dist1/100), 'oro');

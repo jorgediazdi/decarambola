@@ -431,6 +431,17 @@ function getCfgPerfil(){
   return PERFIL_DEPORTE[dep] || PERFIL_DEPORTE.billar;
 }
 var jugActivo = null;
+var vistaPublica = false;
+
+function nombreSeguro(v){ return (v || '').toString().trim().toUpperCase(); }
+function esMismoJugador(a,b){ return nombreSeguro(a) === nombreSeguro(b); }
+
+function obtenerNombrePropio() {
+  var act = MasterVIP._get('jugador_activo', null);
+  if (act && act.nombre) return act.nombre;
+  var mp = MasterVIP._get('mi_perfil', null);
+  return (mp && mp.nombre) ? mp.nombre : '';
+}
 
 window.onload = async function(){
   try{ await MasterVIP.init(); }catch(e){ console.warn(e); }
@@ -447,10 +458,34 @@ window.onload = async function(){
     subtituloVacio.textContent = cfg.sloganHome;
   }
 
+  var nombrePropio = obtenerNombrePropio();
+  var esPublicoReq = /[?&]publico=1/.test(window.location.search);
   var mJ = window.location.search.match(/jugador=([^&]+)/);
-  if(mJ){ var j=MasterVIP.buscarJugador(decodeURIComponent(mJ[1])); if(j){mostrarPerfil(j);return;} }
+  if(mJ){
+    var nombreUrl = decodeURIComponent(mJ[1]);
+    var j=MasterVIP.buscarJugador(nombreUrl);
+    if(j){
+      vistaPublica = esPublicoReq && !esMismoJugador(j.nombre, nombrePropio);
+      mostrarPerfil(j,{publico:vistaPublica});
+      return;
+    }
+  }
   var mp = MasterVIP._get('mi_perfil',null);
-  if(mp&&mp.nombre){ var jm=MasterVIP.buscarJugador(mp.nombre); if(jm){mostrarPerfil(jm);return;} }
+  if(mp&&mp.nombre){
+    var jm=MasterVIP.buscarJugador(mp.nombre);
+    vistaPublica = false;
+    if(jm){ mostrarPerfil(jm,{publico:false}); return; }
+    // Fallback: mostrar el carnet propio aunque aún no esté en lista de jugadores
+    mostrarPerfil({
+      nombre: mp.nombre,
+      promedio: parseFloat(mp.promedio) || 0,
+      club: mp.club || '',
+      ciudad: mp.ciudad || '',
+      departamento: mp.departamento || '',
+      mejor_serie: mp.mejor_serie || 0
+    },{publico:false});
+    return;
+  }
   mostrarDirectorio();
 };
 
@@ -514,7 +549,10 @@ function selBtn(el){
 /* ══════════════════════════════════════════
    MOSTRAR PERFIL — CARNET FIFA COMPLETO
 ══════════════════════════════════════════ */
-function mostrarPerfil(j){
+function mostrarPerfil(j,opts){
+  opts = opts || {};
+  var soloPublico = !!opts.publico;
+  vistaPublica = soloPublico;
   jugActivo=j;
   var zona=document.getElementById('zona');
 
@@ -602,8 +640,8 @@ function mostrarPerfil(j){
     :'<div class="foto-ini" style="background:linear-gradient(135deg,#1a1200,#0a0a00);color:'+CC+';">'+ini+'</div>';
 
   /* ── Club logo ── */
-  var logoUrl=window.WL?window.WL.getLogoUrl():null;
-  var clubNom=window.WL?window.WL.getNombreClub():(j.club||'SIN CLUB');
+  var logoUrl = (!soloPublico && window.WL && typeof WL.getLogoUrl==='function') ? WL.getLogoUrl() : (j.club_logo_url||null);
+  var clubNom=(j.club||((!soloPublico&&window.WL)?window.WL.getNombreClub():null)||'SIN CLUB');
   var clubLogoHtml=logoUrl?'<img class="c-club-logo" src="'+logoUrl+'">':'';
 
   /* ── Nivel ── */
@@ -614,6 +652,28 @@ function mostrarPerfil(j){
 
   /* ── Insignias ── */
   var ins=calcInsignias(j,mias,misTorn,vics,serieM,fueraCategoria,caserosG);
+  var fotoClickAttr = soloPublico ? '' : ' onclick="abrirFoto()"';
+  var fotoCamHtml = soloPublico ? '' : '<div class="foto-cam">📷</div>';
+  var fotoInputHtml = soloPublico ? '' : '<input type="file" id="inp-foto" accept="image/*" onchange="guardarFoto(event)">';
+
+  var bloquePublico = '<div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:12px;padding:12px 14px;margin-bottom:12px;text-align:center;">'+
+      '<div style="font-size:0.45rem;color:#666;letter-spacing:2px;">🔒 PERFIL PÚBLICO</div>'+
+      '<div style="font-size:0.55rem;color:#444;letter-spacing:1px;margin-top:4px;">Solo visible: nombre, club, ciudad, promedio y ranking</div>'+
+    '</div>';
+
+  var bloquePrivado =
+    '<div class="analisis">'+
+      '<div class="analisis-titulo">🤖 ANÁLISIS DEL JUGADOR</div>'+
+      '<div class="analisis-texto">'+analisis+'</div>'+
+    '</div>'+
+    '<div class="sec-tit">INSIGNIAS</div>'+
+    '<div class="ins-grid">'+renderIns(ins)+'</div>'+
+    '<button class="btn-share" onclick="compartir()">📤 COMPARTIR CARNET</button>'+
+    '<button class="btn-link" onclick="copiarLink()">🔗 COPIAR ENLACE</button>'+
+    '<div class="sec-tit">TORNEOS</div>'+
+    renderTorneos(misTorn,j.nombre)+
+    '<div class="sec-tit">ÚLTIMAS PARTIDAS</div>'+
+    renderPartidas(mias);
 
   /* ══ HTML DEL CARNET FIFA ══ */
   zona.innerHTML=
@@ -633,12 +693,12 @@ function mostrarPerfil(j){
         /* ── IZQUIERDA ── */
         '<div class="carnet-left">'+
           tornActivoHtml+
-          '<div class="foto-wrap" onclick="abrirFoto()" '+
+          '<div class="foto-wrap"'+fotoClickAttr+' '+
             'style="border:2.5px solid '+CC+';box-shadow:0 0 16px '+CC+'33;">'+
             fotoInner+
-            '<div class="foto-cam">📷</div>'+
+            fotoCamHtml+
           '</div>'+
-          '<input type="file" id="inp-foto" accept="image/*" onchange="guardarFoto(event)">'+
+          fotoInputHtml+
 
           '<div class="cat-box" style="border-color:'+CC+'44;background:'+CC+'08;">'+
             '<div class="cat-box-ico">'+cat.emoji+'</div>'+
@@ -715,32 +775,13 @@ function mostrarPerfil(j){
         '<span class="c-id">DC-'+j.nombre.replace(/\s/g,'').toUpperCase().substr(0,8)+'</span>'+
         '<span style="font-size:0.38rem;color:#111;letter-spacing:1px;">▦▦▦</span>'+
         '<span class="c-marca" style="color:'+CC+';">'+clubNom+'</span>'+
-        '<span class="c-foto-btn" onclick="abrirFoto()">📷 FOTO</span>'+
+        (soloPublico ? '' : '<span class="c-foto-btn" onclick="abrirFoto()">📷 FOTO</span>')+
       '</div>'+
 
     '</div>'+ /* fin carnet-bg */
   '</div>'+ /* fin carnet-wrap */
 
-  /* ANÁLISIS EXPERTO */
-  '<div class="analisis">'+
-    '<div class="analisis-titulo">🤖 ANÁLISIS DEL JUGADOR</div>'+
-    '<div class="analisis-texto">'+analisis+'</div>'+
-  '</div>'+
-
-  /* INSIGNIAS */
-  '<div class="sec-tit">INSIGNIAS</div>'+
-  '<div class="ins-grid">'+renderIns(ins)+'</div>'+
-
-  /* BOTONES */
-  '<button class="btn-share" onclick="compartir()">📤 COMPARTIR CARNET</button>'+
-  '<button class="btn-link" onclick="copiarLink()">🔗 COPIAR ENLACE</button>'+
-
-  /* HISTORIAL */
-  '<div class="sec-tit">TORNEOS</div>'+
-  renderTorneos(misTorn,j.nombre)+
-
-  '<div class="sec-tit">ÚLTIMAS PARTIDAS</div>'+
-  renderPartidas(mias);
+  (soloPublico ? bloquePublico : bloquePrivado);
 }
 
 /* ══ ANÁLISIS AUTOMÁTICO EXPERTO ══ */
@@ -880,7 +921,7 @@ function guardarFoto(e){
 
 /* ── COMPARTIR ── */
 function compartir(){
-  if(!jugActivo)return;
+  if(!jugActivo||vistaPublica){return;}
   var cat=MasterVIP.getCategoria(jugActivo.promedio||0);
   var cfg=getCfgPerfil();
   var txt='🎱 *'+jugActivo.nombre+'*\n'+cat.emoji+' '+cat.nombre+' · Promedio '+(jugActivo.promedio||0).toFixed(3)+
@@ -890,7 +931,7 @@ function compartir(){
   else navigator.clipboard.writeText(txt).then(function(){alert('✅ Copiado para WhatsApp');});
 }
 function copiarLink(){
-  if(!jugActivo)return;
+  if(!jugActivo||vistaPublica){return;}
   var url=location.origin+location.pathname+'?jugador='+encodeURIComponent(jugActivo.nombre);
   navigator.clipboard.writeText(url).then(function(){
     var b=document.querySelector('.btn-link');

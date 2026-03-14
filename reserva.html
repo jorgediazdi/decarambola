@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mesas y Reservas — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#0b0b0b; --azul:#3498db; --neon:#2eff70; --rojo:#e74c3c; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; }
+        .header { position:sticky; top:0; z-index:20; background:#000; border-bottom:1px solid #1a1a1a; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; }
+        .ht { color:var(--oro); font-size:1rem; letter-spacing:2px; }
+        .hs { color:#444; font-size:0.45rem; letter-spacing:2px; margin-top:2px; }
+        .btn-top { background:#0f0f0f; border:1px solid #1a1a1a; color:#777; padding:8px 12px; border-radius:10px; text-decoration:none; font-size:0.55rem; }
+        .wrap { max-width:560px; margin:0 auto; padding:14px 12px 90px; }
+        .card { background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:14px; margin-bottom:10px; }
+        .lbl { color:#555; font-size:0.45rem; letter-spacing:2px; margin-bottom:8px; }
+        .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .inp { flex:1; min-width:120px; background:#111; border:1px solid #222; border-radius:10px; color:#ddd; padding:10px; font-size:0.75rem; outline:none; }
+        .btn { background:#111; border:1px solid #222; color:#bbb; padding:10px 12px; border-radius:10px; font-size:0.55rem; letter-spacing:1px; cursor:pointer; }
+        .btn:active { transform:scale(0.97); }
+        .btn.az { border-color:#235f86; color:var(--azul); background:rgba(52,152,219,0.08); }
+        .btn.ne { border-color:#237644; color:var(--neon); background:rgba(46,255,112,0.08); }
+        .btn.ro { border-color:#7a2f2a; color:var(--rojo); background:rgba(231,76,60,0.08); }
+        .btn.or { border-color:#6b5718; color:var(--oro); background:rgba(212,175,55,0.08); }
+
+        .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .mesa { background:#0f0f0f; border:1px solid #1f1f1f; border-radius:14px; padding:10px; }
+        .m-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+        .m-num { font-size:0.65rem; color:#bbb; letter-spacing:1px; }
+        .m-estado { font-size:0.42rem; letter-spacing:2px; border-radius:999px; padding:3px 7px; border:1px solid; }
+        .e-libre { color:var(--neon); border-color:rgba(46,255,112,0.35); background:rgba(46,255,112,0.08); }
+        .e-ocupada { color:var(--rojo); border-color:rgba(231,76,60,0.35); background:rgba(231,76,60,0.08); }
+        .e-reservada { color:var(--oro); border-color:rgba(212,175,55,0.35); background:rgba(212,175,55,0.08); }
+        .m-det { color:#777; font-size:0.5rem; min-height:30px; margin-bottom:8px; line-height:1.5; }
+        .m-btns { display:flex; gap:6px; }
+        .m-btns .btn { flex:1; padding:8px 6px; font-size:0.45rem; }
+
+        .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
+        .kpi { background:#0f0f0f; border:1px solid #1a1a1a; border-radius:12px; padding:10px 8px; text-align:center; }
+        .kpi b { display:block; font-size:1.1rem; font-family:'Courier New',monospace; }
+        .kpi small { color:#555; font-size:0.45rem; letter-spacing:1px; }
+
+        .footer-nav { position:fixed; left:0; right:0; bottom:0; background:linear-gradient(transparent,#000 45%); padding:8px 12px 18px; display:flex; gap:8px; }
+        .footer-nav a { flex:1; text-align:center; text-decoration:none; color:#666; font-size:0.55rem; padding:10px; border-radius:12px; border:1px solid #1a1a1a; background:#0f0f0f; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <div class="ht">🪑 MESAS Y RESERVAS</div>
+            <div class="hs" id="lbl-club">CONTROL OPERATIVO DEL BILLAR</div>
+        </div>
+        <a class="btn-top" href="index.html">← MENÚ</a>
+    </div>
+
+    <div class="wrap">
+        <div class="kpis">
+            <div class="kpi"><b id="k-libre">0</b><small>LIBRES</small></div>
+            <div class="kpi"><b id="k-ocup">0</b><small>OCUPADAS</small></div>
+            <div class="kpi"><b id="k-res">0</b><small>RESERVADAS</small></div>
+        </div>
+
+        <div class="card">
+            <div class="lbl">CONFIGURACIÓN DE SALA</div>
+            <div class="row">
+                <input id="inp-cant" class="inp" type="number" min="1" max="40" value="8" placeholder="Cantidad de mesas">
+                <button class="btn az" onclick="crearMesas()">ACTUALIZAR MESAS</button>
+                <button class="btn ro" onclick="limpiarTodo()">REINICIAR</button>
+            </div>
+            <div style="margin-top:8px;color:#555;font-size:0.44rem;letter-spacing:1px;">
+                Usa este módulo para marcar mesas libres, reservadas u ocupadas en tiempo real.
+            </div>
+        </div>
+
+        <div id="grid-mesas" class="grid"></div>
+    </div>
+
+    <div class="footer-nav">
+        <a href="control_torneo.html">⚙️ CONTROL TORNEO</a>
+        <a href="inscripciones.html">📝 INSCRIPCIONES</a>
+    </div>
+
+    <script src="core.js"></script>
+    <script>
+    var mesas = [];
+
+    function storageKey() {
+        var id = localStorage.getItem('wl_club_id') || localStorage.getItem('wl_club_nombre') || 'GLOBAL';
+        return 'MESAS_RESERVAS_' + String(id).toUpperCase();
+    }
+
+    function cargar() {
+        try { MasterVIP.applyDesign(); } catch(e) {}
+        var club = localStorage.getItem('wl_club_nombre') || 'CLUB GLOBAL';
+        document.getElementById('lbl-club').textContent = club.toUpperCase();
+
+        try { mesas = JSON.parse(localStorage.getItem(storageKey()) || '[]'); } catch(e) { mesas = []; }
+        if (!mesas.length) {
+            for (var i=1; i<=8; i++) mesas.push({id:i, estado:'LIBRE', detalle:''});
+            guardar();
+        }
+        document.getElementById('inp-cant').value = mesas.length;
+        render();
+    }
+
+    function guardar() {
+        localStorage.setItem(storageKey(), JSON.stringify(mesas));
+    }
+
+    function crearMesas() {
+        var n = parseInt(document.getElementById('inp-cant').value,10);
+        if (isNaN(n) || n < 1 || n > 40) { alert('Cantidad de mesas inválida (1-40)'); return; }
+        var nuevas = [];
+        for (var i=1; i<=n; i++) {
+            var ex = mesas.find(function(m){ return m.id === i; });
+            nuevas.push(ex || {id:i, estado:'LIBRE', detalle:''});
+        }
+        mesas = nuevas;
+        guardar();
+        render();
+    }
+
+    function limpiarTodo() {
+        if (!confirm('¿Reiniciar todas las mesas a LIBRE?')) return;
+        mesas = mesas.map(function(m){ return {id:m.id, estado:'LIBRE', detalle:''}; });
+        guardar();
+        render();
+    }
+
+    function setEstado(id, estado) {
+        var idx = mesas.findIndex(function(m){ return m.id === id; });
+        if (idx < 0) return;
+        if (estado === 'LIBRE') {
+            mesas[idx].estado = 'LIBRE';
+            mesas[idx].detalle = '';
+        } else if (estado === 'RESERVADA') {
+            var nombre = (prompt('Nombre de la reserva:','') || '').trim().toUpperCase();
+            var hora = (prompt('Hora (ej: 19:30):','') || '').trim();
+            mesas[idx].estado = 'RESERVADA';
+            mesas[idx].detalle = (nombre || 'RESERVA') + (hora ? ' · ' + hora : '');
+        } else if (estado === 'OCUPADA') {
+            var cliente = (prompt('Jugador / cliente en mesa:','') || '').trim().toUpperCase();
+            var desde = new Date();
+            var hh = String(desde.getHours()).padStart(2,'0');
+            var mm = String(desde.getMinutes()).padStart(2,'0');
+            mesas[idx].estado = 'OCUPADA';
+            mesas[idx].detalle = (cliente || 'EN JUEGO') + ' · desde ' + hh + ':' + mm;
+        }
+        guardar();
+        render();
+    }
+
+    function estadoClass(e) {
+        if (e === 'OCUPADA') return 'e-ocupada';
+        if (e === 'RESERVADA') return 'e-reservada';
+        return 'e-libre';
+    }
+
+    function render() {
+        var libre=0, ocup=0, res=0;
+        var html = mesas.map(function(m){
+            if (m.estado === 'LIBRE') libre++;
+            else if (m.estado === 'OCUPADA') ocup++;
+            else if (m.estado === 'RESERVADA') res++;
+            return '<div class="mesa">'+
+                '<div class="m-top"><div class="m-num">MESA '+m.id+'</div><div class="m-estado '+estadoClass(m.estado)+'">'+m.estado+'</div></div>'+
+                '<div class="m-det">'+(m.detalle || 'Disponible')+'</div>'+
+                '<div class="m-btns">'+
+                    '<button class="btn ne" onclick="setEstado('+m.id+',\'LIBRE\')">LIBRE</button>'+
+                    '<button class="btn or" onclick="setEstado('+m.id+',\'RESERVADA\')">RESERVAR</button>'+
+                    '<button class="btn ro" onclick="setEstado('+m.id+',\'OCUPADA\')">OCUPAR</button>'+
+                '</div>'+
+            '</div>';
+        }).join('');
+        document.getElementById('grid-mesas').innerHTML = html;
+        document.getElementById('k-libre').textContent = libre;
+        document.getElementById('k-ocup').textContent = ocup;
+        document.getElementById('k-res').textContent = res;
+    }
+
+    window.onload = cargar;
+    </script>
+    <script src="whitelabel.js"></script>
+</body>
+</html>
