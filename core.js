@@ -72,6 +72,31 @@ const DB = {
     }
 };
 
+// Evita pantallas bloqueadas por JSON corrupto en localStorage
+(function sanearStorageJSON() {
+    var defaults = {
+        mi_perfil: '{}',
+        jugador_activo: 'null',
+        club_activo: 'null',
+        mis_clubes: '[]',
+        RETOS_PENDIENTES: '{}',
+        TORNEOS_LISTA: '[]',
+        JUGADORES_PLATAFORMA: '[]',
+        ranking_historico_club: '[]',
+        wl_club_cache: '{}'
+    };
+    Object.keys(defaults).forEach(function (k) {
+        var raw = localStorage.getItem(k);
+        if (raw === null || raw === undefined || raw === '') return;
+        try {
+            JSON.parse(raw);
+        } catch (e) {
+            console.warn('[Storage] JSON inválido en', k, '→ restaurando valor seguro');
+            localStorage.setItem(k, defaults[k]);
+        }
+    });
+})();
+
 const MasterVIP = {
 
     // ─────────────────────────────────────────
@@ -90,8 +115,13 @@ const MasterVIP = {
 
     // Obtener club_id activo desde localStorage (lo guarda whitelabel.js)
     getClubId: function () {
-        const perfil = JSON.parse(localStorage.getItem('mi_perfil')) || {};
-        return perfil.club_id || null;
+        var perfil = null;
+        try { perfil = JSON.parse(localStorage.getItem('mi_perfil') || 'null'); } catch (e) { perfil = null; }
+        if (perfil && perfil.club_id) return perfil.club_id;
+        var club = null;
+        try { club = JSON.parse(localStorage.getItem('club_activo') || 'null'); } catch (e) { club = null; }
+        if (club && club.id) return club.id;
+        return localStorage.getItem('wl_club_id') || null;
     },
 
     // ─────────────────────────────────────────
@@ -206,7 +236,14 @@ const MasterVIP = {
     // 3. TORNEOS
     // ─────────────────────────────────────────
     getTorneos: function () {
-        return JSON.parse(localStorage.getItem('TORNEOS_LISTA')) || [];
+        var torneos = JSON.parse(localStorage.getItem('TORNEOS_LISTA')) || [];
+        var clubId = this.getClubId ? this.getClubId() : null;
+        if (!clubId) return torneos;
+        return torneos.filter(function (t) {
+            var sede = (t && (t.sede || t.club_id || t.clubId)) || '';
+            if (!sede) return true; // legado local sin sede explícita
+            return String(sede) === String(clubId);
+        });
     },
 
     getTorneoActivo: function () {
@@ -238,6 +275,10 @@ const MasterVIP = {
                     entradaObjetivo: t.entrada_objetivo || local.entradaObjetivo || 0,
                     tiempoEntrada: t.tiempo_entrada || local.tiempoEntrada || 40,
                     modalidad: t.modalidad || local.modalidad || 'Libre',
+                    sitioEvento: t.sitio_evento || local.sitioEvento || '',
+                    multisala: (typeof t.multisala === 'boolean') ? t.multisala : !!local.multisala,
+                    clasificaPorGrupo: t.clasifica_por_grupo || local.clasificaPorGrupo || 2,
+                    mejoresTerceros: t.mejores_terceros || local.mejoresTerceros || 0,
                     reglamento: t.reglamento || local.reglamento || '',
                     estado: t.estado || 'ABIERTO',
                     // Si el local ya tiene inscritos, los respetamos (pueden tener bye/eliminado)
@@ -326,6 +367,10 @@ const MasterVIP = {
             entradaObjetivo: parseInt(config.entradaObjetivo) || 0,
             tiempoEntrada: parseInt(config.tiempoEntrada) || 40,
             modalidad: config.modalidad || 'Libre',
+            sitioEvento: config.sitioEvento || '',
+            multisala: !!config.multisala,
+            clasificaPorGrupo: parseInt(config.clasificaPorGrupo) || 2,
+            mejoresTerceros: parseInt(config.mejoresTerceros) || 0,
             reglamento: config.reglamento || '',
             estado: 'ABIERTO',
             inscritos: [],
@@ -449,6 +494,17 @@ const MasterVIP = {
         if (t.sistema === 'survivor') {
             t.posiciones = jugadores.map((j, i) => ({ ...j, pos: i + 1, promTorneo: j.promedio, partidasJugadas: 0 }));
             t.rondas = [{ numero: 1, estado: 'EN_CURSO', partidas: this._generarRondaSurvivor(jugadores) }];
+        } else if (t.sistema === 'amigos') {
+            t.posiciones = jugadores.map(function(j) {
+                return {
+                    nombre: j.nombre,
+                    club: j.club || '',
+                    promedio: parseFloat(j.promedio) || 0,
+                    pj: 0, pg: 0, pe: 0, pp: 0,
+                    car: 0, ent: 0, pts: 0
+                };
+            });
+            t.rondas = [{ numero: 1, estado: 'EN_CURSO', partidas: this._generarRondaTodosContraTodos(jugadores) }];
         } else {
             t.rondas = [{ numero: 1, estado: 'EN_CURSO', partidas: this._generarPartidas(jugadores, 1) }];
         }
@@ -515,6 +571,64 @@ const MasterVIP = {
         return partidas;
     },
 
+    // Formato "Torneo Amigo": todos juegan contra todos, sin eliminados
+    _generarRondaTodosContraTodos: function (jugadores) {
+        const partidas = [];
+        let n = 0;
+        for (let i = 0; i < jugadores.length; i++) {
+            for (let j = i + 1; j < jugadores.length; j++) {
+                partidas.push({
+                    id: 'PA' + Date.now() + (n++),
+                    ronda: 1,
+                    j1: jugadores[i].nombre,
+                    j2: jugadores[j].nombre,
+                    prom1: jugadores[i].promedio || 0,
+                    prom2: jugadores[j].promedio || 0,
+                    pts1: 0, pts2: 0,
+                    ganador: null,
+                    estado: 'PENDIENTE',
+                    listoJ1: false, listoJ2: false,
+                    promFinalJ1: 0, promFinalJ2: 0,
+                    entradas1: 0, entradas2: 0
+                });
+            }
+        }
+        return partidas;
+    },
+
+    _actualizarPosicionesAmigos: function (torneo, resultado) {
+        if (!torneo.posiciones) torneo.posiciones = [];
+        const n1 = (resultado.j1 || '').toUpperCase();
+        const n2 = (resultado.j2 || '').toUpperCase();
+        const idx1 = torneo.posiciones.findIndex(function(p){ return (p.nombre || '').toUpperCase() === n1; });
+        const idx2 = torneo.posiciones.findIndex(function(p){ return (p.nombre || '').toUpperCase() === n2; });
+        if (idx1 < 0 || idx2 < 0) return;
+
+        const p1 = torneo.posiciones[idx1];
+        const p2 = torneo.posiciones[idx2];
+        const car1 = parseInt(resultado.pts1) || 0;
+        const car2 = parseInt(resultado.pts2) || 0;
+        const ent1 = parseInt(resultado.entradas1) || 0;
+        const ent2 = parseInt(resultado.entradas2) || 0;
+
+        p1.pj += 1; p2.pj += 1;
+        p1.car += car1; p2.car += car2;
+        p1.ent += ent1; p2.ent += ent2;
+
+        const g = (resultado.ganador || '').toUpperCase();
+        if (g === n1) { p1.pg += 1; p1.pts += 2; p2.pp += 1; }
+        else if (g === n2) { p2.pg += 1; p2.pts += 2; p1.pp += 1; }
+        else { p1.pe += 1; p2.pe += 1; p1.pts += 1; p2.pts += 1; }
+
+        p1.promedio = p1.ent > 0 ? parseFloat((p1.car / p1.ent).toFixed(3)) : p1.promedio;
+        p2.promedio = p2.ent > 0 ? parseFloat((p2.car / p2.ent).toFixed(3)) : p2.promedio;
+
+        torneo.posiciones.sort(function(a,b){
+            if ((b.pts||0) !== (a.pts||0)) return (b.pts||0) - (a.pts||0);
+            return (parseFloat(b.promedio)||0) - (parseFloat(a.promedio)||0);
+        });
+    },
+
     // ─────────────────────────────────────────
     // 6. REGISTRAR RESULTADO DE PARTIDA
     // ─────────────────────────────────────────
@@ -569,6 +683,29 @@ const MasterVIP = {
             tipo: 'TORNEO',
             ronda: resultado.ronda || null
         });
+
+        // Torneo Amigo: tabla acumulada todos-contra-todos, sin eliminación
+        if (torneo.sistema === 'amigos') {
+            this._actualizarPosicionesAmigos(torneo, resultado);
+            const todas = (torneo.rondas || []).every(function(r){
+                return (r.partidas || []).every(function(p){ return p.estado === 'TERMINADA' || p.estado === 'BYE'; });
+            });
+            if (todas && torneo.posiciones && torneo.posiciones.length > 0) {
+                torneo.estado = 'FINALIZADO';
+                torneo.campeon = torneo.posiciones[0].nombre;
+                if (torneo.id && torneo.id.length > 10) {
+                    const campeonJugador = this.buscarJugador(torneo.campeon);
+                    await DB.update('torneos', torneo.id, {
+                        estado: 'FINALIZADO',
+                        ganador_id: (campeonJugador && campeonJugador.id && campeonJugador.id.length > 10) ? campeonJugador.id : null,
+                        updated_at: new Date().toISOString()
+                    });
+                }
+            }
+            torneos[idx] = torneo;
+            localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
+            return { ok: true, torneo };
+        }
 
         const rondaActual = torneo.rondas[torneo.rondas.length - 1];
         const todasTerminadas = rondaActual.partidas.every(p => p.estado === 'TERMINADA' || p.estado === 'BYE');
@@ -822,17 +959,19 @@ const MasterVIP = {
 
     // applyDesign: aplica whitelabel si está disponible (no-op si no hay WL)
     applyDesign: function () {
-        // whitelabel.js se encarga — este método existe para compatibilidad
-        if (window.WL && typeof window.WL.getNombreClub === 'function') {
-            var nombre = window.WL.getNombreClub();
-            if (nombre) {
-                var tituloEl = document.querySelector('.titulo, h1, .header h1');
-                if (tituloEl) {
-                    var PAGINAS_NO_REEMPLAZAR = ['CATEGORÍAS','RANKING','INSCRIPCIONES','TORNEOS','BRACKETS','PERFIL','DUELO','RETO','SENSEI','CERTIFICADOS','POSICIONES','ENTRENAMIENTO'];
-                    var texto = (tituloEl.textContent || '').trim().toUpperCase();
-                    var esPagina = PAGINAS_NO_REEMPLAZAR.some(function(p) { return texto.indexOf(p) >= 0; });
-                    if (!esPagina) tituloEl.textContent = nombre;
-                }
+        var nombre = null;
+        try {
+            nombre = (window.WL && typeof window.WL.getNombreClub === 'function')
+                ? window.WL.getNombreClub()
+                : (localStorage.getItem('wl_club_nombre') || null);
+        } catch (e) {}
+        if (nombre) {
+            var tituloEl = document.querySelector('.titulo, h1, .header h1');
+            if (tituloEl) {
+                var PAGINAS_NO_REEMPLAZAR = ['CATEGORÍAS','RANKING','INSCRIPCIONES','TORNEOS','BRACKETS','PERFIL','DUELO','RETO','SENSEI','CERTIFICADOS','POSICIONES','ENTRENAMIENTO','RESERVAS'];
+                var texto = (tituloEl.textContent || '').trim().toUpperCase();
+                var esPagina = PAGINAS_NO_REEMPLAZAR.some(function(p) { return texto.indexOf(p) >= 0; });
+                if (!esPagina) tituloEl.textContent = nombre;
             }
         }
     },
@@ -895,8 +1034,16 @@ const MasterVIP = {
     // getLogoHTML: genera HTML del logo del club activo
     getLogoHTML: function (size) {
         size = size || 34;
-        var logoUrl = window.WL ? window.WL.getLogoUrl() : null;
-        var nombre = window.WL ? window.WL.getNombreClub() : null;
+        var logoUrl = null;
+        var nombre = null;
+        try {
+            logoUrl = (window.WL && typeof window.WL.getLogoUrl === 'function')
+                ? window.WL.getLogoUrl()
+                : (localStorage.getItem('wl_club_logo_url') || null);
+            nombre = (window.WL && typeof window.WL.getNombreClub === 'function')
+                ? window.WL.getNombreClub()
+                : (localStorage.getItem('wl_club_nombre') || null);
+        } catch (e) {}
 
         if (logoUrl) {
             return '<img src="' + logoUrl + '" ' +
@@ -1245,7 +1392,8 @@ const HISTORIAL = {
         localStorage.setItem(clave, JSON.stringify(lista));
 
         // 3. Actualizar mejor serie si aplica
-        const perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        var perfil = {};
+        try { perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}') || {}; } catch(e) { perfil = {}; }
         if (registro.serie_mayor > (perfil.mejor_serie || 0)) {
             perfil.mejor_serie = registro.serie_mayor;
             localStorage.setItem('mi_perfil', JSON.stringify(perfil));
@@ -1434,4 +1582,4 @@ const LIMPIEZA = {
             }
         });
     }
-};s
+};

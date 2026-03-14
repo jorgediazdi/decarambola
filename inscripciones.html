@@ -559,8 +559,10 @@ function cargar() {
     document.getElementById('lbl-torneo').innerText = torneo.nombre;
     document.getElementById('torneo-panel').style.display = 'block';
     document.getElementById('torneo-nombre').innerText = torneo.nombre;
+    var sitioTxt = torneo.sitioEvento ? ' · 📍 ' + torneo.sitioEvento : '';
+    var salasTxt = torneo.multisala ? ' · MULTISALA' : ' · SALA ÚNICA';
     document.getElementById('torneo-detalles').innerText = 
-        torneo.modalidad + ' · ' + torneo.codigo + ' · Inscripción: ' + MasterVIP.formatearPesos(torneo.inscripcion || 0);
+        torneo.modalidad + ' · ' + torneo.codigo + salasTxt + sitioTxt + ' · Inscripción: ' + MasterVIP.formatearPesos(torneo.inscripcion || 0);
     
     actualizarCupo();
     renderInscritos();
