@@ -571,8 +571,8 @@
             return;
         }
 
-        const inscritos = torneo.inscritos?.length || 0;
-        const rondaActual = torneo.rondas?.length || 0;
+        const inscritos = (torneo && torneo.inscritos) ? torneo.inscritos.length : 0;
+        const rondaActual = (torneo && torneo.rondas) ? torneo.rondas.length : 0;
         const totalRondas = MasterVIP.totalRondas(torneo.cupoMax);
         const bolsa = MasterVIP.calcularBolsa(torneo);
         const rondaNom = rondaActual > 0
@@ -620,7 +620,7 @@
     /* ══ INSCRITOS ══ */
     function cargarInscritos(torneo) {
         const zona = document.getElementById('zona-inscritos');
-        if (!torneo?.inscritos?.length) {
+        if (!(torneo && torneo.inscritos && torneo.inscritos.length)) {
             zona.innerHTML = '<div class="empty">Sin jugadores inscritos aún</div>';
             return;
         }
