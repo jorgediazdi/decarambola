@@ -1861,6 +1861,58 @@ function cambiarSlide(idx) {
     setTimeout(function() { mostrarSlide(idx); }, 350);
 }
 
+function leerJSONStorage(key) {
+    try {
+        return JSON.parse(localStorage.getItem(key) || 'null');
+    } catch (e) {
+        return null;
+    }
+}
+
+function restaurarConexionPortales() {
+    // 1) Jugador: si solo existe mi_perfil, reconstruir jugador_activo
+    var jugador = leerJSONStorage('jugador_activo');
+    if (!jugador || !jugador.nombre) {
+        var perfil = leerJSONStorage('mi_perfil');
+        if (perfil && perfil.nombre) {
+            jugador = {
+                nombre: perfil.nombre,
+                cedula: perfil.cedula || '',
+                promedio: parseFloat(perfil.promedio) || 0,
+                club: perfil.club || '',
+                club_id: perfil.club_id || null
+            };
+            localStorage.setItem('jugador_activo', JSON.stringify(jugador));
+        }
+    }
+
+    // 2) Club: restaurar encabezado desde club_activo o cache WL
+    var club = leerJSONStorage('club_activo');
+    if (!club || !club.nombre) {
+        var wl = leerJSONStorage('wl_club_cache');
+        if (wl && wl.nombre) {
+            club = {
+                id: wl.id || null,
+                codigo: wl.codigo || '',
+                nombre: wl.nombre,
+                ciudad: wl.ciudad || '',
+                color: wl.color_primario || localStorage.getItem('wl_club_color') || '#3498db',
+                logo_url: wl.logo_url || '',
+                admin: false
+            };
+            localStorage.setItem('club_activo', JSON.stringify(club));
+        }
+    }
+
+    if (club && club.nombre) {
+        actualizarHeaderClub(club);
+        var secAdmin = document.getElementById('sec-admin-club');
+        var lblCodigo = document.getElementById('lbl-codigo-club');
+        if (secAdmin) secAdmin.style.display = club.admin ? 'block' : 'none';
+        if (lblCodigo && club.codigo) lblCodigo.innerText = club.codigo;
+    }
+}
+
 // ── Limpiar club anterior si ?club= cambió ──
 (function() {
     try {
@@ -1868,11 +1920,14 @@ function cambiarSlide(idx) {
         var slugUrl = params.get('club');
         if (slugUrl) {
             var slugGuardado = localStorage.getItem('wl_club_slug');
-            if (slugGuardado && slugGuardado !== slugUrl) {
-                // Cambió el club en la URL → limpiar todo el white label anterior
+            var prev = (slugGuardado || '').trim().toLowerCase();
+            var next = (slugUrl || '').trim().toLowerCase();
+            if (prev && prev !== next) {
+                // Cambió el club en la URL → limpiar solo caché de white label
+                // sin borrar sesión local (jugador/club/organizador).
                 ['wl_club_id','wl_club_nombre','wl_club_logo_url','wl_club_color','wl_club_slug',
-                 'wl_club_cache','club_activo','mis_clubes'].forEach(function(k){ localStorage.removeItem(k); });
-                console.log('[index] Club cambió de "' + slugGuardado + '" a "' + slugUrl + '" → caché limpiado');
+                 'wl_club_cache'].forEach(function(k){ localStorage.removeItem(k); });
+                console.log('[index] Club cambió de "' + slugGuardado + '" a "' + slugUrl + '" → cache WL limpiado (sesión preservada)');
             }
         }
     } catch(e) {}
@@ -1881,11 +1936,12 @@ function cambiarSlide(idx) {
 // ── Carga inicial ──
 window.onload = function() {
     try { if(typeof MasterVIP !== 'undefined') MasterVIP.applyDesign?.(); } catch(e) {}
+    restaurarConexionPortales();
     cargarSede();
     cargarTorneoActivo();
     iniciarSlider();
     // Abrir panel jugador si ya está identificado
-    const u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+    const u = leerJSONStorage('jugador_activo');
     if (u && u.nombre) { abrirPanel('jug'); }
 };
 
