@@ -180,12 +180,20 @@
             var url = SUPABASE_URL + '/rest/v1/clubs?codigo=eq.' +
                 encodeURIComponent(slug) + '&select=id,nombre,codigo,logo_url,color_primario,deporte';
             log('Fetch:', url);
-            var res = await fetch(url, {
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_KEY
-                }
-            });
+            var ctrl = new AbortController();
+            var timer = setTimeout(function() { ctrl.abort(); }, 6000);
+            var res;
+            try {
+                res = await fetch(url, {
+                    signal: ctrl.signal,
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_KEY
+                    }
+                });
+            } finally {
+                clearTimeout(timer);
+            }
             var rows = await res.json();
             log('Respuesta:', res.status, '| Filas:', rows ? rows.length : 0);
 

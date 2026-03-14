@@ -978,7 +978,7 @@
                 </div>
                 <span class="mli-arrow">›</span>
             </a>
-            <a href="Configurador_formato.html" class="menu-lista-item">
+            <a href="Configurador formato.html" class="menu-lista-item">
                 <span class="mli-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
                         <circle cx="12" cy="12" r="3"/>
@@ -1156,7 +1156,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="Configurador_formato.html" class="menu-lista-item">
+        <a href="Configurador formato.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round">
                     <circle cx="12" cy="12" r="3"/>
@@ -1202,6 +1202,14 @@
 
 // ── Abrir / cerrar panel ──
 let panelActivo = null;
+
+function fetchConTimeout(url, options, timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(function() { controller.abort(); }, timeoutMs || 6000);
+    var cfg = options || {};
+    cfg.signal = controller.signal;
+    return fetch(url, cfg).finally(function() { clearTimeout(timer); });
+}
 
 function abrirPanel(tipo) {
     const panel = document.getElementById('panel-' + tipo);
@@ -1249,9 +1257,10 @@ async function buscarJugadorPorCedula() {
     try {
         const SUPA_URL = 'https://iwvogyloebvieloequzr.supabase.co/rest/v1';
         const SUPA_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
-        const resp = await fetch(SUPA_URL + '/jugadores?cedula=eq.' + cedula + '&select=*&limit=1', {
+        const resp = await fetchConTimeout(SUPA_URL + '/jugadores?cedula=eq.' + encodeURIComponent(cedula) + '&select=*&limit=1', {
             headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
-        });
+        }, 6000);
+        if (!resp.ok) throw new Error('Error consultando jugador');
         const data = await resp.json();
         if (data && data.length > 0) {
             // Jugador existe — cargar su perfil
@@ -1300,14 +1309,15 @@ async function registrarNuevoJugador() {
     try {
         const SUPA_URL = 'https://iwvogyloebvieloequzr.supabase.co/rest/v1';
         const SUPA_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
-        const resp = await fetch(SUPA_URL + '/jugadores', {
+        const resp = await fetchConTimeout(SUPA_URL + '/jugadores', {
             method: 'POST',
             headers: {
                 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY,
                 'Content-Type': 'application/json', 'Prefer': 'return=representation'
             },
             body: JSON.stringify({ nombre, cedula, club_id: clubId, nacionalidad: nac, promedio: 0, carambolas: 0, entradas: 0 })
-        });
+        }, 6000);
+        if (!resp.ok) throw new Error('Error registrando jugador');
         const data = await resp.json();
         const jug = Array.isArray(data) ? data[0] : data;
         localStorage.setItem('jugador_activo', JSON.stringify(jug));
@@ -1470,12 +1480,13 @@ async function unirseClub() {
 
     try {
         // Buscar club en Supabase
-        var res = await fetch('https://iwvogyloebvieloequzr.supabase.co/rest/v1/clubs?codigo=eq.' + codigo + '&activo=eq.true&select=*', {
+        var res = await fetchConTimeout('https://iwvogyloebvieloequzr.supabase.co/rest/v1/clubs?codigo=eq.' + encodeURIComponent(codigo) + '&activo=eq.true&select=*', {
             headers: {
                 'apikey': 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J',
                 'Authorization': 'Bearer sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J'
             }
-        });
+        }, 6000);
+        if (!res.ok) throw new Error('Error consultando club');
         var data = await res.json();
 
         if(!data || data.length === 0) {
@@ -1705,7 +1716,11 @@ function cambiarSlide(idx) {
 
 // ── Carga inicial ──
 window.onload = function() {
-    try { if(typeof MasterVIP !== 'undefined') MasterVIP.applyDesign?.(); } catch(e) {}
+    try {
+        if (typeof MasterVIP !== 'undefined' && MasterVIP && typeof MasterVIP.applyDesign === 'function') {
+            MasterVIP.applyDesign();
+        }
+    } catch(e) {}
     cargarSede();
     cargarTorneoActivo();
     iniciarSlider();
