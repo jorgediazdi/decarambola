@@ -316,11 +316,37 @@
             z-index: 50;
             background: #000;
             border-bottom: 1px solid #1a1a1a;
+            padding: 0;
+        }
+        .barra-top-inner {
             display: flex; align-items: center;
             justify-content: space-between;
             padding: 8px 14px;
             height: 52px;
         }
+        .barra-indicadores {
+            display: flex; align-items: center; justify-content: center;
+            gap: 16px; padding: 4px 14px 6px;
+            font-size: 0.5rem; color: #555;
+            letter-spacing: 1px;
+            border-top: 1px solid #111;
+            flex-wrap: wrap;
+        }
+        .barra-indicadores span { margin: 0 4px; }
+        .barra-indicadores .ind-val { color: var(--oro); font-family: 'Courier New', monospace; }
+        .badge-tiempo-superado {
+            display: none;
+            background: rgba(231,76,60,0.2);
+            border: 1px solid rgba(231,76,60,0.5);
+            color: #e74c3c;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            animation: parpadeo 0.8s infinite;
+        }
+        .badge-tiempo-superado.visible { display: inline-block; }
 
         /* Indicador de meta / progreso */
         .meta-info {
@@ -366,7 +392,7 @@
         /* ── CAMPO DE JUEGO ── */
         .campo-juego {
             position: fixed;
-            top: 52px;
+            top: 82px;
             bottom: 155px;
             left: 0; right: 0;
             display: flex; flex-direction: column;
@@ -878,6 +904,7 @@
     <!-- ── JUGADOR 1 — bola blanca ── -->
     <div class="jcard">
         <input type="radio" name="salida" id="s1" class="bola-sel" checked>
+        <div id="jcard-logo1" style="width:110px;height:110px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#111;display:flex;align-items:center;justify-content:center;border:1px solid #222;"></div>
         <div class="jcard-campos">
             <input type="text" id="n1" class="jcampo-nom"
                 placeholder="NOMBRE MAESTRO 1"
@@ -919,6 +946,7 @@
     <!-- ── JUGADOR 2 — bola dorada ── -->
     <div class="jcard">
         <input type="radio" name="salida" id="s2" class="bola-sel">
+        <div id="jcard-logo2" style="width:110px;height:110px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#111;display:flex;align-items:center;justify-content:center;border:1px solid #222;"></div>
         <div class="jcard-campos">
             <input type="text" id="n2" class="jcampo-nom"
                 placeholder="NOMBRE MAESTRO 2"
@@ -979,6 +1007,16 @@
                 </select>
             </div>
         </div>
+        <div class="config-fila">
+            <div class="config-item">
+                <label>Mesa (opcional)</label>
+                <input type="text" id="cfg-mesa" placeholder="Ej: 1 o Mesa A">
+            </div>
+            <div class="config-item">
+                <label>Límite alerta (min)</label>
+                <input type="number" id="cfg-tiempo-limite" value="0" min="0" placeholder="0 = desactivado">
+            </div>
+        </div>
     </div>
 
     <!-- ── FORMATO — pequeño, discreto ── -->
@@ -1016,36 +1054,44 @@
 
     <!-- BARRA SUPERIOR FIJA -->
     <div class="barra-top">
-        <!-- Info meta J1 -->
-        <div class="meta-info">
-            <span class="meta-lbl" id="lbl-meta1-top">META J1</span>
-            <span class="meta-val" id="lbl-pts-meta1">— / —</span>
-        </div>
+        <div class="barra-top-inner">
+            <!-- Info meta J1 -->
+            <div class="meta-info">
+                <span class="meta-lbl" id="lbl-meta1-top">META J1</span>
+                <span class="meta-val" id="lbl-pts-meta1">— / —</span>
+            </div>
 
-        <!-- Reloj central con pausa -->
-        <div class="reloj-box">
-            <span class="reloj-ent" id="lbl-ent-top">ENTRADA 1</span>
-            <div style="display:flex;align-items:center;gap:8px;">
-                <div id="reloj">40</div>
-                <button id="btn-pausa" onclick="togglePausa()" style="
-                    background:rgba(255,255,255,0.06);
-                    border:1px solid #333;
-                    color:#aaa;
-                    font-size:1.1rem;
-                    width:34px; height:34px;
-                    border-radius:50%;
-                    cursor:pointer;
-                    display:flex;align-items:center;justify-content:center;
-                    transition:0.2s;
-                    flex-shrink:0;
-                ">⏸</button>
+            <!-- Reloj central con pausa -->
+            <div class="reloj-box">
+                <span class="reloj-ent" id="lbl-ent-top">ENTRADA 1</span>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div id="reloj">40</div>
+                    <button id="btn-pausa" onclick="togglePausa()" style="
+                        background:rgba(255,255,255,0.06);
+                        border:1px solid #333;
+                        color:#aaa;
+                        font-size:1.1rem;
+                        width:34px; height:34px;
+                        border-radius:50%;
+                        cursor:pointer;
+                        display:flex;align-items:center;justify-content:center;
+                        transition:0.2s;
+                        flex-shrink:0;
+                    ">⏸</button>
+                </div>
+            </div>
+
+            <!-- Botón finalizar + meta J2 -->
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                <button class="btn-fin" onclick="confirmarFin()">🏁 FINALIZAR</button>
+                <span class="meta-val" style="font-size:0.65rem;" id="lbl-pts-meta2">— / —</span>
             </div>
         </div>
-
-        <!-- Botón finalizar + meta J2 -->
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
-            <button class="btn-fin" onclick="confirmarFin()">🏁 FINALIZAR</button>
-            <span class="meta-val" style="font-size:0.65rem;" id="lbl-pts-meta2">— / —</span>
+        <!-- Indicadores: mesa, tiempo transcurrido, costo, alerta -->
+        <div class="barra-indicadores">
+            <span>MESA <span class="ind-val" id="ind-mesa">—</span></span>
+            <span>TIEMPO <span class="ind-val" id="ind-transcurrido">0:00</span></span>
+            <span class="badge-tiempo-superado" id="badge-tiempo-superado">⚠ TIEMPO LÍMITE SUPERADO</span>
         </div>
     </div>
 
@@ -1065,7 +1111,10 @@
         <!-- Grid: [stats izq] | [bola centro] | [serie der] -->
         <div class="mitad activa" id="mitad1" onclick="if(d.t!==1)cambio()">
 
-            <div class="j-nombre" id="lbl1">MAESTRO 1</div>
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+                <div id="club-logo1" style="width:96px;height:96px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#111;display:flex;align-items:center;justify-content:center;"></div>
+                <div class="j-nombre" id="lbl1">MAESTRO 1</div>
+            </div>
             <div class="j-meta-txt" id="lbl-meta1"></div>
 
             <!-- COL IZQUIERDA: entradas + promedio -->
@@ -1106,7 +1155,10 @@
         <!-- ══ JUGADOR 2 — Abajo ══ -->
         <div class="mitad" id="mitad2" onclick="if(d.t!==2)cambio()">
 
-            <div class="j-nombre" id="lbl2">MAESTRO 2</div>
+            <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+                <div id="club-logo2" style="width:96px;height:96px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#111;display:flex;align-items:center;justify-content:center;"></div>
+                <div class="j-nombre" id="lbl2">MAESTRO 2</div>
+            </div>
             <div class="j-meta-txt" id="lbl-meta2"></div>
 
             <!-- COL IZQUIERDA: entradas + promedio -->
@@ -1252,10 +1304,10 @@
                 🎱 NUEVA PARTIDA
             </button>
             <button onclick="location.href='index.html'" style="
-                width:100%;padding:12px;
-                background:none;border:none;
-                color:#444;border-radius:16px;
-                font-size:0.6rem;
+                width:100%;padding:14px;
+                background:#0a0a0a;border:1px solid #222;
+                color:#888;border-radius:16px;
+                font-size:0.75rem;font-weight:bold;
                 font-family:'Arial Black',sans-serif;
                 letter-spacing:2px;cursor:pointer;">
                 ← VOLVER AL MENÚ
@@ -1317,12 +1369,12 @@
 
         if (cfg.bestOf <= 1) {
             bar.classList.remove('visible');
-            if (campo) campo.style.top = '52px';
+            if (campo) campo.style.top = '82px';
             return;
         }
 
         bar.classList.add('visible');
-        if (campo) campo.style.top = '86px';
+        if (campo) campo.style.top = '116px';
 
         var nom1 = document.getElementById('lbl1').innerText || 'J1';
         var nom2 = document.getElementById('lbl2').innerText || 'J2';
@@ -1355,6 +1407,9 @@
     let timer = null;
     let pausado = false;
     let partidaActiva = null;  // si viene de torneo
+    let partidaStartTime = 0;   // Date.now() al iniciar partida
+    let partidaTotalPausedMs = 0;
+    let pauseStartTime = 0;     // cuando se pausa
 
     /* ── SPLASH DE MARCA ── */
     function mostrarSplashMarca(onDone) {
@@ -1499,6 +1554,8 @@
             chip.className    = 'prom-detectado';
             chipTxt.innerText = 'SIN HISTORIAL';
             regProm[j]        = 0;
+            var logoEl = document.getElementById('jcard-logo' + j);
+            if (logoEl) logoEl.innerHTML = '';
             calcularHandicapAuto();
             return;
         }
@@ -1533,6 +1590,22 @@
         } else {
             chip.className    = 'prom-detectado';
             chipTxt.innerText = 'SIN HISTORIAL — AJUSTA LA META MANUALMENTE';
+        }
+
+        var logoEl = document.getElementById('jcard-logo' + j);
+        if (logoEl) {
+            if (encontrado && encontrado.club) {
+                (function(num){
+                    MasterVIP.getClubLogoUrlAsync(encontrado.club).then(function(url) {
+                        var el = document.getElementById('jcard-logo' + num);
+                        if (!el) return;
+                        if (url) el.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;" alt="">';
+                        else el.innerHTML = '<span style="font-size:1.2rem;">&#127921;</span>';
+                    });
+                })(j);
+            } else {
+                logoEl.innerHTML = '';
+            }
         }
     }
 
@@ -1655,8 +1728,15 @@
         try {
             var j1 = MasterVIP.buscarJugador(nom1);
             var j2 = MasterVIP.buscarJugador(nom2);
-            if (doc1) { var d1o = j1 ? Object.assign({},j1,{cedula:doc1}) : {nombre:nom1,cedula:doc1,promedio:0}; MasterVIP.guardarJugador(d1o); }
-            if (doc2) { var d2o = j2 ? Object.assign({},j2,{cedula:doc2}) : {nombre:nom2,cedula:doc2,promedio:0}; MasterVIP.guardarJugador(d2o); }
+            // Solo actualizar cédula si el jugador YA existe en la base del club.
+            if (doc1 && j1) {
+                var d1o = Object.assign({}, j1, { cedula: doc1 });
+                MasterVIP.guardarJugador(d1o);
+            }
+            if (doc2 && j2) {
+                var d2o = Object.assign({}, j2, { cedula: doc2 });
+                MasterVIP.guardarJugador(d2o);
+            }
         } catch(e) {}
 
         cfg.meta1  = parseInt(document.getElementById('meta-num1').value) || 0;
@@ -1665,6 +1745,8 @@
         cfg.hnd2   = 0;
         cfg.tiempo = parseInt(document.getElementById('cfg-tiempo').value) || 40;
         cfg.modal  = document.getElementById('cfg-modal').value;
+        cfg.mesa   = (document.getElementById('cfg-mesa') && document.getElementById('cfg-mesa').value.trim()) || '';
+        cfg.tiempoLimiteAlerta = parseInt(document.getElementById('cfg-tiempo-limite') && document.getElementById('cfg-tiempo-limite').value) || 0;
 
         // Sin hándicap inicial — la meta diferente ES el hándicap
         d.p1 = 0;
@@ -1684,9 +1766,39 @@
         document.getElementById('p-registro').classList.remove('activa');
         document.getElementById('p-juego').classList.add('activa');
 
+        partidaStartTime = Date.now();
+        partidaTotalPausedMs = 0;
+        pauseStartTime = 0;
+        document.getElementById('ind-mesa').innerText = cfg.mesa || '—';
+        document.getElementById('ind-transcurrido').innerText = '0:00';
+        document.getElementById('badge-tiempo-superado').classList.remove('visible');
+
         tiempoRestante = cfg.tiempo;
         iniciarReloj();
         actualizarUI();
+
+        // Logo del club de cada jugador (Supabase clubs; fallback sede)
+        (function(nomA, nomB){
+            var jA = MasterVIP.buscarJugador(nomA);
+            var jB = MasterVIP.buscarJugador(nomB);
+            var clubA = (jA && jA.club) ? jA.club : '';
+            var clubB = (jB && jB.club) ? jB.club : '';
+            Promise.all([
+                MasterVIP.getClubLogoUrlAsync(clubA),
+                MasterVIP.getClubLogoUrlAsync(clubB)
+            ]).then(function(urls){
+                var el1 = document.getElementById('club-logo1');
+                var el2 = document.getElementById('club-logo2');
+                if (el1) {
+                    if (urls[0]) el1.innerHTML = '<img src="'+urls[0]+'" style="width:100%;height:100%;object-fit:cover;" alt="">';
+                    else el1.innerHTML = '<span style="font-size:14px;">&#127921;</span>';
+                }
+                if (el2) {
+                    if (urls[1]) el2.innerHTML = '<img src="'+urls[1]+'" style="width:100%;height:100%;object-fit:cover;" alt="">';
+                    else el2.innerHTML = '<span style="font-size:14px;">&#127921;</span>';
+                }
+            });
+        })(nom1, nom2);
     }
 
     /* ── RELOJ ── */
@@ -1705,7 +1817,25 @@
             rel.innerText = tiempoRestante;
             if (tiempoRestante <= 10) rel.classList.add('urgente');
             if (tiempoRestante <= 0)  { clearInterval(timer); cambio(); }
+            actualizarIndicadoresBarra();
         }, 1000);
+        actualizarIndicadoresBarra();
+    }
+
+    function actualizarIndicadoresBarra() {
+        if (!partidaStartTime) return;
+        var elapsedMs = pausado ? (pauseStartTime - partidaStartTime - partidaTotalPausedMs) : (Date.now() - partidaStartTime - partidaTotalPausedMs);
+        var elapsedSec = Math.max(0, Math.floor(elapsedMs / 1000));
+        var m = Math.floor(elapsedSec / 60);
+        var s = elapsedSec % 60;
+        var transcurridoEl = document.getElementById('ind-transcurrido');
+        if (transcurridoEl) transcurridoEl.innerText = m + ':' + (s < 10 ? '0' : '') + s;
+        var badge = document.getElementById('badge-tiempo-superado');
+        if (cfg.tiempoLimiteAlerta > 0 && badge) {
+            var minutosTranscurridos = elapsedSec / 60;
+            if (minutosTranscurridos >= cfg.tiempoLimiteAlerta) badge.classList.add('visible');
+            else badge.classList.remove('visible');
+        }
     }
 
     function togglePausa() {
@@ -1713,16 +1843,19 @@
         const btn = document.getElementById('btn-pausa');
         const rel = document.getElementById('reloj');
         if (pausado) {
+            pauseStartTime = Date.now();
             btn.innerText = '▶';
             btn.style.color = '#2eff70';
             btn.style.borderColor = '#2eff70';
             rel.style.opacity = '0.4';
         } else {
+            partidaTotalPausedMs += Date.now() - pauseStartTime;
             btn.innerText = '⏸';
             btn.style.color = '#aaa';
             btn.style.borderColor = '#333';
             rel.style.opacity = '1';
         }
+        actualizarIndicadoresBarra();
     }
 
     /* ── LÓGICA ── */
@@ -1823,11 +1956,21 @@
                     font-family:'Arial Black',sans-serif;letter-spacing:2px;cursor:pointer;margin-top:8px;">
                     VER CERTIFICADO →
                 </button>
+                <button type="button" id="btn-overlay-salir"
+                    style="margin-top:6px;background:transparent;border:none;color:#555;font-size:0.65rem;
+                    font-family:'Arial Black',sans-serif;letter-spacing:1px;cursor:pointer;text-decoration:underline;">
+                    Salir al menú sin certificado
+                </button>
             `;
-            // Botón de cierre correcto
-            overlay.querySelector('button').onclick = function() {
+            // VER CERTIFICADO → cierra overlay y muestra pantalla certificado (guardar/salir/nueva partida)
+            overlay.querySelector('#btn-overlay-certi').onclick = function() {
                 document.body.removeChild(overlay);
                 mostrarCertificado();
+            };
+            // Salir al menú: cierra overlay y va al inicio (sin pantalla certificado)
+            overlay.querySelector('#btn-overlay-salir').onclick = function() {
+                document.body.removeChild(overlay);
+                location.href = 'index.html';
             };
             document.body.appendChild(overlay);
         }
