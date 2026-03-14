@@ -1183,7 +1183,7 @@ async function buscarJugadorPorCedula() {
             localStorage.setItem('mi_perfil', JSON.stringify({
                 nombre: jug.nombre, cedula: jug.cedula,
                 promedio: jug.promedio || 0, club: jug.club_id,
-                carambolas: jug.carambolas || 0, entradas: jug.entradas || 0
+                puntos: (jug.puntos != null ? jug.puntos : (jug.carambolas || 0)), carambolas: (jug.carambolas != null ? jug.carambolas : (jug.puntos || 0)), entradas: jug.entradas || 0
             }));
             document.getElementById('form-identificacion').style.display = 'none';
             cargarDatosJugador();
