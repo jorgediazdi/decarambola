@@ -1470,7 +1470,7 @@ async function buscarJugadorPorCedula() {
         }
     } catch(e) {
         // Offline — buscar en localStorage
-        const perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        const perfil = leerJSONStorage('mi_perfil') || {};
         if (perfil.cedula === cedula) {
             localStorage.setItem('jugador_activo', JSON.stringify(perfil));
             document.getElementById('form-identificacion').style.display = 'none';
@@ -1550,7 +1550,7 @@ function cargarRetosPreview() {
     var retos = {};
     try { retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES') || '{}'); } catch(e) {}
     var lista = Object.values(retos);
-    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    var perfil = leerJSONStorage('mi_perfil') || {};
     var miNombre = (perfil.nombre || '').toUpperCase();
     var pendientes = lista.filter(function(r) {
         return r.estado === 'PENDIENTE' && (r.j2 === miNombre || r.tipo_reto === 'abierto');
@@ -1734,7 +1734,7 @@ async function unirseClub() {
         sincronizarWhitelabelClub(club);
 
         // Actualizar perfil del jugador con club_id
-        var perfil = JSON.parse(localStorage.getItem('mi_perfil')||'null');
+        var perfil = leerJSONStorage('mi_perfil');
         if(perfil) {
             perfil.club = club.nombre;
             perfil.club_id = club.id;

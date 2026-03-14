@@ -90,8 +90,13 @@ const MasterVIP = {
 
     // Obtener club_id activo desde localStorage (lo guarda whitelabel.js)
     getClubId: function () {
-        const perfil = JSON.parse(localStorage.getItem('mi_perfil')) || {};
-        return perfil.club_id || null;
+        var perfil = null;
+        try { perfil = JSON.parse(localStorage.getItem('mi_perfil') || 'null'); } catch (e) { perfil = null; }
+        if (perfil && perfil.club_id) return perfil.club_id;
+        var club = null;
+        try { club = JSON.parse(localStorage.getItem('club_activo') || 'null'); } catch (e) { club = null; }
+        if (club && club.id) return club.id;
+        return localStorage.getItem('wl_club_id') || null;
     },
 
     // ─────────────────────────────────────────
@@ -1362,7 +1367,8 @@ const HISTORIAL = {
         localStorage.setItem(clave, JSON.stringify(lista));
 
         // 3. Actualizar mejor serie si aplica
-        const perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        var perfil = {};
+        try { perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}') || {}; } catch(e) { perfil = {}; }
         if (registro.serie_mayor > (perfil.mejor_serie || 0)) {
             perfil.mejor_serie = registro.serie_mayor;
             localStorage.setItem('mi_perfil', JSON.stringify(perfil));
