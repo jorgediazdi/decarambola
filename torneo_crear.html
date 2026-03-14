@@ -610,6 +610,35 @@ body {
                 </div>
             </div>
 
+            <div class="sistema-card" id="sc-amigos" onclick="selSistema('amigos',this)">
+                <div class="sc-check">&#10003;</div>
+                <div class="sc-badge">NUEVO</div>
+                <div class="sc-nombre">TORNEO AMIGO (TODOS VS TODOS)</div>
+                <div class="sc-desc">Formato liga: todos juegan contra todos, nadie queda eliminado durante el torneo. Campeón por puntos y promedio.</div>
+                <div class="sc-tags">
+                    <div class="sc-tag v">&#10003; Sin eliminados</div>
+                    <div class="sc-tag v">&#10003; Todos compiten</div>
+                    <div class="sc-tag v">&#10003; Ideal multisala</div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="card" id="cfg-grupos" style="display:none;">
+            <div class="card-lbl">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                CLASIFICACIÓN DESDE GRUPOS
+            </div>
+            <div class="meta-row" style="margin-bottom:10px;">
+                <span class="meta-lbl">CLASIFICAN POR GRUPO:</span>
+                <input type="number" class="input-num" id="grp-clasifica" value="2" min="1" max="3" style="width:70px;">
+                <span class="meta-lbl">equipos</span>
+            </div>
+            <div class="meta-row">
+                <span class="meta-lbl">MEJORES TERCEROS:</span>
+                <input type="number" class="input-num" id="grp-terceros" value="0" min="0" max="8" style="width:70px;">
+                <span class="meta-lbl">a llaves</span>
+            </div>
         </div>
 
         <a href="Configurador formato.html" class="link-config">
@@ -845,6 +874,7 @@ var estado = {
     paso:0, nombre:'', fecha:'', modalidad:'3 Bandas',
     sitio:'', multisala:false,
     sistema:'', cupo:0, tiempo:40, meta:10, reglamento:'',
+    clasificaPorGrupo:2, mejoresTerceros:0,
     inscripcion:50000, base:100000,
     pctPremios:80, pctFee:20, dist1:50, dist2:30, dist3:20,
     formatoImportado:null
@@ -891,6 +921,12 @@ function validar(num) {
     }
     if (num===1) {
         if (!estado.sistema && !estado.formatoImportado) { showToast('Elige el sistema de torneo'); return false; }
+        if (estado.sistema === 'grupos') {
+            estado.clasificaPorGrupo = Math.max(1, Math.min(3, parseInt(document.getElementById('grp-clasifica').value) || 2));
+            estado.mejoresTerceros = Math.max(0, Math.min(8, parseInt(document.getElementById('grp-terceros').value) || 0));
+            document.getElementById('grp-clasifica').value = estado.clasificaPorGrupo;
+            document.getElementById('grp-terceros').value = estado.mejoresTerceros;
+        }
         if (!estado.cupo) {
             var libre = parseInt(document.getElementById('cupo-libre-inp').value);
             if (libre>=4) { estado.cupo=libre; } else { showToast('Elige el cupo de jugadores'); return false; }
@@ -961,6 +997,8 @@ function limpiarFormato() {
 function selSistema(val, el) {
     document.querySelectorAll('.sistema-card').forEach(function(c){ c.classList.remove('sel'); });
     el.classList.add('sel'); estado.sistema = val;
+    var cfgGr = document.getElementById('cfg-grupos');
+    if (cfgGr) cfgGr.style.display = val === 'grupos' ? 'block' : 'none';
 }
 
 function selCupo(val, el) {
@@ -1032,7 +1070,7 @@ function calcBolsa() {
 }
 
 /* ── PASO 5 ── */
-var SIST_NOM = {brackets:'ELIMINACIÓN DIRECTA',grupos:'GRUPOS + ELIMINACIÓN',survivor:'SURVIVOR / AMIGOS'};
+var SIST_NOM = {brackets:'ELIMINACIÓN DIRECTA',grupos:'GRUPOS + ELIMINACIÓN',survivor:'SURVIVOR / AMIGOS',amigos:'TORNEO AMIGO · TODOS VS TODOS'};
 
 function generarResumen() {
     document.getElementById('res-nombre').innerText = estado.nombre||'—';
@@ -1050,6 +1088,10 @@ function generarResumen() {
     h+=row('SALAS', estado.multisala ? 'MULTISALA' : 'SALA ÚNICA');
     h+=row('FORMATO', sisteNom);
     h+=row('CUPO', estado.cupo+' jugadores');
+    if (estado.sistema === 'grupos') {
+        h+=row('CLASIFICAN', estado.clasificaPorGrupo + ' por grupo');
+        if (estado.mejoresTerceros > 0) h+=row('MEJORES 3°', estado.mejoresTerceros + ' a llaves');
+    }
     h+=row('TIEMPO', estado.tiempo+'s por entrada');
     h+=row('META', estado.meta+' carambolas');
     h+=row('REGLAS BASE', 'Meta mínima 8 · Tiempo mínimo 30s');
@@ -1068,6 +1110,7 @@ function crearTorneo() {
     var torneo = MasterVIP.crearTorneo({
         nombre: estado.nombre, fechaInicio: estado.fecha, modalidad: estado.modalidad,
         sitioEvento: estado.sitio, multisala: estado.multisala,
+        clasificaPorGrupo: estado.clasificaPorGrupo, mejoresTerceros: estado.mejoresTerceros,
         sistema: estado.sistema||(fmt?fmt.formatoId:'brackets'),
         cupoMax: estado.cupo, tiempoEntrada: estado.tiempo,
         entradaObjetivo: estado.meta, reglamento: estado.reglamento,

@@ -640,8 +640,14 @@ function mostrarPerfil(j,opts){
     :'<div class="foto-ini" style="background:linear-gradient(135deg,#1a1200,#0a0a00);color:'+CC+';">'+ini+'</div>';
 
   /* ── Club logo ── */
-  var logoUrl = (!soloPublico && window.WL && typeof WL.getLogoUrl==='function') ? WL.getLogoUrl() : (j.club_logo_url||null);
-  var clubNom=(j.club||((!soloPublico&&window.WL)?window.WL.getNombreClub():null)||'SIN CLUB');
+  var logoUrl = null;
+  if (!soloPublico) {
+    logoUrl = (window.WL && typeof WL.getLogoUrl==='function')
+      ? WL.getLogoUrl()
+      : (localStorage.getItem('wl_club_logo_url')||null);
+  }
+  if (!logoUrl) logoUrl = j.club_logo_url || null;
+  var clubNom=(j.club||((!soloPublico&&window.WL)?window.WL.getNombreClub():(localStorage.getItem('wl_club_nombre')||null))||'SIN CLUB');
   var clubLogoHtml=logoUrl?'<img class="c-club-logo" src="'+logoUrl+'">':'';
 
   /* ── Nivel ── */
