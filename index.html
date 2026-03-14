@@ -456,6 +456,38 @@
             padding-left:4px;
         }
 
+        /* ── BUSCADOR DE PROYECTOS (Organizador) ── */
+        .buscador-proyectos {
+            margin-bottom:10px;
+        }
+        .buscador-proyectos input {
+            width:100%;
+            background:#090909;
+            border:1px solid #1a1a1a;
+            border-radius:12px;
+            color:#ddd;
+            padding:11px 13px;
+            font-size:0.55rem;
+            letter-spacing:1px;
+            outline:none;
+            transition:0.2s;
+        }
+        .buscador-proyectos input:focus {
+            border-color:rgba(212,175,55,0.45);
+            box-shadow:0 0 0 2px rgba(212,175,55,0.08);
+        }
+        .buscador-proyectos input::placeholder {
+            color:#444;
+        }
+        .sin-resultados-proyectos {
+            display:none;
+            color:#666;
+            font-size:0.5rem;
+            letter-spacing:1px;
+            text-align:center;
+            padding:8px 0 10px;
+        }
+
         /* ── ACCIONES RÁPIDAS ── */
         .rapidas-grid {
             display:grid; grid-template-columns:repeat(2,1fr);
@@ -1015,6 +1047,17 @@
 
         <!-- TORNEO — sección principal -->
         <div class="seccion-label">&#127942; TORNEO</div>
+        <div class="buscador-proyectos">
+            <input
+                id="inp-buscar-proyectos"
+                type="text"
+                placeholder="🔎 Buscar proyectos (torneos, club, ranking...)"
+                oninput="filtrarProyectos(this.value)"
+                autocomplete="off">
+        </div>
+        <div id="sin-resultados-proyectos" class="sin-resultados-proyectos">
+            No se encontraron proyectos con ese texto
+        </div>
 
         <a id="link-crear-torneo" href="torneo_crear.html" class="menu-lista-item mli-destacado">
             <span class="mli-icon">
@@ -1203,6 +1246,61 @@
 // ── Abrir / cerrar panel ──
 let panelActivo = null;
 
+function normalizarTextoBusqueda(valor) {
+    var txt = String(valor || '').toUpperCase();
+    if (typeof txt.normalize === 'function') {
+        txt = txt.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    return txt;
+}
+
+function actualizarVisibilidadSeccionesProyectos() {
+    var panel = document.getElementById('panel-org');
+    if (!panel) return;
+
+    var labels = panel.querySelectorAll('.seccion-label');
+    labels.forEach(function(label) {
+        var nodo = label.nextElementSibling;
+        var tieneItemsVisibles = false;
+
+        while (nodo && !nodo.classList.contains('seccion-label')) {
+            if (nodo.classList && nodo.classList.contains('menu-lista-item') && nodo.style.display !== 'none') {
+                tieneItemsVisibles = true;
+                break;
+            }
+            nodo = nodo.nextElementSibling;
+        }
+        label.style.display = tieneItemsVisibles ? '' : 'none';
+    });
+}
+
+function filtrarProyectos(texto) {
+    var panel = document.getElementById('panel-org');
+    if (!panel) return;
+
+    var criterio = normalizarTextoBusqueda(texto).trim();
+    var items = panel.querySelectorAll('.menu-lista-item');
+    var visibles = 0;
+
+    items.forEach(function(item) {
+        var contenido = normalizarTextoBusqueda(item.innerText || item.textContent || '');
+        var mostrar = !criterio || contenido.indexOf(criterio) >= 0;
+        item.style.display = mostrar ? '' : 'none';
+        if (mostrar) visibles++;
+    });
+
+    actualizarVisibilidadSeccionesProyectos();
+
+    var vacio = document.getElementById('sin-resultados-proyectos');
+    if (vacio) vacio.style.display = visibles ? 'none' : 'block';
+}
+
+function resetFiltroProyectos() {
+    var inp = document.getElementById('inp-buscar-proyectos');
+    if (inp) inp.value = '';
+    filtrarProyectos('');
+}
+
 function abrirPanel(tipo) {
     const panel = document.getElementById('panel-' + tipo);
     const card  = document.getElementById('card-' + tipo);
@@ -1228,6 +1326,7 @@ function abrirPanel(tipo) {
     // Scroll suave al panel
     setTimeout(() => panel.scrollIntoView({behavior:'smooth', block:'start'}), 100);
 
+    if (tipo === 'org') resetFiltroProyectos();
     if (tipo === 'jug') cargarDatosJugador();
     if (tipo === 'club') cargarMisClubes();
 }
