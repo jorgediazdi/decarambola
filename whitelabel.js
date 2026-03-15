@@ -152,6 +152,20 @@
         set('CLUB_CONFIG', JSON.stringify(cfg));
     }
 
+    function clubDesdeStorage() {
+        var raw = getObj('club_activo');
+        if (!raw || typeof raw !== 'object') return null;
+        return normalizarClub({
+            id: raw.id || null,
+            nombre: raw.nombre || raw.name || null,
+            codigo: raw.codigo || raw.slug || null,
+            slug: raw.slug || raw.codigo || null,
+            logo_url: raw.logo_url || raw.logoUrl || null,
+            color_primario: raw.color_primario || raw.color || null,
+            deporte: raw.deporte || null
+        });
+    }
+
     /* ── Inyectar header completo ── */
     function inyectarHeader(inputClub) {
         var club = normalizarClub(inputClub);
@@ -315,6 +329,36 @@
         }
     }
 
+    async function cargarClubPorId(clubId) {
+        if (!clubId) return false;
+        try {
+            var url = SUPABASE_URL + '/rest/v1/clubs?id=eq.' +
+                encodeURIComponent(clubId) + '&select=id,nombre,codigo,logo_url,color_primario,deporte&limit=1';
+            var ctrl = new AbortController();
+            var timer = setTimeout(function() { ctrl.abort(); }, 6000);
+            var res;
+            try {
+                res = await fetch(url, {
+                    signal: ctrl.signal,
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_KEY
+                    }
+                });
+            } finally {
+                clearTimeout(timer);
+            }
+            var rows = await res.json();
+            if (rows && rows.length > 0) {
+                inyectarHeader(normalizarClub(rows[0]));
+                return true;
+            }
+        } catch(e) {
+            log('No se pudo hidratar club por id:', e.message);
+        }
+        return false;
+    }
+
     /* ── API pública ── */
     window.WL = window.WL || {};
 
@@ -366,6 +410,20 @@
         if (cache && cache.nombre) {
             log('Sin slug en URL, aplicando cache local');
             inyectarHeader(cache);
+            return;
+        }
+        var localClub = clubDesdeStorage();
+        if (localClub && localClub.nombre) {
+            log('Sin slug, usando club_activo local');
+            inyectarHeader(localClub);
+            return;
+        }
+        var perfil = getObj('mi_perfil');
+        if (perfil && perfil.club_id) {
+            log('Sin slug, intentando club por mi_perfil.club_id');
+            cargarClubPorId(perfil.club_id).then(function(ok){
+                if (!ok) inyectarBadge();
+            });
             return;
         }
         log('Sin ?club= en URL ni cache → solo badge');
