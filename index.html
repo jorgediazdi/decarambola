@@ -456,6 +456,68 @@
             padding-left:4px;
         }
 
+        /* ── BUSCADOR DE PROYECTOS (Organizador) ── */
+        .buscador-proyectos {
+            margin-bottom:10px;
+        }
+        .buscador-proyectos input {
+            width:100%;
+            background:#090909;
+            border:1px solid #1a1a1a;
+            border-radius:12px;
+            color:#ddd;
+            padding:11px 13px;
+            font-size:0.55rem;
+            letter-spacing:1px;
+            outline:none;
+            transition:0.2s;
+        }
+        .buscador-proyectos input:focus {
+            border-color:rgba(212,175,55,0.45);
+            box-shadow:0 0 0 2px rgba(212,175,55,0.08);
+        }
+        .buscador-proyectos input::placeholder {
+            color:#444;
+        }
+        .sin-resultados-proyectos {
+            display:none;
+            color:#666;
+            font-size:0.5rem;
+            letter-spacing:1px;
+            text-align:center;
+            padding:8px 0 10px;
+        }
+        .buscador-mis-clubes {
+            margin-bottom:10px;
+        }
+        .buscador-mis-clubes input {
+            width:100%;
+            background:#090909;
+            border:1px solid #1a1a1a;
+            border-radius:12px;
+            color:#ddd;
+            padding:11px 13px;
+            font-size:0.55rem;
+            letter-spacing:1px;
+            outline:none;
+            transition:0.2s;
+        }
+        .buscador-mis-clubes input:focus {
+            border-color:rgba(52,152,219,0.45);
+            box-shadow:0 0 0 2px rgba(52,152,219,0.08);
+        }
+        .buscador-mis-clubes input::placeholder {
+            color:#444;
+        }
+        .sin-resultados-mis-clubes {
+            display:none;
+            color:#666;
+            font-size:0.5rem;
+            letter-spacing:1px;
+            text-align:center;
+            padding:8px 0 10px;
+        }
+
         /* ── ACCIONES RÁPIDAS ── */
         .rapidas-grid {
             display:grid; grid-template-columns:repeat(2,1fr);
@@ -503,6 +565,12 @@
         }
         .footer-logo { margin-bottom:8px; opacity:0.3; }
         .footer-txt { color:#222; font-size:0.4rem; letter-spacing:2px; }
+        .footer-social { margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+        .footer-social a {
+            text-decoration:none; border:1px solid #222; color:#666;
+            font-size:0.42rem; letter-spacing:1px; padding:6px 10px; border-radius:999px;
+        }
+        .footer-social a:hover { border-color:#d4af37; color:#d4af37; }
         .footer-version { color:#111; font-size:0.35rem; margin-top:6px; }
     </style>
 </head>
@@ -721,7 +789,7 @@
         <!-- SUBMENU COMPLETO JUGADOR -->
         <div class="seccion-label" style="margin-top:18px;">&#128203; MIS HERRAMIENTAS</div>
 
-        <a href="perfil.html" class="menu-lista-item">
+        <a href="perfil.html" class="menu-lista-item" onclick="return irPerfilJugador(event)">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5" stroke-linecap="round">
                     <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
@@ -956,6 +1024,17 @@
         <!-- SECCIÓN: MIS CLUBES -->
         <div id="sec-mis-clubes" class="club-seccion" style="display:none;">
             <div class="seccion-label" style="margin-top:16px;">&#127970; MIS CLUBES</div>
+            <div class="buscador-mis-clubes">
+                <input
+                    id="inp-buscar-mis-clubes"
+                    type="text"
+                    placeholder="🔎 Buscar mis clubes por nombre o código"
+                    oninput="filtrarMisClubes(this.value)"
+                    autocomplete="off">
+            </div>
+            <div id="sin-resultados-mis-clubes" class="sin-resultados-mis-clubes">
+                No se encontraron clubes con ese texto
+            </div>
             <div id="lista-mis-clubes">
                 <div style="color:#333;font-size: 0.65rem;text-align:center;padding:20px;">
                     No perteneces a ningún club todavía
@@ -991,6 +1070,21 @@
                 </div>
                 <span class="mli-arrow">›</span>
             </a>
+            <a href="reserva.html" class="menu-lista-item">
+                <span class="mli-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
+                        <rect x="3" y="4" width="8" height="7" rx="1"/>
+                        <rect x="13" y="4" width="8" height="7" rx="1"/>
+                        <rect x="3" y="13" width="8" height="7" rx="1"/>
+                        <rect x="13" y="13" width="8" height="7" rx="1"/>
+                    </svg>
+                </span>
+                <div class="mli-info">
+                    <div class="mli-titulo" style="color:var(--azul);">MESAS Y RESERVAS</div>
+                    <div class="mli-desc">Control de salas · Estado de mesas</div>
+                </div>
+                <span class="mli-arrow">›</span>
+            </a>
             <div class="menu-lista-item" onclick="copiarCodigo()" style="cursor:pointer;">
                 <span class="mli-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
@@ -1015,6 +1109,17 @@
 
         <!-- TORNEO — sección principal -->
         <div class="seccion-label">&#127942; TORNEO</div>
+        <div class="buscador-proyectos">
+            <input
+                id="inp-buscar-proyectos"
+                type="text"
+                placeholder="🔎 Buscar proyectos (torneos, club, ranking...)"
+                oninput="filtrarProyectos(this.value)"
+                autocomplete="off">
+        </div>
+        <div id="sin-resultados-proyectos" class="sin-resultados-proyectos">
+            No se encontraron proyectos con ese texto
+        </div>
 
         <a id="link-crear-torneo" href="torneo_crear.html" class="menu-lista-item mli-destacado">
             <span class="mli-icon">
@@ -1183,6 +1288,13 @@
         </svg>
     </div>
     <div class="footer-txt">DECARAMBOLA · TORNEOS &amp; CLUBES</div>
+    <div class="footer-social">
+        <a href="https://decarambola.com" target="_blank" rel="noopener noreferrer">🌐 decarambola.com</a>
+        <a href="https://facebook.com/decarambolacol" target="_blank" rel="noopener noreferrer">📘 Facebook</a>
+        <a href="https://www.tiktok.com/@decarambolacol" target="_blank" rel="noopener noreferrer">🎵 TikTok</a>
+        <a href="https://instagram.com/decarambolacol" target="_blank" rel="noopener noreferrer">📸 Instagram</a>
+        <a href="https://youtube.com/@decarambolacol" target="_blank" rel="noopener noreferrer">▶ YouTube</a>
+    </div>
     <div class="footer-version">v4.0 · 2026</div>
 </div>
 
@@ -1211,6 +1323,61 @@ function fetchConTimeout(url, options, timeoutMs) {
     return fetch(url, cfg).finally(function() { clearTimeout(timer); });
 }
 
+function normalizarTextoBusqueda(valor) {
+    var txt = String(valor || '').toUpperCase();
+    if (typeof txt.normalize === 'function') {
+        txt = txt.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    return txt;
+}
+
+function actualizarVisibilidadSeccionesProyectos() {
+    var panel = document.getElementById('panel-org');
+    if (!panel) return;
+
+    var labels = panel.querySelectorAll('.seccion-label');
+    labels.forEach(function(label) {
+        var nodo = label.nextElementSibling;
+        var tieneItemsVisibles = false;
+
+        while (nodo && !nodo.classList.contains('seccion-label')) {
+            if (nodo.classList && nodo.classList.contains('menu-lista-item') && nodo.style.display !== 'none') {
+                tieneItemsVisibles = true;
+                break;
+            }
+            nodo = nodo.nextElementSibling;
+        }
+        label.style.display = tieneItemsVisibles ? '' : 'none';
+    });
+}
+
+function filtrarProyectos(texto) {
+    var panel = document.getElementById('panel-org');
+    if (!panel) return;
+
+    var criterio = normalizarTextoBusqueda(texto).trim();
+    var items = panel.querySelectorAll('.menu-lista-item');
+    var visibles = 0;
+
+    items.forEach(function(item) {
+        var contenido = normalizarTextoBusqueda(item.innerText || item.textContent || '');
+        var mostrar = !criterio || contenido.indexOf(criterio) >= 0;
+        item.style.display = mostrar ? '' : 'none';
+        if (mostrar) visibles++;
+    });
+
+    actualizarVisibilidadSeccionesProyectos();
+
+    var vacio = document.getElementById('sin-resultados-proyectos');
+    if (vacio) vacio.style.display = visibles ? 'none' : 'block';
+}
+
+function resetFiltroProyectos() {
+    var inp = document.getElementById('inp-buscar-proyectos');
+    if (inp) inp.value = '';
+    filtrarProyectos('');
+}
+
 function abrirPanel(tipo) {
     const panel = document.getElementById('panel-' + tipo);
     const card  = document.getElementById('card-' + tipo);
@@ -1236,8 +1403,39 @@ function abrirPanel(tipo) {
     // Scroll suave al panel
     setTimeout(() => panel.scrollIntoView({behavior:'smooth', block:'start'}), 100);
 
+    if (tipo === 'org') resetFiltroProyectos();
     if (tipo === 'jug') cargarDatosJugador();
-    if (tipo === 'club') cargarMisClubes();
+    if (tipo === 'club') {
+        var inpClub = document.getElementById('inp-buscar-mis-clubes');
+        if (inpClub) inpClub.value = '';
+        cargarMisClubes('');
+    }
+}
+
+function irPerfilJugador(ev) {
+    if (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+    }
+
+    var url = 'perfil.html';
+    var params = [];
+    try {
+        var search = new URLSearchParams(window.location.search);
+        var clubSlug = search.get('club');
+        if (clubSlug) params.push('club=' + encodeURIComponent(clubSlug));
+    } catch (e) {}
+
+    var jug = leerJSONStorage('jugador_activo');
+    if (jug && jug.nombre) {
+        params.push('jugador=' + encodeURIComponent(jug.nombre));
+    }
+
+    if (params.length > 0) {
+        url += '?' + params.join('&');
+    }
+    window.location.href = url;
+    return false;
 }
 
 // ── Identificación por cédula ──
@@ -1269,7 +1467,7 @@ async function buscarJugadorPorCedula() {
             localStorage.setItem('mi_perfil', JSON.stringify({
                 nombre: jug.nombre, cedula: jug.cedula,
                 promedio: jug.promedio || 0, club: jug.club_id,
-                carambolas: jug.carambolas || 0, entradas: jug.entradas || 0
+                puntos: (jug.puntos != null ? jug.puntos : (jug.carambolas || 0)), carambolas: (jug.carambolas != null ? jug.carambolas : (jug.puntos || 0)), entradas: jug.entradas || 0
             }));
             document.getElementById('form-identificacion').style.display = 'none';
             cargarDatosJugador();
@@ -1281,11 +1479,33 @@ async function buscarJugadorPorCedula() {
         }
     } catch(e) {
         // Offline — buscar en localStorage
-        const perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        const perfil = leerJSONStorage('mi_perfil') || {};
         if (perfil.cedula === cedula) {
             localStorage.setItem('jugador_activo', JSON.stringify(perfil));
             document.getElementById('form-identificacion').style.display = 'none';
             cargarDatosJugador();
+            return;
+        }
+
+        // Fallback local MasterVIP: buscar en jugadores guardados por documento/cédula
+        var jugadoresLocales = [];
+        try { jugadoresLocales = JSON.parse(localStorage.getItem('JUGADORES_PLATAFORMA') || '[]') || []; } catch(_) {}
+        var jugLocal = jugadoresLocales.find(function(j) {
+            var doc = String(j && (j.cedula || j.documento || '')).trim();
+            return doc && doc === cedula;
+        });
+        if (jugLocal) {
+            localStorage.setItem('jugador_activo', JSON.stringify(jugLocal));
+            localStorage.setItem('mi_perfil', JSON.stringify({
+                nombre: jugLocal.nombre || '',
+                cedula: cedula,
+                promedio: jugLocal.promedio || 0,
+                club: jugLocal.club || null,
+                club_id: jugLocal.club_id || null
+            }));
+            document.getElementById('form-identificacion').style.display = 'none';
+            cargarDatosJugador();
+            mostrarMsgCedula('Acceso local activado (sin nube).', '#3498db');
         } else {
             mostrarMsgCedula('Sin conexión. Cédula no reconocida offline.', '#e74c3c');
         }
@@ -1362,7 +1582,7 @@ function cargarRetosPreview() {
     var retos = {};
     try { retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES') || '{}'); } catch(e) {}
     var lista = Object.values(retos);
-    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    var perfil = leerJSONStorage('mi_perfil') || {};
     var miNombre = (perfil.nombre || '').toUpperCase();
     var pendientes = lista.filter(function(r) {
         return r.estado === 'PENDIENTE' && (r.j2 === miNombre || r.tipo_reto === 'abierto');
@@ -1430,7 +1650,11 @@ function mostrarSeccion(id) {
         var el = document.getElementById(s);
         if(el) el.style.display = (s===id && el.style.display==='none') ? 'block' : 'none';
     });
-    if(id==='sec-mis-clubes') cargarMisClubes();
+    if(id==='sec-mis-clubes') {
+        var inp = document.getElementById('inp-buscar-mis-clubes');
+        if (inp) inp.value = '';
+        cargarMisClubes('');
+    }
     if(id==='sec-admin-club') {
         var clubes = JSON.parse(localStorage.getItem('mis_clubes')||'[]');
         var adminClub = clubes.find(function(cl){ return cl.admin === true; });
@@ -1442,6 +1666,34 @@ function generarCodigo(nombre) {
     var prefix = nombre.replace(/[^A-Z]/g,'').substring(0,3) || 'CLB';
     var num = Math.floor(Math.random()*900)+100;
     return prefix + '-' + num;
+}
+
+function sincronizarWhitelabelClub(club) {
+    if (!club || !club.nombre) return;
+    try {
+        if (club.id) localStorage.setItem('wl_club_id', String(club.id));
+        localStorage.setItem('wl_club_nombre', club.nombre || '');
+        localStorage.setItem('wl_club_color', club.color || '#3498db');
+        localStorage.setItem('wl_club_logo_url', club.logo_url || '');
+        localStorage.setItem('wl_club_cache', JSON.stringify({
+            id: club.id || null,
+            codigo: club.codigo || '',
+            nombre: club.nombre || '',
+            ciudad: club.ciudad || '',
+            color_primario: club.color || '#3498db',
+            logo_url: club.logo_url || ''
+        }));
+    } catch (e) {}
+
+    if (window.WL && typeof window.WL.setClub === 'function') {
+        window.WL.setClub({
+            id: club.id,
+            codigo: club.codigo,
+            nombre: club.nombre,
+            logo_url: club.logo_url || '',
+            color_primario: club.color || '#3498db'
+        });
+    }
 }
 
 function crearClub() {
@@ -1458,6 +1710,7 @@ function crearClub() {
     clubes.unshift(club);
     localStorage.setItem('mis_clubes', JSON.stringify(clubes));
     localStorage.setItem('club_activo', JSON.stringify(club));
+    sincronizarWhitelabelClub(club);
     actualizarHeaderClub(club);
     document.getElementById('sec-crear-club').style.display = 'none';
     document.getElementById('sec-admin-club').style.display = 'block';
@@ -1511,19 +1764,10 @@ async function unirseClub() {
         clubes.push(club);
         localStorage.setItem('mis_clubes', JSON.stringify(clubes));
         localStorage.setItem('club_activo', JSON.stringify(club));
-
-        // Activar whitelabel con datos del club
-        if(window.WL) {
-            window.WL.setClub({
-                id: club.id,
-                nombre: club.nombre,
-                logo_url: club.logo_url,
-                color_primario: club.color
-            });
-        }
+        sincronizarWhitelabelClub(club);
 
         // Actualizar perfil del jugador con club_id
-        var perfil = JSON.parse(localStorage.getItem('mi_perfil')||'null');
+        var perfil = leerJSONStorage('mi_perfil');
         if(perfil) {
             perfil.club = club.nombre;
             perfil.club_id = club.id;
@@ -1544,20 +1788,67 @@ async function unirseClub() {
     }
 }
 
-function cargarMisClubes() {
+function filtrarMisClubes(texto) {
+    cargarMisClubes(texto);
+}
+
+function cargarMisClubes(texto) {
     var clubes = JSON.parse(localStorage.getItem('mis_clubes')||'[]');
     var cont = document.getElementById('lista-mis-clubes');
+    var msgSinResultados = document.getElementById('sin-resultados-mis-clubes');
     if(!cont) return;
+    var fallbackLogo = '';
+    try { fallbackLogo = localStorage.getItem('deca_logo_src') || ''; } catch(_) {}
+    var ocultarSinLogo = false;
+    try { ocultarSinLogo = localStorage.getItem('ocultar_clubes_sin_logo') === '1'; } catch(_) {}
+    if (ocultarSinLogo) {
+        clubes = clubes.filter(function(c){ return !!(c && (c.logo_url || c.logoUrl)); });
+    }
+    if (msgSinResultados) msgSinResultados.style.display = 'none';
     if(!clubes.length){
-        cont.innerHTML='<div style="color:#333;font-size: 0.65rem;text-align:center;padding:20px;">No perteneces a ningún club</div>';
+        cont.innerHTML='<div style="color:#333;font-size: 0.65rem;text-align:center;padding:20px;">No perteneces a ningún club' + (ocultarSinLogo ? ' con logo disponible' : '') + '</div>';
         return;
     }
-    cont.innerHTML = clubes.map(function(c){
+
+    var inp = document.getElementById('inp-buscar-mis-clubes');
+    var criterioRaw = typeof texto === 'string' ? texto : (inp ? inp.value : '');
+    var criterio = normalizarTextoBusqueda(criterioRaw).trim();
+    var filtrados = clubes.filter(function(c) {
+        if (!criterio) return true;
+        var contenido = normalizarTextoBusqueda([
+            c.nombre || '',
+            c.codigo || '',
+            c.ciudad || '',
+            c.admin ? 'ADMIN' : ''
+        ].join(' '));
+        return contenido.indexOf(criterio) >= 0;
+    });
+
+    if (!filtrados.length) {
+        cont.innerHTML = '';
+        if (msgSinResultados) msgSinResultados.style.display = 'block';
+        return;
+    }
+
+    var esc = function(v) {
+        return String(v == null ? '' : v)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
+    cont.innerHTML = filtrados.map(function(c){
         var cod = c.codigo;
-        return '<div class="menu-lista-item" onclick="activarClub(this.dataset.cod)" data-cod="'+cod+'" style="border-color:'+c.color+'33;">'+
-            '<span style="width:10px;height:10px;border-radius:50%;background:'+c.color+';flex-shrink:0;display:block;"></span>'+
-            '<div class="mli-info"><div class="mli-titulo" style="color:'+c.color+';">'+c.nombre+'</div>'+
-            '<div class="mli-desc">'+cod+(c.admin?' · ADMIN':'')+'</div></div>'+
+        var color = c.color || c.color_primario || '#3498db';
+        var logo = c.logo_url || c.logoUrl || fallbackLogo || '';
+        var logoHtml = logo
+            ? ('<img src="' + esc(logo) + '" alt="Logo" style="width:28px;height:28px;border-radius:8px;object-fit:cover;border:1px solid ' + color + '55;background:#111;flex-shrink:0;">')
+            : ('<span style="width:28px;height:28px;border-radius:8px;background:' + color + '22;color:' + color + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">🎱</span>');
+        return '<div class="menu-lista-item" onclick="activarClub(this.dataset.cod)" data-cod="'+esc(cod)+'" style="border-color:'+color+'33;">'+
+            logoHtml+
+            '<div class="mli-info"><div class="mli-titulo" style="color:'+color+';">'+esc(c.nombre || 'CLUB')+'</div>'+
+            '<div class="mli-desc">'+esc(cod)+(c.admin?' · ADMIN':'')+'</div></div>'+
             '<span class="mli-arrow">&#8250;</span></div>';
     }).join('');
 }
@@ -1567,6 +1858,7 @@ function activarClub(el) { var codigo = typeof el === 'string' ? el : el.dataset
     var club = clubes.find(function(c){ return c.codigo===codigo; });
     if(!club) return;
     localStorage.setItem('club_activo', JSON.stringify(club));
+    sincronizarWhitelabelClub(club);
     actualizarHeaderClub(club);
     if(club.admin){
         document.getElementById('sec-admin-club').style.display='block';
@@ -1697,6 +1989,59 @@ function cambiarSlide(idx) {
     setTimeout(function() { mostrarSlide(idx); }, 350);
 }
 
+function leerJSONStorage(key) {
+    try {
+        return JSON.parse(localStorage.getItem(key) || 'null');
+    } catch (e) {
+        return null;
+    }
+}
+
+function restaurarConexionPortales() {
+    // 1) Jugador: si solo existe mi_perfil, reconstruir jugador_activo
+    var jugador = leerJSONStorage('jugador_activo');
+    if (!jugador || !jugador.nombre) {
+        var perfil = leerJSONStorage('mi_perfil');
+        if (perfil && perfil.nombre) {
+            jugador = {
+                nombre: perfil.nombre,
+                cedula: perfil.cedula || '',
+                promedio: parseFloat(perfil.promedio) || 0,
+                club: perfil.club || '',
+                club_id: perfil.club_id || null
+            };
+            localStorage.setItem('jugador_activo', JSON.stringify(jugador));
+        }
+    }
+
+    // 2) Club: restaurar encabezado desde club_activo o cache WL
+    var club = leerJSONStorage('club_activo');
+    if (!club || !club.nombre) {
+        var wl = leerJSONStorage('wl_club_cache');
+        if (wl && wl.nombre) {
+            club = {
+                id: wl.id || null,
+                codigo: wl.codigo || '',
+                nombre: wl.nombre,
+                ciudad: wl.ciudad || '',
+                color: wl.color_primario || localStorage.getItem('wl_club_color') || '#3498db',
+                logo_url: wl.logo_url || '',
+                admin: false
+            };
+            localStorage.setItem('club_activo', JSON.stringify(club));
+        }
+    }
+
+    if (club && club.nombre) {
+        sincronizarWhitelabelClub(club);
+        actualizarHeaderClub(club);
+        var secAdmin = document.getElementById('sec-admin-club');
+        var lblCodigo = document.getElementById('lbl-codigo-club');
+        if (secAdmin) secAdmin.style.display = club.admin ? 'block' : 'none';
+        if (lblCodigo && club.codigo) lblCodigo.innerText = club.codigo;
+    }
+}
+
 // ── Limpiar club anterior si ?club= cambió ──
 (function() {
     try {
@@ -1704,11 +2049,14 @@ function cambiarSlide(idx) {
         var slugUrl = params.get('club');
         if (slugUrl) {
             var slugGuardado = localStorage.getItem('wl_club_slug');
-            if (slugGuardado && slugGuardado !== slugUrl) {
-                // Cambió el club en la URL → limpiar todo el white label anterior
+            var prev = (slugGuardado || '').trim().toLowerCase();
+            var next = (slugUrl || '').trim().toLowerCase();
+            if (prev && prev !== next) {
+                // Cambió el club en la URL → limpiar solo caché de white label
+                // sin borrar sesión local (jugador/club/organizador).
                 ['wl_club_id','wl_club_nombre','wl_club_logo_url','wl_club_color','wl_club_slug',
-                 'wl_club_cache','club_activo','mis_clubes'].forEach(function(k){ localStorage.removeItem(k); });
-                console.log('[index] Club cambió de "' + slugGuardado + '" a "' + slugUrl + '" → caché limpiado');
+                 'wl_club_cache'].forEach(function(k){ localStorage.removeItem(k); });
+                console.log('[index] Club cambió de "' + slugGuardado + '" a "' + slugUrl + '" → cache WL limpiado (sesión preservada)');
             }
         }
     } catch(e) {}
@@ -1717,15 +2065,20 @@ function cambiarSlide(idx) {
 // ── Carga inicial ──
 window.onload = function() {
     try {
+        var decaImg = document.querySelector('.logo-img');
+        if (decaImg && decaImg.src) localStorage.setItem('deca_logo_src', decaImg.src);
+    } catch(_) {}
+    try {
         if (typeof MasterVIP !== 'undefined' && MasterVIP && typeof MasterVIP.applyDesign === 'function') {
             MasterVIP.applyDesign();
         }
     } catch(e) {}
+    restaurarConexionPortales();
     cargarSede();
     cargarTorneoActivo();
     iniciarSlider();
     // Abrir panel jugador si ya está identificado
-    const u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+    const u = leerJSONStorage('jugador_activo');
     if (u && u.nombre) { abrirPanel('jug'); }
 };
 
@@ -1752,6 +2105,7 @@ function cargarTorneoActivo() {
     } catch(e) {}
 }
 </script>
+<script src="Version.js"></script>
 <script src="whitelabel.js"></script>
 </body>
 </html>

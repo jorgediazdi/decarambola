@@ -239,6 +239,10 @@ const MasterVIP = {
                     entradaObjetivo: t.entrada_objetivo || local.entradaObjetivo || 0,
                     tiempoEntrada: t.tiempo_entrada || local.tiempoEntrada || 40,
                     modalidad: t.modalidad || local.modalidad || 'Libre',
+                    sitioEvento: t.sitio_evento || t.lugar_encuentro || local.sitioEvento || local.lugar_encuentro || '',
+                    multisala: (typeof t.multisala === 'boolean') ? t.multisala : !!local.multisala,
+                    clasificaPorGrupo: t.clasifica_por_grupo || local.clasificaPorGrupo || 2,
+                    mejoresTerceros: t.mejores_terceros || local.mejoresTerceros || 0,
                     reglamento: t.reglamento || local.reglamento || '',
                     estado: t.estado || 'ABIERTO',
                     // Si el local ya tiene inscritos, los respetamos (pueden tener bye/eliminado)
@@ -339,6 +343,10 @@ const MasterVIP = {
             entradaObjetivo: parseInt(config.entradaObjetivo) || 0,
             tiempoEntrada: parseInt(config.tiempoEntrada) || 40,
             modalidad: config.modalidad || 'Libre',
+            sitioEvento: config.sitioEvento || config.lugar_encuentro || '',
+            multisala: !!config.multisala,
+            clasificaPorGrupo: parseInt(config.clasificaPorGrupo, 10) || 2,
+            mejoresTerceros: parseInt(config.mejoresTerceros, 10) || 0,
             reglamento: config.reglamento || '',
             estado: 'ABIERTO',
             inscritos: [],
@@ -367,6 +375,10 @@ const MasterVIP = {
             pct_fee: torneo.pctFee,
             entrada_objetivo: torneo.entradaObjetivo,
             tiempo_entrada: torneo.tiempoEntrada,
+            sitio_evento: torneo.sitioEvento || null,
+            multisala: !!torneo.multisala,
+            clasifica_por_grupo: torneo.clasificaPorGrupo || 2,
+            mejores_terceros: torneo.mejoresTerceros || 0,
             reglamento: torneo.reglamento,
             estado: 'ABIERTO',
             fecha_inicio: torneo.fechaInicio || null
@@ -397,6 +409,10 @@ const MasterVIP = {
         t.entradaObjetivo = parseInt(config.entradaObjetivo, 10) || t.entradaObjetivo;
         t.tiempoEntrada = parseInt(config.tiempoEntrada, 10) || t.tiempoEntrada;
         t.modalidad = config.modalidad || t.modalidad;
+        t.sitioEvento = (config.sitioEvento !== undefined ? config.sitioEvento : (config.lugar_encuentro !== undefined ? config.lugar_encuentro : t.sitioEvento));
+        if (config.multisala !== undefined) t.multisala = !!config.multisala;
+        if (config.clasificaPorGrupo !== undefined) t.clasificaPorGrupo = parseInt(config.clasificaPorGrupo, 10) || t.clasificaPorGrupo || 2;
+        if (config.mejoresTerceros !== undefined) t.mejoresTerceros = parseInt(config.mejoresTerceros, 10) || 0;
         t.reglamento = config.reglamento || t.reglamento;
         t.fechaInicio = config.fechaInicio !== undefined ? config.fechaInicio : t.fechaInicio;
         torneos[idx] = t;
@@ -414,6 +430,10 @@ const MasterVIP = {
                 entrada_objetivo: t.entradaObjetivo,
                 tiempo_entrada: t.tiempoEntrada,
                 modalidad: t.modalidad,
+                sitio_evento: t.sitioEvento || null,
+                multisala: !!t.multisala,
+                clasifica_por_grupo: t.clasificaPorGrupo || 2,
+                mejores_terceros: t.mejoresTerceros || 0,
                 reglamento: t.reglamento || '',
                 fecha_inicio: t.fechaInicio || null,
                 updated_at: new Date().toISOString()
@@ -432,6 +452,10 @@ const MasterVIP = {
         if (torneo.id && torneo.id.length > 10) {
             await DB.update('torneos', torneo.id, {
                 estado: torneo.estado,
+                sitio_evento: torneo.sitioEvento || null,
+                multisala: !!torneo.multisala,
+                clasifica_por_grupo: torneo.clasificaPorGrupo || 2,
+                mejores_terceros: torneo.mejoresTerceros || 0,
                 updated_at: new Date().toISOString()
             });
         }
@@ -756,7 +780,7 @@ const MasterVIP = {
     // ─────────────────────────────────────────
     _actualizarHistorial: async function (resultado) {
         let h = JSON.parse(localStorage.getItem('ranking_historico_club')) || [];
-        // Guardar promedio real (carambolas / entradas) si hay entradas disponibles
+        // Guardar promedio real (puntos / entradas) si hay entradas disponibles
         const promJ1 = resultado.entradas1 > 0
             ? parseFloat((resultado.pts1 / resultado.entradas1).toFixed(3))
             : resultado.promFinalJ1;
@@ -764,8 +788,8 @@ const MasterVIP = {
             ? parseFloat((resultado.pts2 / resultado.entradas2).toFixed(3))
             : resultado.promFinalJ2;
 
-        h.push({ nombre: resultado.j1, promedio: promJ1, carambolas: resultado.pts1 || 0, entradas: resultado.entradas1 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
-        h.push({ nombre: resultado.j2, promedio: promJ2, carambolas: resultado.pts2 || 0, entradas: resultado.entradas2 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
+        h.push({ nombre: resultado.j1, promedio: promJ1, puntos: resultado.pts1 || 0, carambolas: resultado.pts1 || 0, entradas: resultado.entradas1 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
+        h.push({ nombre: resultado.j2, promedio: promJ2, puntos: resultado.pts2 || 0, carambolas: resultado.pts2 || 0, entradas: resultado.entradas2 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
         localStorage.setItem('ranking_historico_club', JSON.stringify(h));
 
         this._recalcularPromedio(resultado.j1);
@@ -803,9 +827,9 @@ const MasterVIP = {
         const partidas = h.filter(x => x.nombre.toUpperCase() === nombre.toUpperCase());
         if (partidas.length === 0) return;
 
-        // Fórmula real billar tres bandas: total carambolas / total entradas
+        // Fórmula real billar tres bandas: total puntos / total entradas
         // Si hay entradas guardadas las usamos; si no, promediamos los promedios (fallback)
-        const totalCar = partidas.reduce((acc, x) => acc + (parseInt(x.carambolas) || 0), 0);
+        const totalCar = partidas.reduce((acc, x) => acc + (parseInt(x.puntos != null ? x.puntos : x.carambolas) || 0), 0);
         const totalEnt = partidas.reduce((acc, x) => acc + (parseInt(x.entradas)   || 0), 0);
         const prom = totalEnt > 0
             ? totalCar / totalEnt
@@ -997,7 +1021,19 @@ const MasterVIP = {
                 'border-radius:50%;object-fit:contain;background:#111;padding:2px;" ' +
                 'alt="' + (nombre || 'Club') + '">';
         }
-        // Sin logo → ícono genérico según deporte activo
+        // Sin logo → usar logo DeCarambola guardado (si existe)
+        var decaSrc = null;
+        try {
+            decaSrc = window.__DECA_LOGO_SRC || localStorage.getItem('deca_logo_src') || null;
+        } catch (e) {}
+        if (decaSrc) {
+            return '<img src="' + decaSrc + '" ' +
+                'style="width:' + size + 'px;height:' + size + 'px;' +
+                'border-radius:50%;object-fit:contain;background:#111;padding:2px;" ' +
+                'alt="DeCarambola">';
+        }
+
+        // Sin logo ni fallback local → ícono genérico según deporte activo
         var deporte = 'billar';
         try {
             if (window.WL && typeof WL.getDeporte === 'function') {
@@ -1333,7 +1369,7 @@ const HISTORIAL = {
             rival_nombre, rival_promedio,
             entrada_objetivo,
             entradas_jugador, carambolas_jugador,
-            promedio_partida,   // carambolas / entradas
+            promedio_partida,   // puntos / entradas
             gano: true/false,
             tipo: 'torneo' | 'reto' | 'entrenamiento',
             torneo_nombre,
@@ -1348,7 +1384,8 @@ const HISTORIAL = {
             rival_promedio:    datos.rival_promedio     || 0,
             entrada_objetivo:  datos.entrada_objetivo   || 0,
             entradas:          datos.entradas_jugador   || 0,
-            carambolas:        datos.carambolas_jugador || 0,
+            puntos:            (datos.puntos_jugador != null ? datos.puntos_jugador : (datos.carambolas_jugador || 0)),
+            carambolas:        (datos.carambolas_jugador != null ? datos.carambolas_jugador : (datos.puntos_jugador || 0)),
             promedio_partida:  datos.promedio_partida   || 0,
             gano:              datos.gano               || false,
             tipo:              datos.tipo               || 'torneo',

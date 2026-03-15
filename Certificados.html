@@ -263,9 +263,10 @@ function dibujar() {
     ctx.letterSpacing = '4px';
 
     // Dibujar logo si existe, sino solo texto
-    var logoUrl = d.logoUrl || null;
+    var logoUrl = d.logo || localStorage.getItem('wl_club_logo_url') || null;
     if (logoUrl) {
         var logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
         logoImg.onload = function() {
             var lSize = 40, lX = W/2 - 120, lY = 52;
             ctx.save();
@@ -539,6 +540,7 @@ function compartirWA() {
 }
 
 </script>
+<script src="Version.js"></script>
 <script src="whitelabel.js"></script>
 </body>
 </html>

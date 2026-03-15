@@ -76,7 +76,7 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;he
 <!-- PANTALLA 1: INICIO -->
 <div id="p-ini" class="pan" style="display:flex">
   <div class="tit">&#9889; MI PARTIDA</div>
-  <div class="sub">DeCarambola &middot; SOLO MIS CARAMBOLAS</div>
+  <div class="sub">DeCarambola &middot; SOLO MIS PUNTOS</div>
   <div class="card">
     <span class="lbl">CEDULA / PASAPORTE</span>
     <input class="inp" id="doc" type="tel" inputmode="numeric" placeholder="Numero de documento" autocomplete="off" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
@@ -101,7 +101,7 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;he
   <div class="zona">
     <div class="bola" id="bola" onclick="add(1)">
       <div class="bola-n" id="car">0</div>
-      <div class="bola-s">CARAMBOLAS</div>
+      <div class="bola-s">PUNTOS</div>
     </div>
     <div class="stats">
       <div class="sb"><span class="sv" id="sent">0</span><span class="sl">ENTRADAS</span></div>
@@ -128,7 +128,7 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;he
     <div class="rn" id="rnom">-</div>
     <div class="rl">SESION COMPLETADA</div>
     <div class="rg">
-      <div class="rs"><span class="rv o" id="rcar">0</span><span class="rlab">CARAMBOLAS</span></div>
+      <div class="rs"><span class="rv o" id="rcar">0</span><span class="rlab">PUNTOS</span></div>
       <div class="rs"><span class="rv" id="rent">0</span><span class="rlab">ENTRADAS</span></div>
       <div class="rs"><span class="rv o" id="rpro">0.000</span><span class="rlab">PROMEDIO</span></div>
       <div class="rs"><span class="rv" id="rser">0</span><span class="rlab">SERIE MAX</span></div>
@@ -285,7 +285,7 @@ function add(n){
   if(st.s>st.sm)st.sm=st.s;
   var b=document.getElementById('bola');
   b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump');
-  // Parpadear botón siguiente cuando hay carambolas en la entrada
+  // Parpadear botón siguiente cuando hay puntos en la entrada
   document.getElementById('btn-sig').classList.add('pulsa');
   ui();
 }
@@ -314,7 +314,7 @@ function ui(){
 
 function fin(){
   var p=st.e===0?0:parseFloat((st.c/st.e).toFixed(3));
-  if(confirm(st.c+' carambolas | '+st.e+' entradas | Prom '+p.toFixed(3)+'\n\nFinalizar?'))resumen();
+  if(confirm(st.c+' puntos | '+st.e+' entradas | Prom '+p.toFixed(3)+'\n\nFinalizar?'))resumen();
 }
 
 function resumen(){
@@ -343,7 +343,7 @@ function guardar(){
   var h = JSON.parse(localStorage.getItem('ranking_historico_club')||'[]');
   h.push({
     nombre: nom, cedula: doc, promedio: p,
-    carambolas: st.c, entradas: st.e, serieMax: st.sm,
+    puntos: st.c, carambolas: st.c, entradas: st.e, serieMax: st.sm,
     fecha: new Date().toLocaleDateString(), tipo: 'Entrenamiento'
   });
   localStorage.setItem('ranking_historico_club', JSON.stringify(h));
@@ -380,6 +380,7 @@ function guardar(){
 
 function reiniciar(){st={c:0,e:0,s:0,sm:0};show('p-ini');}
 </script>
+<script src="Version.js"></script>
 <script src="whitelabel.js"></script>
 </body>
 </html>

@@ -716,7 +716,7 @@ function generarAnalisis(j,d){
 
   /* Serie máxima */
   if(d.serieM>=15) txt+='Su <span class="analisis-highlight">serie máxima de '+d.serieM+'</span> demuestra capacidad de concentración élite. ';
-  else if(d.serieM>=8) txt+='Ha logrado series de hasta <strong>'+d.serieM+' carambolas</strong>, mostrando solidez en momentos clave. ';
+  else if(d.serieM>=8) txt+='Ha logrado series de hasta <strong>'+d.serieM+' puntos</strong>, mostrando solidez en momentos clave. ';
   else if(d.serieM>=3) txt+='Serie máxima de '+d.serieM+'. Trabajar la continuidad mejorará el promedio significativamente. ';
 
   /* Fuera de categoría */
@@ -806,7 +806,7 @@ function renderPartidas(mias){
     return'<div class="hist-item">'+
       '<div class="hist-ico">'+(m.tipo==='Torneo'?'🏆':'🎯')+'</div>'+
       '<div class="hist-info"><div class="hist-nom">'+(m.tipo==='Torneo'?'TORNEO':'ENTRENAMIENTO')+'</div>'+
-      '<div class="hist-det">'+(m.fecha||'—')+(m.carambolas?' · '+m.carambolas+' car.':'')+(m.entradas?' · '+m.entradas+' ent.':'')+'</div></div>'+
+      '<div class="hist-det">'+(m.fecha||'—')+((m.puntos!=null?m.puntos:m.carambolas)?' · '+(m.puntos!=null?m.puntos:m.carambolas)+' pts.':'')+(m.entradas?' · '+m.entradas+' ent.':'')+'</div></div>'+
       '<div class="hist-prom" style="color:'+col+';">'+pr.toFixed(3)+'</div>'+
     '</div>';
   }).join('');
@@ -843,6 +843,7 @@ function copiarLink(){
   });
 }
 </script>
+<script src="Version.js"></script>
 <script src="whitelabel.js"></script>
 </body>
 </html>

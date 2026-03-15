@@ -157,7 +157,7 @@
                         <input id="modal-pts1" type="number" min="0" max="999" placeholder="0"
                             style="width:100%;background:#111;border:2px solid #2a2a2a;border-radius:14px;padding:14px 8px;color:var(--oro);font-size:1.8rem;font-family:'Courier New',monospace;font-weight:900;text-align:center;outline:none;"
                             onfocus="this.style.borderColor='var(--oro)'" onblur="this.style.borderColor='#2a2a2a'">
-                        <div style="font-size:0.5rem;color:#444;margin-top:4px;letter-spacing:1px;">CARAMBOLAS</div>
+                        <div style="font-size:0.5rem;color:#444;margin-top:4px;letter-spacing:1px;">PUNTOS</div>
                     </div>
                     <div style="color:#1a1a1a;font-size:1rem;font-weight:900;text-align:center;">VS</div>
                     <div style="text-align:center;">
@@ -166,7 +166,7 @@
                         <input id="modal-pts2" type="number" min="0" max="999" placeholder="0"
                             style="width:100%;background:#111;border:2px solid #2a2a2a;border-radius:14px;padding:14px 8px;color:var(--neon);font-size:1.8rem;font-family:'Courier New',monospace;font-weight:900;text-align:center;outline:none;"
                             onfocus="this.style.borderColor='var(--neon)'" onblur="this.style.borderColor='#2a2a2a'">
-                        <div style="font-size:0.5rem;color:#444;margin-top:4px;letter-spacing:1px;">CARAMBOLAS</div>
+                        <div style="font-size:0.5rem;color:#444;margin-top:4px;letter-spacing:1px;">PUNTOS</div>
                     </div>
                 </div>
 
@@ -175,7 +175,7 @@
                     <input id="modal-ent" type="number" min="1" max="100" placeholder="ej: 10"
                         style="width:100%;background:#0a0a0a;border:2px solid #2a2a2a;border-radius:10px;padding:10px 14px;color:#fff;font-size:1.1rem;font-family:'Courier New',monospace;text-align:center;outline:none;"
                         onfocus="this.style.borderColor='var(--azul)'" onblur="this.style.borderColor='#2a2a2a'">
-                    <div style="font-size:0.5rem;color:#333;margin-top:6px;">El promedio se calcula automáticamente: carambolas ÷ entradas</div>
+                    <div style="font-size:0.5rem;color:#333;margin-top:6px;">El promedio se calcula automáticamente: puntos ÷ entradas</div>
                 </div>
 
                 <div id="modal-error" style="color:var(--rojo);font-size:0.65rem;text-align:center;min-height:18px;margin-bottom:12px;"></div>
@@ -232,7 +232,9 @@ function cargar() {
         return;
     }
     document.getElementById('lbl-torneo').innerText = torneo.nombre;
-    document.getElementById('lbl-sub').innerText = torneo.codigo + ' · ' + (torneo.modalidad || '') + ' · ' + (torneo.inscritos || []).length + ' JUG.';
+    var sitioSub = torneo.sitioEvento ? (' · 📍 ' + torneo.sitioEvento) : '';
+    var salasSub = torneo.multisala ? ' · MULTISALA' : ' · SALA ÚNICA';
+    document.getElementById('lbl-sub').innerText = torneo.codigo + ' · ' + (torneo.modalidad || '') + salasSub + sitioSub + ' · ' + (torneo.inscritos || []).length + ' JUG.';
     document.getElementById('lbl-bolsa').innerText = MasterVIP.formatearPesos(MasterVIP.calcularBolsa(torneo));
     if (!torneo.rondas || torneo.rondas.length === 0) {
         document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎲</div><p>El sorteo aún no se ha realizado.<br>Ve a <b style="color:var(--oro)">Inscripciones</b> para cerrarlo.</p></div>';
@@ -508,7 +510,7 @@ function dibujarInfo() {
         }
     }
     var pct = totalPartidas > 0 ? Math.round((completadas / totalPartidas) * 100) : 0;
-    var html = '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:14px;">ℹ DATOS DEL TORNEO</div>' + kpiRow('NOMBRE', torneo.nombre) + kpiRow('CÓDIGO', torneo.codigo) + kpiRow('SEDE', torneo.sede) + kpiRow('MODALIDAD', torneo.modalidad || '—') + kpiRow('SISTEMA', (torneo.sistema || 'llaves').toUpperCase()) + kpiRow('JUGADORES', (torneo.inscritos || []).length + ' / ' + torneo.cupoMax) + kpiRow('ESTADO', torneo.estado) + '</div>';
+    var html = '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:14px;">ℹ DATOS DEL TORNEO</div>' + kpiRow('NOMBRE', torneo.nombre) + kpiRow('CÓDIGO', torneo.codigo) + kpiRow('SEDE', torneo.sede) + kpiRow('SITIO', torneo.sitioEvento || '—') + kpiRow('SALAS', torneo.multisala ? 'MULTISALA' : 'SALA ÚNICA') + kpiRow('MODALIDAD', torneo.modalidad || '—') + kpiRow('SISTEMA', (torneo.sistema || 'llaves').toUpperCase()) + kpiRow('JUGADORES', (torneo.inscritos || []).length + ' / ' + torneo.cupoMax) + kpiRow('ESTADO', torneo.estado) + '</div>';
     html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:14px;">💰 PREMIOS</div>' + kpiRow('INSCRIPCIÓN', MasterVIP.formatearPesos(torneo.inscripcion || 0) + ' / JUG.') + kpiRow('APORTE CLUB', MasterVIP.formatearPesos(torneo.baseClub || 0)) + kpiRow('BOLSA TOTAL', MasterVIP.formatearPesos(bolsa)) + kpiRow('🥇 CAMPEÓN', MasterVIP.formatearPesos(Math.round(bolsa * 0.50))) + kpiRow('🥈 SEGUNDO', MasterVIP.formatearPesos(Math.round(bolsa * 0.25))) + kpiRow('🥉 TERCERO', MasterVIP.formatearPesos(Math.round(bolsa * 0.15))) + '</div>';
     html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:10px;">📊 PROGRESO</div><div style="font-size: 0.6rem;color:#555;margin-bottom:6px;">' + completadas + ' DE ' + totalPartidas + ' PARTIDAS JUGADAS</div><div style="height:8px;background:var(--borde);border-radius:10px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,var(--oro),#ffe066);border-radius:10px;"></div></div><div style="font-size:0.38rem;color:#444;margin-top:5px;text-align:right;">' + pct + '% COMPLETADO</div></div>';
     document.getElementById('info-contenido').innerHTML = html;
@@ -557,7 +559,7 @@ async function guardarResultado() {
     var err  = document.getElementById('modal-error');
 
     if (isNaN(pts1) || isNaN(pts2) || pts1 < 0 || pts2 < 0) {
-        err.textContent = '⚠️ Ingresa carambolas válidas para ambos jugadores.'; return;
+        err.textContent = '⚠️ Ingresa puntos válidos para ambos jugadores.'; return;
     }
     if (pts1 === pts2) {
         err.textContent = '⚠️ No puede haber empate en billar tres bandas.'; return;
@@ -594,6 +596,7 @@ async function guardarResultado() {
     }
 }
 
+function iniciarBtn(btn) {
     var pid = decodeURIComponent(btn.getAttribute('data-id') || '');
     var j1 = decodeURIComponent(btn.getAttribute('data-j1') || '');
     var j2 = decodeURIComponent(btn.getAttribute('data-j2') || '');
@@ -613,6 +616,7 @@ function iniciar(partidaId, j1, j2) {
     location.href = 'duelo.html';
 }
 </script>
+<script src="Version.js"></script>
 <script src="whitelabel.js"></script>
 </body>
 </html>
