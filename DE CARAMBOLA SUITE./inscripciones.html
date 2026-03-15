@@ -545,29 +545,86 @@ function mostrarBloqueoAfiliacion() {
     document.body.appendChild(bloqueo);
 }
 
-window.onload = async function() {
-    try { await MasterVIP.init(); } catch(e) { console.warn('Init offline:', e); }
-    MasterVIP.applyDesign();
-    var clubActivo = localStorage.getItem('wl_club_nombre') || '';
-    if (!clubActivo || clubActivo === 'GLOBAL') {
-        mostrarBloqueoAfiliacion();
-        return;
-    }
-    cargarClubesSelect();
-    cargar();
-};
-
-function cargarClubesSelect() {
-    var sel = document.getElementById('inp-club');
-    if (!sel) return;
-    // Solo leer de localStorage clave "mis_clubes" y filtrar por app billar (no mezclar con otras apps)
+function obtenerClubesAfiliados() {
     var raw = [];
-    try {
-        raw = JSON.parse(localStorage.getItem('mis_clubes') || '[]');
-    } catch (e) {}
+    try { raw = JSON.parse(localStorage.getItem('mis_clubes') || '[]') || []; } catch(_) {}
     var clubes = Array.isArray(raw) ? raw.filter(function(c) {
         return !c.tipo || String(c.tipo).toLowerCase() === 'billar';
     }) : [];
+
+    if (!clubes.length) {
+        var clubActivo = null;
+        try { clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null'); } catch(_) {}
+        if (clubActivo && clubActivo.nombre) clubes.push(clubActivo);
+    }
+
+    // Quitar duplicados por nombre/código
+    var mapa = {};
+    var uniq = [];
+    for (var i = 0; i < clubes.length; i++) {
+        var c = clubes[i] || {};
+        var key = String(c.codigo || c.nombre || c.name || '').trim().toUpperCase();
+        if (!key || mapa[key]) continue;
+        mapa[key] = true;
+        uniq.push(c);
+    }
+    return uniq;
+}
+
+function asegurarClubActivo(clubes) {
+    var actual = (localStorage.getItem('wl_club_nombre') || '').trim();
+    if (actual && actual !== 'GLOBAL') return true;
+
+    if (clubes && clubes.length) {
+        var preferido = clubes.find(function(c){ return c && c.admin; }) || clubes[0];
+        var nombre = preferido.nombre || preferido.name || '';
+        if (!nombre) return false;
+        localStorage.setItem('wl_club_nombre', nombre);
+        if (preferido.logo_url || preferido.logoUrl) localStorage.setItem('wl_club_logo_url', preferido.logo_url || preferido.logoUrl);
+        if (preferido.color || preferido.color_primario) localStorage.setItem('wl_club_color', preferido.color || preferido.color_primario);
+        try { localStorage.setItem('club_activo', JSON.stringify(preferido)); } catch(_) {}
+        if (window.WL && typeof window.WL.setClub === 'function') {
+            try {
+                window.WL.setClub({
+                    id: preferido.id || null,
+                    nombre: nombre,
+                    codigo: preferido.codigo || null,
+                    slug: preferido.slug || preferido.codigo || null,
+                    logo_url: preferido.logo_url || preferido.logoUrl || null,
+                    color_primario: preferido.color || preferido.color_primario || null
+                });
+            } catch(_) {}
+        }
+        return true;
+    }
+
+    var perfil = {};
+    try { perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}') || {}; } catch(_) {}
+    if (perfil.club) {
+        localStorage.setItem('wl_club_nombre', perfil.club);
+        return true;
+    }
+    // Si al menos tiene club_id, no bloquear: puede escoger club después
+    if (perfil.club_id) return true;
+    return false;
+}
+
+window.onload = async function() {
+    try { await MasterVIP.init(); } catch(e) { console.warn('Init offline:', e); }
+    MasterVIP.applyDesign();
+    var clubes = obtenerClubesAfiliados();
+    if (!asegurarClubActivo(clubes)) {
+        mostrarBloqueoAfiliacion();
+        return;
+    }
+    cargarClubesSelect(clubes);
+    cargar();
+};
+
+function cargarClubesSelect(clubesPreCargados) {
+    var sel = document.getElementById('inp-club');
+    if (!sel) return;
+    var clubes = Array.isArray(clubesPreCargados) ? clubesPreCargados : obtenerClubesAfiliados();
     sel.innerHTML = '';
     if (clubes.length === 0) {
         sel.innerHTML = '<option value="">No hay clubes registrados. Crea uno en el inicio.</option>';

@@ -1393,14 +1393,28 @@ function actualizarLogoHeader() {
     var club = document.getElementById('header-logo-club');
     var titulo = document.getElementById('header-titulo');
     if (!deca || !club) return;
-    var mostrarClub = (window.WL && window.WL.getLogoUrl && window.WL.getLogoUrl());
-    if (!mostrarClub) mostrarClub = localStorage.getItem('wl_club_logo_url') || '';
+    var nombreClub = '';
+    try {
+        if (window.WL && window.WL.getNombreClub) nombreClub = window.WL.getNombreClub() || '';
+    } catch(e) {}
+    if (!nombreClub) nombreClub = localStorage.getItem('wl_club_nombre') || '';
+    if (!nombreClub || nombreClub === 'GLOBAL') {
+        var clubActivo = null;
+        try { clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null'); } catch(_) {}
+        if (clubActivo && clubActivo.nombre) {
+            nombreClub = clubActivo.nombre;
+            localStorage.setItem('wl_club_nombre', nombreClub);
+            if (clubActivo.logo_url) localStorage.setItem('wl_club_logo_url', clubActivo.logo_url);
+            if (clubActivo.color) localStorage.setItem('wl_club_color', clubActivo.color);
+        }
+    }
+    var mostrarClub = !!(nombreClub && nombreClub !== 'GLOBAL');
     if (mostrarClub && typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) {
         if (!window.__DECA_LOGO_SRC) window.__DECA_LOGO_SRC = deca.src;
         club.style.display = '';
         club.innerHTML = MasterVIP.getLogoHTML(180);
         deca.style.display = 'none';
-        if (titulo && window.WL && window.WL.getNombreClub) { try { titulo.textContent = window.WL.getNombreClub() || 'DeCarambola'; } catch(e) {} }
+        if (titulo) titulo.textContent = nombreClub;
     } else {
         if (window.__DECA_LOGO_SRC) deca.src = window.__DECA_LOGO_SRC;
         deca.style.display = '';
