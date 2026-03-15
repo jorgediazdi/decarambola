@@ -1260,6 +1260,15 @@
                 letter-spacing:2px;cursor:pointer;">
                 ← VOLVER AL MENÚ
             </button>
+            <button onclick="cerrarCertificado()" style="
+                width:100%;padding:12px;
+                background:none;border:1px solid #333;
+                color:#888;border-radius:16px;
+                font-size:0.6rem;
+                font-family:'Arial Black',sans-serif;
+                letter-spacing:2px;cursor:pointer;">
+                ↩ VOLVER AL TABLERO
+            </button>
         </div>
 
     </div>
@@ -2141,6 +2150,11 @@
 
         document.getElementById('p-juego').classList.remove('activa');
         document.getElementById('p-certi').classList.add('activa');
+    }
+
+    function cerrarCertificado() {
+        document.getElementById('p-certi').classList.remove('activa');
+        document.getElementById('p-juego').classList.add('activa');
     }
 
     /* ── GUARDAR ── */

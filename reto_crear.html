@@ -55,6 +55,8 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
 .fmt-chip { flex:1; padding:10px 4px; background:#0a0a0a; border:1.5px solid #1a1a1a; border-radius:12px; color:#444; font-family:'Arial Black',sans-serif; font-size:0.38rem; letter-spacing:1px; text-align:center; cursor:pointer; transition:0.18s; line-height:1.5; }
 .fmt-chip .ico { display:block; font-size:1rem; margin-bottom:2px; }
 .fmt-chip.on { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.07); }
+.sede-chip { flex:1; padding:10px 4px; background:#0a0a0a; border:1.5px solid #1a1a1a; border-radius:12px; color:#444; font-family:'Arial Black',sans-serif; font-size:0.38rem; letter-spacing:1px; text-align:center; cursor:pointer; transition:0.18s; line-height:1.5; }
+.sede-chip.on { border-color:var(--azul); color:var(--azul); background:rgba(52,152,219,0.07); }
 
 /* ── SEPARADOR ── */
 .sep { display:flex; align-items:center; gap:10px; margin:12px 0 8px; }
@@ -142,6 +144,24 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
 .btn-neon:active { transform:scale(0.97); }
 .btn-ghost { width:100%; padding:13px; background:none; border:1px solid #1a1a1a; border-radius:14px; color:#555; font-size:0.45rem; font-family:'Arial Black',sans-serif; letter-spacing:2px; cursor:pointer; margin-bottom:8px; }
 .btn-copy { width:100%; padding:13px; background:rgba(52,152,219,0.08); border:1px solid rgba(52,152,219,0.25); border-radius:14px; color:#3498db; font-size:0.45rem; font-family:'Arial Black',sans-serif; letter-spacing:2px; cursor:pointer; margin-bottom:8px; }
+.identidad-alert {
+    background:rgba(231,76,60,0.08);
+    border:1px solid rgba(231,76,60,0.2);
+    border-radius:14px;
+    padding:12px 14px;
+    margin-bottom:10px;
+}
+.identidad-alert.ok {
+    background:rgba(46,255,112,0.06);
+    border-color:rgba(46,255,112,0.25);
+}
+.identidad-alert .ttl { font-size:0.42rem; letter-spacing:1px; margin-bottom:5px; }
+.identidad-alert .sub { font-size:0.38rem; color:#888; letter-spacing:1px; line-height:1.8; }
+.identidad-alert .cta {
+    margin-top:8px; display:inline-block; text-decoration:none;
+    color:#d4af37; border:1px solid #3a2f08; border-radius:10px;
+    padding:7px 10px; font-size:0.38rem; letter-spacing:1px;
+}
 </style>
 </head>
 <body>
@@ -178,6 +198,13 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
      PASO 1 — CONFIGURAR EL RETO
 ════════════════════════════════════════ -->
 <div class="pantalla activa" id="p-paso1">
+    <div class="identidad-alert" id="box-identidad">
+        <div class="ttl" id="ttl-identidad">⚠️ IDENTIFÍCATE CON CÉDULA</div>
+        <div class="sub" id="sub-identidad">
+            Puedes configurar el reto, pero para publicarlo debes entrar con tu cédula.
+        </div>
+        <a class="cta" href="index.html">IR A ENTRAR COMO JUGADOR</a>
+    </div>
 
     <!-- Tu nombre -->
     <div class="campo">
@@ -253,6 +280,16 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
         </div>
     </div>
 
+    <div class="sep"><div class="sep-line"></div><span class="sep-txt">📍 SITIO</span><div class="sep-line"></div></div>
+    <div class="campo">
+        <label>Sitio donde se jugará el reto</label>
+        <input type="text" id="r-sitio" placeholder="Ej: CLUB BILLARES CENTRO · MESA 4" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="fmt-row">
+        <button class="sede-chip on" onclick="selModoSede(false,this)">SALA ÚNICA</button>
+        <button class="sede-chip" onclick="selModoSede(true,this)">MULTISALA</button>
+    </div>
+
     <!-- Bolsa -->
     <div class="sep"><div class="sep-line"></div><span class="sep-txt">💰 BOLSA</span><div class="sep-line"></div></div>
     <div class="bolsa-box">
@@ -268,7 +305,7 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
         </div>
     </div>
 
-    <button class="btn-pri" onclick="crearReto()">📢 PUBLICAR RETO →</button>
+    <button class="btn-pri" id="btn-crear-reto" onclick="crearReto()">📢 PUBLICAR RETO →</button>
     <button class="btn-ghost" onclick="location.href='index.html'">← CANCELAR</button>
 </div>
 
@@ -394,6 +431,41 @@ var _bo     = 1;
 var _tipo   = 'publico';
 var _reto   = null;
 var _cdInterval = null;
+var _multiSala = false;
+
+function getJugadorActivoSeguro() {
+    try { return JSON.parse(localStorage.getItem('jugador_activo') || 'null'); }
+    catch (e) { return null; }
+}
+function tieneCedulaActiva() {
+    var jugActivo = getJugadorActivoSeguro();
+    return !!(jugActivo && String(jugActivo.cedula || '').trim());
+}
+function actualizarEstadoIdentidad() {
+    var ok = tieneCedulaActiva();
+    var box = document.getElementById('box-identidad');
+    var ttl = document.getElementById('ttl-identidad');
+    var sub = document.getElementById('sub-identidad');
+    var btn = document.getElementById('btn-crear-reto');
+    if (!box || !ttl || !sub || !btn) return;
+    if (ok) {
+        box.classList.add('ok');
+        ttl.style.color = 'var(--neon)';
+        ttl.innerText = '✅ IDENTIFICACIÓN ACTIVA';
+        sub.innerText = 'Tu cédula ya está validada. Puedes publicar y compartir retos.';
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.innerText = '📢 PUBLICAR RETO →';
+    } else {
+        box.classList.remove('ok');
+        ttl.style.color = '#ff9c9c';
+        ttl.innerText = '⚠️ IDENTIFÍCATE CON CÉDULA';
+        sub.innerText = 'Puedes configurar el reto, pero para publicarlo debes entrar como jugador con tu cédula.';
+        btn.disabled = true;
+        btn.style.opacity = '0.55';
+        btn.innerText = '🔒 PUBLICAR RETO (REQUIERE CÉDULA)';
+    }
+}
 
 /* ── Tipo de reto ── */
 function selTipo(t, el) {
@@ -412,6 +484,12 @@ function selTipo(t, el) {
 function selFmt(n, el) {
     _bo = n;
     document.querySelectorAll('.fmt-chip').forEach(function(b){ b.classList.remove('on'); });
+    el.classList.add('on');
+}
+
+function selModoSede(esMulti, el) {
+    _multiSala = !!esMulti;
+    document.querySelectorAll('.sede-chip').forEach(function(b){ b.classList.remove('on'); });
     el.classList.add('on');
 }
 
@@ -472,6 +550,8 @@ function resumenHTML(r) {
     return '<div class="rc-fila"><span class="rc-lbl">RETADOR</span><span class="rc-val oro">'+r.j1+'</span></div>' +
            '<div class="rc-fila"><span class="rc-lbl">RETADO</span>'+rival+'</div>' +
            '<div class="rc-fila"><span class="rc-lbl">📅 FECHA Y HORA</span><span class="rc-val oro">'+fechaFmt+'</span></div>' +
+           '<div class="rc-fila"><span class="rc-lbl">📍 SITIO</span><span class="rc-val">'+(r.sitio || '—')+'</span></div>' +
+           '<div class="rc-fila"><span class="rc-lbl">SALAS</span><span class="rc-val">'+(r.multisala ? 'MULTISALA' : 'SALA ÚNICA')+'</span></div>' +
            '<div class="rc-fila"><span class="rc-lbl">MODALIDAD</span><span class="rc-val">'+r.modalidad+'</span></div>' +
            '<div class="rc-fila"><span class="rc-lbl">FORMATO</span><span class="rc-val">'+_fmtLbl[r.bestOf]+'</span></div>' +
            '<div class="rc-fila"><span class="rc-lbl">METAS</span><span class="rc-val">'+r.meta1+' vs '+r.meta2+'</span></div>' +
@@ -483,9 +563,8 @@ function resumenHTML(r) {
    PASO 1 → CREAR
 ════════════════════════════════ */
 function crearReto() {
-    var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
-    if (!jugActivo || !jugActivo.cedula) {
-        alert('⚠️ Para crear retos debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
+    if (!tieneCedulaActiva()) {
+        alert('⚠️ Para publicar retos debes identificarte con tu cédula primero.\n\nVe al menú principal → JUGADOR → ENTRAR');
         return;
     }
     var n1 = document.getElementById('r-n1').value.trim().toUpperCase();
@@ -493,6 +572,8 @@ function crearReto() {
 
     var fecha = document.getElementById('r-fecha').value;
     if (!fecha) { alert('⏰ La fecha y hora del reto es obligatoria'); return; }
+    var sitio = document.getElementById('r-sitio').value.trim().toUpperCase();
+    if (!sitio) { alert('📍 Debes indicar el sitio del reto'); return; }
 
     var fechaReto = new Date(fecha);
     if (fechaReto < new Date()) { alert('⏰ La fecha debe ser en el futuro'); return; }
@@ -515,6 +596,8 @@ function crearReto() {
         creado:       Date.now(),
         fechaReto:    fecha,        // ISO string de la fecha del partido
         woDeadline:   fechaReto.getTime() + 15*60*1000, // +15 min = W/O
+        sitio:        sitio,
+        multisala:    _multiSala,
         j1:           n1,
         j2:           n2 || '',     // vacío si es público
         confirmJ1:    false,
@@ -566,6 +649,8 @@ function compartirWA() {
               '🤜 Retador: *'+r.j1+'*\n' +
               rival + '\n\n' +
               '📅 Fecha: *'+fechaStr+'*\n' +
+              '📍 Sitio: *'+(r.sitio || 'POR DEFINIR')+'*\n' +
+              '🏟️ Salas: *'+(r.multisala ? 'MULTISALA' : 'SALA ÚNICA')+'*\n' +
               '🏓 Modalidad: *'+r.modalidad+'*\n' +
               '🏆 Formato: *'+_fmtLbl[r.bestOf]+'*\n' +
               '⚖️ Metas: *'+r.meta1+' vs '+r.meta2+'*' +
@@ -742,11 +827,23 @@ window.onload = function() {
         minDate.getFullYear()+'-'+pad(minDate.getMonth()+1)+'-'+pad(minDate.getDate())+
         'T'+pad(minDate.getHours())+':'+pad(minDate.getMinutes());
 
+    // Sugerir sitio por club activo para ahorrar pasos
+    var clubNom = localStorage.getItem('wl_club_nombre') || '';
+    if (clubNom && clubNom !== 'GLOBAL') {
+        document.getElementById('r-sitio').value = (clubNom + ' · MESA PRINCIPAL').toUpperCase();
+    }
+
     // Detectar si viene con ?reto=CODIGO (rival aceptando)
     var params = new URLSearchParams(window.location.search);
     var codigo = params.get('reto');
     if (codigo) {
         mostrarRetoRecibido(codigo);
+    }
+    actualizarEstadoIdentidad();
+    if (!tieneCedulaActiva()) {
+        setTimeout(function(){
+            alert('ℹ️ Puedes configurar el reto, pero la publicación está bloqueada hasta identificarte con cédula.');
+        }, 120);
     }
 };
 

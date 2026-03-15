@@ -135,21 +135,32 @@ function cambiarVista(v) {
 }
 
 async function cargar() {
-    torneo = MasterVIP.getTorneoActivo();
-    if (!torneo) {
-        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.</p></div>';
-        return;
-    }
-    // Si no hay inscritos recuperarlos de Supabase
-    if ((!torneo.inscritos || torneo.inscritos.length === 0) && torneo.id) {
-        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>⏳</div><p>Recuperando datos...</p></div>';
-        await MasterVIP._recuperarInscritos(torneo.id);
+    try {
         torneo = MasterVIP.getTorneoActivo();
+        if (!torneo) {
+            document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.</p></div>';
+            return;
+        }
+        // Si no hay inscritos recuperarlos de Supabase
+        if ((!torneo.inscritos || torneo.inscritos.length === 0) && torneo.id) {
+            document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>⏳</div><p>Recuperando datos...</p></div>';
+            await MasterVIP._recuperarInscritos(torneo.id);
+            torneo = MasterVIP.getTorneoActivo();
+        }
+        document.getElementById('lbl-torneo').innerText = torneo.nombre;
+        var sitioSub = torneo.sitioEvento ? (' · 📍 ' + torneo.sitioEvento) : '';
+        var salasSub = torneo.multisala ? ' · MULTISALA' : ' · SALA ÚNICA';
+        document.getElementById('lbl-sub').innerText = torneo.codigo + salasSub + sitioSub + ' · ' + (torneo.inscritos || []).length + ' JUGADORES';
+        if (!torneo.posiciones || torneo.posiciones.length === 0) {
+            inicializarPosiciones();
+            recalcularPosicionesDesdePartidas();
+        }
+        document.getElementById('lbl-fase').innerText = (torneo.sistema || 'TORNEO').toUpperCase();
+        renderVista();
+    } catch (e) {
+        console.error('[posiciones] error al cargar', e);
+        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>⚠️</div><p>No se pudieron cargar las posiciones.<br>Actualiza e intenta nuevamente.</p></div>';
     }
-    document.getElementById('lbl-torneo').innerText = torneo.nombre;
-    document.getElementById('lbl-sub').innerText = torneo.codigo + ' · ' + (torneo.inscritos || []).length + ' JUGADORES';
-    if (!torneo.posiciones || torneo.posiciones.length === 0) inicializarPosiciones();
-    renderVista();
 }
 
 function inicializarPosiciones() {
@@ -158,6 +169,39 @@ function inicializarPosiciones() {
     for (var i = 0; i < torneo.inscritos.length; i++) {
         var jug = torneo.inscritos[i];
         torneo.posiciones.push({ nombre: jug.nombre, club: jug.club || '', promedio: jug.promedio || 0, pj: 0, pg: 0, pe: 0, pp: 0, car: 0, ent: 0, pts: 0 });
+    }
+    MasterVIP.actualizarTorneo(torneo);
+}
+
+function recalcularPosicionesDesdePartidas() {
+    if (!torneo || !torneo.posiciones || !torneo.rondas) return;
+    for (var i = 0; i < torneo.posiciones.length; i++) {
+        torneo.posiciones[i].pj = 0; torneo.posiciones[i].pg = 0; torneo.posiciones[i].pe = 0; torneo.posiciones[i].pp = 0;
+        torneo.posiciones[i].car = 0; torneo.posiciones[i].ent = 0; torneo.posiciones[i].pts = 0;
+    }
+    function idx(nombre){
+        var up = (nombre || '').toUpperCase();
+        for (var k = 0; k < torneo.posiciones.length; k++) {
+            if ((torneo.posiciones[k].nombre || '').toUpperCase() === up) return k;
+        }
+        return -1;
+    }
+    for (var r = 0; r < torneo.rondas.length; r++) {
+        var partidas = torneo.rondas[r].partidas || [];
+        for (var p = 0; p < partidas.length; p++) {
+            var m = partidas[p];
+            if (m.estado !== 'TERMINADA') continue;
+            var i1 = idx(m.j1), i2 = idx(m.j2);
+            if (i1 < 0 || i2 < 0) continue;
+            var a = torneo.posiciones[i1], b = torneo.posiciones[i2];
+            a.pj++; b.pj++;
+            a.car += parseInt(m.pts1) || 0; b.car += parseInt(m.pts2) || 0;
+            a.ent += parseInt(m.entradas1) || 0; b.ent += parseInt(m.entradas2) || 0;
+            var g = (m.ganador || '').toUpperCase();
+            if (g === (a.nombre || '').toUpperCase()) { a.pg++; a.pts += 2; b.pp++; }
+            else if (g === (b.nombre || '').toUpperCase()) { b.pg++; b.pts += 2; a.pp++; }
+            else { a.pe++; b.pe++; a.pts++; b.pts++; }
+        }
     }
     MasterVIP.actualizarTorneo(torneo);
 }
@@ -208,13 +252,37 @@ function renderTabla() {
 }
 
 function renderPartidos() {
-    var html = '<div class="empty-state"><div>📋</div><p>Próximamente: Lista de partidos del grupo</p></div>';
+    var html = '<div class="tabla-container"><div class="tabla-titulo"><span class="tabla-titulo-icon">⚔️</span><span class="tabla-titulo-txt">PARTIDOS PROGRAMADOS</span></div><div style="padding:12px;">';
+    var total = 0;
+    if (torneo.rondas && torneo.rondas.length) {
+        for (var r = 0; r < torneo.rondas.length; r++) {
+            var rr = torneo.rondas[r];
+            html += '<div style="font-size:0.5rem;color:#666;letter-spacing:2px;margin:10px 0 8px;">RONDA ' + (rr.numero || (r+1)) + '</div>';
+            var parts = rr.partidas || [];
+            for (var p = 0; p < parts.length; p++) {
+                total++;
+                var pp = parts[p];
+                var stColor = pp.estado === 'TERMINADA' ? 'var(--neon)' : (pp.estado === 'EN_JUEGO' ? 'var(--oro)' : '#555');
+                var score = (pp.estado === 'TERMINADA' || pp.estado === 'EN_JUEGO') ? (' · ' + (pp.pts1||0) + ' - ' + (pp.pts2||0)) : '';
+                html += '<div style="background:#0f0f0f;border:1px solid #1a1a1a;border-radius:10px;padding:10px 12px;margin-bottom:7px;">' +
+                    '<div style="font-size:0.6rem;color:#ddd;">' + (pp.j1 || '—') + ' vs ' + (pp.j2 || '—') + score + '</div>' +
+                    '<div style="font-size:0.45rem;color:' + stColor + ';letter-spacing:1px;margin-top:3px;">' + (pp.estado || 'PENDIENTE') + '</div>' +
+                '</div>';
+            }
+        }
+    }
+    if (total === 0) html += '<div class="empty-state"><div>📋</div><p>No hay partidos registrados todavía.</p></div>';
+    html += '</div></div>';
     document.getElementById('contenido').innerHTML = html;
 }
 
 function renderReglamento() {
     var reglamento = torneo.reglamento || 'No se ha definido reglamento.';
     var html = '<div class="tabla-container"><div class="tabla-titulo"><span class="tabla-titulo-icon">📋</span><span class="tabla-titulo-txt">REGLAMENTO</span></div><div style="padding:16px;font-size:0.55rem;color:#888;line-height:1.8;">' + reglamento + '</div></div>';
+    html += '<div class="tabla-container" style="margin-top:15px;"><div class="tabla-titulo"><span class="tabla-titulo-icon">🎯</span><span class="tabla-titulo-txt">REGLAS BASE</span></div><div style="padding:16px;display:flex;gap:10px;flex-wrap:wrap;">';
+    html += '<div style="flex:1;min-width:120px;background:#0f0f0f;border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.3rem;color:var(--oro);">' + (torneo.entradaObjetivo || 10) + '</div><div style="font-size:0.4rem;color:#555;">CARAMBOLAS META</div></div>';
+    html += '<div style="flex:1;min-width:120px;background:#0f0f0f;border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.3rem;color:var(--azul);">' + (torneo.tiempoEntrada || 40) + 's</div><div style="font-size:0.4rem;color:#555;">TIEMPO / ENTRADA</div></div>';
+    html += '</div></div>';
     html += '<div class="tabla-container" style="margin-top:15px;"><div class="tabla-titulo"><span class="tabla-titulo-icon">⚙️</span><span class="tabla-titulo-txt">SISTEMA DE PUNTOS</span></div><div style="padding:16px;display:flex;gap:10px;flex-wrap:wrap;">';
     html += '<div style="flex:1;min-width:80px;background:#0f0f0f;border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.5rem;color:var(--neon);">2</div><div style="font-size:0.4rem;color:#555;">VICTORIA</div></div>';
     html += '<div style="flex:1;min-width:80px;background:#0f0f0f;border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.5rem;color:var(--oro);">1</div><div style="font-size:0.4rem;color:#555;">EMPATE</div></div>';
