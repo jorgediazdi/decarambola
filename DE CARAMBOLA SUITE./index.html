@@ -2044,7 +2044,6 @@ window.onload = function() {
         if (btn) btn.onclick = eliminarDuplicadosTorneos;
     }
     // Abrir panel jugador si ya está identificado
-    const u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
     if (u && u.nombre) { abrirPanel('jug'); }
     // Mostrar tarjetas solo para jugador logueado
     try {
