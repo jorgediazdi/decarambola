@@ -158,6 +158,7 @@
         }
         .config-item input::placeholder { color: #888; }
         .config-item select option { background: #111; }
+        .config-item.full { grid-column: 1 / -1; }
 
         /* Botón intercambiar */
         .btn-intercambiar {
@@ -674,6 +675,145 @@
         .btn-sig:active { transform: scale(0.97); opacity: 0.85; }
 
         /* ═══════════════════════════════════════
+           MODO MÓVIL SIMPLE / STREAM
+        ═══════════════════════════════════════ */
+        #mobile-stream-wrap { display: none; }
+
+        body.modo-simple-movil:not(.modo-stream-movil) .j-col-stats,
+        body.modo-simple-movil:not(.modo-stream-movil) .j-col-serie,
+        body.modo-simple-movil:not(.modo-stream-movil) .j-meta-barra,
+        body.modo-simple-movil:not(.modo-stream-movil) .j-meta-txt,
+        body.modo-simple-movil:not(.modo-stream-movil) .turno-metas {
+            display: none !important;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .bola {
+            width: 94px; height: 94px;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .j-pts {
+            font-size: 3rem;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .j-nombre {
+            max-width: 78%;
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .campo-juego {
+            bottom: 120px;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .teclado-wrap {
+            height: 120px;
+            padding: 6px 8px 10px;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .teclado-header {
+            height: 28px;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .btn-num {
+            font-size: 1.25rem;
+        }
+
+        /* Móvil con stream: vista espectador */
+        body.modo-stream-movil .campo-juego,
+        body.modo-stream-movil .teclado-wrap,
+        body.modo-stream-movil .divisor,
+        body.modo-stream-movil .sets-bar {
+            display: none !important;
+        }
+        body.modo-stream-movil #p-juego {
+            overflow: auto;
+            background: #000;
+        }
+        body.modo-stream-movil .barra-top {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+        }
+        body.modo-stream-movil #mobile-stream-wrap {
+            display: block;
+            position: fixed;
+            top: 52px; left: 0; right: 0; bottom: 0;
+            overflow: auto;
+            background: #000;
+            padding: 10px 10px 14px;
+            z-index: 45;
+        }
+        .mobile-stream-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .mobile-stream-head {
+            padding: 8px 10px;
+            color: #666;
+            font-size: 0.52rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .mobile-stream-frame {
+            width: 100%;
+            height: 52vh;
+            border: none;
+            background: #050505;
+        }
+        .mobile-stream-empty {
+            padding: 18px 12px;
+            text-align: center;
+            color: #666;
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+        }
+        .mobile-score-compact {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 14px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .msc-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid #151515;
+        }
+        .msc-row:last-child { border-bottom: none; }
+        .msc-n {
+            color: #bbb;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+        }
+        .msc-p {
+            font-size: 1.35rem;
+            font-family: 'Courier New', monospace;
+            color: var(--oro);
+            font-weight: 900;
+            line-height: 1;
+        }
+        .mobile-stream-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .mobile-stream-actions a {
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 12px;
+            padding: 10px 8px;
+            font-size: 0.52rem;
+            letter-spacing: 1px;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .msa-full {
+            background: linear-gradient(135deg, var(--oro), #a07800);
+            color: #000;
+        }
+        .msa-back {
+            background: #111;
+            border: 1px solid #222;
+            color: #888;
+        }
+
+        /* ═══════════════════════════════════════
            PANTALLA 3 — CERTIFICADO / RESUMEN
         ═══════════════════════════════════════ */
         #p-certi {
@@ -978,6 +1118,10 @@
                     <option value="Cuadro">CUADRO</option>
                 </select>
             </div>
+            <div class="config-item full">
+                <label>Streaming (opcional · URL)</label>
+                <input type="url" id="cfg-stream" placeholder="https://...">
+            </div>
         </div>
     </div>
 
@@ -1056,6 +1200,35 @@
         <span class="sb-vs">SETS</span>
         <div class="sb-sets" id="sb-dots2"></div>
         <span class="sb-nombre der" id="sb-n2">J2</span>
+    </div>
+
+    <!-- Móvil: panel de stream / marcador compacto -->
+    <div id="mobile-stream-wrap">
+        <div class="mobile-stream-card">
+            <div class="mobile-stream-head" id="mobile-stream-note">STREAMING EN VIVO</div>
+            <iframe id="mobile-stream-frame" class="mobile-stream-frame" allowfullscreen referrerpolicy="no-referrer"></iframe>
+            <div id="mobile-stream-empty" class="mobile-stream-empty" style="display:none;">
+                No hay streaming disponible para este duelo.
+            </div>
+        </div>
+        <div class="mobile-score-compact">
+            <div class="msc-row">
+                <div class="msc-n" id="msc-n1">JUGADOR 1</div>
+                <div class="msc-p" id="msc-p1">0</div>
+            </div>
+            <div class="msc-row">
+                <div class="msc-n" id="msc-n2">JUGADOR 2</div>
+                <div class="msc-p" id="msc-p2">0</div>
+            </div>
+            <div class="msc-row">
+                <div class="msc-n">TURNO</div>
+                <div class="msc-p" id="msc-turno" style="font-size:0.9rem;">J1</div>
+            </div>
+        </div>
+        <div class="mobile-stream-actions">
+            <a id="btn-mobile-full" class="msa-full" href="#">CONTROL COMPLETO</a>
+            <a class="msa-back msa-back" href="index.html">VOLVER</a>
+        </div>
     </div>
 
     <!-- CAMPO DE JUEGO (mitad1 + mitad2) -->
@@ -1285,8 +1458,101 @@
         hnd1: 0, hnd2: 0,
         tiempo: 40,
         modal: '3 Bandas',
-        bestOf: 1             // 1 | 3 | 5 | 7
+        bestOf: 1,            // 1 | 3 | 5 | 7
+        streamUrl: ''         // URL opcional para vista móvil espectador
     };
+
+    var uiMovil = {
+        simple: false,
+        conStream: false,
+        streamUrl: ''
+    };
+
+    function esClienteMovil() {
+        try {
+            if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches) return true;
+        } catch(_) {}
+        var ua = (navigator.userAgent || '').toLowerCase();
+        return /android|iphone|ipad|ipod|mobile|opera mini|iemobile/.test(ua);
+    }
+
+    function normalizarUrlStream(url) {
+        var v = String(url || '').trim();
+        if (!v) return '';
+        if (!/^https?:\/\//i.test(v)) return '';
+        return v;
+    }
+
+    function obtenerUrlStream() {
+        var q = new URLSearchParams(window.location.search);
+        var fromQuery = normalizarUrlStream(q.get('stream') || '');
+        if (fromQuery) return fromQuery;
+        var fromInput = normalizarUrlStream((document.getElementById('cfg-stream') || {}).value || '');
+        if (fromInput) return fromInput;
+        return normalizarUrlStream(localStorage.getItem('duelo_stream_url') || '');
+    }
+
+    function actualizarMarcadorMovilCompacto() {
+        var n1 = (document.getElementById('lbl1') || {}).innerText || 'JUGADOR 1';
+        var n2 = (document.getElementById('lbl2') || {}).innerText || 'JUGADOR 2';
+        var p1 = (typeof d !== 'undefined' ? d.p1 : 0) || 0;
+        var p2 = (typeof d !== 'undefined' ? d.p2 : 0) || 0;
+        var turno = (typeof d !== 'undefined' && d.t === 2) ? n2 : n1;
+        var e1 = document.getElementById('msc-n1');
+        var e2 = document.getElementById('msc-n2');
+        var ep1 = document.getElementById('msc-p1');
+        var ep2 = document.getElementById('msc-p2');
+        var et = document.getElementById('msc-turno');
+        if (e1) e1.innerText = n1;
+        if (e2) e2.innerText = n2;
+        if (ep1) ep1.innerText = p1;
+        if (ep2) ep2.innerText = p2;
+        if (et) et.innerText = turno;
+    }
+
+    function aplicarModoMovilSimple() {
+        var q = new URLSearchParams(window.location.search);
+        var forzarControl = q.get('control') === '1';
+        var soloVista = q.get('view') === '1' || q.get('espectador') === '1';
+        if (!esClienteMovil() || forzarControl) return;
+
+        document.body.classList.add('modo-simple-movil');
+        uiMovil.simple = true;
+        uiMovil.streamUrl = obtenerUrlStream();
+        uiMovil.conStream = !!uiMovil.streamUrl;
+
+        var panel = document.getElementById('mobile-stream-wrap');
+        var frame = document.getElementById('mobile-stream-frame');
+        var empty = document.getElementById('mobile-stream-empty');
+        var note = document.getElementById('mobile-stream-note');
+        var btnFull = document.getElementById('btn-mobile-full');
+
+        if (btnFull) {
+            var base = window.location.pathname || 'duelo.html';
+            var qs = [];
+            if (uiMovil.streamUrl) qs.push('stream=' + encodeURIComponent(uiMovil.streamUrl));
+            qs.push('control=1');
+            btnFull.href = base + '?' + qs.join('&');
+        }
+
+        if (uiMovil.conStream) {
+            document.body.classList.add('modo-stream-movil');
+            if (panel) panel.style.display = 'block';
+            if (frame) frame.src = uiMovil.streamUrl;
+            if (empty) empty.style.display = 'none';
+            if (note) note.innerText = 'STREAMING EN VIVO';
+        } else {
+            document.body.classList.remove('modo-stream-movil');
+            if (panel) panel.style.display = 'none';
+        }
+        if (soloVista && uiMovil.conStream) {
+            var r = document.getElementById('p-registro');
+            var j = document.getElementById('p-juego');
+            if (r) r.classList.remove('activa');
+            if (j) j.classList.add('activa');
+        }
+        actualizarMarcadorMovilCompacto();
+    }
 
     // Estado de la serie (bo3/bo5/bo7)
     let serie = {
@@ -1393,6 +1659,13 @@
     /* ── INICIO ── */
     window.onload = function () {
         mostrarSplashMarca(function() {});
+        try {
+            var s0 = obtenerUrlStream();
+            if (s0) {
+                var inpS = document.getElementById('cfg-stream');
+                if (inpS) inpS.value = s0;
+            }
+        } catch(_) {}
 
         var ctx = null;
         try { ctx = JSON.parse(localStorage.getItem('PARTIDA_ACTIVA') || 'null'); } catch(e) {}
@@ -1413,6 +1686,7 @@
                 regMeta[2] = ctx.meta2;
             }
             if (ctx.modalidad) document.getElementById('cfg-modal').value = ctx.modalidad;
+            if (ctx.stream_url) document.getElementById('cfg-stream').value = ctx.stream_url;
             if (ctx.bestOf && ctx.bestOf > 1) {
                 cfg.bestOf = ctx.bestOf;
                 // Marcar el chip correcto
@@ -1436,6 +1710,7 @@
                 // Ajustar p-registro para no quedar debajo del banner
                 document.getElementById('p-registro').style.paddingTop = '52px';
             }
+            aplicarModoMovilSimple();
             return;
         }
 
@@ -1444,11 +1719,13 @@
             document.getElementById('n1').value = ctx.j1 || '';
             document.getElementById('n2').value = ctx.j2 || '';
             document.getElementById('cfg-tiempo').value = ctx.tiempoEntrada || 40;
+            if (ctx.stream_url) document.getElementById('cfg-stream').value = ctx.stream_url;
             if (ctx.entradaObjetivo) {
                 document.getElementById('meta-num1').value = ctx.entradaObjetivo;
                 document.getElementById('meta-num2').value = ctx.entradaObjetivo;
             }
         }
+        aplicarModoMovilSimple();
     };
 
     /* ── ESTADO DE REGISTRO ── */
@@ -1665,6 +1942,10 @@
         cfg.hnd2   = 0;
         cfg.tiempo = parseInt(document.getElementById('cfg-tiempo').value) || 40;
         cfg.modal  = document.getElementById('cfg-modal').value;
+        cfg.streamUrl = normalizarUrlStream(document.getElementById('cfg-stream').value || '');
+        try {
+            if (cfg.streamUrl) localStorage.setItem('duelo_stream_url', cfg.streamUrl);
+        } catch(_) {}
 
         // Sin hándicap inicial — la meta diferente ES el hándicap
         d.p1 = 0;
@@ -1683,6 +1964,25 @@
 
         document.getElementById('p-registro').classList.remove('activa');
         document.getElementById('p-juego').classList.add('activa');
+
+        // Si en móvil hay stream, activar vista espectador automáticamente.
+        if (uiMovil.simple) {
+            uiMovil.streamUrl = cfg.streamUrl || uiMovil.streamUrl || '';
+            uiMovil.conStream = !!uiMovil.streamUrl;
+            if (uiMovil.conStream) {
+                document.body.classList.add('modo-stream-movil');
+                var panel = document.getElementById('mobile-stream-wrap');
+                var frame = document.getElementById('mobile-stream-frame');
+                var empty = document.getElementById('mobile-stream-empty');
+                var note  = document.getElementById('mobile-stream-note');
+                if (panel) panel.style.display = 'block';
+                if (frame) frame.src = uiMovil.streamUrl;
+                if (empty) empty.style.display = 'none';
+                if (note) note.innerText = 'STREAMING EN VIVO';
+            } else {
+                document.body.classList.remove('modo-stream-movil');
+            }
+        }
 
         tiempoRestante = cfg.tiempo;
         iniciarReloj();
@@ -1993,6 +2293,7 @@
 
         actualizarMetaTop();
         actualizarTecladoHeader();
+        actualizarMarcadorMovilCompacto();
     }
 
     /* ── HEADER DEL TECLADO — quién juega y metas ── */
