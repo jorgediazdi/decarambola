@@ -158,6 +158,7 @@
         }
         .config-item input::placeholder { color: #888; }
         .config-item select option { background: #111; }
+        .config-item.full { grid-column: 1 / -1; }
 
         /* Botón intercambiar */
         .btn-intercambiar {
@@ -316,37 +317,11 @@
             z-index: 50;
             background: #000;
             border-bottom: 1px solid #1a1a1a;
-            padding: 0;
-        }
-        .barra-top-inner {
             display: flex; align-items: center;
             justify-content: space-between;
             padding: 8px 14px;
             height: 52px;
         }
-        .barra-indicadores {
-            display: flex; align-items: center; justify-content: center;
-            gap: 16px; padding: 4px 14px 6px;
-            font-size: 0.5rem; color: #555;
-            letter-spacing: 1px;
-            border-top: 1px solid #111;
-            flex-wrap: wrap;
-        }
-        .barra-indicadores span { margin: 0 4px; }
-        .barra-indicadores .ind-val { color: var(--oro); font-family: 'Courier New', monospace; }
-        .badge-tiempo-superado {
-            display: none;
-            background: rgba(231,76,60,0.2);
-            border: 1px solid rgba(231,76,60,0.5);
-            color: #e74c3c;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.5rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-            animation: parpadeo 0.8s infinite;
-        }
-        .badge-tiempo-superado.visible { display: inline-block; }
 
         /* Indicador de meta / progreso */
         .meta-info {
@@ -392,7 +367,7 @@
         /* ── CAMPO DE JUEGO ── */
         .campo-juego {
             position: fixed;
-            top: 82px;
+            top: 52px;
             bottom: 155px;
             left: 0; right: 0;
             display: flex; flex-direction: column;
@@ -700,6 +675,145 @@
         .btn-sig:active { transform: scale(0.97); opacity: 0.85; }
 
         /* ═══════════════════════════════════════
+           MODO MÓVIL SIMPLE / STREAM
+        ═══════════════════════════════════════ */
+        #mobile-stream-wrap { display: none; }
+
+        body.modo-simple-movil:not(.modo-stream-movil) .j-col-stats,
+        body.modo-simple-movil:not(.modo-stream-movil) .j-col-serie,
+        body.modo-simple-movil:not(.modo-stream-movil) .j-meta-barra,
+        body.modo-simple-movil:not(.modo-stream-movil) .j-meta-txt,
+        body.modo-simple-movil:not(.modo-stream-movil) .turno-metas {
+            display: none !important;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .bola {
+            width: 94px; height: 94px;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .j-pts {
+            font-size: 3rem;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .j-nombre {
+            max-width: 78%;
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .campo-juego {
+            bottom: 120px;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .teclado-wrap {
+            height: 120px;
+            padding: 6px 8px 10px;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .teclado-header {
+            height: 28px;
+        }
+        body.modo-simple-movil:not(.modo-stream-movil) .btn-num {
+            font-size: 1.25rem;
+        }
+
+        /* Móvil con stream: vista espectador */
+        body.modo-stream-movil .campo-juego,
+        body.modo-stream-movil .teclado-wrap,
+        body.modo-stream-movil .divisor,
+        body.modo-stream-movil .sets-bar {
+            display: none !important;
+        }
+        body.modo-stream-movil #p-juego {
+            overflow: auto;
+            background: #000;
+        }
+        body.modo-stream-movil .barra-top {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+        }
+        body.modo-stream-movil #mobile-stream-wrap {
+            display: block;
+            position: fixed;
+            top: 52px; left: 0; right: 0; bottom: 0;
+            overflow: auto;
+            background: #000;
+            padding: 10px 10px 14px;
+            z-index: 45;
+        }
+        .mobile-stream-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .mobile-stream-head {
+            padding: 8px 10px;
+            color: #666;
+            font-size: 0.52rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .mobile-stream-frame {
+            width: 100%;
+            height: 52vh;
+            border: none;
+            background: #050505;
+        }
+        .mobile-stream-empty {
+            padding: 18px 12px;
+            text-align: center;
+            color: #666;
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+        }
+        .mobile-score-compact {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 14px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .msc-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid #151515;
+        }
+        .msc-row:last-child { border-bottom: none; }
+        .msc-n {
+            color: #bbb;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+        }
+        .msc-p {
+            font-size: 1.35rem;
+            font-family: 'Courier New', monospace;
+            color: var(--oro);
+            font-weight: 900;
+            line-height: 1;
+        }
+        .mobile-stream-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .mobile-stream-actions a {
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 12px;
+            padding: 10px 8px;
+            font-size: 0.52rem;
+            letter-spacing: 1px;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .msa-full {
+            background: linear-gradient(135deg, var(--oro), #a07800);
+            color: #000;
+        }
+        .msa-back {
+            background: #111;
+            border: 1px solid #222;
+            color: #888;
+        }
+
+        /* ═══════════════════════════════════════
            PANTALLA 3 — CERTIFICADO / RESUMEN
         ═══════════════════════════════════════ */
         #p-certi {
@@ -904,7 +1018,6 @@
     <!-- ── JUGADOR 1 — bola blanca ── -->
     <div class="jcard">
         <input type="radio" name="salida" id="s1" class="bola-sel" checked>
-        <div id="jcard-logo1" style="width:110px;height:110px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#111;display:flex;align-items:center;justify-content:center;border:1px solid #222;"></div>
         <div class="jcard-campos">
             <input type="text" id="n1" class="jcampo-nom"
                 placeholder="NOMBRE MAESTRO 1"
@@ -946,7 +1059,6 @@
     <!-- ── JUGADOR 2 — bola dorada ── -->
     <div class="jcard">
         <input type="radio" name="salida" id="s2" class="bola-sel">
-        <div id="jcard-logo2" style="width:110px;height:110px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#111;display:flex;align-items:center;justify-content:center;border:1px solid #222;"></div>
         <div class="jcard-campos">
             <input type="text" id="n2" class="jcampo-nom"
                 placeholder="NOMBRE MAESTRO 2"
@@ -1006,15 +1118,9 @@
                     <option value="Cuadro">CUADRO</option>
                 </select>
             </div>
-        </div>
-        <div class="config-fila">
-            <div class="config-item">
-                <label>Mesa (opcional)</label>
-                <input type="text" id="cfg-mesa" placeholder="Ej: 1 o Mesa A">
-            </div>
-            <div class="config-item">
-                <label>Límite alerta (min)</label>
-                <input type="number" id="cfg-tiempo-limite" value="0" min="0" placeholder="0 = desactivado">
+            <div class="config-item full">
+                <label>Streaming (opcional · URL)</label>
+                <input type="url" id="cfg-stream" placeholder="https://...">
             </div>
         </div>
     </div>
@@ -1054,44 +1160,36 @@
 
     <!-- BARRA SUPERIOR FIJA -->
     <div class="barra-top">
-        <div class="barra-top-inner">
-            <!-- Info meta J1 -->
-            <div class="meta-info">
-                <span class="meta-lbl" id="lbl-meta1-top">META J1</span>
-                <span class="meta-val" id="lbl-pts-meta1">— / —</span>
-            </div>
+        <!-- Info meta J1 -->
+        <div class="meta-info">
+            <span class="meta-lbl" id="lbl-meta1-top">META J1</span>
+            <span class="meta-val" id="lbl-pts-meta1">— / —</span>
+        </div>
 
-            <!-- Reloj central con pausa -->
-            <div class="reloj-box">
-                <span class="reloj-ent" id="lbl-ent-top">ENTRADA 1</span>
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <div id="reloj">40</div>
-                    <button id="btn-pausa" onclick="togglePausa()" style="
-                        background:rgba(255,255,255,0.06);
-                        border:1px solid #333;
-                        color:#aaa;
-                        font-size:1.1rem;
-                        width:34px; height:34px;
-                        border-radius:50%;
-                        cursor:pointer;
-                        display:flex;align-items:center;justify-content:center;
-                        transition:0.2s;
-                        flex-shrink:0;
-                    ">⏸</button>
-                </div>
-            </div>
-
-            <!-- Botón finalizar + meta J2 -->
-            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
-                <button class="btn-fin" onclick="confirmarFin()">🏁 FINALIZAR</button>
-                <span class="meta-val" style="font-size:0.65rem;" id="lbl-pts-meta2">— / —</span>
+        <!-- Reloj central con pausa -->
+        <div class="reloj-box">
+            <span class="reloj-ent" id="lbl-ent-top">ENTRADA 1</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div id="reloj">40</div>
+                <button id="btn-pausa" onclick="togglePausa()" style="
+                    background:rgba(255,255,255,0.06);
+                    border:1px solid #333;
+                    color:#aaa;
+                    font-size:1.1rem;
+                    width:34px; height:34px;
+                    border-radius:50%;
+                    cursor:pointer;
+                    display:flex;align-items:center;justify-content:center;
+                    transition:0.2s;
+                    flex-shrink:0;
+                ">⏸</button>
             </div>
         </div>
-        <!-- Indicadores: mesa, tiempo transcurrido, costo, alerta -->
-        <div class="barra-indicadores">
-            <span>MESA <span class="ind-val" id="ind-mesa">—</span></span>
-            <span>TIEMPO <span class="ind-val" id="ind-transcurrido">0:00</span></span>
-            <span class="badge-tiempo-superado" id="badge-tiempo-superado">⚠ TIEMPO LÍMITE SUPERADO</span>
+
+        <!-- Botón finalizar + meta J2 -->
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+            <button class="btn-fin" onclick="confirmarFin()">🏁 FINALIZAR</button>
+            <span class="meta-val" style="font-size:0.65rem;" id="lbl-pts-meta2">— / —</span>
         </div>
     </div>
 
@@ -1104,6 +1202,35 @@
         <span class="sb-nombre der" id="sb-n2">J2</span>
     </div>
 
+    <!-- Móvil: panel de stream / marcador compacto -->
+    <div id="mobile-stream-wrap">
+        <div class="mobile-stream-card">
+            <div class="mobile-stream-head" id="mobile-stream-note">STREAMING EN VIVO</div>
+            <iframe id="mobile-stream-frame" class="mobile-stream-frame" allowfullscreen referrerpolicy="no-referrer"></iframe>
+            <div id="mobile-stream-empty" class="mobile-stream-empty" style="display:none;">
+                No hay streaming disponible para este duelo.
+            </div>
+        </div>
+        <div class="mobile-score-compact">
+            <div class="msc-row">
+                <div class="msc-n" id="msc-n1">JUGADOR 1</div>
+                <div class="msc-p" id="msc-p1">0</div>
+            </div>
+            <div class="msc-row">
+                <div class="msc-n" id="msc-n2">JUGADOR 2</div>
+                <div class="msc-p" id="msc-p2">0</div>
+            </div>
+            <div class="msc-row">
+                <div class="msc-n">TURNO</div>
+                <div class="msc-p" id="msc-turno" style="font-size:0.9rem;">J1</div>
+            </div>
+        </div>
+        <div class="mobile-stream-actions">
+            <a id="btn-mobile-full" class="msa-full" href="#">CONTROL COMPLETO</a>
+            <a class="msa-back msa-back" href="index.html">VOLVER</a>
+        </div>
+    </div>
+
     <!-- CAMPO DE JUEGO (mitad1 + mitad2) -->
     <div class="campo-juego" id="campo-juego">
 
@@ -1111,10 +1238,7 @@
         <!-- Grid: [stats izq] | [bola centro] | [serie der] -->
         <div class="mitad activa" id="mitad1" onclick="if(d.t!==1)cambio()">
 
-            <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
-                <div id="club-logo1" style="width:96px;height:96px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#111;display:flex;align-items:center;justify-content:center;"></div>
-                <div class="j-nombre" id="lbl1">MAESTRO 1</div>
-            </div>
+            <div class="j-nombre" id="lbl1">MAESTRO 1</div>
             <div class="j-meta-txt" id="lbl-meta1"></div>
 
             <!-- COL IZQUIERDA: entradas + promedio -->
@@ -1155,10 +1279,7 @@
         <!-- ══ JUGADOR 2 — Abajo ══ -->
         <div class="mitad" id="mitad2" onclick="if(d.t!==2)cambio()">
 
-            <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
-                <div id="club-logo2" style="width:96px;height:96px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#111;display:flex;align-items:center;justify-content:center;"></div>
-                <div class="j-nombre" id="lbl2">MAESTRO 2</div>
-            </div>
+            <div class="j-nombre" id="lbl2">MAESTRO 2</div>
             <div class="j-meta-txt" id="lbl-meta2"></div>
 
             <!-- COL IZQUIERDA: entradas + promedio -->
@@ -1304,10 +1425,10 @@
                 🎱 NUEVA PARTIDA
             </button>
             <button onclick="location.href='index.html'" style="
-                width:100%;padding:14px;
-                background:#0a0a0a;border:1px solid #222;
-                color:#888;border-radius:16px;
-                font-size:0.75rem;font-weight:bold;
+                width:100%;padding:12px;
+                background:none;border:none;
+                color:#444;border-radius:16px;
+                font-size:0.6rem;
                 font-family:'Arial Black',sans-serif;
                 letter-spacing:2px;cursor:pointer;">
                 ← VOLVER AL MENÚ
@@ -1337,8 +1458,101 @@
         hnd1: 0, hnd2: 0,
         tiempo: 40,
         modal: '3 Bandas',
-        bestOf: 1             // 1 | 3 | 5 | 7
+        bestOf: 1,            // 1 | 3 | 5 | 7
+        streamUrl: ''         // URL opcional para vista móvil espectador
     };
+
+    var uiMovil = {
+        simple: false,
+        conStream: false,
+        streamUrl: ''
+    };
+
+    function esClienteMovil() {
+        try {
+            if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches) return true;
+        } catch(_) {}
+        var ua = (navigator.userAgent || '').toLowerCase();
+        return /android|iphone|ipad|ipod|mobile|opera mini|iemobile/.test(ua);
+    }
+
+    function normalizarUrlStream(url) {
+        var v = String(url || '').trim();
+        if (!v) return '';
+        if (!/^https?:\/\//i.test(v)) return '';
+        return v;
+    }
+
+    function obtenerUrlStream() {
+        var q = new URLSearchParams(window.location.search);
+        var fromQuery = normalizarUrlStream(q.get('stream') || '');
+        if (fromQuery) return fromQuery;
+        var fromInput = normalizarUrlStream((document.getElementById('cfg-stream') || {}).value || '');
+        if (fromInput) return fromInput;
+        return normalizarUrlStream(localStorage.getItem('duelo_stream_url') || '');
+    }
+
+    function actualizarMarcadorMovilCompacto() {
+        var n1 = (document.getElementById('lbl1') || {}).innerText || 'JUGADOR 1';
+        var n2 = (document.getElementById('lbl2') || {}).innerText || 'JUGADOR 2';
+        var p1 = (typeof d !== 'undefined' ? d.p1 : 0) || 0;
+        var p2 = (typeof d !== 'undefined' ? d.p2 : 0) || 0;
+        var turno = (typeof d !== 'undefined' && d.t === 2) ? n2 : n1;
+        var e1 = document.getElementById('msc-n1');
+        var e2 = document.getElementById('msc-n2');
+        var ep1 = document.getElementById('msc-p1');
+        var ep2 = document.getElementById('msc-p2');
+        var et = document.getElementById('msc-turno');
+        if (e1) e1.innerText = n1;
+        if (e2) e2.innerText = n2;
+        if (ep1) ep1.innerText = p1;
+        if (ep2) ep2.innerText = p2;
+        if (et) et.innerText = turno;
+    }
+
+    function aplicarModoMovilSimple() {
+        var q = new URLSearchParams(window.location.search);
+        var forzarControl = q.get('control') === '1';
+        var soloVista = q.get('view') === '1' || q.get('espectador') === '1';
+        if (!esClienteMovil() || forzarControl) return;
+
+        document.body.classList.add('modo-simple-movil');
+        uiMovil.simple = true;
+        uiMovil.streamUrl = obtenerUrlStream();
+        uiMovil.conStream = !!uiMovil.streamUrl;
+
+        var panel = document.getElementById('mobile-stream-wrap');
+        var frame = document.getElementById('mobile-stream-frame');
+        var empty = document.getElementById('mobile-stream-empty');
+        var note = document.getElementById('mobile-stream-note');
+        var btnFull = document.getElementById('btn-mobile-full');
+
+        if (btnFull) {
+            var base = window.location.pathname || 'duelo.html';
+            var qs = [];
+            if (uiMovil.streamUrl) qs.push('stream=' + encodeURIComponent(uiMovil.streamUrl));
+            qs.push('control=1');
+            btnFull.href = base + '?' + qs.join('&');
+        }
+
+        if (uiMovil.conStream) {
+            document.body.classList.add('modo-stream-movil');
+            if (panel) panel.style.display = 'block';
+            if (frame) frame.src = uiMovil.streamUrl;
+            if (empty) empty.style.display = 'none';
+            if (note) note.innerText = 'STREAMING EN VIVO';
+        } else {
+            document.body.classList.remove('modo-stream-movil');
+            if (panel) panel.style.display = 'none';
+        }
+        if (soloVista && uiMovil.conStream) {
+            var r = document.getElementById('p-registro');
+            var j = document.getElementById('p-juego');
+            if (r) r.classList.remove('activa');
+            if (j) j.classList.add('activa');
+        }
+        actualizarMarcadorMovilCompacto();
+    }
 
     // Estado de la serie (bo3/bo5/bo7)
     let serie = {
@@ -1369,12 +1583,12 @@
 
         if (cfg.bestOf <= 1) {
             bar.classList.remove('visible');
-            if (campo) campo.style.top = '82px';
+            if (campo) campo.style.top = '52px';
             return;
         }
 
         bar.classList.add('visible');
-        if (campo) campo.style.top = '116px';
+        if (campo) campo.style.top = '86px';
 
         var nom1 = document.getElementById('lbl1').innerText || 'J1';
         var nom2 = document.getElementById('lbl2').innerText || 'J2';
@@ -1407,9 +1621,6 @@
     let timer = null;
     let pausado = false;
     let partidaActiva = null;  // si viene de torneo
-    let partidaStartTime = 0;   // Date.now() al iniciar partida
-    let partidaTotalPausedMs = 0;
-    let pauseStartTime = 0;     // cuando se pausa
 
     /* ── SPLASH DE MARCA ── */
     function mostrarSplashMarca(onDone) {
@@ -1448,6 +1659,13 @@
     /* ── INICIO ── */
     window.onload = function () {
         mostrarSplashMarca(function() {});
+        try {
+            var s0 = obtenerUrlStream();
+            if (s0) {
+                var inpS = document.getElementById('cfg-stream');
+                if (inpS) inpS.value = s0;
+            }
+        } catch(_) {}
 
         var ctx = null;
         try { ctx = JSON.parse(localStorage.getItem('PARTIDA_ACTIVA') || 'null'); } catch(e) {}
@@ -1468,6 +1686,7 @@
                 regMeta[2] = ctx.meta2;
             }
             if (ctx.modalidad) document.getElementById('cfg-modal').value = ctx.modalidad;
+            if (ctx.stream_url) document.getElementById('cfg-stream').value = ctx.stream_url;
             if (ctx.bestOf && ctx.bestOf > 1) {
                 cfg.bestOf = ctx.bestOf;
                 // Marcar el chip correcto
@@ -1491,6 +1710,7 @@
                 // Ajustar p-registro para no quedar debajo del banner
                 document.getElementById('p-registro').style.paddingTop = '52px';
             }
+            aplicarModoMovilSimple();
             return;
         }
 
@@ -1499,11 +1719,13 @@
             document.getElementById('n1').value = ctx.j1 || '';
             document.getElementById('n2').value = ctx.j2 || '';
             document.getElementById('cfg-tiempo').value = ctx.tiempoEntrada || 40;
+            if (ctx.stream_url) document.getElementById('cfg-stream').value = ctx.stream_url;
             if (ctx.entradaObjetivo) {
                 document.getElementById('meta-num1').value = ctx.entradaObjetivo;
                 document.getElementById('meta-num2').value = ctx.entradaObjetivo;
             }
         }
+        aplicarModoMovilSimple();
     };
 
     /* ── ESTADO DE REGISTRO ── */
@@ -1554,8 +1776,6 @@
             chip.className    = 'prom-detectado';
             chipTxt.innerText = 'SIN HISTORIAL';
             regProm[j]        = 0;
-            var logoEl = document.getElementById('jcard-logo' + j);
-            if (logoEl) logoEl.innerHTML = '';
             calcularHandicapAuto();
             return;
         }
@@ -1590,22 +1810,6 @@
         } else {
             chip.className    = 'prom-detectado';
             chipTxt.innerText = 'SIN HISTORIAL — AJUSTA LA META MANUALMENTE';
-        }
-
-        var logoEl = document.getElementById('jcard-logo' + j);
-        if (logoEl) {
-            if (encontrado && encontrado.club) {
-                (function(num){
-                    MasterVIP.getClubLogoUrlAsync(encontrado.club).then(function(url) {
-                        var el = document.getElementById('jcard-logo' + num);
-                        if (!el) return;
-                        if (url) el.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;" alt="">';
-                        else el.innerHTML = '<span style="font-size:1.2rem;">&#127921;</span>';
-                    });
-                })(j);
-            } else {
-                logoEl.innerHTML = '';
-            }
         }
     }
 
@@ -1728,15 +1932,8 @@
         try {
             var j1 = MasterVIP.buscarJugador(nom1);
             var j2 = MasterVIP.buscarJugador(nom2);
-            // Solo actualizar cédula si el jugador YA existe en la base del club.
-            if (doc1 && j1) {
-                var d1o = Object.assign({}, j1, { cedula: doc1 });
-                MasterVIP.guardarJugador(d1o);
-            }
-            if (doc2 && j2) {
-                var d2o = Object.assign({}, j2, { cedula: doc2 });
-                MasterVIP.guardarJugador(d2o);
-            }
+            if (doc1) { var d1o = j1 ? Object.assign({},j1,{cedula:doc1}) : {nombre:nom1,cedula:doc1,promedio:0}; MasterVIP.guardarJugador(d1o); }
+            if (doc2) { var d2o = j2 ? Object.assign({},j2,{cedula:doc2}) : {nombre:nom2,cedula:doc2,promedio:0}; MasterVIP.guardarJugador(d2o); }
         } catch(e) {}
 
         cfg.meta1  = parseInt(document.getElementById('meta-num1').value) || 0;
@@ -1745,8 +1942,10 @@
         cfg.hnd2   = 0;
         cfg.tiempo = parseInt(document.getElementById('cfg-tiempo').value) || 40;
         cfg.modal  = document.getElementById('cfg-modal').value;
-        cfg.mesa   = (document.getElementById('cfg-mesa') && document.getElementById('cfg-mesa').value.trim()) || '';
-        cfg.tiempoLimiteAlerta = parseInt(document.getElementById('cfg-tiempo-limite') && document.getElementById('cfg-tiempo-limite').value) || 0;
+        cfg.streamUrl = normalizarUrlStream(document.getElementById('cfg-stream').value || '');
+        try {
+            if (cfg.streamUrl) localStorage.setItem('duelo_stream_url', cfg.streamUrl);
+        } catch(_) {}
 
         // Sin hándicap inicial — la meta diferente ES el hándicap
         d.p1 = 0;
@@ -1766,39 +1965,28 @@
         document.getElementById('p-registro').classList.remove('activa');
         document.getElementById('p-juego').classList.add('activa');
 
-        partidaStartTime = Date.now();
-        partidaTotalPausedMs = 0;
-        pauseStartTime = 0;
-        document.getElementById('ind-mesa').innerText = cfg.mesa || '—';
-        document.getElementById('ind-transcurrido').innerText = '0:00';
-        document.getElementById('badge-tiempo-superado').classList.remove('visible');
+        // Si en móvil hay stream, activar vista espectador automáticamente.
+        if (uiMovil.simple) {
+            uiMovil.streamUrl = cfg.streamUrl || uiMovil.streamUrl || '';
+            uiMovil.conStream = !!uiMovil.streamUrl;
+            if (uiMovil.conStream) {
+                document.body.classList.add('modo-stream-movil');
+                var panel = document.getElementById('mobile-stream-wrap');
+                var frame = document.getElementById('mobile-stream-frame');
+                var empty = document.getElementById('mobile-stream-empty');
+                var note  = document.getElementById('mobile-stream-note');
+                if (panel) panel.style.display = 'block';
+                if (frame) frame.src = uiMovil.streamUrl;
+                if (empty) empty.style.display = 'none';
+                if (note) note.innerText = 'STREAMING EN VIVO';
+            } else {
+                document.body.classList.remove('modo-stream-movil');
+            }
+        }
 
         tiempoRestante = cfg.tiempo;
         iniciarReloj();
         actualizarUI();
-
-        // Logo del club de cada jugador (Supabase clubs; fallback sede)
-        (function(nomA, nomB){
-            var jA = MasterVIP.buscarJugador(nomA);
-            var jB = MasterVIP.buscarJugador(nomB);
-            var clubA = (jA && jA.club) ? jA.club : '';
-            var clubB = (jB && jB.club) ? jB.club : '';
-            Promise.all([
-                MasterVIP.getClubLogoUrlAsync(clubA),
-                MasterVIP.getClubLogoUrlAsync(clubB)
-            ]).then(function(urls){
-                var el1 = document.getElementById('club-logo1');
-                var el2 = document.getElementById('club-logo2');
-                if (el1) {
-                    if (urls[0]) el1.innerHTML = '<img src="'+urls[0]+'" style="width:100%;height:100%;object-fit:cover;" alt="">';
-                    else el1.innerHTML = '<span style="font-size:14px;">&#127921;</span>';
-                }
-                if (el2) {
-                    if (urls[1]) el2.innerHTML = '<img src="'+urls[1]+'" style="width:100%;height:100%;object-fit:cover;" alt="">';
-                    else el2.innerHTML = '<span style="font-size:14px;">&#127921;</span>';
-                }
-            });
-        })(nom1, nom2);
     }
 
     /* ── RELOJ ── */
@@ -1817,25 +2005,7 @@
             rel.innerText = tiempoRestante;
             if (tiempoRestante <= 10) rel.classList.add('urgente');
             if (tiempoRestante <= 0)  { clearInterval(timer); cambio(); }
-            actualizarIndicadoresBarra();
         }, 1000);
-        actualizarIndicadoresBarra();
-    }
-
-    function actualizarIndicadoresBarra() {
-        if (!partidaStartTime) return;
-        var elapsedMs = pausado ? (pauseStartTime - partidaStartTime - partidaTotalPausedMs) : (Date.now() - partidaStartTime - partidaTotalPausedMs);
-        var elapsedSec = Math.max(0, Math.floor(elapsedMs / 1000));
-        var m = Math.floor(elapsedSec / 60);
-        var s = elapsedSec % 60;
-        var transcurridoEl = document.getElementById('ind-transcurrido');
-        if (transcurridoEl) transcurridoEl.innerText = m + ':' + (s < 10 ? '0' : '') + s;
-        var badge = document.getElementById('badge-tiempo-superado');
-        if (cfg.tiempoLimiteAlerta > 0 && badge) {
-            var minutosTranscurridos = elapsedSec / 60;
-            if (minutosTranscurridos >= cfg.tiempoLimiteAlerta) badge.classList.add('visible');
-            else badge.classList.remove('visible');
-        }
     }
 
     function togglePausa() {
@@ -1843,19 +2013,16 @@
         const btn = document.getElementById('btn-pausa');
         const rel = document.getElementById('reloj');
         if (pausado) {
-            pauseStartTime = Date.now();
             btn.innerText = '▶';
             btn.style.color = '#2eff70';
             btn.style.borderColor = '#2eff70';
             rel.style.opacity = '0.4';
         } else {
-            partidaTotalPausedMs += Date.now() - pauseStartTime;
             btn.innerText = '⏸';
             btn.style.color = '#aaa';
             btn.style.borderColor = '#333';
             rel.style.opacity = '1';
         }
-        actualizarIndicadoresBarra();
     }
 
     /* ── LÓGICA ── */
@@ -1894,7 +2061,7 @@
             'ENTRADA ' + (d['e' + d.t] + 1);
     }
 
-    /* ── VERIFICAR META — se llama después de cada punto ── */
+    /* ── VERIFICAR META — se llama después de cada carambola ── */
     function verificarMeta() {
         const meta = d.t === 1 ? cfg.meta1 : cfg.meta2;
         if (meta <= 0) return;
@@ -1956,21 +2123,11 @@
                     font-family:'Arial Black',sans-serif;letter-spacing:2px;cursor:pointer;margin-top:8px;">
                     VER CERTIFICADO →
                 </button>
-                <button type="button" id="btn-overlay-salir"
-                    style="margin-top:6px;background:transparent;border:none;color:#555;font-size:0.65rem;
-                    font-family:'Arial Black',sans-serif;letter-spacing:1px;cursor:pointer;text-decoration:underline;">
-                    Salir al menú sin certificado
-                </button>
             `;
-            // VER CERTIFICADO → cierra overlay y muestra pantalla certificado (guardar/salir/nueva partida)
-            overlay.querySelector('#btn-overlay-certi').onclick = function() {
+            // Botón de cierre correcto
+            overlay.querySelector('button').onclick = function() {
                 document.body.removeChild(overlay);
                 mostrarCertificado();
-            };
-            // Salir al menú: cierra overlay y va al inicio (sin pantalla certificado)
-            overlay.querySelector('#btn-overlay-salir').onclick = function() {
-                document.body.removeChild(overlay);
-                location.href = 'index.html';
             };
             document.body.appendChild(overlay);
         }
@@ -2136,6 +2293,7 @@
 
         actualizarMetaTop();
         actualizarTecladoHeader();
+        actualizarMarcadorMovilCompacto();
     }
 
     /* ── HEADER DEL TECLADO — quién juega y metas ── */
@@ -2387,7 +2545,6 @@
     }
 
 </script>
-<script src="Version.js"></script>
 <script src="whitelabel.js"></script>
 </body>
 </html>
