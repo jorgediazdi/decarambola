@@ -1964,14 +1964,61 @@ function cambiarSlide(idx) {
         if (slugUrl) {
             var slugGuardado = localStorage.getItem('wl_club_slug');
             if (slugGuardado && slugGuardado !== slugUrl) {
-                // Cambió el club en la URL → limpiar todo el white label anterior
+                // Cambió el club en la URL → limpiar solo caché WL
+                // (sin borrar afiliaciones ni clubes del usuario)
                 ['wl_club_id','wl_club_nombre','wl_club_logo_url','wl_club_color','wl_club_slug',
-                 'wl_club_cache','club_activo','mis_clubes'].forEach(function(k){ localStorage.removeItem(k); });
-                console.log('[index] Club cambió de "' + slugGuardado + '" a "' + slugUrl + '" → caché limpiado');
+                 'wl_club_cache'].forEach(function(k){ localStorage.removeItem(k); });
+                console.log('[index] Club cambió de "' + slugGuardado + '" a "' + slugUrl + '" → cache WL limpiado (afiliaciones preservadas)');
             }
         }
     } catch(e) {}
 })();
+
+function repararClubesLocales() {
+    var clubes = [];
+    try { clubes = JSON.parse(localStorage.getItem('mis_clubes') || '[]') || []; } catch(_) {}
+    if (!Array.isArray(clubes)) clubes = [];
+
+    var clubActivo = null;
+    try { clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null'); } catch(_) {}
+
+    // Si no hay lista, intentar reconstruirla con datos existentes
+    if (clubes.length === 0) {
+        var wl = null;
+        try { wl = JSON.parse(localStorage.getItem('wl_club_cache') || 'null'); } catch(_) {}
+        var perfil = null;
+        try { perfil = JSON.parse(localStorage.getItem('mi_perfil') || 'null'); } catch(_) {}
+        var candidato = clubActivo || wl || null;
+        if (!candidato && perfil && (perfil.club || perfil.club_id)) {
+            candidato = {
+                id: perfil.club_id || null,
+                nombre: perfil.club || 'MI CLUB',
+                codigo: 'CLUB',
+                admin: false
+            };
+        }
+        if (candidato && (candidato.nombre || candidato.name)) {
+            var c = {
+                id: candidato.id || null,
+                codigo: candidato.codigo || candidato.slug || 'CLUB',
+                nombre: candidato.nombre || candidato.name,
+                ciudad: candidato.ciudad || '',
+                color: candidato.color || candidato.color_primario || '#3498db',
+                logo_url: candidato.logo_url || candidato.logoUrl || '',
+                admin: !!candidato.admin
+            };
+            clubes = [c];
+            localStorage.setItem('mis_clubes', JSON.stringify(clubes));
+            if (!clubActivo) localStorage.setItem('club_activo', JSON.stringify(c));
+        }
+    }
+
+    // Si hay clubes pero no club activo, elegir uno
+    if ((!clubActivo || !clubActivo.nombre) && clubes.length > 0) {
+        var pref = clubes.find(function(c){ return c && c.admin; }) || clubes[0];
+        if (pref) localStorage.setItem('club_activo', JSON.stringify(pref));
+    }
+}
 
 function auditarTorneos() {
     var raw = [];
@@ -2035,6 +2082,7 @@ function eliminarDuplicadosTorneos() {
 
 // ── Carga inicial ──
 window.onload = function() {
+    repararClubesLocales();
     var decaImg = document.getElementById('logo-decarambola');
     if (decaImg && !window.__DECA_LOGO_SRC) window.__DECA_LOGO_SRC = decaImg.src;
     var u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
