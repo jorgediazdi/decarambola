@@ -206,7 +206,8 @@ const MasterVIP = {
     // 3. TORNEOS
     // ─────────────────────────────────────────
     getTorneos: function () {
-        return JSON.parse(localStorage.getItem('TORNEOS_LISTA')) || [];
+        const raw = JSON.parse(localStorage.getItem('TORNEOS_LISTA')) || [];
+        return [...new Map(raw.map(t => [t.id, t])).values()];
     },
 
     getTorneoActivo: function () {
@@ -238,6 +239,10 @@ const MasterVIP = {
                     entradaObjetivo: t.entrada_objetivo || local.entradaObjetivo || 0,
                     tiempoEntrada: t.tiempo_entrada || local.tiempoEntrada || 40,
                     modalidad: t.modalidad || local.modalidad || 'Libre',
+                    sitioEvento: t.sitio_evento || t.lugar_encuentro || local.sitioEvento || local.lugar_encuentro || '',
+                    multisala: (typeof t.multisala === 'boolean') ? t.multisala : !!local.multisala,
+                    clasificaPorGrupo: t.clasifica_por_grupo || local.clasificaPorGrupo || 2,
+                    mejoresTerceros: t.mejores_terceros || local.mejoresTerceros || 0,
                     reglamento: t.reglamento || local.reglamento || '',
                     estado: t.estado || 'ABIERTO',
                     // Si el local ya tiene inscritos, los respetamos (pueden tener bye/eliminado)
@@ -310,12 +315,24 @@ const MasterVIP = {
         }
     },
 
+    existeTorneoConNombreYClub: function (nombre, clubId) {
+        const torneos = this.getTorneos();
+        const nom = String(nombre || '').toUpperCase().trim();
+        const cid = String(clubId || '');
+        return torneos.find(function (t) {
+            return String(t.nombre || '').toUpperCase().trim() === nom &&
+                   String(t.club_id || t.sede || '').trim() === cid;
+        }) || null;
+    },
+
     crearTorneo: async function (config) {
         let torneos = this.getTorneos();
+        const clubId = this.getClubId();
         const torneo = {
             id: 'T' + Date.now(), // ID temporal
             codigo: 'MV-' + new Date().getFullYear() + '-' + String(torneos.length + 1).padStart(4, '0'),
             nombre: config.nombre.toUpperCase(),
+            club_id: clubId || null,
             sede: this.getSede().nombre,
             sistema: config.sistema,
             cupoMax: parseInt(config.cupoMax),
@@ -326,6 +343,10 @@ const MasterVIP = {
             entradaObjetivo: parseInt(config.entradaObjetivo) || 0,
             tiempoEntrada: parseInt(config.tiempoEntrada) || 40,
             modalidad: config.modalidad || 'Libre',
+            sitioEvento: config.sitioEvento || config.lugar_encuentro || '',
+            multisala: !!config.multisala,
+            clasificaPorGrupo: parseInt(config.clasificaPorGrupo, 10) || 2,
+            mejoresTerceros: parseInt(config.mejoresTerceros, 10) || 0,
             reglamento: config.reglamento || '',
             estado: 'ABIERTO',
             inscritos: [],
@@ -340,7 +361,6 @@ const MasterVIP = {
         localStorage.setItem('TORNEO_ACTIVO_ID', torneo.id);
 
         // Guardar en Supabase
-        const clubId = this.getClubId();
         const datosNube = {
             nombre: torneo.nombre,
             club_id: clubId || null,
@@ -355,6 +375,10 @@ const MasterVIP = {
             pct_fee: torneo.pctFee,
             entrada_objetivo: torneo.entradaObjetivo,
             tiempo_entrada: torneo.tiempoEntrada,
+            sitio_evento: torneo.sitioEvento || null,
+            multisala: !!torneo.multisala,
+            clasifica_por_grupo: torneo.clasificaPorGrupo || 2,
+            mejores_terceros: torneo.mejoresTerceros || 0,
             reglamento: torneo.reglamento,
             estado: 'ABIERTO',
             fecha_inicio: torneo.fechaInicio || null
@@ -370,6 +394,54 @@ const MasterVIP = {
         return torneo;
     },
 
+    reemplazarTorneo: async function (torneoId, config) {
+        let torneos = this.getTorneos();
+        const idx = torneos.findIndex(t => t.id === torneoId);
+        if (idx < 0) return null;
+        const t = torneos[idx];
+        t.nombre = (config.nombre || t.nombre || '').toString().toUpperCase();
+        t.sistema = config.sistema || t.sistema;
+        t.cupoMax = parseInt(config.cupoMax, 10) || t.cupoMax;
+        t.inscripcion = parseFloat(config.inscripcion) || t.inscripcion;
+        t.baseClub = parseFloat(config.baseClub) || t.baseClub;
+        t.pctPremios = parseFloat(config.pctPremios) || t.pctPremios;
+        t.pctFee = parseFloat(config.pctFee) || t.pctFee;
+        t.entradaObjetivo = parseInt(config.entradaObjetivo, 10) || t.entradaObjetivo;
+        t.tiempoEntrada = parseInt(config.tiempoEntrada, 10) || t.tiempoEntrada;
+        t.modalidad = config.modalidad || t.modalidad;
+        t.sitioEvento = (config.sitioEvento !== undefined ? config.sitioEvento : (config.lugar_encuentro !== undefined ? config.lugar_encuentro : t.sitioEvento));
+        if (config.multisala !== undefined) t.multisala = !!config.multisala;
+        if (config.clasificaPorGrupo !== undefined) t.clasificaPorGrupo = parseInt(config.clasificaPorGrupo, 10) || t.clasificaPorGrupo || 2;
+        if (config.mejoresTerceros !== undefined) t.mejoresTerceros = parseInt(config.mejoresTerceros, 10) || 0;
+        t.reglamento = config.reglamento || t.reglamento;
+        t.fechaInicio = config.fechaInicio !== undefined ? config.fechaInicio : t.fechaInicio;
+        torneos[idx] = t;
+        localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
+        localStorage.setItem('TORNEO_ACTIVO_ID', t.id);
+        if (t.id && t.id.length > 10) {
+            await DB.update('torneos', t.id, {
+                nombre: t.nombre,
+                sistema: t.sistema,
+                cupo_max: t.cupoMax,
+                inscripcion: t.inscripcion,
+                base_club: t.baseClub,
+                pct_premios: t.pctPremios,
+                pct_fee: t.pctFee,
+                entrada_objetivo: t.entradaObjetivo,
+                tiempo_entrada: t.tiempoEntrada,
+                modalidad: t.modalidad,
+                sitio_evento: t.sitioEvento || null,
+                multisala: !!t.multisala,
+                clasifica_por_grupo: t.clasificaPorGrupo || 2,
+                mejores_terceros: t.mejoresTerceros || 0,
+                reglamento: t.reglamento || '',
+                fecha_inicio: t.fechaInicio || null,
+                updated_at: new Date().toISOString()
+            });
+        }
+        return t;
+    },
+
     actualizarTorneo: async function (torneo) {
         let torneos = this.getTorneos();
         const idx = torneos.findIndex(t => t.id === torneo.id);
@@ -380,6 +452,10 @@ const MasterVIP = {
         if (torneo.id && torneo.id.length > 10) {
             await DB.update('torneos', torneo.id, {
                 estado: torneo.estado,
+                sitio_evento: torneo.sitioEvento || null,
+                multisala: !!torneo.multisala,
+                clasifica_por_grupo: torneo.clasificaPorGrupo || 2,
+                mejores_terceros: torneo.mejoresTerceros || 0,
                 updated_at: new Date().toISOString()
             });
         }
@@ -440,15 +516,25 @@ const MasterVIP = {
 
         let jugadores = [...t.inscritos].sort(() => Math.random() - 0.5);
 
-        if (jugadores.length % 2 !== 0) {
-            jugadores.sort((a, b) => b.promedio - a.promedio);
-            jugadores[0].bye = true;
-            jugadores = jugadores.sort(() => Math.random() - 0.5);
+        // Para brackets clásicos mantenemos la lógica de bye.
+        if (t.sistema !== 'round-robin') {
+            if (jugadores.length % 2 !== 0) {
+                jugadores.sort((a, b) => b.promedio - a.promedio);
+                jugadores[0].bye = true;
+                jugadores = jugadores.sort(() => Math.random() - 0.5);
+            }
         }
 
         if (t.sistema === 'survivor') {
             t.posiciones = jugadores.map((j, i) => ({ ...j, pos: i + 1, promTorneo: j.promedio, partidasJugadas: 0 }));
             t.rondas = [{ numero: 1, estado: 'EN_CURSO', partidas: this._generarRondaSurvivor(jugadores) }];
+        } else if (t.sistema === 'round-robin') {
+            // Todos contra todos en una sola "ronda" lógica.
+            t.rondas = [{
+                numero: 1,
+                estado: 'EN_CURSO',
+                partidas: this._generarPartidasRoundRobin(jugadores)
+            }];
         } else {
             t.rondas = [{ numero: 1, estado: 'EN_CURSO', partidas: this._generarPartidas(jugadores, 1) }];
         }
@@ -490,6 +576,37 @@ const MasterVIP = {
                 entradas1: 0,
                 entradas2: 0
             });
+        }
+        return partidas;
+    },
+
+    // Round-robin simple: todos contra todos (sin BYE), pensado para 2-6 amigos.
+    _generarPartidasRoundRobin: function (jugadores) {
+        const partidas = [];
+        const n = jugadores.length;
+        for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+                const j1 = jugadores[i];
+                const j2 = jugadores[j];
+                partidas.push({
+                    id: 'RR' + Date.now() + '-' + i + '-' + j,
+                    ronda: 1,
+                    j1: j1.nombre,
+                    j2: j2.nombre,
+                    prom1: j1.promedio,
+                    prom2: j2.promedio,
+                    pts1: 0,
+                    pts2: 0,
+                    ganador: null,
+                    estado: 'PENDIENTE',
+                    listoJ1: false,
+                    listoJ2: false,
+                    promFinalJ1: 0,
+                    promFinalJ2: 0,
+                    entradas1: 0,
+                    entradas2: 0
+                });
+            }
         }
         return partidas;
     },
@@ -663,7 +780,7 @@ const MasterVIP = {
     // ─────────────────────────────────────────
     _actualizarHistorial: async function (resultado) {
         let h = JSON.parse(localStorage.getItem('ranking_historico_club')) || [];
-        // Guardar promedio real (carambolas / entradas) si hay entradas disponibles
+        // Guardar promedio real (puntos / entradas) si hay entradas disponibles
         const promJ1 = resultado.entradas1 > 0
             ? parseFloat((resultado.pts1 / resultado.entradas1).toFixed(3))
             : resultado.promFinalJ1;
@@ -671,8 +788,8 @@ const MasterVIP = {
             ? parseFloat((resultado.pts2 / resultado.entradas2).toFixed(3))
             : resultado.promFinalJ2;
 
-        h.push({ nombre: resultado.j1, promedio: promJ1, carambolas: resultado.pts1 || 0, entradas: resultado.entradas1 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
-        h.push({ nombre: resultado.j2, promedio: promJ2, carambolas: resultado.pts2 || 0, entradas: resultado.entradas2 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
+        h.push({ nombre: resultado.j1, promedio: promJ1, puntos: resultado.pts1 || 0, carambolas: resultado.pts1 || 0, entradas: resultado.entradas1 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
+        h.push({ nombre: resultado.j2, promedio: promJ2, puntos: resultado.pts2 || 0, carambolas: resultado.pts2 || 0, entradas: resultado.entradas2 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
         localStorage.setItem('ranking_historico_club', JSON.stringify(h));
 
         this._recalcularPromedio(resultado.j1);
@@ -710,9 +827,9 @@ const MasterVIP = {
         const partidas = h.filter(x => x.nombre.toUpperCase() === nombre.toUpperCase());
         if (partidas.length === 0) return;
 
-        // Fórmula real billar tres bandas: total carambolas / total entradas
+        // Fórmula real billar tres bandas: total puntos / total entradas
         // Si hay entradas guardadas las usamos; si no, promediamos los promedios (fallback)
-        const totalCar = partidas.reduce((acc, x) => acc + (parseInt(x.carambolas) || 0), 0);
+        const totalCar = partidas.reduce((acc, x) => acc + (parseInt(x.puntos != null ? x.puntos : x.carambolas) || 0), 0);
         const totalEnt = partidas.reduce((acc, x) => acc + (parseInt(x.entradas)   || 0), 0);
         const prom = totalEnt > 0
             ? totalCar / totalEnt
@@ -892,7 +1009,7 @@ const MasterVIP = {
         };
     },
 
-    // getLogoHTML: genera HTML del logo del club activo
+    // getLogoHTML: genera HTML del logo del club activo (sede)
     getLogoHTML: function (size) {
         size = size || 34;
         var logoUrl = window.WL ? window.WL.getLogoUrl() : null;
@@ -904,8 +1021,63 @@ const MasterVIP = {
                 'border-radius:50%;object-fit:contain;background:#111;padding:2px;" ' +
                 'alt="' + (nombre || 'Club') + '">';
         }
-        // Sin logo → bola de billar por defecto
-        return '<span style="font-size:' + size + 'px;">🎱</span>';
+        // Sin logo → usar logo DeCarambola guardado (si existe)
+        var decaSrc = null;
+        try {
+            decaSrc = window.__DECA_LOGO_SRC || localStorage.getItem('deca_logo_src') || null;
+        } catch (e) {}
+        if (decaSrc) {
+            return '<img src="' + decaSrc + '" ' +
+                'style="width:' + size + 'px;height:' + size + 'px;' +
+                'border-radius:50%;object-fit:contain;background:#111;padding:2px;" ' +
+                'alt="DeCarambola">';
+        }
+
+        // Sin logo ni fallback local → ícono genérico según deporte activo
+        var deporte = 'billar';
+        try {
+            if (window.WL && typeof WL.getDeporte === 'function') {
+                deporte = String(WL.getDeporte() || 'billar').toLowerCase();
+            } else {
+                var depLS = localStorage.getItem('wl_club_deporte');
+                if (depLS) deporte = String(depLS).toLowerCase();
+            }
+        } catch (e) {}
+        var emoji = '⚽';
+        if (deporte === 'billar') emoji = '🎱';
+        else if (deporte === 'padel' || deporte === 'tenis') emoji = '🎾';
+        else if (deporte === 'equitacion' || deporte === 'hipismo') emoji = '🐎';
+        else if (deporte === 'basquet') emoji = '🏀';
+        return '<span style="font-size:' + size + 'px;">' + emoji + '</span>';
+    },
+
+    // Cache en memoria: club_nombre -> logo_url (para no repetir peticiones)
+    _clubLogoCache: {},
+
+    /**
+     * Obtiene logo_url del club por nombre desde Supabase (tabla clubs).
+     * Si no hay club, falla o no hay logo, devuelve el logo de la sede (WL) como fallback.
+     * @param {string} clubNombre - nombre del club (ej. j.club)
+     * @returns {Promise<string|null>} URL del logo o null
+     */
+    getClubLogoUrlAsync: async function (clubNombre) {
+        var fallbackSede = (window.WL && window.WL.getLogoUrl()) ? window.WL.getLogoUrl() : (localStorage.getItem('wl_club_logo_url') || null);
+        if (!clubNombre || typeof clubNombre !== 'string' || !clubNombre.trim()) {
+            return fallbackSede;
+        }
+        var key = clubNombre.trim().toUpperCase();
+        if (this._clubLogoCache[key] !== undefined) {
+            return this._clubLogoCache[key] || fallbackSede;
+        }
+        try {
+            var data = await DB._fetch('clubs?nombre=eq.' + encodeURIComponent(clubNombre.trim()) + '&select=logo_url&limit=1');
+            var url = (data && data[0] && data[0].logo_url) ? String(data[0].logo_url).trim() : null;
+            this._clubLogoCache[key] = url || null;
+            return url || fallbackSede;
+        } catch (e) {
+            this._clubLogoCache[key] = null;
+            return fallbackSede;
+        }
     }
 };
 
@@ -1197,7 +1369,7 @@ const HISTORIAL = {
             rival_nombre, rival_promedio,
             entrada_objetivo,
             entradas_jugador, carambolas_jugador,
-            promedio_partida,   // carambolas / entradas
+            promedio_partida,   // puntos / entradas
             gano: true/false,
             tipo: 'torneo' | 'reto' | 'entrenamiento',
             torneo_nombre,
@@ -1212,7 +1384,8 @@ const HISTORIAL = {
             rival_promedio:    datos.rival_promedio     || 0,
             entrada_objetivo:  datos.entrada_objetivo   || 0,
             entradas:          datos.entradas_jugador   || 0,
-            carambolas:        datos.carambolas_jugador || 0,
+            puntos:            (datos.puntos_jugador != null ? datos.puntos_jugador : (datos.carambolas_jugador || 0)),
+            carambolas:        (datos.carambolas_jugador != null ? datos.carambolas_jugador : (datos.puntos_jugador || 0)),
             promedio_partida:  datos.promedio_partida   || 0,
             gano:              datos.gano               || false,
             tipo:              datos.tipo               || 'torneo',
