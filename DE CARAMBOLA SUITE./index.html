@@ -1456,6 +1456,28 @@ async function buscarJugadorPorCedula() {
             localStorage.setItem('jugador_activo', JSON.stringify(perfil));
             document.getElementById('form-identificacion').style.display = 'none';
             cargarDatosJugador();
+            return;
+        }
+
+        // Fallback local MasterVIP: buscar en jugadores guardados por documento/cédula
+        var jugadoresLocales = [];
+        try { jugadoresLocales = JSON.parse(localStorage.getItem('JUGADORES_PLATAFORMA') || '[]') || []; } catch(_) {}
+        var jugLocal = jugadoresLocales.find(function(j) {
+            var doc = String(j && (j.cedula || j.documento || '')).trim();
+            return doc && doc === cedula;
+        });
+        if (jugLocal) {
+            localStorage.setItem('jugador_activo', JSON.stringify(jugLocal));
+            localStorage.setItem('mi_perfil', JSON.stringify({
+                nombre: jugLocal.nombre || '',
+                cedula: cedula,
+                promedio: jugLocal.promedio || 0,
+                club: jugLocal.club || null,
+                club_id: jugLocal.club_id || null
+            }));
+            document.getElementById('form-identificacion').style.display = 'none';
+            cargarDatosJugador();
+            mostrarMsgCedula('Acceso local activado (sin nube).', '#3498db');
         } else {
             mostrarMsgCedula('Sin conexión. Cédula no reconocida offline.', '#e74c3c');
         }
