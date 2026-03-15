@@ -756,7 +756,7 @@ const MasterVIP = {
     // ─────────────────────────────────────────
     _actualizarHistorial: async function (resultado) {
         let h = JSON.parse(localStorage.getItem('ranking_historico_club')) || [];
-        // Guardar promedio real (carambolas / entradas) si hay entradas disponibles
+        // Guardar promedio real (puntos / entradas) si hay entradas disponibles
         const promJ1 = resultado.entradas1 > 0
             ? parseFloat((resultado.pts1 / resultado.entradas1).toFixed(3))
             : resultado.promFinalJ1;
@@ -764,8 +764,8 @@ const MasterVIP = {
             ? parseFloat((resultado.pts2 / resultado.entradas2).toFixed(3))
             : resultado.promFinalJ2;
 
-        h.push({ nombre: resultado.j1, promedio: promJ1, carambolas: resultado.pts1 || 0, entradas: resultado.entradas1 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
-        h.push({ nombre: resultado.j2, promedio: promJ2, carambolas: resultado.pts2 || 0, entradas: resultado.entradas2 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
+        h.push({ nombre: resultado.j1, promedio: promJ1, puntos: resultado.pts1 || 0, carambolas: resultado.pts1 || 0, entradas: resultado.entradas1 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
+        h.push({ nombre: resultado.j2, promedio: promJ2, puntos: resultado.pts2 || 0, carambolas: resultado.pts2 || 0, entradas: resultado.entradas2 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
         localStorage.setItem('ranking_historico_club', JSON.stringify(h));
 
         this._recalcularPromedio(resultado.j1);
@@ -803,9 +803,9 @@ const MasterVIP = {
         const partidas = h.filter(x => x.nombre.toUpperCase() === nombre.toUpperCase());
         if (partidas.length === 0) return;
 
-        // Fórmula real billar tres bandas: total carambolas / total entradas
+        // Fórmula real billar tres bandas: total puntos / total entradas
         // Si hay entradas guardadas las usamos; si no, promediamos los promedios (fallback)
-        const totalCar = partidas.reduce((acc, x) => acc + (parseInt(x.carambolas) || 0), 0);
+        const totalCar = partidas.reduce((acc, x) => acc + (parseInt(x.puntos != null ? x.puntos : x.carambolas) || 0), 0);
         const totalEnt = partidas.reduce((acc, x) => acc + (parseInt(x.entradas)   || 0), 0);
         const prom = totalEnt > 0
             ? totalCar / totalEnt
@@ -1333,7 +1333,7 @@ const HISTORIAL = {
             rival_nombre, rival_promedio,
             entrada_objetivo,
             entradas_jugador, carambolas_jugador,
-            promedio_partida,   // carambolas / entradas
+            promedio_partida,   // puntos / entradas
             gano: true/false,
             tipo: 'torneo' | 'reto' | 'entrenamiento',
             torneo_nombre,
@@ -1348,7 +1348,8 @@ const HISTORIAL = {
             rival_promedio:    datos.rival_promedio     || 0,
             entrada_objetivo:  datos.entrada_objetivo   || 0,
             entradas:          datos.entradas_jugador   || 0,
-            carambolas:        datos.carambolas_jugador || 0,
+            puntos:            (datos.puntos_jugador != null ? datos.puntos_jugador : (datos.carambolas_jugador || 0)),
+            carambolas:        (datos.carambolas_jugador != null ? datos.carambolas_jugador : (datos.puntos_jugador || 0)),
             promedio_partida:  datos.promedio_partida   || 0,
             gano:              datos.gano               || false,
             tipo:              datos.tipo               || 'torneo',

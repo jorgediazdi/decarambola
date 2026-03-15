@@ -233,7 +233,7 @@
       <div class="score-bar">
         <div class="player-panel" id="p1-panel">
           <div class="player-name" id="j1-nombre">Jugador 1</div>
-          <div class="player-score-big" id="j1-carambolas">0</div>
+          <div class="player-score-big" id="j1-puntos">0</div>
           <div class="player-meta" id="j1-meta">/ 0 · Entradas 0 · PROM 0.000</div>
           <div class="progress-bar-wrap">
             <div class="progress-bar-fill" id="j1-progress" style="width: 0%"></div>
@@ -245,7 +245,7 @@
         </div>
         <div class="player-panel right" id="p2-panel">
           <div class="player-name" id="j2-nombre">Jugador 2</div>
-          <div class="player-score-big" id="j2-carambolas">0</div>
+          <div class="player-score-big" id="j2-puntos">0</div>
           <div class="player-meta" id="j2-meta">/ 0 · Entradas 0 · PROM 0.000</div>
           <div class="progress-bar-wrap">
             <div class="progress-bar-fill" id="j2-progress" style="width: 0%"></div>
@@ -276,16 +276,16 @@
         if (!s) return;
         qs('j1-nombre').textContent = s.j1_nombre != null ? String(s.j1_nombre) : 'Jugador 1';
         qs('j2-nombre').textContent = s.j2_nombre != null ? String(s.j2_nombre) : 'Jugador 2';
-        var c1 = s.j1_carambolas != null ? Number(s.j1_carambolas) : 0;
-        var c2 = s.j2_carambolas != null ? Number(s.j2_carambolas) : 0;
+        var c1 = s.j1_puntos != null ? Number(s.j1_puntos) : (s.j1_carambolas != null ? Number(s.j1_carambolas) : 0);
+        var c2 = s.j2_puntos != null ? Number(s.j2_puntos) : (s.j2_carambolas != null ? Number(s.j2_carambolas) : 0);
         var obj = s.objetivo != null ? Number(s.objetivo) : 0;
         var e1 = s.j1_entradas != null ? Number(s.j1_entradas) : 0;
         var e2 = s.j2_entradas != null ? Number(s.j2_entradas) : 0;
         var pr1 = s.j1_promedio != null ? Number(s.j1_promedio) : 0;
         var pr2 = s.j2_promedio != null ? Number(s.j2_promedio) : 0;
 
-        qs('j1-carambolas').textContent = c1;
-        qs('j2-carambolas').textContent = c2;
+        qs('j1-puntos').textContent = c1;
+        qs('j2-puntos').textContent = c2;
         qs('j1-meta').textContent = '/ ' + obj + ' · Entradas ' + e1 + ' · PROM ' + pr1.toFixed(3);
         qs('j2-meta').textContent = '/ ' + obj + ' · Entradas ' + e2 + ' · PROM ' + pr2.toFixed(3);
 
