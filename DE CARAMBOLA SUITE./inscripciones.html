@@ -83,6 +83,20 @@
         .form-input:focus { border-color:var(--oro); }
         .form-input::placeholder { color:#333; }
         .form-input.small { font-size:0.7rem; }
+        select.form-input.inp-club-select,
+        select.form-input#inp-club {
+            background: var(--g2);
+            border: 1px solid var(--g1);
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Arial Black', sans-serif;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23555' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
 
         .form-row {
             display:grid;
@@ -308,6 +322,7 @@
         /* NAV BOTTOM UNIFICADO */
         .nav-bottom {
             position:fixed; bottom:0; left:0; right:0;
+            z-index:100;
             background:linear-gradient(transparent, #000 40%);
             padding:10px 15px 20px;
             display:flex; gap:8px;
@@ -324,6 +339,15 @@
         }
         .btn-nav:active { border-color:var(--oro); color:var(--oro); }
         .btn-nav.activo { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.1); }
+        .header-main { display:flex; align-items:center; gap:10px; }
+        .header-logo {
+            width:52px; height:52px;
+            border-radius:50%;
+            overflow:hidden;
+            display:flex; align-items:center; justify-content:center;
+            background:#111;
+            border:1px solid #222;
+        }
 
         /* TABS */
         .tabs {
@@ -359,9 +383,12 @@
 
 <div class="header">
     <div class="header-top">
-        <div>
-            <h1>🎫 INSCRIPCIONES</h1>
-            <small id="lbl-torneo">SELECCIONA UN TORNEO</small>
+        <div class="header-main">
+            <div class="header-logo" id="hdr-logo-insc"></div>
+            <div>
+                <h1>🎫 INSCRIPCIONES</h1>
+                <small id="lbl-torneo">SELECCIONA UN TORNEO</small>
+            </div>
         </div>
         <div class="cupo-badge" id="cupo-badge">0 / 0</div>
     </div>
@@ -428,7 +455,7 @@
             <div class="form-row">
                 <div class="form-grupo">
                     <label class="form-label">CLUB</label>
-                    <select class="form-input small" id="inp-club" style="background:#111;color:#aaa;border:1px solid #222;border-radius:12px;padding:10px 12px;width:100%;">
+                    <select class="form-input small inp-club-select" id="inp-club">
                         <option value="">Cargando clubes...</option>
                     </select>
                 </div>
@@ -438,7 +465,7 @@
                 </div>
             </div>
             
-            <button class="btn-inscribir" id="btn-inscribir" onclick="inscribirNuevo()">
+            <button type="button" class="btn-inscribir" id="btn-inscribir" onclick="inscribirNuevo()">
                 🎫 INSCRIBIR JUGADOR
             </button>
         </div>
@@ -484,67 +511,94 @@
     <a href="index.html" class="btn-nav">🏠 INICIO</a>
     <a href="torneo_crear.html" class="btn-nav">🏆 TORNEO</a>
     <a href="inscripciones.html" class="btn-nav activo">🎫 INSCRIBIR</a>
-    <a href="Brackets.html" class="btn-nav">🏅 LLAVES</a>
+    <a href="Brackets.html" class="btn-nav" id="nav-llaves">🏅 LLAVES</a>
 </div>
 
 <script src="core.js"></script>
 <script>
+// Logo del club activo en header de inscripciones
+window.addEventListener('load', function() {
+    var el = document.getElementById('hdr-logo-insc');
+    if (el && typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) {
+        el.innerHTML = MasterVIP.getLogoHTML(52);
+    }
+    // Asegurar que "Llaves" navegue a Brackets (evitar que otro comportamiento lo bloquee)
+    var navLlaves = document.getElementById('nav-llaves');
+    if (navLlaves) {
+        navLlaves.addEventListener('click', function() {
+            window.location.href = 'Brackets.html';
+        });
+    }
+});
 var torneo = null;
 var tabActual = 'nuevo';
+
+function mostrarBloqueoAfiliacion() {
+    var wrap = document.querySelector('.contenido') || document.body;
+    var bloqueo = document.createElement('div');
+    bloqueo.id = 'bloqueo-afiliacion';
+    bloqueo.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;';
+    bloqueo.innerHTML = '<div style="font-size:4rem;margin-bottom:16px;">🎱</div>' +
+        '<div style="color:#d4af37;font-size:1.1rem;letter-spacing:2px;margin-bottom:8px;">AFILIACIÓN OBLIGATORIA</div>' +
+        '<p style="color:#888;font-size:0.8rem;max-width:320px;line-height:1.5;margin-bottom:24px;">Debes estar afiliado a un club para participar en torneos. Selecciona tu club en el menú principal.</p>' +
+        '<a href="index.html" style="display:inline-block;padding:16px 32px;background:linear-gradient(135deg,#d4af37,#a07800);color:#000;border-radius:16px;font-size:0.9rem;font-weight:bold;text-decoration:none;font-family:Arial Black,sans-serif;letter-spacing:2px;">IR AL INICIO</a>';
+    document.body.appendChild(bloqueo);
+}
 
 window.onload = async function() {
     try { await MasterVIP.init(); } catch(e) { console.warn('Init offline:', e); }
     MasterVIP.applyDesign();
-    await cargarClubesSelect();
+    var clubActivo = localStorage.getItem('wl_club_nombre') || '';
+    if (!clubActivo || clubActivo === 'GLOBAL') {
+        mostrarBloqueoAfiliacion();
+        return;
+    }
+    cargarClubesSelect();
     cargar();
 };
 
-async function cargarClubesSelect() {
+function cargarClubesSelect() {
     var sel = document.getElementById('inp-club');
     if (!sel) return;
+    // Solo leer de localStorage clave "mis_clubes" y filtrar por app billar (no mezclar con otras apps)
+    var raw = [];
     try {
-        var resp = await fetch('https://iwvogyloebvieloequzr.supabase.co/rest/v1/clubs?select=id,nombre,ciudad&order=nombre', {
-            headers: {
-                'apikey': 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J',
-                'Authorization': 'Bearer sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J'
-            }
-        });
-        var clubes = await resp.json();
-        sel.innerHTML = '<option value="">— Selecciona tu club —</option>';
-        if (clubes && clubes.length > 0) {
-            clubes.forEach(function(c) {
-                var opt = document.createElement('option');
-                opt.value = c.nombre;
-                opt.textContent = c.nombre + (c.ciudad ? ' · ' + c.ciudad : '');
-                opt.dataset.ciudad = c.ciudad || '';
-                sel.appendChild(opt);
-            });
-        } else {
-            // Fallback a club activo del localStorage
-            var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-            var clubNombre = localStorage.getItem('wl_club_nombre') || '';
-            if (clubNombre) {
-                sel.innerHTML = '<option value="' + clubNombre + '">' + clubNombre + '</option>';
-            }
-        }
-        // Auto-seleccionar club activo del jugador
-        var clubActivo = localStorage.getItem('wl_club_nombre') || '';
-        if (clubActivo) {
-            for (var i = 0; i < sel.options.length; i++) {
-                if (sel.options[i].value === clubActivo) { sel.selectedIndex = i; break; }
-            }
-        }
-        // Llenar ciudad automáticamente al cambiar club
-        sel.onchange = function() {
-            var opt = sel.options[sel.selectedIndex];
-            var ciudadInp = document.getElementById('inp-ciudad');
-            if (ciudadInp && opt) ciudadInp.value = opt.dataset.ciudad || '';
-        };
-        sel.dispatchEvent(new Event('change'));
-    } catch(e) {
-        sel.innerHTML = '<option value="">Sin conexión — escribe el club</option>';
-        sel.outerHTML = sel.outerHTML.replace('<select', '<input type="text"').replace('</select>', '');
+        raw = JSON.parse(localStorage.getItem('mis_clubes') || '[]');
+    } catch (e) {}
+    var clubes = Array.isArray(raw) ? raw.filter(function(c) {
+        return !c.tipo || String(c.tipo).toLowerCase() === 'billar';
+    }) : [];
+    sel.innerHTML = '';
+    if (clubes.length === 0) {
+        sel.innerHTML = '<option value="">No hay clubes registrados. Crea uno en el inicio.</option>';
+        sel.disabled = true;
+        return;
     }
+    sel.disabled = false;
+    var opt0 = document.createElement('option');
+    opt0.value = '';
+    opt0.textContent = '— Selecciona tu club —';
+    sel.appendChild(opt0);
+    clubes.forEach(function(c) {
+        var opt = document.createElement('option');
+        var nombre = c.nombre || c.name || '';
+        opt.value = nombre;
+        opt.textContent = nombre + (c.ciudad ? ' · ' + c.ciudad : '');
+        opt.dataset.ciudad = c.ciudad || '';
+        sel.appendChild(opt);
+    });
+    var clubActivo = localStorage.getItem('wl_club_nombre') || '';
+    if (clubActivo) {
+        for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === clubActivo) { sel.selectedIndex = i; break; }
+        }
+    }
+    sel.onchange = function() {
+        var opt = sel.options[sel.selectedIndex];
+        var ciudadInp = document.getElementById('inp-ciudad');
+        if (ciudadInp && opt && opt.dataset) ciudadInp.value = opt.dataset.ciudad || '';
+    };
+    sel.dispatchEvent(new Event('change'));
 }
 
 function cargar() {
@@ -658,6 +712,7 @@ async function inscribirNuevo() {
     var club      = document.getElementById('inp-club').value.trim();
     var ciudad    = document.getElementById('inp-ciudad').value.trim();
 
+    if (!torneo)                    { alert('No hay torneo activo. Crea un torneo primero.'); return; }
     if (!nombre)                    { alert('Ingresa el nombre del jugador.'); return; }
     if (!documento)                 { alert('El numero de documento es obligatorio.'); return; }
     if (!clave || clave.length < 4) { alert('La clave debe tener minimo 4 caracteres.'); return; }

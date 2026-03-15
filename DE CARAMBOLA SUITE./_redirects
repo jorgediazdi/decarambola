@@ -1,0 +1,4 @@
+# Netlify — DeCarambola (sitio estático)
+# Sin reglas: cada .html y .js se sirve por su ruta.
+# Si añades 404.html más adelante:
+# /404  /404.html  404

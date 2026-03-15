@@ -206,7 +206,8 @@ const MasterVIP = {
     // 3. TORNEOS
     // ─────────────────────────────────────────
     getTorneos: function () {
-        return JSON.parse(localStorage.getItem('TORNEOS_LISTA')) || [];
+        const raw = JSON.parse(localStorage.getItem('TORNEOS_LISTA')) || [];
+        return [...new Map(raw.map(t => [t.id, t])).values()];
     },
 
     getTorneoActivo: function () {
@@ -310,12 +311,24 @@ const MasterVIP = {
         }
     },
 
+    existeTorneoConNombreYClub: function (nombre, clubId) {
+        const torneos = this.getTorneos();
+        const nom = String(nombre || '').toUpperCase().trim();
+        const cid = String(clubId || '');
+        return torneos.find(function (t) {
+            return String(t.nombre || '').toUpperCase().trim() === nom &&
+                   String(t.club_id || t.sede || '').trim() === cid;
+        }) || null;
+    },
+
     crearTorneo: async function (config) {
         let torneos = this.getTorneos();
+        const clubId = this.getClubId();
         const torneo = {
             id: 'T' + Date.now(), // ID temporal
             codigo: 'MV-' + new Date().getFullYear() + '-' + String(torneos.length + 1).padStart(4, '0'),
             nombre: config.nombre.toUpperCase(),
+            club_id: clubId || null,
             sede: this.getSede().nombre,
             sistema: config.sistema,
             cupoMax: parseInt(config.cupoMax),
@@ -340,7 +353,6 @@ const MasterVIP = {
         localStorage.setItem('TORNEO_ACTIVO_ID', torneo.id);
 
         // Guardar en Supabase
-        const clubId = this.getClubId();
         const datosNube = {
             nombre: torneo.nombre,
             club_id: clubId || null,
@@ -368,6 +380,46 @@ const MasterVIP = {
             localStorage.setItem('TORNEO_ACTIVO_ID', torneo.id);
         }
         return torneo;
+    },
+
+    reemplazarTorneo: async function (torneoId, config) {
+        let torneos = this.getTorneos();
+        const idx = torneos.findIndex(t => t.id === torneoId);
+        if (idx < 0) return null;
+        const t = torneos[idx];
+        t.nombre = (config.nombre || t.nombre || '').toString().toUpperCase();
+        t.sistema = config.sistema || t.sistema;
+        t.cupoMax = parseInt(config.cupoMax, 10) || t.cupoMax;
+        t.inscripcion = parseFloat(config.inscripcion) || t.inscripcion;
+        t.baseClub = parseFloat(config.baseClub) || t.baseClub;
+        t.pctPremios = parseFloat(config.pctPremios) || t.pctPremios;
+        t.pctFee = parseFloat(config.pctFee) || t.pctFee;
+        t.entradaObjetivo = parseInt(config.entradaObjetivo, 10) || t.entradaObjetivo;
+        t.tiempoEntrada = parseInt(config.tiempoEntrada, 10) || t.tiempoEntrada;
+        t.modalidad = config.modalidad || t.modalidad;
+        t.reglamento = config.reglamento || t.reglamento;
+        t.fechaInicio = config.fechaInicio !== undefined ? config.fechaInicio : t.fechaInicio;
+        torneos[idx] = t;
+        localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
+        localStorage.setItem('TORNEO_ACTIVO_ID', t.id);
+        if (t.id && t.id.length > 10) {
+            await DB.update('torneos', t.id, {
+                nombre: t.nombre,
+                sistema: t.sistema,
+                cupo_max: t.cupoMax,
+                inscripcion: t.inscripcion,
+                base_club: t.baseClub,
+                pct_premios: t.pctPremios,
+                pct_fee: t.pctFee,
+                entrada_objetivo: t.entradaObjetivo,
+                tiempo_entrada: t.tiempoEntrada,
+                modalidad: t.modalidad,
+                reglamento: t.reglamento || '',
+                fecha_inicio: t.fechaInicio || null,
+                updated_at: new Date().toISOString()
+            });
+        }
+        return t;
     },
 
     actualizarTorneo: async function (torneo) {
@@ -440,15 +492,25 @@ const MasterVIP = {
 
         let jugadores = [...t.inscritos].sort(() => Math.random() - 0.5);
 
-        if (jugadores.length % 2 !== 0) {
-            jugadores.sort((a, b) => b.promedio - a.promedio);
-            jugadores[0].bye = true;
-            jugadores = jugadores.sort(() => Math.random() - 0.5);
+        // Para brackets clásicos mantenemos la lógica de bye.
+        if (t.sistema !== 'round-robin') {
+            if (jugadores.length % 2 !== 0) {
+                jugadores.sort((a, b) => b.promedio - a.promedio);
+                jugadores[0].bye = true;
+                jugadores = jugadores.sort(() => Math.random() - 0.5);
+            }
         }
 
         if (t.sistema === 'survivor') {
             t.posiciones = jugadores.map((j, i) => ({ ...j, pos: i + 1, promTorneo: j.promedio, partidasJugadas: 0 }));
             t.rondas = [{ numero: 1, estado: 'EN_CURSO', partidas: this._generarRondaSurvivor(jugadores) }];
+        } else if (t.sistema === 'round-robin') {
+            // Todos contra todos en una sola "ronda" lógica.
+            t.rondas = [{
+                numero: 1,
+                estado: 'EN_CURSO',
+                partidas: this._generarPartidasRoundRobin(jugadores)
+            }];
         } else {
             t.rondas = [{ numero: 1, estado: 'EN_CURSO', partidas: this._generarPartidas(jugadores, 1) }];
         }
@@ -490,6 +552,37 @@ const MasterVIP = {
                 entradas1: 0,
                 entradas2: 0
             });
+        }
+        return partidas;
+    },
+
+    // Round-robin simple: todos contra todos (sin BYE), pensado para 2-6 amigos.
+    _generarPartidasRoundRobin: function (jugadores) {
+        const partidas = [];
+        const n = jugadores.length;
+        for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+                const j1 = jugadores[i];
+                const j2 = jugadores[j];
+                partidas.push({
+                    id: 'RR' + Date.now() + '-' + i + '-' + j,
+                    ronda: 1,
+                    j1: j1.nombre,
+                    j2: j2.nombre,
+                    prom1: j1.promedio,
+                    prom2: j2.promedio,
+                    pts1: 0,
+                    pts2: 0,
+                    ganador: null,
+                    estado: 'PENDIENTE',
+                    listoJ1: false,
+                    listoJ2: false,
+                    promFinalJ1: 0,
+                    promFinalJ2: 0,
+                    entradas1: 0,
+                    entradas2: 0
+                });
+            }
         }
         return partidas;
     },
@@ -892,7 +985,7 @@ const MasterVIP = {
         };
     },
 
-    // getLogoHTML: genera HTML del logo del club activo
+    // getLogoHTML: genera HTML del logo del club activo (sede)
     getLogoHTML: function (size) {
         size = size || 34;
         var logoUrl = window.WL ? window.WL.getLogoUrl() : null;
@@ -904,8 +997,51 @@ const MasterVIP = {
                 'border-radius:50%;object-fit:contain;background:#111;padding:2px;" ' +
                 'alt="' + (nombre || 'Club') + '">';
         }
-        // Sin logo → bola de billar por defecto
-        return '<span style="font-size:' + size + 'px;">🎱</span>';
+        // Sin logo → ícono genérico según deporte activo
+        var deporte = 'billar';
+        try {
+            if (window.WL && typeof WL.getDeporte === 'function') {
+                deporte = String(WL.getDeporte() || 'billar').toLowerCase();
+            } else {
+                var depLS = localStorage.getItem('wl_club_deporte');
+                if (depLS) deporte = String(depLS).toLowerCase();
+            }
+        } catch (e) {}
+        var emoji = '⚽';
+        if (deporte === 'billar') emoji = '🎱';
+        else if (deporte === 'padel' || deporte === 'tenis') emoji = '🎾';
+        else if (deporte === 'equitacion' || deporte === 'hipismo') emoji = '🐎';
+        else if (deporte === 'basquet') emoji = '🏀';
+        return '<span style="font-size:' + size + 'px;">' + emoji + '</span>';
+    },
+
+    // Cache en memoria: club_nombre -> logo_url (para no repetir peticiones)
+    _clubLogoCache: {},
+
+    /**
+     * Obtiene logo_url del club por nombre desde Supabase (tabla clubs).
+     * Si no hay club, falla o no hay logo, devuelve el logo de la sede (WL) como fallback.
+     * @param {string} clubNombre - nombre del club (ej. j.club)
+     * @returns {Promise<string|null>} URL del logo o null
+     */
+    getClubLogoUrlAsync: async function (clubNombre) {
+        var fallbackSede = (window.WL && window.WL.getLogoUrl()) ? window.WL.getLogoUrl() : (localStorage.getItem('wl_club_logo_url') || null);
+        if (!clubNombre || typeof clubNombre !== 'string' || !clubNombre.trim()) {
+            return fallbackSede;
+        }
+        var key = clubNombre.trim().toUpperCase();
+        if (this._clubLogoCache[key] !== undefined) {
+            return this._clubLogoCache[key] || fallbackSede;
+        }
+        try {
+            var data = await DB._fetch('clubs?nombre=eq.' + encodeURIComponent(clubNombre.trim()) + '&select=logo_url&limit=1');
+            var url = (data && data[0] && data[0].logo_url) ? String(data[0].logo_url).trim() : null;
+            this._clubLogoCache[key] = url || null;
+            return url || fallbackSede;
+        } catch (e) {
+            this._clubLogoCache[key] = null;
+            return fallbackSede;
+        }
     }
 };
 
@@ -1434,4 +1570,4 @@ const LIMPIEZA = {
             }
         });
     }
-};s
+};

@@ -104,15 +104,23 @@
         }
 
         try {
-            var res = await fetch(
-                SUPABASE_URL + '/rest/v1/clubs?codigo=eq.' + slug + '&select=id,nombre,codigo,logo_url,color_primario',
-                {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_KEY
+            var ctrl = new AbortController();
+            var timer = setTimeout(function() { ctrl.abort(); }, 6000);
+            var res;
+            try {
+                res = await fetch(
+                    SUPABASE_URL + '/rest/v1/clubs?codigo=eq.' + encodeURIComponent(slug) + '&select=id,nombre,codigo,logo_url,color_primario',
+                    {
+                        signal: ctrl.signal,
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': 'Bearer ' + SUPABASE_KEY
+                        }
                     }
-                }
-            );
+                );
+            } finally {
+                clearTimeout(timer);
+            }
             var rows = await res.json();
             if (rows && rows.length > 0) {
                 var club = rows[0];

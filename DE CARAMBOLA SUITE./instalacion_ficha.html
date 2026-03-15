@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ficha instalación — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2ecc71; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0b; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:100px; }
+
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .header-titulo { color:var(--oro); font-size:0.9rem; letter-spacing:3px; }
+        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
+        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; }
+        .badge-estado { font-size:0.5rem; padding:4px 10px; border-radius:8px; letter-spacing:1px; }
+        .badge-libre { background:rgba(46,204,113,0.2); color:#2ecc71; }
+        .badge-ocupada { background:rgba(231,76,60,0.2); color:#e74c3c; }
+        .badge-reservada { background:rgba(243,156,18,0.2); color:#f39c12; }
+        .badge-mantenimiento { background:rgba(52,152,219,0.2); color:#3498db; }
+        .badge-fuera { background:rgba(85,85,85,0.3); color:#888; }
+
+        .wrap { max-width:500px; margin:0 auto; padding:16px 18px; }
+        .ficha-card { background:var(--g2); border:2px solid var(--g1); border-radius:18px; padding:18px; margin-bottom:14px; }
+        .ficha-titulo { color:var(--oro); font-size:0.7rem; letter-spacing:3px; margin-bottom:12px; }
+        .ficha-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--g1); font-size:0.65rem; }
+        .ficha-row:last-child { border-bottom:none; }
+        .ficha-row .v { color:#fff; font-family:'Courier New',monospace; }
+
+        .kpi-mini { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
+        .kpi-mini .k { background:var(--g3); border-radius:12px; padding:12px; text-align:center; border:1px solid var(--g1); }
+        .kpi-mini .k .val { font-size:1.4rem; font-weight:900; color:var(--oro); }
+        .kpi-mini .k .lbl { font-size:0.45rem; color:#555; letter-spacing:2px; margin-top:4px; }
+
+        .semaforo-item { padding:10px 12px; background:var(--g3); border-radius:12px; margin-bottom:8px; border-left:4px solid #333; }
+        .semaforo-item.optimo { border-left-color:#2ecc71; }
+        .semaforo-item.desgaste { border-left-color:#f39c12; }
+        .semaforo-item.urgente { border-left-color:#e74c3c; }
+        .semaforo-item .nom { font-size:0.65rem; color:#fff; }
+        .semaforo-item .horas { font-size:0.55rem; color:#888; margin-top:4px; }
+        .semaforo-item .est { font-size:0.5rem; letter-spacing:2px; margin-top:4px; }
+        .semaforo-item.optimo .est { color:#2ecc71; }
+        .semaforo-item.desgaste .est { color:#f39c12; }
+        .semaforo-item.urgente .est { color:#e74c3c; }
+        .barra-progreso { height:6px; background:var(--g1); border-radius:3px; overflow:hidden; margin-top:6px; }
+        .barra-progreso span { display:block; height:100%; border-radius:3px; transition:width 0.3s; }
+        .barra-progreso.optimo span { background:#2ecc71; }
+        .barra-progreso.desgaste span { background:#f39c12; }
+        .barra-progreso.urgente span { background:#e74c3c; }
+
+        .alerta { background:rgba(231,76,60,0.1); border:1px solid rgba(231,76,60,0.3); border-radius:12px; padding:12px; margin-bottom:12px; font-size:0.6rem; color:#e74c3c; }
+        .historial-item { padding:10px 12px; background:var(--g3); border-radius:12px; margin-bottom:8px; font-size:0.58rem; border:1px solid var(--g1); }
+        .historial-item .fecha { color:#666; }
+        .historial-item .desc { color:#ccc; margin-top:4px; }
+        .historial-item .costo { color:var(--oro); font-family:'Courier New',monospace; margin-top:4px; }
+        .tabla-sesiones { width:100%; font-size:0.55rem; border-collapse:collapse; }
+        .tabla-sesiones th, .tabla-sesiones td { padding:8px; text-align:left; border-bottom:1px solid var(--g1); }
+        .tabla-sesiones th { color:#666; }
+
+        .btn-reg-mant { width:100%; padding:12px; background:var(--g3); border:1px solid var(--g1); color:#3498db; border-radius:12px; font-size:0.6rem; cursor:pointer; margin-bottom:12px; font-family:'Arial Black',sans-serif; }
+        .campo { margin-bottom:10px; }
+        .campo label { display:block; color:#555; font-size:0.5rem; margin-bottom:4px; }
+        .campo input, .campo select, .campo textarea { width:100%; background:var(--g3); border:1px solid var(--g1); color:#fff; padding:8px; border-radius:10px; }
+        .campo textarea { min-height:60px; resize:vertical; }
+        .btn-paso { width:100%; padding:12px; margin-top:8px; border-radius:12px; border:none; font-size:0.65rem; cursor:pointer; font-family:'Arial Black',sans-serif; }
+        .btn-paso.sec { background:var(--g3); color:#888; border:1px solid var(--g1); }
+        .vacio { text-align:center; color:#444; font-size:0.6rem; padding:20px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-titulo" id="lbl_nombre">FICHA INSTALACIÓN</div>
+        <div class="header-sub" id="lbl_tipo">—</div>
+        <div style="margin-top:6px;"><span id="badge_estado" class="badge-libre">—</span> <span id="lbl_tarifa" style="font-size:0.55rem;color:#888;"></span></div>
+    </div>
+    <a href="mesas.html" class="btn-hdr">← Volver al Salón</a>
+</div>
+
+<div class="wrap">
+    <div class="ficha-card">
+        <div class="ficha-titulo">ESTADÍSTICAS</div>
+        <div class="kpi-mini">
+            <div class="k"><div class="val" id="stat_horas">0</div><div class="lbl">TOTAL HORAS USO</div></div>
+            <div class="k"><div class="val" id="stat_ingresos">$0</div><div class="lbl">TOTAL INGRESOS</div></div>
+        </div>
+        <div class="ficha-row"><span>Jugador que más la usa</span><span class="v" id="stat_jugador">—</span></div>
+        <div class="ficha-row"><span>Promedio horas/día</span><span class="v" id="stat_promedio">—</span></div>
+    </div>
+
+    <div class="ficha-card" id="card_alertas" style="display:none;">
+        <div class="ficha-titulo">ALERTAS AUTOMÁTICAS</div>
+        <div id="lista_alertas"></div>
+    </div>
+
+    <div class="ficha-card">
+        <div class="ficha-titulo">MANTENIMIENTO POR COMPONENTE</div>
+        <div id="lista_semaforo"></div>
+        <div class="vacio" id="sin_componentes" style="display:none;">Sin componentes configurados</div>
+    </div>
+
+    <div class="ficha-card">
+        <div class="ficha-titulo">HISTORIAL DE MANTENIMIENTO</div>
+        <button type="button" class="btn-reg-mant" onclick="mostrarFormMant()">+ REGISTRAR MANTENIMIENTO</button>
+        <div id="lista_mantenimiento"></div>
+        <div class="vacio" id="sin_mantenimiento" style="display:none;">Sin registros</div>
+    </div>
+
+    <div class="ficha-card" id="form_mant" style="display:none;">
+        <div class="ficha-titulo">NUEVO MANTENIMIENTO</div>
+        <div class="campo">
+            <label>Tipo de trabajo</label>
+            <select id="mant_tipo">
+                <option value="REVISION">REVISIÓN</option>
+                <option value="REEMPLAZO">REEMPLAZO</option>
+                <option value="LIMPIEZA">LIMPIEZA</option>
+                <option value="REPARACION">REPARACIÓN</option>
+            </select>
+        </div>
+        <div class="campo">
+            <label>Descripción</label>
+            <textarea id="mant_desc" placeholder="Opcional"></textarea>
+        </div>
+        <div class="campo">
+            <label>Costo</label>
+            <input type="number" id="mant_costo" min="0" step="0.01" placeholder="0">
+        </div>
+        <div class="campo">
+            <label>Responsable</label>
+            <input type="text" id="mant_responsable" placeholder="Nombre">
+        </div>
+        <div class="campo">
+            <label>Componente afectado (opcional, para REEMPLAZO)</label>
+            <select id="mant_componente"><option value="">— Ninguno —</option></select>
+        </div>
+        <button type="button" class="btn-paso" onclick="guardarMantenimiento()">GUARDAR</button>
+        <button type="button" class="btn-paso sec" onclick="document.getElementById('form_mant').style.display='none'">Cancelar</button>
+    </div>
+
+    <div class="ficha-card">
+        <div class="ficha-titulo">HISTORIAL DE SESIONES (últimas 20)</div>
+        <div style="overflow-x:auto;">
+            <table class="tabla-sesiones" id="tabla_sesiones">
+                <thead><tr><th>Fecha</th><th>Jugador</th><th>Duración</th><th>Costo</th></tr></thead>
+                <tbody id="body_sesiones"></tbody>
+            </table>
+        </div>
+        <div class="vacio" id="sin_sesiones" style="display:none;">Sin sesiones registradas</div>
+    </div>
+</div>
+
+<script src="core.js"></script>
+<script src="session.js"></script>
+<script>
+try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
+
+var mesaId = null;
+var mesa = null;
+var historial = [];
+var componentes = [];
+var mantenimientos = [];
+
+function getParamId() { var p = new URLSearchParams(window.location.search); return p.get('id'); }
+
+function fmtDuracion(horas) {
+    if (horas == null || isNaN(horas)) return '—';
+    var h = Math.floor(horas);
+    var m = Math.round((horas - h) * 60);
+    if (h > 0) return h + 'h ' + (m > 0 ? m + 'm' : '');
+    return m + 'm';
+}
+
+async function cargar() {
+    mesaId = getParamId();
+    if (!mesaId) {
+        document.getElementById('lbl_nombre').textContent = 'Seleccione una instalación desde el Salón en vivo';
+        return;
+    }
+    var m = await DB.get('mesas', 'id=eq.' + mesaId + '&limit=1');
+    mesa = m && m[0];
+    if (!mesa) {
+        document.getElementById('lbl_nombre').textContent = 'Instalación no encontrada';
+        return;
+    }
+    document.getElementById('lbl_nombre').textContent = (mesa.nombre || 'Instalación ') + ' ' + (mesa.numero || '');
+    document.getElementById('lbl_tipo').textContent = (mesa.tipo_instalacion || '').toUpperCase();
+    var est = (mesa.estado || 'libre').toLowerCase();
+    var badge = document.getElementById('badge_estado');
+    badge.textContent = (mesa.estado || 'libre').toUpperCase();
+    badge.className = 'badge-estado badge-' + (est === 'fuera_servicio' ? 'fuera' : est);
+    document.getElementById('lbl_tarifa').textContent = 'Tarifa/h: $' + (mesa.tarifa_hora || 0);
+
+    historial = await DB.get('mesas_historial', 'mesa_id=eq.' + mesaId + '&estado=eq.cerrada');
+    if (!historial) historial = [];
+    historial.sort(function(a,b){ return new Date(b.fin_sesion||b.created_at) - new Date(a.fin_sesion||a.created_at); });
+
+    componentes = await DB.get('instalaciones_componentes', 'mesa_id=eq.' + mesaId);
+    if (!componentes) componentes = [];
+
+    mantenimientos = await DB.get('instalaciones_mantenimiento', 'mesa_id=eq.' + mesaId);
+    if (!mantenimientos) mantenimientos = [];
+    mantenimientos.sort(function(a,b){ return new Date(b.fecha||b.created_at) - new Date(a.fecha||a.created_at); });
+
+    pintarEstadisticas();
+    pintarSemaforo();
+    pintarAlertas();
+    pintarHistorialMantenimiento();
+    pintarHistorialSesiones();
+    llenarSelectComponentes();
+}
+
+function llenarSelectComponentes() {
+    var sel = document.getElementById('mant_componente');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Ninguno —</option>';
+    componentes.forEach(function(c) {
+        var opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nombre || c.id;
+        sel.appendChild(opt);
+    });
+}
+
+function pintarEstadisticas() {
+    var horasTotales = 0, ingresosTotales = 0, porJugador = {}, porDia = {};
+    historial.forEach(function(h) {
+        var hr = parseFloat(h.horas_reales) || 0;
+        var cost = parseFloat(h.costo_total) || 0;
+        horasTotales += hr;
+        ingresosTotales += cost;
+        var nom = (h.jugador_nombre || 'Sin nombre').trim();
+        if (nom) porJugador[nom] = (porJugador[nom] || 0) + hr;
+        if (h.fin_sesion) { var dia = h.fin_sesion.slice(0, 10); porDia[dia] = (porDia[dia] || 0) + hr; }
+    });
+    var mejorJugador = '';
+    var maxH = 0;
+    Object.keys(porJugador).forEach(function(n) { if (porJugador[n] > maxH) { maxH = porJugador[n]; mejorJugador = n; } });
+    var diasConUso = Object.keys(porDia).length;
+    var promedioDia = diasConUso > 0 ? (horasTotales / diasConUso).toFixed(1) : '0';
+    document.getElementById('stat_horas').textContent = horasTotales.toFixed(1);
+    document.getElementById('stat_ingresos').textContent = '$' + Math.round(ingresosTotales);
+    document.getElementById('stat_jugador').textContent = mejorJugador || '—';
+    document.getElementById('stat_promedio').textContent = promedioDia + ' h';
+}
+
+function pintarSemaforo() {
+    var cont = document.getElementById('lista_semaforo');
+    var sin = document.getElementById('sin_componentes');
+    if (!componentes.length) { if (cont) cont.innerHTML = ''; if (sin) sin.style.display = 'block'; return; }
+    if (sin) sin.style.display = 'none';
+    cont.innerHTML = componentes.map(function(c) {
+        var h = parseInt(c.horas_uso_actual, 10) || 0;
+        var alerta = parseInt(c.horas_uso_alerta, 10) || 800;
+        var opt = parseInt(c.horas_uso_optimo, 10) || 500;
+        var estado = h >= alerta ? 'urgente' : (h >= opt ? 'desgaste' : 'optimo');
+        var pct = alerta > 0 ? Math.min(100, (h / alerta) * 100) : 0;
+        var lbl = estado === 'urgente' ? 'URGENTE' : (estado === 'desgaste' ? 'DESGASTE' : 'ÓPTIMO');
+        return '<div class="semaforo-item ' + estado + '">' +
+            '<div class="nom">' + (c.nombre || '—') + '</div>' +
+            '<div class="barra-progreso ' + estado + '"><span style="width:' + pct + '%"></span></div>' +
+            '<div class="horas">' + h + ' horas de uso · Alerta a las ' + alerta + ' horas</div>' +
+            '<div class="est">' + lbl + '</div></div>';
+    }).join('');
+}
+
+function pintarAlertas() {
+    var alertas = [];
+    componentes.forEach(function(c) {
+        var h = parseInt(c.horas_uso_actual, 10) || 0;
+        var alert = parseInt(c.horas_uso_alerta, 10) || 800;
+        var opt = parseInt(c.horas_uso_optimo, 10) || 500;
+        if (h >= alert) alertas.push('⚠️ ' + (c.nombre || 'Componente') + ': requiere atención · ' + h + ' horas acumuladas');
+        else if (h >= opt) alertas.push('⚠️ ' + (c.nombre || 'Componente') + ': desgaste · ' + h + ' horas acumuladas');
+    });
+    var card = document.getElementById('card_alertas');
+    var lista = document.getElementById('lista_alertas');
+    if (!alertas.length) { if (card) card.style.display = 'none'; return; }
+    if (card) card.style.display = 'block';
+    if (lista) lista.innerHTML = alertas.map(function(a) { return '<div class="alerta">' + a + '</div>'; }).join('');
+}
+
+function pintarHistorialMantenimiento() {
+    var cont = document.getElementById('lista_mantenimiento');
+    var sin = document.getElementById('sin_mantenimiento');
+    if (!mantenimientos.length) { if (cont) cont.innerHTML = ''; if (sin) sin.style.display = 'block'; return; }
+    if (sin) sin.style.display = 'none';
+    cont.innerHTML = mantenimientos.slice(0, 30).map(function(m) {
+        var fecha = m.fecha || m.created_at;
+        fecha = fecha ? new Date(fecha).toLocaleDateString('es') : '—';
+        var costo = m.costo != null ? '$' + parseFloat(m.costo).toFixed(0) : '';
+        return '<div class="historial-item">' +
+            '<div class="fecha">' + fecha + '</div>' +
+            '<div class="desc">' + (m.tipo_trabajo || '') + (m.descripcion ? ' · ' + m.descripcion : '') + (m.responsable ? ' · ' + m.responsable : '') + '</div>' +
+            (costo ? '<div class="costo">' + costo + '</div>' : '') + '</div>';
+    }).join('');
+}
+
+function pintarHistorialSesiones() {
+    var body = document.getElementById('body_sesiones');
+    var sin = document.getElementById('sin_sesiones');
+    var ultimas = historial.slice(0, 20);
+    if (!ultimas.length) { if (body) body.innerHTML = ''; if (sin) sin.style.display = 'block'; return; }
+    if (sin) sin.style.display = 'none';
+    body.innerHTML = ultimas.map(function(h) {
+        var fecha = h.fin_sesion || h.created_at;
+        fecha = fecha ? new Date(fecha).toLocaleDateString('es') : '—';
+        var dur = fmtDuracion(parseFloat(h.horas_reales));
+        var cost = h.costo_total != null ? '$' + Math.round(parseFloat(h.costo_total)) : '—';
+        return '<tr><td>' + fecha + '</td><td>' + (h.jugador_nombre || '—') + '</td><td>' + dur + '</td><td>' + cost + '</td></tr>';
+    }).join('');
+}
+
+function mostrarFormMant() { document.getElementById('form_mant').style.display = 'block'; }
+
+function guardarMantenimiento() {
+    if (!mesaId) return;
+    var tipo = document.getElementById('mant_tipo').value || 'REVISION';
+    var desc = (document.getElementById('mant_desc').value || '').trim();
+    var costo = parseFloat(document.getElementById('mant_costo').value) || 0;
+    var responsable = (document.getElementById('mant_responsable').value || '').trim();
+    var componenteId = document.getElementById('mant_componente').value || null;
+    var clubId = (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) ? MasterVIP.getClubId() : null;
+    DB.insert('instalaciones_mantenimiento', {
+        mesa_id: mesaId,
+        componente_id: componenteId || null,
+        club_id: clubId,
+        tipo_trabajo: tipo,
+        descripcion: desc || null,
+        costo: costo,
+        responsable: responsable || null
+    }).then(function() {
+        if (tipo === 'REEMPLAZO' && componenteId) {
+            DB.update('instalaciones_componentes', componenteId, { horas_uso_actual: 0, estado: 'optimo', updated_at: new Date().toISOString() });
+        }
+        document.getElementById('mant_desc').value = '';
+        document.getElementById('mant_costo').value = '';
+        document.getElementById('mant_responsable').value = '';
+        document.getElementById('form_mant').style.display = 'none';
+        cargar();
+    });
+}
+
+window.onload = cargar;
+</script>
+</body>
+</html>
