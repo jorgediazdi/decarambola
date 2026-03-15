@@ -275,7 +275,7 @@ const MasterVIP = {
                     entradaObjetivo: t.entrada_objetivo || local.entradaObjetivo || 0,
                     tiempoEntrada: t.tiempo_entrada || local.tiempoEntrada || 40,
                     modalidad: t.modalidad || local.modalidad || 'Libre',
-                    sitioEvento: t.sitio_evento || local.sitioEvento || '',
+                    sitioEvento: t.sitio_evento || t.lugar_encuentro || local.sitioEvento || local.lugar_encuentro || '',
                     multisala: (typeof t.multisala === 'boolean') ? t.multisala : !!local.multisala,
                     clasificaPorGrupo: t.clasifica_por_grupo || local.clasificaPorGrupo || 2,
                     mejoresTerceros: t.mejores_terceros || local.mejoresTerceros || 0,
@@ -400,6 +400,10 @@ const MasterVIP = {
             pct_fee: torneo.pctFee,
             entrada_objetivo: torneo.entradaObjetivo,
             tiempo_entrada: torneo.tiempoEntrada,
+            sitio_evento: torneo.sitioEvento || null,
+            multisala: !!torneo.multisala,
+            clasifica_por_grupo: torneo.clasificaPorGrupo || 2,
+            mejores_terceros: torneo.mejoresTerceros || 0,
             reglamento: torneo.reglamento,
             estado: 'ABIERTO',
             fecha_inicio: torneo.fechaInicio || null
@@ -425,6 +429,10 @@ const MasterVIP = {
         if (torneo.id && torneo.id.length > 10) {
             await DB.update('torneos', torneo.id, {
                 estado: torneo.estado,
+                sitio_evento: torneo.sitioEvento || null,
+                multisala: !!torneo.multisala,
+                clasifica_por_grupo: torneo.clasificaPorGrupo || 2,
+                mejores_terceros: torneo.mejoresTerceros || 0,
                 updated_at: new Date().toISOString()
             });
         }
@@ -1051,7 +1059,19 @@ const MasterVIP = {
                 'border-radius:50%;object-fit:contain;background:#111;padding:2px;" ' +
                 'alt="' + (nombre || 'Club') + '">';
         }
-        // Sin logo → bola de billar por defecto
+        // Sin logo → usar logo DeCarambola guardado (si existe)
+        var decaSrc = null;
+        try {
+            decaSrc = window.__DECA_LOGO_SRC || localStorage.getItem('deca_logo_src') || null;
+        } catch (e) {}
+        if (decaSrc) {
+            return '<img src="' + decaSrc + '" ' +
+                'style="width:' + size + 'px;height:' + size + 'px;' +
+                'border-radius:50%;object-fit:contain;background:#111;padding:2px;" ' +
+                'alt="DeCarambola">';
+        }
+
+        // Sin logo ni fallback local → bola de billar por defecto
         return '<span style="font-size:' + size + 'px;">🎱</span>';
     }
 };

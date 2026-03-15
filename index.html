@@ -1797,9 +1797,16 @@ function cargarMisClubes(texto) {
     var cont = document.getElementById('lista-mis-clubes');
     var msgSinResultados = document.getElementById('sin-resultados-mis-clubes');
     if(!cont) return;
+    var fallbackLogo = '';
+    try { fallbackLogo = localStorage.getItem('deca_logo_src') || ''; } catch(_) {}
+    var ocultarSinLogo = false;
+    try { ocultarSinLogo = localStorage.getItem('ocultar_clubes_sin_logo') === '1'; } catch(_) {}
+    if (ocultarSinLogo) {
+        clubes = clubes.filter(function(c){ return !!(c && (c.logo_url || c.logoUrl)); });
+    }
     if (msgSinResultados) msgSinResultados.style.display = 'none';
     if(!clubes.length){
-        cont.innerHTML='<div style="color:#333;font-size: 0.65rem;text-align:center;padding:20px;">No perteneces a ningún club</div>';
+        cont.innerHTML='<div style="color:#333;font-size: 0.65rem;text-align:center;padding:20px;">No perteneces a ningún club' + (ocultarSinLogo ? ' con logo disponible' : '') + '</div>';
         return;
     }
 
@@ -1823,12 +1830,25 @@ function cargarMisClubes(texto) {
         return;
     }
 
+    var esc = function(v) {
+        return String(v == null ? '' : v)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
     cont.innerHTML = filtrados.map(function(c){
         var cod = c.codigo;
-        return '<div class="menu-lista-item" onclick="activarClub(this.dataset.cod)" data-cod="'+cod+'" style="border-color:'+c.color+'33;">'+
-            '<span style="width:10px;height:10px;border-radius:50%;background:'+c.color+';flex-shrink:0;display:block;"></span>'+
-            '<div class="mli-info"><div class="mli-titulo" style="color:'+c.color+';">'+c.nombre+'</div>'+
-            '<div class="mli-desc">'+cod+(c.admin?' · ADMIN':'')+'</div></div>'+
+        var color = c.color || c.color_primario || '#3498db';
+        var logo = c.logo_url || c.logoUrl || fallbackLogo || '';
+        var logoHtml = logo
+            ? ('<img src="' + esc(logo) + '" alt="Logo" style="width:28px;height:28px;border-radius:8px;object-fit:cover;border:1px solid ' + color + '55;background:#111;flex-shrink:0;">')
+            : ('<span style="width:28px;height:28px;border-radius:8px;background:' + color + '22;color:' + color + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">🎱</span>');
+        return '<div class="menu-lista-item" onclick="activarClub(this.dataset.cod)" data-cod="'+esc(cod)+'" style="border-color:'+color+'33;">'+
+            logoHtml+
+            '<div class="mli-info"><div class="mli-titulo" style="color:'+color+';">'+esc(c.nombre || 'CLUB')+'</div>'+
+            '<div class="mli-desc">'+esc(cod)+(c.admin?' · ADMIN':'')+'</div></div>'+
             '<span class="mli-arrow">&#8250;</span></div>';
     }).join('');
 }
@@ -2044,6 +2064,10 @@ function restaurarConexionPortales() {
 
 // ── Carga inicial ──
 window.onload = function() {
+    try {
+        var decaImg = document.querySelector('.logo-img');
+        if (decaImg && decaImg.src) localStorage.setItem('deca_logo_src', decaImg.src);
+    } catch(_) {}
     try {
         if (typeof MasterVIP !== 'undefined' && MasterVIP && typeof MasterVIP.applyDesign === 'function') {
             MasterVIP.applyDesign();

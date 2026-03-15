@@ -170,10 +170,15 @@
                 <input id="tor-fecha" type="datetime-local" class="form-input">
             </div>
             <div class="form-grupo">
-                <label class="form-label">LUGAR DE ENCUENTRO *</label>
-                <input id="tor-lugar" type="text" class="form-input" placeholder="Ej: Billar Carambola Club · Cra 10 #20-30">
-                <div class="help-text">Dirección o nombre del salón donde se jugará el torneo.</div>
+                <label class="form-label">CIUDAD DEL EVENTO *</label>
+                <input id="tor-ciudad" type="text" class="form-input" placeholder="Ej: Medellín" oninput="this.value=this.value.toUpperCase()">
             </div>
+        </div>
+
+        <div class="form-grupo">
+            <label class="form-label">SITIO ESPECÍFICO *</label>
+            <input id="tor-lugar" type="text" class="form-input" placeholder="Ej: Billar Carambola Club · Cra 10 #20-30">
+            <div class="help-text">Nombre del salón o dirección exacta donde se jugará el torneo.</div>
         </div>
 
         <div class="form-row">
@@ -224,6 +229,13 @@ window.onload = async function() {
     if (logoEl && typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) {
         logoEl.innerHTML = MasterVIP.getLogoHTML(52);
     }
+    try {
+        var clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null');
+        var inpCiudad = document.getElementById('tor-ciudad');
+        if (inpCiudad && !inpCiudad.value && clubActivo && clubActivo.ciudad) {
+            inpCiudad.value = String(clubActivo.ciudad).toUpperCase();
+        }
+    } catch(_) {}
 };
 
 function crearTorneoDesdeForm() {
@@ -235,6 +247,7 @@ function crearTorneoDesdeForm() {
     var cuposVal = document.getElementById('tor-cupos').value;
     var cuposCustom = parseInt(document.getElementById('tor-cupos-custom').value || '0', 10);
     var fechaVal = document.getElementById('tor-fecha').value;
+    var ciudadVal = (document.getElementById('tor-ciudad').value || '').trim();
     var lugarVal = (document.getElementById('tor-lugar').value || '').trim();
     var metaVal = parseInt(document.getElementById('tor-meta').value || '0', 10);
     var inscVal = parseFloat(document.getElementById('tor-inscripcion').value || '0');
@@ -264,8 +277,13 @@ function crearTorneoDesdeForm() {
         return;
     }
 
+    if (!ciudadVal) {
+        alert('Ingresa la ciudad donde se realizará el torneo.');
+        return;
+    }
+
     if (!lugarVal) {
-        alert('Ingresa el lugar de encuentro del torneo (salón o dirección).');
+        alert('Ingresa el sitio específico del torneo (salón o dirección).');
         return;
     }
 
@@ -291,6 +309,8 @@ function crearTorneoDesdeForm() {
         }
     }
 
+    var sitioEvento = (ciudadVal.toUpperCase() + ' · ' + lugarVal).trim();
+
     var config = {
         nombre: nombre.toUpperCase(),
         sistema: sistema,
@@ -304,7 +324,7 @@ function crearTorneoDesdeForm() {
         modalidad: modalidadTexto || 'Libre',
         reglamento: '',
         fechaInicio: fechaInicio,
-        lugar_encuentro: lugarVal
+        sitioEvento: sitioEvento
     };
 
     var clubId = typeof MasterVIP !== 'undefined' ? MasterVIP.getClubId() : null;

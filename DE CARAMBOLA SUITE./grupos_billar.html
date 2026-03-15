@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grupos de Amigos · DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --azul:#3498db; --ok:#2eff70; --bg:#050505; --g1:#1a1a1a; --g2:#0d0d0d; --txt:#ddd; }
+        * { box-sizing:border-box; }
+        body { margin:0; background:var(--bg); color:var(--txt); font-family:Arial, sans-serif; padding-bottom:90px; }
+        .header { position:sticky; top:0; z-index:20; background:#000; border-bottom:1px solid var(--g1); padding:14px 16px; }
+        .head-main { display:flex; align-items:center; gap:12px; }
+        .logo { width:48px; height:48px; border-radius:50%; background:#111; border:1px solid #222; display:flex; align-items:center; justify-content:center; }
+        h1 { margin:0; font-size:0.9rem; letter-spacing:2px; color:var(--oro); font-family:'Arial Black', sans-serif; }
+        .sub { margin-top:3px; color:#666; font-size:0.55rem; letter-spacing:1px; }
+        .wrap { padding:14px; max-width:760px; margin:0 auto; }
+        .card { background:var(--g2); border:1px solid var(--g1); border-radius:16px; padding:14px; margin-bottom:12px; }
+        .ttl { color:var(--oro); font-size:0.62rem; letter-spacing:2px; margin-bottom:10px; font-family:'Arial Black', sans-serif; }
+        .lbl { display:block; color:#777; font-size:0.52rem; letter-spacing:1px; margin:8px 0 5px; }
+        .inp, .txa { width:100%; border:1px solid #242424; background:#0a0a0a; color:#eee; border-radius:10px; padding:11px; font-size:0.78rem; outline:none; }
+        .txa { min-height:84px; resize:vertical; }
+        .row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .btn { border:none; border-radius:12px; padding:12px; font-size:0.58rem; letter-spacing:1px; cursor:pointer; font-family:'Arial Black', sans-serif; }
+        .btn-oro { background:linear-gradient(135deg, #d4af37, #a07800); color:#000; }
+        .btn-ok { background:rgba(46,255,112,0.16); border:1px solid rgba(46,255,112,0.35); color:var(--ok); }
+        .btn-no { background:rgba(231,76,60,0.14); border:1px solid rgba(231,76,60,0.35); color:#e74c3c; }
+        .btn-mini { padding:9px 10px; font-size:0.5rem; border-radius:10px; }
+        .list-item { border:1px solid #242424; background:#090909; border-radius:12px; padding:11px; margin-bottom:8px; }
+        .item-title { font-size:0.72rem; color:#f1f1f1; }
+        .item-sub { margin-top:3px; color:#777; font-size:0.52rem; line-height:1.45; }
+        .actions { margin-top:9px; display:flex; gap:8px; flex-wrap:wrap; }
+        .pill { display:inline-block; margin-top:6px; padding:3px 8px; border-radius:999px; border:1px solid #333; color:#888; font-size:0.45rem; letter-spacing:1px; }
+        .pill.ok { border-color:rgba(46,255,112,0.4); color:var(--ok); }
+        .pill.no { border-color:rgba(231,76,60,0.45); color:#e74c3c; }
+        .empty { color:#4a4a4a; font-size:0.58rem; text-align:center; padding:14px 8px; }
+        .nav { position:fixed; bottom:0; left:0; right:0; background:linear-gradient(transparent,#000 45%); padding:10px 12px 18px; display:flex; gap:8px; }
+        .nav a { flex:1; text-align:center; text-decoration:none; border:1px solid #222; border-radius:12px; color:#bbb; background:#0f0f0f; padding:11px 6px; font-size:0.56rem; letter-spacing:1px; }
+        @media (max-width:600px) { .row { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="head-main">
+            <div class="logo" id="hdr-logo-grp">🎱</div>
+            <div>
+                <h1>GRUPOS DE AMIGOS DEL BILLAR</h1>
+                <div class="sub" id="modo-label">Comunidad separada del club · ingreso con aprobación</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrap">
+        <div class="card">
+            <div class="ttl">CREAR GRUPO (ORGANIZADOR)</div>
+            <label class="lbl">NOMBRE DEL GRUPO</label>
+            <input id="inp-nombre-grupo" class="inp" placeholder="Ej: AMIGOS DEL BILLAR" oninput="this.value=this.value.toUpperCase()">
+            <div class="row">
+                <div>
+                    <label class="lbl">CIUDAD BASE</label>
+                    <input id="inp-ciudad-grupo" class="inp" placeholder="Ej: Bogotá" oninput="this.value=this.value.toUpperCase()">
+                </div>
+                <div>
+                    <label class="lbl">CATEGORÍA / PERFIL</label>
+                    <input id="inp-categoria-grupo" class="inp" placeholder="Ej: PRIMERA CATEGORÍA" oninput="this.value=this.value.toUpperCase()">
+                </div>
+            </div>
+            <label class="lbl">DESCRIPCIÓN</label>
+            <textarea id="inp-desc-grupo" class="txa" placeholder="Grupo social o competitivo distinto al club oficial."></textarea>
+            <div class="actions">
+                <button class="btn btn-oro" onclick="crearGrupo()">CREAR GRUPO</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="ttl">GRUPOS DISPONIBLES</div>
+            <div id="lista-grupos"></div>
+        </div>
+
+        <div class="card">
+            <div class="ttl">MIS SOLICITUDES</div>
+            <div id="mis-solicitudes"></div>
+        </div>
+
+        <div class="card" id="card-aprobaciones">
+            <div class="ttl">APROBACIONES DEL ORGANIZADOR</div>
+            <div id="lista-aprobaciones"></div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <a href="index.html">← INICIO</a>
+        <a href="inscripciones.html">INSCRIPCIONES</a>
+    </div>
+
+<script src="core.js"></script>
+<script>
+var KEY_GRUPOS = 'GRUPOS_AMIGOS_BILLAR';
+var KEY_SOLICITUDES = 'SOLICITUDES_GRUPOS_BILLAR';
+
+function esc(v) {
+    return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+function leer(k, def) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? def : v; } catch(_) { return def; } }
+function guardar(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+function uid(prefix) { return prefix + '-' + Date.now() + '-' + Math.floor(Math.random() * 9999); }
+
+function miJugador() {
+    var j = leer('jugador_activo', null) || leer('mi_perfil', null) || {};
+    return {
+        nombre: j.nombre || 'INVITADO',
+        cedula: j.cedula || j.documento || ''
+    };
+}
+function misClubesTexto() {
+    var clubes = leer('mis_clubes', []);
+    if (!Array.isArray(clubes) || !clubes.length) return [];
+    return clubes.map(function(c){ return (c.nombre || 'CLUB') + (c.ciudad ? ' · ' + c.ciudad : ''); });
+}
+function refOrganizadorActual() {
+    var activo = leer('club_activo', null) || {};
+    return {
+        id: activo.id || null,
+        nombre: (localStorage.getItem('wl_club_nombre') || activo.nombre || 'GLOBAL')
+    };
+}
+
+function crearGrupo() {
+    var nombre = (document.getElementById('inp-nombre-grupo').value || '').trim().toUpperCase();
+    var ciudad = (document.getElementById('inp-ciudad-grupo').value || '').trim().toUpperCase();
+    var categoria = (document.getElementById('inp-categoria-grupo').value || '').trim().toUpperCase();
+    var descripcion = (document.getElementById('inp-desc-grupo').value || '').trim();
+    if (!nombre) { alert('Ingresa el nombre del grupo.'); return; }
+    if (!ciudad) { alert('Ingresa la ciudad base del grupo.'); return; }
+    var org = refOrganizadorActual();
+    if (!org.nombre || org.nombre === 'GLOBAL') {
+        alert('Activa primero un club en el inicio para registrar quién organiza este grupo.');
+        return;
+    }
+    var grupos = leer(KEY_GRUPOS, []);
+    var repetido = grupos.find(function(g){ return String(g.nombre || '').toUpperCase() === nombre && String(g.ciudad || '').toUpperCase() === ciudad; });
+    if (repetido) { alert('Ya existe un grupo con ese nombre en esa ciudad.'); return; }
+
+    grupos.unshift({
+        id: uid('GRP'),
+        nombre: nombre,
+        ciudad: ciudad,
+        categoria: categoria || '',
+        descripcion: descripcion || '',
+        organizadorClubId: org.id || null,
+        organizadorClubNombre: org.nombre || '',
+        creadoEn: new Date().toISOString()
+    });
+    guardar(KEY_GRUPOS, grupos);
+    document.getElementById('inp-nombre-grupo').value = '';
+    document.getElementById('inp-ciudad-grupo').value = '';
+    document.getElementById('inp-categoria-grupo').value = '';
+    document.getElementById('inp-desc-grupo').value = '';
+    renderAll();
+}
+
+function solicitarIngreso(grupoId) {
+    var jugador = miJugador();
+    if (!jugador || !jugador.nombre || jugador.nombre === 'INVITADO') {
+        alert('Identifícate primero como jugador en el inicio.');
+        return;
+    }
+    var grupos = leer(KEY_GRUPOS, []);
+    var g = grupos.find(function(x){ return x.id === grupoId; });
+    if (!g) { alert('Grupo no encontrado.'); return; }
+    var solicitudes = leer(KEY_SOLICITUDES, []);
+    var existe = solicitudes.find(function(s){
+        return s.grupoId === grupoId &&
+            String(s.jugadorNombre || '').toUpperCase() === String(jugador.nombre || '').toUpperCase() &&
+            (s.estado === 'PENDIENTE' || s.estado === 'APROBADO');
+    });
+    if (existe) {
+        alert(existe.estado === 'APROBADO' ? 'Ya haces parte de este grupo.' : 'Ya tienes una solicitud pendiente para este grupo.');
+        return;
+    }
+    solicitudes.unshift({
+        id: uid('SOL'),
+        grupoId: grupoId,
+        jugadorNombre: jugador.nombre,
+        cedula: jugador.cedula || '',
+        clubes: misClubesTexto(),
+        estado: 'PENDIENTE',
+        fecha: new Date().toISOString(),
+        revisadoPor: null,
+        fechaRevision: null
+    });
+    guardar(KEY_SOLICITUDES, solicitudes);
+    renderAll();
+    alert('Solicitud enviada. El organizador del grupo debe aprobar.');
+}
+
+function resolverSolicitud(solId, nuevoEstado) {
+    var solicitudes = leer(KEY_SOLICITUDES, []);
+    var grupos = leer(KEY_GRUPOS, []);
+    var org = refOrganizadorActual();
+    var idx = solicitudes.findIndex(function(s){ return s.id === solId; });
+    if (idx < 0) return;
+    var sol = solicitudes[idx];
+    var grp = grupos.find(function(g){ return g.id === sol.grupoId; });
+    if (!grp) return;
+    var autorizado = (grp.organizadorClubId && org.id && String(grp.organizadorClubId) === String(org.id)) ||
+        (!grp.organizadorClubId && String(grp.organizadorClubNombre || '') === String(org.nombre || ''));
+    if (!autorizado) {
+        alert('Esta solicitud solo puede gestionarla el organizador del grupo.');
+        return;
+    }
+    sol.estado = nuevoEstado;
+    sol.revisadoPor = org.nombre || 'ORGANIZADOR';
+    sol.fechaRevision = new Date().toISOString();
+    solicitudes[idx] = sol;
+    guardar(KEY_SOLICITUDES, solicitudes);
+    renderAll();
+}
+
+function renderGrupos() {
+    var el = document.getElementById('lista-grupos');
+    var grupos = leer(KEY_GRUPOS, []);
+    if (!grupos.length) {
+        el.innerHTML = '<div class="empty">Aún no hay grupos creados.</div>';
+        return;
+    }
+    el.innerHTML = grupos.map(function(g){
+        return '<div class="list-item">' +
+            '<div class="item-title">' + esc(g.nombre) + '</div>' +
+            '<div class="item-sub">📍 ' + esc(g.ciudad || 'SIN CIUDAD') +
+            (g.categoria ? ' · 🏷 ' + esc(g.categoria) : '') +
+            '<br>Organiza: ' + esc(g.organizadorClubNombre || 'CLUB') +
+            (g.descripcion ? '<br>' + esc(g.descripcion) : '') + '</div>' +
+            '<div class="actions"><button class="btn btn-ok btn-mini" onclick="solicitarIngreso(\'' + esc(g.id) + '\')">SOLICITAR INGRESO</button></div>' +
+            '</div>';
+    }).join('');
+}
+
+function renderMisSolicitudes() {
+    var el = document.getElementById('mis-solicitudes');
+    var j = miJugador();
+    var grupos = leer(KEY_GRUPOS, []);
+    var solicitudes = leer(KEY_SOLICITUDES, []).filter(function(s){
+        return String(s.jugadorNombre || '').toUpperCase() === String(j.nombre || '').toUpperCase();
+    });
+    if (!solicitudes.length) {
+        el.innerHTML = '<div class="empty">No tienes solicitudes aún.</div>';
+        return;
+    }
+    el.innerHTML = solicitudes.map(function(s){
+        var g = grupos.find(function(x){ return x.id === s.grupoId; }) || {};
+        var cls = s.estado === 'APROBADO' ? 'ok' : (s.estado === 'RECHAZADO' ? 'no' : '');
+        return '<div class="list-item">' +
+            '<div class="item-title">' + esc(g.nombre || 'Grupo eliminado') + '</div>' +
+            '<div class="item-sub">Estado de solicitud</div>' +
+            '<span class="pill ' + cls + '">' + esc(s.estado || 'PENDIENTE') + '</span>' +
+            '</div>';
+    }).join('');
+}
+
+function renderAprobaciones() {
+    var el = document.getElementById('lista-aprobaciones');
+    var card = document.getElementById('card-aprobaciones');
+    var org = refOrganizadorActual();
+    var grupos = leer(KEY_GRUPOS, []).filter(function(g){
+        return (g.organizadorClubId && org.id && String(g.organizadorClubId) === String(org.id)) ||
+            (!g.organizadorClubId && String(g.organizadorClubNombre || '') === String(org.nombre || ''));
+    });
+    var ids = {};
+    grupos.forEach(function(g){ ids[g.id] = true; });
+    var pendientes = leer(KEY_SOLICITUDES, []).filter(function(s){ return ids[s.grupoId] && s.estado === 'PENDIENTE'; });
+    if (!grupos.length) {
+        card.style.display = 'none';
+        return;
+    }
+    card.style.display = 'block';
+    if (!pendientes.length) {
+        el.innerHTML = '<div class="empty">No hay solicitudes pendientes para tus grupos.</div>';
+        return;
+    }
+    el.innerHTML = pendientes.map(function(s){
+        var g = grupos.find(function(x){ return x.id === s.grupoId; }) || {};
+        var clubes = Array.isArray(s.clubes) && s.clubes.length ? s.clubes.join(' | ') : 'Sin clubes registrados';
+        return '<div class="list-item">' +
+            '<div class="item-title">' + esc(s.jugadorNombre || 'JUGADOR') + ' → ' + esc(g.nombre || 'GRUPO') + '</div>' +
+            '<div class="item-sub">Cédula: ' + esc(s.cedula || 'N/D') + '<br>Clubes: ' + esc(clubes) + '</div>' +
+            '<div class="actions">' +
+                '<button class="btn btn-ok btn-mini" onclick="resolverSolicitud(\'' + esc(s.id) + '\',\'APROBADO\')">APROBAR</button>' +
+                '<button class="btn btn-no btn-mini" onclick="resolverSolicitud(\'' + esc(s.id) + '\',\'RECHAZADO\')">RECHAZAR</button>' +
+            '</div>' +
+            '</div>';
+    }).join('');
+}
+
+function renderAll() {
+    renderGrupos();
+    renderMisSolicitudes();
+    renderAprobaciones();
+}
+
+window.onload = function() {
+    try { if (typeof MasterVIP !== 'undefined') MasterVIP.applyDesign(); } catch(_) {}
+    var logo = document.getElementById('hdr-logo-grp');
+    if (logo && typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) logo.innerHTML = MasterVIP.getLogoHTML(44);
+
+    var modo = (new URLSearchParams(window.location.search).get('modo') || '').toLowerCase();
+    if (modo === 'organizador') {
+        var sub = document.getElementById('modo-label');
+        if (sub) sub.textContent = 'Modo organizador: revisa y aprueba solicitudes de ingreso';
+        var cardAprob = document.getElementById('card-aprobaciones');
+        if (cardAprob) cardAprob.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+    renderAll();
+};
+</script>
+<script src="Version.js"></script>
+<script src="whitelabel.js"></script>
+</body>
+</html>
