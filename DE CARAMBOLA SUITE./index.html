@@ -1373,7 +1373,7 @@ function abrirPanel(tipo) {
     card.classList.add('activo');
     panelActivo = tipo;
 
-    // Guardar rol para logo: organizador → solo DE CARAMBOLA; club/jugador → logo club
+    // Guardar rol de sesión (la marca principal ahora siempre prioriza el club activo)
     try { localStorage.setItem('session_rol', tipo === 'org' ? 'organizador' : (tipo === 'club' ? 'club' : 'jugador')); } catch(e) {}
     actualizarLogoHeader();
 
@@ -1387,15 +1387,14 @@ function abrirPanel(tipo) {
     }
 }
 
-// Logo en index por rol: organizador → solo DE CARAMBOLA; club/jugador/invitado → logo club si hay
+// Logo principal del index: prioriza club activo en cualquier rol.
 function actualizarLogoHeader() {
     var deca = document.getElementById('logo-decarambola');
     var club = document.getElementById('header-logo-club');
     var titulo = document.getElementById('header-titulo');
     if (!deca || !club) return;
-    var rol = localStorage.getItem('session_rol');
-    var mostrarClub = (rol !== 'organizador') && (window.WL && window.WL.getLogoUrl && window.WL.getLogoUrl());
-    if (!mostrarClub) mostrarClub = (rol !== 'organizador') && (localStorage.getItem('wl_club_logo_url') || '');
+    var mostrarClub = (window.WL && window.WL.getLogoUrl && window.WL.getLogoUrl());
+    if (!mostrarClub) mostrarClub = localStorage.getItem('wl_club_logo_url') || '';
     if (mostrarClub && typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) {
         if (!window.__DECA_LOGO_SRC) window.__DECA_LOGO_SRC = deca.src;
         club.style.display = '';
