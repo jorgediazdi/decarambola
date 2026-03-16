@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mi historial — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#000; --g1:#1a1a1a; --g2:#111; --azul:#3498db; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
+
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20; }
+        .header-titulo { color:var(--oro); font-size:0.85rem; letter-spacing:3px; }
+        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
+        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; }
+
+        .wrap { max-width:520px; margin:0 auto; padding:16px 18px; }
+
+        .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+        .kpi { background:var(--g2); border-radius:14px; padding:14px; border:1px solid var(--g1); }
+        .kpi-label { color:#666; font-size:0.5rem; letter-spacing:2px; margin-bottom:6px; }
+        .kpi-value { font-size:1.2rem; font-weight:900; color:var(--oro); }
+        .kpi-sub { color:#777; font-size:0.5rem; margin-top:4px; }
+
+        .sec-tit { color:#555; font-size:0.55rem; letter-spacing:2px; margin:12px 0 6px; }
+        .sesion-item { background:var(--g2); border-radius:12px; padding:10px 12px; border:1px solid var(--g1); margin-bottom:8px; font-size:0.58rem; }
+        .sesion-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+        .sesion-mesa { color:var(--oro); font-size:0.6rem; }
+        .sesion-det { color:#aaa; font-size:0.55rem; }
+        .vacio { text-align:center; color:#444; font-size:0.6rem; padding:18px; }
+        .vacio strong { color:#ccc; }
+        .btn-jugar {
+            margin-top:10px;
+            display:inline-block;
+            padding:10px 18px;
+            border-radius:14px;
+            border:1px solid var(--azul);
+            background:rgba(52,152,219,0.1);
+            color:var(--azul);
+            font-size:0.6rem;
+            font-family:'Arial Black',sans-serif;
+            letter-spacing:1px;
+            text-decoration:none;
+        }
+        .btn-jugar:active { background:rgba(52,152,219,0.2); }
+        .sec-partidas { margin-top:24px; padding-top:16px; border-top:1px solid var(--g1); }
+        .sec-partidas .sec-tit { font-size:0.65rem; color:var(--oro); margin-bottom:12px; }
+        .kpi-row { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
+        .kpi-mini { background:var(--g2); border-radius:10px; padding:10px; border:1px solid var(--g1); text-align:center; }
+        .kpi-mini .v { font-size:1.1rem; font-weight:900; color:var(--oro); }
+        .kpi-mini .l { font-size:0.48rem; color:#666; letter-spacing:1px; margin-top:4px; }
+        .ultimas-list { margin-top:8px; }
+        .ultimas-list .item { background:var(--g2); border-radius:8px; padding:8px 10px; margin-bottom:6px; font-size:0.55rem; border:1px solid var(--g1); display:flex; justify-content:space-between; }
+        .ultimas-list .item .res { color:var(--oro); }
+        .trofeos-placeholder, .fortalezas-placeholder { background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:12px; font-size:0.55rem; color:#888; margin-top:10px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-titulo">MI HISTORIAL</div>
+        <div class="header-sub" id="hdr_nombre">Jugador</div>
+    </div>
+    <a href="index.html" class="btn-hdr">← INICIO</a>
+</div>
+
+<div class="wrap">
+    <div class="kpi-grid">
+        <div class="kpi">
+            <div class="kpi-label">HORAS TOTALES</div>
+            <div class="kpi-value" id="kpi_horas">0</div>
+            <div class="kpi-sub">Uso acumulado</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">SESIONES</div>
+            <div class="kpi-value" id="kpi_sesiones">0</div>
+            <div class="kpi-sub">Sesiones cerradas</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">PROMEDIO HORAS/SESIÓN</div>
+            <div class="kpi-value" id="kpi_promedio">0</div>
+            <div class="kpi-sub">Intensidad de juego</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">TOTAL CONSUMIDO</div>
+            <div class="kpi-value" id="kpi_ingresos">$0</div>
+            <div class="kpi-sub">Basado en costo_total</div>
+        </div>
+    </div>
+    <p style="font-size:0.5rem;color:#333;letter-spacing:1px;margin:-8px 0 12px;">Las sesiones se registran al usar las mesas del club.</p>
+
+    <div class="sec-tit">MIS SESIONES RECIENTES</div>
+    <div id="lista-sesiones"></div>
+
+    <div class="sec-partidas">
+        <div class="sec-tit">ESTADÍSTICAS DE PARTIDAS</div>
+        <div class="kpi-row" id="stats-partidas">
+            <div class="kpi-mini"><div class="v" id="stat-jugadas">0</div><div class="l">Partidas jugadas</div></div>
+            <div class="kpi-mini"><div class="v" id="stat-ganadas">0</div><div class="l">Ganadas</div></div>
+            <div class="kpi-mini"><div class="v" id="stat-perdidas">0</div><div class="l">Perdidas</div></div>
+            <div class="kpi-mini"><div class="v" id="stat-pct">0%</div><div class="l">% victorias</div></div>
+        </div>
+        <div class="kpi-mini" style="margin-bottom:8px;"><div class="v" id="stat-promedio">0.000</div><div class="l">Promedio (últimos partidos)</div></div>
+        <div class="sec-tit" style="margin-top:14px;">ÚLTIMAS PARTIDAS</div>
+        <div id="ultimas-partidas" class="ultimas-list"></div>
+        <div class="sec-tit" style="margin-top:14px;">TROFEOS</div>
+        <div id="trofeos-block" class="trofeos-placeholder">Próximamente: torneos ganados y podios</div>
+        <div class="sec-tit" style="margin-top:14px;">FORTALEZAS Y DEBILIDADES</div>
+        <div id="fortalezas-block" class="fortalezas-placeholder">Próximamente: análisis según tu historial</div>
+    </div>
+</div>
+
+<script src="core.js"></script>
+<script src="session.js"></script>
+<script>
+let sesiones = [];
+let mesasIndex = {};
+
+function getClubId() {
+    if (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) return MasterVIP.getClubId();
+    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    return perfil.club_id || null;
+}
+
+function getJugadorNombre() {
+    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    if (perfil && perfil.nombre) return perfil.nombre;
+    try {
+        var activo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+        if (activo && activo.nombre) return activo.nombre;
+    } catch(e) {}
+    return '';
+}
+
+function nombreMesa(id) {
+    var m = mesasIndex[id];
+    if (!m) return 'INSTALACIÓN';
+    return (m.nombre || ('Instalación ' + (m.numero || ''))).toUpperCase();
+}
+
+async function cargarDatos() {
+    var nombre = getJugadorNombre();
+    if (nombre) document.getElementById('hdr_nombre').textContent = nombre;
+    var clubId = getClubId();
+    var filtros = [];
+    filtros.push('estado=eq.cerrada');
+    if (clubId) filtros.push('club_id=eq.' + clubId);
+    if (nombre) filtros.push('jugador_nombre=eq.' + encodeURIComponent(nombre));
+    var filtro = filtros.join('&');
+    var data = await DB.get('mesas_historial', filtro);
+    sesiones = data || [];
+    sesiones.sort(function(a,b){
+        return new Date(b.fin_sesion || b.created_at) - new Date(a.fin_sesion || a.created_at);
+    });
+
+    var mesas = await DB.get('mesas', clubId ? 'club_id=eq.' + clubId : 'limit=200');
+    mesasIndex = {};
+    (mesas || []).forEach(function(m){ mesasIndex[m.id] = m; });
+
+    pintarKPIs();
+    pintarSesiones();
+    pintarEstadisticasPartidas();
+}
+
+function pintarEstadisticasPartidas() {
+    var nombre = getJugadorNombre();
+    var clave = 'historial_' + (nombre || 'anon');
+    var historial = [];
+    try { historial = JSON.parse(localStorage.getItem(clave)) || []; } catch(e) {}
+    var jugadorId = (function(){ try { var a = JSON.parse(localStorage.getItem('jugador_activo')); return a && a.id; } catch(e){ return null; } })();
+    if (typeof window.HISTORIAL !== 'undefined' && window.HISTORIAL.obtener) {
+        window.HISTORIAL.obtener(jugadorId, nombre).then(function(h){ pintarStats(h || []); }).catch(function(){ pintarStats(historial); });
+    } else {
+        pintarStats(historial);
+    }
+}
+
+function pintarStats(historial) {
+    var total = historial.length;
+    var ganadas = 0, perdidas = 0, sumaProm = 0;
+    historial.forEach(function(p){
+        if (p.gano) ganadas++; else perdidas++;
+        sumaProm += parseFloat(p.promedio_partida) || 0;
+    });
+    var pct = total ? ((ganadas / total) * 100).toFixed(1) : 0;
+    var prom = total ? (sumaProm / total).toFixed(3) : '0.000';
+    document.getElementById('stat-jugadas').textContent = total;
+    document.getElementById('stat-ganadas').textContent = ganadas;
+    document.getElementById('stat-perdidas').textContent = perdidas;
+    document.getElementById('stat-pct').textContent = pct + '%';
+    document.getElementById('stat-promedio').textContent = prom;
+    var cont = document.getElementById('ultimas-partidas');
+    if (!cont) return;
+    var slice = (historial || []).slice(0, 10);
+    if (!slice.length) { cont.innerHTML = '<div class="vacio">Sin partidas registradas</div>'; return; }
+    cont.innerHTML = slice.map(function(p){
+        var rival = p.rival_nombre || p.rival || p.oponente || '—';
+        var prom = p.promedio_partida != null ? Number(p.promedio_partida).toFixed(3) : '—';
+        var res = p.gano ? 'Ganada' : 'Perdida';
+        var fecha = (p.fecha || p.created_at || '').substring(0, 10);
+        return '<div class="item"><span>' + rival + (fecha ? ' · ' + fecha : '') + ' · ' + prom + '</span><span class="res">' + res + '</span></div>';
+    }).join('');
+}
+
+function pintarKPIs() {
+    var totalHoras = 0, totalCosto = 0;
+    sesiones.forEach(function(s){
+        totalHoras += parseFloat(s.horas_reales) || 0;
+        totalCosto += parseFloat(s.costo_total) || 0;
+    });
+    var n = sesiones.length;
+    var prom = n ? (totalHoras / n) : 0;
+    document.getElementById('kpi_horas').textContent = totalHoras.toFixed(1);
+    document.getElementById('kpi_sesiones').textContent = n;
+    document.getElementById('kpi_promedio').textContent = prom.toFixed(1);
+    document.getElementById('kpi_ingresos').textContent = '$' + Math.round(totalCosto).toLocaleString('es');
+}
+
+function pintarSesiones() {
+    var cont = document.getElementById('lista-sesiones');
+    if (!cont) return;
+    var lista = sesiones.slice(0, 40);
+    if (!lista.length) {
+        cont.innerHTML =
+            '<div class="vacio">' +
+                '<strong>Aún no tienes sesiones registradas en este club.</strong><br>' +
+                'Cuando juegues en una mesa, tus sesiones aparecerán aquí.' +
+                '<br><a href="mesas.html" class="btn-jugar">🎱 JUGAR AHORA</a>' +
+            '</div>';
+        return;
+    }
+    cont.innerHTML = lista.map(function(s){
+        var fecha = s.fin_sesion || s.inicio_sesion || s.created_at;
+        var fTxt = fecha ? new Date(fecha).toLocaleString('es') : 'Sin fecha';
+        var h = parseFloat(s.horas_reales) || 0;
+        var c = parseFloat(s.costo_total) || 0;
+        return '<div class="sesion-item">' +
+            '<div class="sesion-top"><div class="sesion-mesa">' + nombreMesa(s.mesa_id) + '</div>' +
+            '<div style="color:#777;font-size:0.5rem;">' + fTxt + '</div></div>' +
+            '<div class="sesion-det">⏱ ' + h.toFixed(1) + ' h · 💰 $' + Math.round(c) + '</div>' +
+            '</div>';
+    }).join('');
+}
+
+window.onload = function() {
+    try { SESSION.verificarAlCargar('jugador'); } catch(e) {}
+    cargarDatos();
+};
+</script>
+
+</body>
+</html>
+

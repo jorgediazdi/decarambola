@@ -385,51 +385,6 @@ body{background:var(--negro);color:#fff;
 
 <script src="core.js"></script>
 <script>
-
-// ═══════════════════════════════════════
-//  CONFIG MULTI‑DEPORTE PERFIL JUGADOR
-//  Usa WL.getDeporte() para adaptar textos
-// ═══════════════════════════════════════
-const PERFIL_DEPORTE = {
-  billar: {
-    emoji: '🎱',
-    sloganHome: 'BILLAR TRES BANDAS',
-    deporteFrase: 'del billar colombiano',
-    disciplinaFrase: 'en las tres bandas'
-  },
-  futbol: {
-    emoji: '⚽',
-    sloganHome: 'FÚTBOL 5',
-    deporteFrase: 'del fútbol aficionado',
-    disciplinaFrase: 'en la cancha'
-  },
-  padel: {
-    emoji: '🎾',
-    sloganHome: 'PÁDEL',
-    deporteFrase: 'del pádel competitivo',
-    disciplinaFrase: 'en la pista'
-  },
-  equitacion: {
-    emoji: '🐎',
-    sloganHome: 'ESCUELA ECUESTRE',
-    deporteFrase: 'de la equitación',
-    disciplinaFrase: 'en la pista'
-  }
-};
-
-function getDeporteActivoPerfil(){
-  try{
-    if(window.WL && typeof WL.getDeporte==='function'){
-      return String(WL.getDeporte()||'billar').toLowerCase();
-    }
-  }catch(e){}
-  return 'billar';
-}
-
-function getCfgPerfil(){
-  const dep = getDeporteActivoPerfil();
-  return PERFIL_DEPORTE[dep] || PERFIL_DEPORTE.billar;
-}
 var jugActivo = null;
 
 window.onload = async function(){
@@ -438,14 +393,6 @@ window.onload = async function(){
   MasterVIP.applyDesign();
   var lw = document.getElementById('hdr-logo');
   if(lw) lw.innerHTML = MasterVIP.getLogoHTML(28);
-
-  // Ajustar textos neutrales por deporte en el estado vacío
-  const cfg = getCfgPerfil();
-  const tituloVacio = document.querySelector('.estado-vacio .bola-3d + div + div');
-  const subtituloVacio = document.querySelector('.estado-vacio div:nth-child(2)');
-  if (subtituloVacio) {
-    subtituloVacio.textContent = cfg.sloganHome;
-  }
 
   var mJ = window.location.search.match(/jugador=([^&]+)/);
   if(mJ){ var j=MasterVIP.buscarJugador(decodeURIComponent(mJ[1])); if(j){mostrarPerfil(j);return;} }
@@ -459,11 +406,10 @@ function mostrarDirectorio(){
   var zona=document.getElementById('zona');
   var todos=MasterVIP.getJugadores().slice().sort(function(a,b){return (b.promedio||0)-(a.promedio||0);});
   if(!todos.length){
-    const cfg = getCfgPerfil();
     zona.innerHTML='<div class="estado-vacio">'+
       '<div class="bola-3d"><span class="bola-num">3</span></div>'+
       '<div style="font-family:Bebas Neue;font-size:1.5rem;color:var(--oro);letter-spacing:6px;margin-bottom:4px;">DeCarambola</div>'+
-      '<div style="font-size:0.65rem;color:#2a2a2a;letter-spacing:3px;margin-bottom:20px;">'+cfg.sloganHome+'</div>'+
+      '<div style="font-size:0.65rem;color:#2a2a2a;letter-spacing:3px;margin-bottom:20px;">BILLAR TRES BANDAS</div>'+
       '<div style="font-size:0.8rem;color:#333;line-height:2.2;">INSCRIBE JUGADORES<br>PARA VER SUS CARNETS</div>'+
     '</div>';
     return;
@@ -747,16 +693,15 @@ function mostrarPerfil(j){
 function generarAnalisis(j,d){
   var p=d.prom, cat=d.cat, pos=d.posClub, total=d.todos.length;
   var nombre=j.nombre.split(' ')[0];
-  var cfg=getCfgPerfil();
   var txt='';
 
   /* Nivel del jugador */
-  if(p>=1.1) txt='<strong>'+nombre+'</strong> pertenece a la <span class="analisis-highlight">CLASE ÉLITE</span> '+cfg.deporteFrase+'. ';
+  if(p>=1.1) txt='<strong>'+nombre+'</strong> pertenece a la <span class="analisis-highlight">CLASE ÉLITE</span> del billar colombiano. ';
   else if(p>=0.9) txt='<strong>'+nombre+'</strong> es un jugador de nivel <span class="analisis-highlight">MAESTRO</span>, entre los mejores del club. ';
   else if(p>=0.7) txt='<strong>'+nombre+'</strong> juega en <span class="analisis-highlight">PRIMERA CATEGORÍA</span>, con promedio sólido y consistente. ';
   else if(p>=0.5) txt='<strong>'+nombre+'</strong> compite en <span class="analisis-highlight">SEGUNDA CATEGORÍA</span>, en desarrollo constante. ';
   else if(p>=0.35) txt='<strong>'+nombre+'</strong> está en <span class="analisis-highlight">TERCERA CATEGORÍA</span>, construyendo su base técnica. ';
-  else txt='<strong>'+nombre+'</strong> está en etapa de <span class="analisis-highlight">INICIACIÓN</span>, comenzando su camino '+cfg.disciplinaFrase+'. ';
+  else txt='<strong>'+nombre+'</strong> está en etapa de <span class="analisis-highlight">INICIACIÓN</span>, comenzando su camino en las tres bandas. ';
 
   /* Ranking */
   if(pos===1) txt+='Es el <strong>líder absoluto</strong> del ranking del club. ';
@@ -787,7 +732,7 @@ function generarAnalisis(j,d){
   else if(d.trofeosTitulos>=1) txt+='<strong>Campeón</strong> en '+d.trofeosTitulos+' torneo'+(d.trofeosTitulos>1?'s':'')+' del club. ';
 
   /* Sin historial */
-  if(d.nPart===0) txt='<strong>'+nombre+'</strong> está registrado con promedio <span class="analisis-highlight">'+p.toFixed(3)+'</span>. Aún no tiene partidas registradas en el sistema — una vez juegue, aquí verás su análisis completo como experto. '+getCfgPerfil().emoji;
+  if(d.nPart===0) txt='<strong>'+nombre+'</strong> está registrado con promedio <span class="analisis-highlight">'+p.toFixed(3)+'</span>. Aún no tiene partidas registradas en el sistema — una vez juegue, aquí verás su análisis completo como experto. 🎱';
 
   /* Recomendación final */
   if(d.nPart>0){
@@ -882,7 +827,6 @@ function guardarFoto(e){
 function compartir(){
   if(!jugActivo)return;
   var cat=MasterVIP.getCategoria(jugActivo.promedio||0);
-  var cfg=getCfgPerfil();
   var txt='🎱 *'+jugActivo.nombre+'*\n'+cat.emoji+' '+cat.nombre+' · Promedio '+(jugActivo.promedio||0).toFixed(3)+
     '\n🏛 '+(jugActivo.club||'SIN CLUB')+' · '+(jugActivo.ciudad||'')+
     '\n\n📊 Carnet en DeCarambola — decarambola.com';
@@ -900,47 +844,5 @@ function copiarLink(){
 }
 </script>
 <script src="whitelabel.js"></script>
-<script>
-// Textos dinámicos por deporte para el portal jugador
-(function () {
-  if (!window.WL || typeof WL.getDeporte !== 'function') return;
-  var deporte = (WL.getDeporte() || 'billar').toLowerCase();
-
-  var h1   = document.querySelector('.hdr h1');
-  var pSub = document.querySelector('.hdr p');
-  if (!h1 || !pSub) return;
-
-  var textos = {
-    billar: {
-      titulo: 'PERFIL JUGADOR · BILLAR',
-      subt:   'Ranking, promedio y currículum de billar'
-    },
-    futbol: {
-      titulo: 'PERFIL JUGADOR · FÚTBOL 5',
-      subt:   'Stats, goles y rendimiento en cancha'
-    },
-    padel: {
-      titulo: 'PERFIL JUGADOR · PÁDEL',
-      subt:   'Historial de partidos y ranking de pádel'
-    },
-    equitacion: {
-      titulo: 'PERFIL JINETE · EQUESTRIAN',
-      subt:   'Caballos, pruebas y resultados oficiales'
-    },
-    tenis: {
-      titulo: 'PERFIL JUGADOR · TENIS',
-      subt:   'Ranking, torneos y desempeño en cancha'
-    },
-    basquet: {
-      titulo: 'PERFIL JUGADOR · BÁSQUET',
-      subt:   'Promedios, minutos y rendimiento en juego'
-    }
-  };
-
-  var conf = textos[deporte] || textos.billar;
-  h1.textContent   = conf.titulo;
-  pSub.textContent = conf.subt;
-})();
-</script>
 </body>
 </html>

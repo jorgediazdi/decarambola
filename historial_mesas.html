@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Historial de mesas — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#000; --g1:#1a1a1a; --g2:#111; --azul:#3498db; --rojo:#e74c3c; --neon:#2eff70; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
+
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20; }
+        .header-titulo { color:var(--oro); font-size:0.85rem; letter-spacing:3px; }
+        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
+        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; }
+
+        .wrap { max-width:540px; margin:0 auto; padding:16px 18px; }
+
+        .filtros { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+        .filtro-select {
+            flex:1; min-width:120px;
+            background:#000; border:1px solid #222;
+            border-radius:12px; padding:8px 10px;
+            color:#bbb; font-size:0.55rem; font-family:'Arial Black',sans-serif; letter-spacing:1px;
+        }
+        .filtro-chip {
+            padding:7px 10px; border-radius:999px;
+            border:1px solid #222; background:#050505;
+            color:#666; font-size:0.5rem; letter-spacing:1px;
+            cursor:pointer;
+        }
+        .filtro-chip.on { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.08); }
+
+        .kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+        .kpi { background:var(--g2); border-radius:14px; padding:10px 10px 9px; border:1px solid var(--g1); }
+        .kpi-label { color:#666; font-size:0.46rem; letter-spacing:2px; margin-bottom:4px; }
+        .kpi-value { font-size:0.95rem; font-weight:900; color:var(--oro); }
+        .kpi-sub { color:#777; font-size:0.48rem; margin-top:2px; }
+
+        .sec-tit { color:#555; font-size:0.55rem; letter-spacing:2px; margin:10px 0 6px; }
+
+        .sesion-dia { margin-top:10px; }
+        .sesion-dia-tit { font-size:0.52rem; color:#777; letter-spacing:2px; margin-bottom:4px; }
+
+        .sesion-item { background:var(--g2); border-radius:12px; padding:10px 12px; border:1px solid var(--g1); margin-bottom:6px; font-size:0.58rem; }
+        .sesion-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; }
+        .sesion-mesa { color:var(--oro); font-size:0.62rem; }
+        .sesion-hora { color:#777; font-size:0.5rem; }
+        .sesion-det { color:#aaa; font-size:0.53rem; }
+        .sesion-nota { color:#666; font-size:0.45rem; margin-top:4px; }
+
+        .empty { text-align:center; color:#444; font-size:0.6rem; padding:24px 10px; }
+        .btn-mesas {
+            margin-top:10px; display:inline-block;
+            padding:10px 18px; border-radius:14px;
+            border:1px solid var(--azul);
+            background:rgba(52,152,219,0.1);
+            color:var(--azul); font-size:0.6rem;
+            font-family:'Arial Black',sans-serif;
+            letter-spacing:1px; text-decoration:none;
+        }
+
+        .mant-card {
+            margin-top:18px;
+            background:#050505; border:1px solid #222;
+            border-radius:14px; padding:12px 14px;
+            font-size:0.5rem; color:#777; line-height:1.7;
+        }
+        .mant-tag { font-size:0.55rem; color:var(--neon); letter-spacing:2px; margin-bottom:4px; display:block; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-titulo">HISTORIAL DE MESAS</div>
+        <div class="header-sub" id="hdr_sede">Club</div>
+    </div>
+    <a href="organizador.html" class="btn-hdr">← ORGANIZADOR</a>
+</div>
+
+<div class="wrap">
+    <div class="filtros">
+        <select id="filtro-mesa" class="filtro-select" onchange="aplicarFiltros()">
+            <option value="">TODAS LAS MESAS</option>
+        </select>
+        <button class="filtro-chip on" id="chip-rango" onclick="toggleRango()">
+            ÚLTIMOS 30 DÍAS
+        </button>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi">
+            <div class="kpi-label">HORAS TOTALES</div>
+            <div class="kpi-value" id="kpi_horas">0</div>
+            <div class="kpi-sub">En el rango seleccionado</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">SESIONES</div>
+            <div class="kpi-value" id="kpi_sesiones">0</div>
+            <div class="kpi-sub">Cerradas</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">TOTAL FACTURADO</div>
+            <div class="kpi-value" id="kpi_ingresos">$0</div>
+            <div class="kpi-sub">Costo total</div>
+        </div>
+    </div>
+
+    <div class="sec-tit">SESIONES POR DÍA</div>
+    <div id="lista-sesiones"></div>
+
+    <div class="mant-card">
+        <span class="mant-tag">MANTENIMIENTO</span>
+        Aquí podrás anotar cambios de paño, reparaciones o incidentes por mesa en el futuro.
+        Por ahora este historial se centra en las sesiones facturadas de cada mesa.
+    </div>
+</div>
+
+<script src="core.js"></script>
+<script>
+var sesiones = [];
+var mesasIndex = {};
+var sesionesFiltradas = [];
+var usarUltimos30 = true;
+
+function getClubId() {
+    if (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) return MasterVIP.getClubId();
+    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    return perfil.club_id || null;
+}
+
+function nombreMesa(id) {
+    var m = mesasIndex[id];
+    if (!m) return 'INSTALACIÓN';
+    return (m.nombre || ('Mesa ' + (m.numero || ''))).toUpperCase();
+}
+
+async function cargarDatos() {
+    var clubId = getClubId();
+    var sedeNombre = localStorage.getItem('wl_club_nombre') || 'MI CLUB';
+    document.getElementById('hdr_sede').innerText = sedeNombre.toUpperCase();
+
+    var filtros = [];
+    filtros.push('estado=eq.cerrada');
+    if (clubId) filtros.push('club_id=eq.' + clubId);
+    var filtro = filtros.join('&');
+    var data = await DB.get('mesas_historial', filtro);
+    sesiones = data || [];
+
+    // Mesas
+    var mesas = await DB.get('mesas', clubId ? 'club_id=eq.' + clubId : 'limit=200');
+    mesasIndex = {};
+    (mesas || []).forEach(function(m){ mesasIndex[m.id] = m; });
+
+    // Llenar select mesas
+    var sel = document.getElementById('filtro-mesa');
+    if (sel) {
+        sel.innerHTML = '<option value="">TODAS LAS MESAS</option>';
+        (mesas || []).forEach(function(m){
+            var opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = (m.numero != null ? 'MESA ' + m.numero : (m.nombre || 'MESA')) +
+                (m.activa === false ? ' (inactiva)' : '');
+            sel.appendChild(opt);
+        });
+    }
+
+    aplicarFiltros();
+}
+
+function toggleRango() {
+    usarUltimos30 = !usarUltimos30;
+    var chip = document.getElementById('chip-rango');
+    if (chip) {
+        chip.classList.toggle('on', usarUltimos30);
+        chip.textContent = usarUltimos30 ? 'ÚLTIMOS 30 DÍAS' : 'TODO EL HISTORIAL';
+    }
+    aplicarFiltros();
+}
+
+function aplicarFiltros() {
+    var mesaSel = document.getElementById('filtro-mesa').value || '';
+    var ahora = Date.now();
+    var hace30 = ahora - 30*24*60*60*1000;
+
+    sesionesFiltradas = (sesiones || []).filter(function(s){
+        if (mesaSel && String(s.mesa_id) !== mesaSel) return false;
+        if (usarUltimos30) {
+            var f = s.fin_sesion || s.inicio_sesion || s.created_at;
+            if (!f) return false;
+            var t = new Date(f).getTime();
+            if (isNaN(t) || t < hace30) return false;
+        }
+        return true;
+    });
+
+    pintarKPIs();
+    pintarSesiones();
+}
+
+function pintarKPIs() {
+    var totalHoras = 0, totalCosto = 0;
+    sesionesFiltradas.forEach(function(s){
+        totalHoras += parseFloat(s.horas_reales) || 0;
+        totalCosto += parseFloat(s.costo_total) || 0;
+    });
+    var n = sesionesFiltradas.length;
+    document.getElementById('kpi_horas').textContent = totalHoras.toFixed(1);
+    document.getElementById('kpi_sesiones').textContent = n;
+    document.getElementById('kpi_ingresos').textContent = '$' + Math.round(totalCosto).toLocaleString('es-CO');
+}
+
+function pintarSesiones() {
+    var cont = document.getElementById('lista-sesiones');
+    if (!cont) return;
+    if (!sesionesFiltradas.length) {
+        cont.innerHTML =
+            '<div class="empty">Aún no hay sesiones cerradas registradas en este rango.<br>' +
+            '<a href="mesas.html" class="btn-mesas">IR A CONTROL DE MESAS</a></div>';
+        return;
+    }
+
+    // Ordenar por fecha descendente
+    var lista = sesionesFiltradas.slice().sort(function(a,b){
+        return new Date(b.fin_sesion || b.created_at) - new Date(a.fin_sesion || a.created_at);
+    });
+
+    // Agrupar por día (AAAA-MM-DD)
+    var porDia = {};
+    lista.forEach(function(s){
+        var fecha = s.fin_sesion || s.inicio_sesion || s.created_at;
+        var d = fecha ? new Date(fecha) : null;
+        var key = d
+            ? (d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'))
+            : 'SIN FECHA';
+        if (!porDia[key]) porDia[key] = [];
+        porDia[key].push(s);
+    });
+
+    var dias = Object.keys(porDia).sort().reverse();
+    var html = '';
+    dias.forEach(function(dKey){
+        var label = dKey === 'SIN FECHA'
+            ? 'SIN FECHA'
+            : new Date(dKey + 'T00:00:00').toLocaleDateString('es-CO', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+        html += '<div class="sesion-dia">';
+        html += '<div class="sesion-dia-tit">' + label.toUpperCase() + '</div>';
+        porDia[dKey].forEach(function(s){
+            var fecha = s.fin_sesion || s.inicio_sesion || s.created_at;
+            var hTxt = fecha ? new Date(fecha).toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' }) : '—';
+            var h = parseFloat(s.horas_reales) || 0;
+            var c = parseFloat(s.costo_total) || 0;
+            var nota = s.nota || '';
+            html += '<div class="sesion-item">' +
+                '<div class="sesion-top"><div class="sesion-mesa">' + nombreMesa(s.mesa_id) + '</div>' +
+                '<div class="sesion-hora">' + hTxt + '</div></div>' +
+                '<div class="sesion-det">⏱ ' + h.toFixed(1) + ' h · 💰 $' + Math.round(c).toLocaleString('es-CO') + '</div>' +
+                (nota ? '<div class="sesion-nota">📝 ' + nota + '</div>' : '') +
+                '</div>';
+        });
+        html += '</div>';
+    });
+
+    cont.innerHTML = html;
+}
+
+window.onload = function() {
+    try { SESSION.verificarAlCargar('organizador'); } catch(e) {}
+    cargarDatos();
+};
+</script>
+
+</body>
+</html>
+

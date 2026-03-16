@@ -13,6 +13,20 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
 .header { background:#000; border-bottom:1px solid #111; padding:14px 16px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:10; }
 .hdr-titulo { color:var(--oro); font-size:0.95rem; letter-spacing:3px; }
 .hdr-sub { color:#333; font-size:0.38rem; letter-spacing:2px; margin-top:2px; }
+/* Aviso de error suave (ej. falta cédula) */
+.aviso-cedula {
+    max-width:480px;
+    margin:4px auto 0;
+    padding:8px 10px;
+    background:rgba(231,76,60,0.08);
+    border:1px solid rgba(231,76,60,0.35);
+    border-radius:10px;
+    font-size:0.42rem;
+    color:#f3b2a7;
+    letter-spacing:1px;
+    line-height:1.7;
+    display:none;
+}
 
 /* ── PASOS ── */
 .pasos { display:flex; align-items:center; justify-content:center; gap:0; padding:16px 24px 4px; }
@@ -153,6 +167,12 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
         <div class="hdr-titulo" id="hdr-titulo">🤜 RETO CASERITO</div>
         <div class="hdr-sub" id="hdr-sub">DESAFÍA A UN MAESTRO</div>
     </div>
+</div>
+
+<div id="aviso-cedula" class="aviso-cedula">
+    Para crear retos debes haber entrado como <b>JUGADOR</b> con tu cédula.<br>
+    Ve al menú principal → <b>JUGADOR → ENTRAR</b> y vuelve a este reto.
+    <span style="color:#777;display:block;margin-top:2px;">(Así el club sabe quién es el retador)</span>
 </div>
 
 <!-- INDICADOR DE PASOS -->
@@ -485,7 +505,8 @@ function resumenHTML(r) {
 function crearReto() {
     var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
     if (!jugActivo || !jugActivo.cedula) {
-        alert('⚠️ Para crear retos debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
+        var box = document.getElementById('aviso-cedula');
+        if (box) box.style.display = 'block';
         return;
     }
     var n1 = document.getElementById('r-n1').value.trim().toUpperCase();

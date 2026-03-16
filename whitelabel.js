@@ -1,275 +1,227 @@
 /**
  * ══════════════════════════════════════════════════════
- *  DECARAMBOLA — WHITE LABEL ENGINE  v2.1
+ *  DECARAMBOLA — WHITE LABEL ENGINE  v1.0
  *  Archivo: whitelabel.js
+ *  Incluir en cualquier página: <script src="whitelabel.js"></script>
  *
- *  FIXES v2.1:
- *  ✅ Invalida caché cuando cambia ?club= en la URL
- *  ✅ Elimina mix-blend-mode que hace invisible logos oscuros
- *  ✅ Reintenta inyectar si el DOM no tiene .logo-img aún
- *  ✅ Logs de debug en consola (WL.debug())
- *  ✅ Cache-busting en URL del logo
+ *  Qué hace:
+ *  1. Lee localStorage para saber el club del jugador activo
+ *  2. Si hay logo de club → lo muestra en el header reemplazando al logo base
+ *  3. Muestra el nombre del club debajo del logo
+ *  4. Agrega "Powered by DeCarambola" discretamente
+ *  5. Si no hay club → mantiene todo igual (marca DeCarambola)
+ *
+ *  localStorage utilizado:
+ *  - mi_perfil          → objeto del jugador (incluye .club y .club_logo_url)
+ *  - wl_club_nombre     → nombre del club (cache)
+ *  - wl_club_logo_url   → URL del logo del club (cache, puede ser URL o base64)
+ *  - wl_club_color      → color primario del club (opcional, ej: "#e74c3c")
  * ══════════════════════════════════════════════════════
  */
 
 (function() {
     'use strict';
 
+    /* ── Configuración ── */
     var SUPABASE_URL = 'https://iwvogyloebvieloequzr.supabase.co';
     var SUPABASE_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
-    var DEBUG = true;
 
-    function log() {
-        if (!DEBUG) return;
-        var args = Array.prototype.slice.call(arguments);
-        args.unshift('[WL v2.1]');
-        console.log.apply(console, args);
+    /* ── Helpers ── */
+    function get(key) {
+        try { return localStorage.getItem(key); } catch(e) { return null; }
+    }
+    function set(key, val) {
+        try { localStorage.setItem(key, val); } catch(e) {}
+    }
+    function getObj(key) {
+        try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
     }
 
-    /* ── Helpers localStorage ── */
-    function get(key)    { try { return localStorage.getItem(key); } catch(e) { return null; } }
-    function set(key, v) { try { localStorage.setItem(key, v); } catch(e) {} }
-    function getObj(key) { try { var v=localStorage.getItem(key); return v?JSON.parse(v):null; } catch(e){ return null; } }
-    function del(key)    { try { localStorage.removeItem(key); } catch(e) {} }
-
-    /* ── Leer ?club= de la URL ── */
-    function getClubSlug() {
-        try {
-            return new URLSearchParams(window.location.search).get('club') || null;
-        } catch(e) {
-            var m = window.location.search.match(/[?&]club=([^&]+)/);
-            return m ? decodeURIComponent(m[1]) : null;
-        }
+    /* ── Leer datos del jugador activo ── */
+    function getDatosClub() {
+        var perfil = getObj('mi_perfil');
+        return {
+            club_nombre  : get('wl_club_nombre') || (perfil && perfil.club) || null,
+            club_logo_url: get('wl_club_logo_url') || (perfil && perfil.club_logo_url) || null,
+            club_color   : get('wl_club_color')   || null
+        };
     }
 
-    /* ── Inyectar logo del club en .logo-img ── */
-    function aplicarLogo(club, intentos) {
-        intentos = intentos || 0;
+    /* ── Crear estilos dinámicos para el club ── */
+    function aplicarColorClub(color) {
+        if (!color) return;
+        var s = document.createElement('style');
+        s.id = 'wl-color-override';
+        // Reemplaza el color ORO con el color del club en los elementos clave
+        s.textContent =
+            '.titulo, .portal-jug .p-titulo { color: ' + color + ' !important; }' +
+            '.logo-img { filter: drop-shadow(0 0 25px ' + color + '88) !important; }' +
+            '.badge-nivel { background: linear-gradient(135deg, ' + color + ', ' + color + 'aa) !important; }';
+        document.head.appendChild(s);
+    }
+
+    /* ── Inyectar logo y nombre del club en el header ── */
+    function inyectarHeader(datos) {
+        if (!datos.club_nombre && !datos.club_logo_url) return; // Sin club → nada que hacer
+
+        /* 1. Reemplazar logo — buscar múltiples selectores posibles */
         var logoImg = document.querySelector('.logo-img');
-        log('aplicarLogo() intento', intentos, '| .logo-img:', !!logoImg, '| logo_url:', club.logo_url);
-
-        if (!logoImg && intentos < 5) {
-            setTimeout(function() { aplicarLogo(club, intentos + 1); }, 200);
-            return;
-        }
-
-        if (logoImg && club.logo_url) {
-            // FIX CLAVE: quitar mix-blend-mode:lighten que hace invisible logos
-            logoImg.style.mixBlendMode = 'normal';
-            logoImg.style.background   = 'rgba(0,0,0,0.5)';
-            logoImg.style.padding      = '6px';
-            logoImg.style.objectFit    = 'contain';
+        if (logoImg && datos.club_logo_url) {
+            logoImg.src = datos.club_logo_url;
+            logoImg.alt = datos.club_nombre || 'Club';
+            logoImg.style.objectFit = 'contain';
+            logoImg.style.background = '#111';
+            logoImg.style.padding = '4px';
             logoImg.style.borderRadius = '50%';
-            // Cache-busting para forzar nueva descarga
-            var sep = club.logo_url.indexOf('?') >= 0 ? '&' : '?';
-            logoImg.src = club.logo_url + sep + 'wl=' + Date.now();
-            logoImg.alt = club.nombre || 'Club';
-            log('✅ Logo aplicado a .logo-img');
         }
-    }
 
-    /* ── Inyectar header completo ── */
-    function inyectarHeader(club) {
-        log('inyectarHeader() →', club.nombre);
-
-        // 0. Deporte activo: usado para estilos multi‑deporte (billar, futbol, padel…)
-        var deporte = (club && club.deporte) || get('wl_club_deporte') || 'billar';
-        try {
-            deporte = String(deporte).toLowerCase();
-            set('wl_club_deporte', deporte);
-            if (document.body) {
-                document.body.setAttribute('data-deporte', deporte);
-                document.body.classList.add('deporte-' + deporte);
+        /* 2. Cambiar título principal — buscar múltiples selectores */
+        var TITULO_SELECTORS = ['.titulo', '.header h1', '.header-titulo', '.portal-titulo', 'h1'];
+        var tituloEl = null;
+        for (var ts = 0; ts < TITULO_SELECTORS.length; ts++) {
+            tituloEl = document.querySelector(TITULO_SELECTORS[ts]);
+            if (tituloEl) break;
+        }
+        // No sobreescribir si ya tiene nombre de página específico (ej: "CATEGORÍAS", "RANKING")
+        var PAGINAS_NO_REEMPLAZAR = ['CATEGORÍAS','RANKING','INSCRIPCIONES','TORNEOS','BRACKETS','PERFIL','DUELO','RETO','SENSEI','CERTIFICADOS','POSICIONES','ENTRENAMIENTO'];
+        if (tituloEl && datos.club_nombre) {
+            var textoActual = (tituloEl.textContent || '').trim().toUpperCase();
+            var esNombreDePagina = PAGINAS_NO_REEMPLAZAR.some(function(p) { return textoActual.indexOf(p) >= 0; });
+            if (!esNombreDePagina) {
+                tituloEl.textContent = datos.club_nombre;
             }
-        } catch(e) {}
-
-        // 1. Logo principal
-        aplicarLogo(club, 0);
-
-        // 2. Nombre en título (si no es página interna)
-        var PAGINAS = ['CATEGORÍAS','RANKING','INSCRIPCIONES','TORNEOS','BRACKETS',
-            'PERFIL','DUELO','RETO','SENSEI','CERTIFICADOS','POSICIONES','ENTRENAMIENTO'];
-        var tituloEl = document.querySelector('.titulo, .header h1, h1');
-        if (tituloEl && club.nombre) {
-            var txt = (tituloEl.textContent||'').trim().toUpperCase();
-            var esPagina = PAGINAS.some(function(p){ return txt.indexOf(p)>=0; });
-            if (!esPagina) tituloEl.textContent = club.nombre;
         }
 
-        // 3. Subtítulo o badge powered by
-        var subEl = document.querySelector('.subtitulo, .header small, .header-sub');
+        /* 3. Cambiar subtítulo a "Powered by DeCarambola" */
+        var SUB_SELECTORS = ['.subtitulo', '.header small', '.header-sub', '.portal-sub'];
+        var subEl = null;
+        for (var ss = 0; ss < SUB_SELECTORS.length; ss++) {
+            subEl = document.querySelector(SUB_SELECTORS[ss]);
+            if (subEl) break;
+        }
         if (subEl) {
-            subEl.innerHTML = 'POWERED BY <span style="color:#d4af37;opacity:1;">decarambol.com</span>';
-            subEl.style.opacity = '0.7';
-        } else {
-            inyectarBadge();
+            // Solo agregar "powered by" si no lo tiene ya
+            if (subEl.textContent.indexOf('POWERED') < 0 && subEl.textContent.indexOf('DeCarambola') < 0) {
+                subEl.textContent = 'POWERED BY DECARAMBOLA';
+                subEl.style.opacity = '0.55';
+            }
         }
 
-        // 4. Color del club
-        if (club.color_primario) {
-            var prev = document.getElementById('wl-color-style');
-            if (prev) prev.remove();
-            var s = document.createElement('style');
-            s.id = 'wl-color-style';
-            s.textContent =
-                '.titulo,.header h1{color:' + club.color_primario + '!important;}' +
-                '.logo-img{filter:drop-shadow(0 0 20px ' + club.color_primario + '88)!important;}';
-            document.head.appendChild(s);
+        /* 4. Color del club */
+        if (datos.club_color) {
+            aplicarColorClub(datos.club_color);
         }
 
-        // 5. Title del navegador
-        if (club.nombre && document.title.indexOf('DeCarambola') >= 0) {
-            document.title = document.title.replace('DeCarambola', club.nombre + ' · DeCarambola');
-        }
-
-        // 6. Badge logo slider
+        /* 5. Actualizar badge en el slider del index si existe */
         var badgeLogo = document.getElementById('badge-club-logo');
-        if (badgeLogo && club.logo_url && !badgeLogo.querySelector('img')) {
-            badgeLogo.innerHTML = '<img src="' + club.logo_url +
-                '" style="width:20px;height:20px;border-radius:50%;object-fit:contain;background:#111;" alt="">';
+        if (badgeLogo && datos.club_logo_url) {
+            badgeLogo.innerHTML =
+                '<img src="' + datos.club_logo_url + '" ' +
+                'style="width:18px;height:18px;border-radius:50%;object-fit:contain;background:#111;padding:1px;" ' +
+                'alt="' + (datos.club_nombre||'Club') + '">';
         }
 
-        // 7. Avatar mini
-        var miniLogo = document.getElementById('club-logo-mini');
-        if (miniLogo && club.logo_url) {
-            miniLogo.innerHTML = '<img src="' + club.logo_url +
-                '" style="width:100%;height:100%;object-fit:contain;border-radius:50%;background:#111;" alt="">';
+        /* 6. Actualizar mini-logo del portal de club si existe */
+        var clubLogoMini = document.getElementById('club-logo-mini');
+        if (clubLogoMini && datos.club_logo_url) {
+            clubLogoMini.innerHTML =
+                '<img src="' + datos.club_logo_url + '" ' +
+                'style="width:100%;height:100%;object-fit:contain;border-radius:50%;background:#111;" ' +
+                'alt="' + (datos.club_nombre||'Club') + '">';
+        }
+
+        /* 7. Actualizar title de la pestaña del navegador */
+        if (datos.club_nombre && document.title.indexOf('DeCarambola') >= 0) {
+            document.title = document.title.replace('DeCarambola', datos.club_nombre + ' · DeCarambola');
         }
     }
 
-    /* ── Badge flotante ── */
-    function inyectarBadge() {
-        if (document.getElementById('wl-powered-badge')) return;
-        var b = document.createElement('div');
-        b.id = 'wl-powered-badge';
-        b.style.cssText = 'position:fixed;bottom:70px;right:12px;z-index:999;' +
-            'background:rgba(0,0,0,0.75);border:1px solid rgba(212,175,55,0.3);' +
-            'border-radius:20px;padding:4px 10px;font-family:Arial,sans-serif;' +
-            'font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;pointer-events:none;';
-        b.innerHTML = 'powered by <strong style="color:#d4af37;">decarambol.com</strong>';
-        document.body.appendChild(b);
-    }
-
-    /* ── Limpiar caché ── */
-    function limpiarCache() {
-        ['wl_club_nombre','wl_club_logo_url','wl_club_color','wl_club_slug','wl_club_cache','wl_club_deporte']
-            .forEach(del);
-    }
-
-    /* ── Buscar club en Supabase ── */
-    async function cargarClub(slug) {
-        log('cargarClub() slug:', slug);
-
-        // Invalidar caché si el slug cambió
-        var slugCache = get('wl_club_slug');
-        if (slugCache && slugCache !== slug) {
-            log('Slug cambió. Limpiando caché: ' + slugCache + ' → ' + slug);
-            limpiarCache();
-        }
-
-        // Usar caché si coincide
-        var cache = getObj('wl_club_cache');
-        if (cache && cache.codigo === slug) {
-            log('Usando caché para:', slug);
-            inyectarHeader(cache);
-            return;
-        }
-
-        // Fetch a Supabase
-        try {
-            var url = SUPABASE_URL + '/rest/v1/clubs?codigo=eq.' +
-                encodeURIComponent(slug) + '&select=id,nombre,codigo,logo_url,color_primario,deporte';
-            log('Fetch:', url);
-            var res = await fetch(url, {
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_KEY
-                }
-            });
-            var rows = await res.json();
-            log('Respuesta:', res.status, '| Filas:', rows ? rows.length : 0);
-
+    /* ── Sincronizar logo desde Supabase si tenemos club_id pero no logo ── */
+    function sincronizarLogoDesdeSupabase(club_id) {
+        if (!club_id || get('wl_club_logo_url')) return; // ya tenemos logo
+        fetch(SUPABASE_URL + '/rest/v1/clubs?select=id,nombre,logo_url,color_primario&id=eq.' + club_id, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY
+            }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(rows) {
             if (rows && rows.length > 0) {
                 var club = rows[0];
-                // Normalizar deporte — siempre minúsculas, default billar
-                club.deporte = (club.deporte || 'billar').toLowerCase();
-                // Guardar caché
-                set('wl_club_slug',     slug);
-                set('wl_club_nombre',   club.nombre);
-                set('wl_club_logo_url', club.logo_url || '');
-                set('wl_club_color',    club.color_primario || '');
-                set('wl_club_deporte',  club.deporte);
-                set('wl_club_cache',    JSON.stringify(club));
-                inyectarHeader(club);
-            } else {
-                log('Club no encontrado para slug:', slug);
+                if (club.nombre)        set('wl_club_nombre',  club.nombre);
+                if (club.logo_url)      set('wl_club_logo_url', club.logo_url);
+                if (club.color_primario) set('wl_club_color',  club.color_primario);
+                // Relanzar inyección con datos frescos
+                inyectarHeader(getDatosClub());
             }
-        } catch(e) {
-            log('Error Supabase:', e.message);
-            var fallback = getObj('wl_club_cache');
-            if (fallback) { log('Usando fallback caché'); inyectarHeader(fallback); }
-        }
+        })
+        .catch(function() {}); // Silencioso — no bloquea
     }
 
-    /* ── API pública ── */
+    /* ── Función pública para guardar club al afiliarse ── */
     window.WL = window.WL || {};
 
-    window.WL.setClub = function(data) {
-        if (!data) return;
-        if (data.nombre)         set('wl_club_nombre',   data.nombre);
-        if (data.logo_url)       set('wl_club_logo_url', data.logo_url);
-        if (data.color_primario) set('wl_club_color',    data.color_primario);
-        // Deporte: billar por defecto, siempre minúsculas
-        if (data.deporte) {
-            set('wl_club_deporte', String(data.deporte).toLowerCase());
-        } else if (!get('wl_club_deporte')) {
-            set('wl_club_deporte', 'billar');
+    /**
+     * Llamar cuando el jugador se registra o hace login con un club
+     * @param {object} clubData - { id, nombre, logo_url, color_primario }
+     */
+    window.WL.setClub = function(clubData) {
+        if (!clubData) return;
+        if (clubData.nombre)        set('wl_club_nombre',  clubData.nombre);
+        if (clubData.logo_url)      set('wl_club_logo_url', clubData.logo_url);
+        if (clubData.color_primario) set('wl_club_color',  clubData.color_primario);
+        // Actualizar perfil guardado
+        var perfil = getObj('mi_perfil');
+        if (perfil) {
+            perfil.club = clubData.nombre;
+            perfil.club_id = clubData.id;
+            perfil.club_logo_url = clubData.logo_url || '';
+            set('mi_perfil', JSON.stringify(perfil));
         }
-        var slug = data.slug || data.codigo;
-        if (slug) set('wl_club_slug', slug);
-        set('wl_club_cache', JSON.stringify(data));
-        inyectarHeader(data);
+        inyectarHeader(getDatosClub());
     };
 
-    window.WL.clearClub    = limpiarCache;
-    window.WL.getLogoUrl   = function() { return get('wl_club_logo_url') || null; };
-    window.WL.getNombre    = function() { return get('wl_club_nombre')   || null; };
-    window.WL.getDeporte   = function() { return get('wl_club_deporte')  || 'billar'; };
-    // Alias compatibilidad
-    window.WL.getNombreClub = window.WL.getNombre;
-
-    // Debug desde consola: WL.debug()
-    window.WL.debug = function() {
-        console.group('[WL] Estado');
-        console.log('slug URL:',   getClubSlug());
-        console.log('slug cache:', get('wl_club_slug'));
-        console.log('nombre:',     get('wl_club_nombre'));
-        console.log('logo_url:',   get('wl_club_logo_url'));
-        console.log('.logo-img:',  document.querySelector('.logo-img'));
-        console.groupEnd();
+    /**
+     * Limpiar datos del club (al cerrar sesión)
+     */
+    window.WL.clearClub = function() {
+        localStorage.removeItem('wl_club_nombre');
+        localStorage.removeItem('wl_club_logo_url');
+        localStorage.removeItem('wl_club_color');
     };
 
-    /* ── MAIN ── */
+    /**
+     * Obtener logo actual del club (para usar en carnet, perfil, etc.)
+     */
+    window.WL.getLogoUrl = function() {
+        return get('wl_club_logo_url') || null;
+    };
+
+    window.WL.getNombreClub = function() {
+        return get('wl_club_nombre') || null;
+    };
+
+    /* ── MAIN: ejecutar cuando el DOM esté listo ── */
     function init() {
-        var slug = getClubSlug();
-        log('init() | readyState:', document.readyState, '| slug:', slug);
+        var datos = getDatosClub();
 
-        if (slug) {
-            cargarClub(slug);
-        } else {
-            log('Sin ?club= en URL → solo badge');
-            if (document.body) {
-                inyectarBadge();
-            } else {
-                document.addEventListener('DOMContentLoaded', inyectarBadge);
-            }
+        // Si hay datos en localStorage → inyectar inmediatamente
+        if (datos.club_nombre || datos.club_logo_url) {
+            inyectarHeader(datos);
+        }
+
+        // Si el jugador tiene club_id pero no logo → buscar en Supabase
+        var perfil = getObj('mi_perfil');
+        if (perfil && perfil.club_id && !datos.club_logo_url) {
+            sincronizarLogoDesdeSupabase(perfil.club_id);
         }
     }
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
-        setTimeout(init, 0);
+        init(); // DOM ya listo
     }
 
 })();

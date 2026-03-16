@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duelo TV — DeCarambola</title>
+    <style>
+        :root {
+            --oro:   #d4af37;
+            --negro: #0b0b0b;
+            --azul:  #3498db;
+            --neon:  #2eff70;
+            --rojo:  #e74c3c;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--negro);
+            color: #fff;
+            font-family: 'Arial Black', Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout TV: solo fase 2 (marcador + video) */
+        .tv-root {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── CABEZOTE SUPERIOR ── */
+        .barra-top {
+            background:#000;
+            border-bottom:1px solid #1a1a1a;
+        }
+        .barra-top-inner {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:10px 18px;
+            height:58px;
+        }
+        .meta-info {
+            display:flex;
+            flex-direction:column;
+            gap:2px;
+        }
+        .meta-lbl { color:#333;font-size:0.55rem;letter-spacing:2px; }
+        .meta-val { color:var(--oro);font-size:0.9rem; }
+        .reloj-box {
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:2px;
+        }
+        .reloj-ent { color:#333;font-size:0.58rem;letter-spacing:2px; }
+        #reloj {
+            font-size:2.2rem;
+            color:var(--neon);
+            font-family:'Courier New',monospace;
+            text-shadow:0 0 12px var(--neon);
+            line-height:1;
+            min-width:52px;
+            text-align:center;
+        }
+        #reloj.urgente {
+            color:var(--rojo);
+            text-shadow:0 0 12px var(--rojo);
+            animation:parpadeo 0.5s infinite;
+        }
+        @keyframes parpadeo { 0%,100%{opacity:1} 50%{opacity:0.25} }
+        .btn-pausa {
+            background:rgba(255,255,255,0.06);
+            border:1px solid #333;
+            color:#aaa;
+            font-size:1.1rem;
+            width:34px;height:34px;
+            border-radius:50%;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:0.2s;
+            flex-shrink:0;
+        }
+        .btn-fin {
+            background:rgba(231,76,60,0.12);
+            border:1px solid rgba(231,76,60,0.4);
+            color:#e88;
+            padding:8px 14px;
+            border-radius:16px;
+            font-size:0.68rem;
+            cursor:pointer;
+            letter-spacing:1px;
+            font-family:'Arial Black',sans-serif;
+            transition:0.2s;
+        }
+        .btn-fin:active { background:rgba(231,76,60,0.25);color:#fff; }
+        .btn-siguiente-set {
+            background:rgba(46,255,112,0.1);
+            border:1px solid rgba(46,255,112,0.35);
+            color:var(--neon);
+            padding:8px 14px;
+            border-radius:12px;
+            font-size:0.68rem;
+            font-weight:bold;
+            letter-spacing:1px;
+            cursor:pointer;
+            font-family:'Arial Black',sans-serif;
+        }
+        .btn-siguiente-set:active { background:rgba(46,255,112,0.2); }
+        .btn-bolas-tv {
+            background:rgba(255,255,255,0.05);
+            border:1px solid #444;
+            color:#ddd;
+            padding:6px 10px;
+            border-radius:12px;
+            font-size:0.6rem;
+            cursor:pointer;
+            font-family:'Arial Black',sans-serif;
+        }
+        .btn-bolas-tv:active { background:rgba(255,255,255,0.15); }
+
+        .barra-indicadores {
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:24px;
+            padding:8px 18px 10px;
+            font-size:0.88rem;
+            color:#666;
+            letter-spacing:1px;
+            border-top:1px solid #111;
+            flex-wrap:wrap;
+        }
+        .barra-indicadores .ind-val {
+            color:var(--oro);
+            font-family:'Courier New',monospace;
+            font-size:1.05rem;
+        }
+
+        /* ── CUERPO: 3 COLUMNAS (J1 | VIDEO | J2) ── */
+        .tv-main {
+            flex:1;
+            display:grid;
+            grid-template-columns:1fr 1fr 1fr;
+            gap:0;
+            padding:8px 10px 12px;
+        }
+        .panel-jugador {
+            background:#0a0a0a;
+            border:1px solid #1a1a1a;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:space-between;
+            padding:14px 10px 12px;
+        }
+        .panel-jugador.activo {
+            background:rgba(212,175,55,0.08);
+            border-color:rgba(212,175,55,0.45);
+            box-shadow:inset 0 0 0 2px rgba(212,175,55,0.12);
+        }
+        .panel-jugador h2 {
+            font-size:0.8rem;
+            letter-spacing:2px;
+            color:#ccc;
+            margin-bottom:10px;
+            text-align:center;
+        }
+        .panel-meta {
+            font-size:0.55rem;
+            color:#555;
+            letter-spacing:2px;
+            margin-bottom:6px;
+        }
+        .panel-meta span {
+            color:var(--oro);
+        }
+        .bola {
+            width:min(72%,200px);
+            height:min(72%,200px);
+            aspect-ratio:1;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            position:relative;
+        }
+        .bola-blanca {
+            background:radial-gradient(circle at 35% 32%,
+                #ffffff 0%, #f0f0f0 15%, #d0d0d0 35%, #999 60%, #555 85%, #1a1a1a 100%);
+            box-shadow:
+                inset -14px -14px 28px rgba(0,0,0,0.65),
+                inset 6px 6px 14px rgba(255,255,255,0.35),
+                8px 10px 28px rgba(0,0,0,0.95),
+                0 0 0 2px #111;
+        }
+        .bola-dorada {
+            background:radial-gradient(circle at 35% 32%,
+                #fffde0 0%, #fce84a 12%, #e8c020 30%, #c89a00 55%, #7a5500 80%, #2a1800 100%);
+            box-shadow:
+                inset -14px -14px 28px rgba(0,0,0,0.6),
+                inset 6px 6px 14px rgba(255,230,80,0.4),
+                8px 10px 28px rgba(0,0,0,0.95),
+                0 0 0 2px #111,
+                0 0 22px rgba(212,175,55,0.18);
+        }
+        .bola::after {
+            content:'';
+            position:absolute;
+            top:12%;left:18%;
+            width:30%;height:22%;
+            background:radial-gradient(ellipse,rgba(255,255,255,0.75) 0%,transparent 80%);
+            border-radius:50%;
+            pointer-events:none;
+        }
+        .bola .pts {
+            font-size:clamp(2rem,4vw,3.5rem);
+            font-weight:900;
+            color:#111;
+            text-shadow:0 2px 4px rgba(255,255,255,0.25);
+        }
+        .bola.dorada .pts {
+            color:#1a0f00;
+            text-shadow:0 1px 3px rgba(255,200,0,0.2);
+        }
+
+        .stats-grid {
+            margin-top:12px;
+            width:100%;
+            max-width:220px;
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:6px 14px;
+            font-size:0.7rem;
+            color:#aaa;
+        }
+        .stat-label {
+            font-size:0.6rem;
+            color:#777;
+            letter-spacing:1px;
+        }
+        .stat-value {
+            font-family:'Courier New',monospace;
+            font-weight:900;
+            color:#fff;
+            font-size:clamp(1.1rem,2.2vw,1.6rem);
+        }
+
+        .panel-meta-bar {
+            width:100%;
+            height:4px;
+            background:#111;
+            border-radius:2px;
+            margin-top:8px;
+            overflow:hidden;
+        }
+        .panel-meta-fill {
+            height:100%;
+            background:var(--oro);
+            width:0%;
+            transition:width 0.3s ease;
+        }
+
+        /* Columna central: video */
+        .panel-video {
+            background:#050505;
+            border:1px solid #1a1a1a;
+            display:flex;
+            flex-direction:column;
+            padding:10px 8px;
+            align-items:center;
+            justify-content:flex-start;
+        }
+        .panel-video h3 {
+            font-size:0.6rem;
+            color:#777;
+            letter-spacing:2px;
+            margin-bottom:6px;
+        }
+        .video-frame {
+            width:100%;
+            flex:1;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:#000;
+            border-radius:10px;
+            overflow:hidden;
+        }
+        .video-frame iframe {
+            width:100%;
+            height:100%;
+            border:none;
+        }
+        .video-placeholder {
+            width:100%;
+            height:100%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#555;
+            font-size:0.7rem;
+            letter-spacing:1px;
+        }
+
+        /* Teclado inferior (igual que duelo) */
+        .teclado-wrap {
+            position:fixed;
+            bottom:0;left:0;right:0;
+            z-index:50;
+            background:#000;
+            border-top:1px solid #1a1a1a;
+            padding:8px 10px 14px;
+            height:155px;
+            display:flex;
+            flex-direction:column;
+            gap:6px;
+        }
+        .teclado-header {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:0 2px;
+            height:36px;
+            flex-shrink:0;
+        }
+        .turno-quien {
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+        .turno-bola {
+            width:28px;height:28px;
+            border-radius:50%;
+            flex-shrink:0;
+        }
+        .turno-bola.blanca {
+            background:radial-gradient(circle at 33% 33%,#fff,#999,#333);
+            box-shadow:inset -3px -3px 6px rgba(0,0,0,0.5),2px 2px 6px rgba(0,0,0,0.8);
+        }
+        .turno-bola.dorada {
+            background:radial-gradient(circle at 33% 33%,#ffe,var(--oro),#553);
+            box-shadow:inset -3px -3px 6px rgba(0,0,0,0.5),2px 2px 6px rgba(0,0,0,0.8);
+        }
+        .turno-nombre {
+            font-size:0.85rem;
+            color:var(--oro);
+            letter-spacing:2px;
+            line-height:1;
+            font-weight:900;
+        }
+        .turno-sub {
+            font-size:0.5rem;
+            color:#555;
+            letter-spacing:2px;
+            margin-top:2px;
+        }
+        .turno-metas {
+            display:flex;
+            align-items:center;
+            gap:6px;
+        }
+        .turno-meta-item {
+            display:flex;
+            align-items:baseline;
+            gap:2px;
+            background:#0f0f0f;
+            border:1px solid #1a1a1a;
+            border-radius:10px;
+            padding:4px 10px;
+        }
+        .turno-meta-item.activo {
+            border-color:var(--oro);
+            background:rgba(212,175,55,0.07);
+        }
+        .tm-val {
+            font-size:1.1rem;
+            font-weight:900;
+            color:#fff;
+            font-family:'Courier New',monospace;
+        }
+        .tm-tot {
+            font-size:0.75rem;
+            color:#555;
+            font-family:'Courier New',monospace;
+        }
+        .tm-sep { color:#333;font-size:0.7rem;margin:0 1px; }
+
+        .teclado {
+            display:grid;
+            grid-template-columns:repeat(5,1fr);
+            gap:6px;
+            flex:1;
+        }
+        .btn-num {
+            background:#111;
+            border:1px solid #1c1c1c;
+            color:#fff;
+            border-radius:12px;
+            font-size:1.5rem;
+            font-weight:900;
+            cursor:pointer;
+            transition:0.1s;
+            font-family:'Arial Black',sans-serif;
+            user-select:none;
+        }
+        .btn-num:active { background:#252525;transform:scale(0.9);border-color:var(--oro); }
+        .btn-restar {
+            background:rgba(231,76,60,0.1);
+            border-color:rgba(231,76,60,0.2);
+            color:var(--rojo);font-size:1.8rem;
+        }
+        .btn-restar:active { background:rgba(231,76,60,0.22); }
+        .btn-sig {
+            height:38px;
+            background:linear-gradient(135deg,var(--azul),#1460a0);
+            color:#fff;border:none;border-radius:12px;
+            font-size:0.85rem;font-weight:900;
+            cursor:pointer;letter-spacing:2px;
+            font-family:'Arial Black',sans-serif;
+        }
+        .btn-sig:active { transform:scale(0.97);opacity:0.85; }
+    </style>
+</head>
+<body>
+<div class="tv-root">
+
+    <!-- CABEZOTE TV -->
+    <div class="barra-top">
+        <div class="barra-top-inner">
+            <div class="meta-info">
+                <span class="meta-lbl" id="lbl-meta1-top">META J1</span>
+                <span class="meta-val" id="lbl-pts-meta1">— / —</span>
+            </div>
+            <div class="reloj-box">
+                <span class="reloj-ent" id="lbl-ent-top">ENTRADA 1</span>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div id="reloj">40</div>
+                    <button id="btn-pausa" class="btn-pausa">⏸</button>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <button class="btn-bolas-tv" id="btn-bolas-tv" title="Intercambiar bolas blanca/dorada">⚪⇄🟡</button>
+                    <button class="btn-siguiente-set" id="btn-siguiente-set">▶ SIG. SET</button>
+                    <button class="btn-fin" id="btn-fin">🏁 FINALIZAR</button>
+                </div>
+                <span class="meta-val" style="font-size:0.75rem;" id="lbl-pts-meta2">— / —</span>
+            </div>
+        </div>
+        <div class="barra-indicadores">
+            <span>MESA <span class="ind-val" id="ind-mesa">—</span></span>
+            <span>TIEMPO <span class="ind-val" id="ind-transcurrido">0:00</span></span>
+        </div>
+    </div>
+
+    <!-- CUERPO TV: J1 | VIDEO | J2 -->
+    <div class="tv-main">
+        <!-- Panel Jugador 1 -->
+        <div class="panel-jugador" id="panel-j1">
+            <div>
+                <h2 id="lbl1-sb">JUGADOR A</h2>
+                <div class="panel-meta">META <span id="meta1-sb">0</span></div>
+            </div>
+            <div class="bola bola-blanca" id="bola1-sb">
+                <div class="pts" id="pts1-sb">0</div>
+            </div>
+            <div class="stats-grid">
+                <div>
+                    <div class="stat-label">ENTRADAS</div>
+                    <div class="stat-value" id="ent1-sb">0</div>
+                </div>
+                <div>
+                    <div class="stat-label">PROMEDIO</div>
+                    <div class="stat-value" id="prom1-sb">0.000</div>
+                </div>
+                <div>
+                    <div class="stat-label">SERIE</div>
+                    <div class="stat-value" id="serie1-sb">0</div>
+                </div>
+                <div>
+                    <div class="stat-label">S. MAYOR</div>
+                    <div class="stat-value" id="ms1-sb">0</div>
+                </div>
+            </div>
+            <div class="panel-meta-bar">
+                <div class="panel-meta-fill" id="fill1-sb"></div>
+            </div>
+        </div>
+
+        <!-- Panel Video -->
+        <div class="panel-video">
+            <h3 id="lbl-video-header">MESA — STREAM EN VIVO</h3>
+            <div class="video-frame">
+                <div class="video-placeholder" id="video-placeholder">Conecte la cámara de esta mesa</div>
+                <iframe id="stream-iframe" style="display:none;" title="Transmisión"></iframe>
+            </div>
+        </div>
+
+        <!-- Panel Jugador 2 -->
+        <div class="panel-jugador" id="panel-j2">
+            <div>
+                <h2 id="lbl2-sb">JUGADOR B</h2>
+                <div class="panel-meta">META <span id="meta2-sb">0</span></div>
+            </div>
+            <div class="bola bola-dorada" id="bola2-sb">
+                <div class="pts" id="pts2-sb">0</div>
+            </div>
+            <div class="stats-grid">
+                <div>
+                    <div class="stat-label">ENTRADAS</div>
+                    <div class="stat-value" id="ent2-sb">0</div>
+                </div>
+                <div>
+                    <div class="stat-label">PROMEDIO</div>
+                    <div class="stat-value" id="prom2-sb">0.000</div>
+                </div>
+                <div>
+                    <div class="stat-label">SERIE</div>
+                    <div class="stat-value" id="serie2-sb">0</div>
+                </div>
+                <div>
+                    <div class="stat-label">S. MAYOR</div>
+                    <div class="stat-value" id="ms2-sb">0</div>
+                </div>
+            </div>
+            <div class="panel-meta-bar">
+                <div class="panel-meta-fill" id="fill2-sb"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TECLADO INFERIOR -->
+    <div class="teclado-wrap">
+        <div class="teclado-header">
+            <div class="turno-quien">
+                <div class="turno-bola" id="tk-bola"></div>
+                <div>
+                    <div class="turno-nombre" id="tk-nombre">—</div>
+                    <div class="turno-sub" id="tk-entrada">ENTRADA 1</div>
+                </div>
+            </div>
+            <div class="turno-metas">
+                <div class="turno-meta-item" id="tk-meta1">
+                    <span class="tm-val" id="tk-v1">0</span>
+                    <span class="tm-sep">/</span>
+                    <span class="tm-tot" id="tk-t1">∞</span>
+                </div>
+                <div class="turno-meta-item" id="tk-meta2">
+                    <span class="tm-val" id="tk-v2">0</span>
+                    <span class="tm-sep">/</span>
+                    <span class="tm-tot" id="tk-t2">∞</span>
+                </div>
+            </div>
+        </div>
+        <div class="teclado">
+            <button class="btn-num" onclick="sumar(1)">1</button>
+            <button class="btn-num" onclick="sumar(2)">2</button>
+            <button class="btn-num" onclick="sumar(3)">3</button>
+            <button class="btn-num" onclick="sumar(4)">4</button>
+            <button class="btn-num btn-restar" onclick="restar()">−</button>
+        </div>
+        <button class="btn-sig" onclick="cambio()">► SIGUIENTE ENTRADA</button>
+    </div>
+</div>
+
+<script src="core.js"></script>
+<script>
+    // Estado
+    let bolasInvertidas = false;
+    let d = { p1:12,p2:10,e1:2,e2:2,s1:3,s2:0,ms1:5,ms2:2,t:1 };
+    let cfg = { meta1:25,meta2:25,tiempo:40,mesa:'3',streamUrl:'' };
+
+    let tiempoRestante = cfg.tiempo;
+    let timer = null;
+    let pausado = false;
+    let partidaStartTime = Date.now();
+    let partidaTotalPausedMs = 0;
+    let pauseStartTime = 0;
+
+    function actualizarUI() {
+        document.getElementById('lbl1-sb').innerText = 'JUGADOR A';
+        document.getElementById('lbl2-sb').innerText = 'JUGADOR B';
+        document.getElementById('pts1-sb').innerText = d.p1;
+        document.getElementById('pts2-sb').innerText = d.p2;
+        document.getElementById('ent1-sb').innerText = d.e1;
+        document.getElementById('ent2-sb').innerText = d.e2;
+        document.getElementById('prom1-sb').innerText = d.e1>0?(d.p1/d.e1).toFixed(3):'0.000';
+        document.getElementById('prom2-sb').innerText = d.e2>0?(d.p2/d.e2).toFixed(3):'0.000';
+        document.getElementById('serie1-sb').innerText = d.s1;
+        document.getElementById('serie2-sb').innerText = d.s2;
+        document.getElementById('ms1-sb').innerText = d.ms1;
+        document.getElementById('ms2-sb').innerText = d.ms2;
+        document.getElementById('meta1-sb').innerText = cfg.meta1;
+        document.getElementById('meta2-sb').innerText = cfg.meta2;
+        document.getElementById('fill1-sb').style.width = cfg.meta1>0?Math.min(100,(d.p1/cfg.meta1)*100)+'%':'0%';
+        document.getElementById('fill2-sb').style.width = cfg.meta2>0?Math.min(100,(d.p2/cfg.meta2)*100)+'%':'0%';
+
+        // Barra superior
+        document.getElementById('lbl-pts-meta1').innerText = d.p1 + '/' + cfg.meta1;
+        document.getElementById('lbl-pts-meta2').innerText = d.p2 + '/' + cfg.meta2;
+        document.getElementById('ind-mesa').innerText = 'Mesa ' + cfg.mesa;
+
+        actualizarTecladoHeader();
+    }
+
+    function actualizarTecladoHeader() {
+        const nom1 = 'JUGADOR A';
+        const nom2 = 'JUGADOR B';
+        const nomActivo = d.t===1?nom1:nom2;
+        const bola = document.getElementById('tk-bola');
+        var colorTurno = d.t===1?'blanca':'dorada';
+        if (bolasInvertidas) colorTurno = (colorTurno==='blanca')?'dorada':'blanca';
+        bola.className = 'turno-bola ' + colorTurno;
+        document.getElementById('tk-nombre').innerText = nomActivo;
+        const entActiva = d.t===1?d.e1+1:d.e2+1;
+        document.getElementById('tk-entrada').innerText = 'ENTRADA ' + entActiva;
+        document.getElementById('tk-v1').innerText = d.p1;
+        document.getElementById('tk-t1').innerText = cfg.meta1>0?cfg.meta1:'∞';
+        document.getElementById('tk-v2').innerText = d.p2;
+        document.getElementById('tk-t2').innerText = cfg.meta2>0?cfg.meta2:'∞';
+        document.getElementById('tk-meta1').className = 'turno-meta-item' + (d.t===1?' activo':'');
+        document.getElementById('tk-meta2').className = 'turno-meta-item' + (d.t===2?' activo':'');
+    }
+
+    function actualizarIndicadoresTiempo() {
+        if (!partidaStartTime) return;
+        var elapsedMs = pausado ? (pauseStartTime - partidaStartTime - partidaTotalPausedMs) : (Date.now() - partidaStartTime - partidaTotalPausedMs);
+        var elapsedSec = Math.max(0, Math.floor(elapsedMs / 1000));
+        var m = Math.floor(elapsedSec / 60);
+        var s = elapsedSec % 60;
+        var txt = m + ':' + (s<10?'0':'') + s;
+        document.getElementById('ind-transcurrido').innerText = txt;
+    }
+
+    function iniciarReloj() {
+        clearInterval(timer);
+        pausado = false;
+        document.getElementById('reloj').innerText = tiempoRestante;
+        timer = setInterval(()=>{
+            if (pausado) return;
+            tiempoRestante--;
+            document.getElementById('reloj').innerText = tiempoRestante;
+            if (tiempoRestante<=10) document.getElementById('reloj').classList.add('urgente');
+            if (tiempoRestante<=0) { clearInterval(timer); cambio(); }
+            actualizarIndicadoresTiempo();
+        },1000);
+        actualizarIndicadoresTiempo();
+    }
+
+    function togglePausa() {
+        pausado = !pausado;
+        const btn = document.getElementById('btn-pausa');
+        const rel = document.getElementById('reloj');
+        if (pausado) {
+            pauseStartTime = Date.now();
+            btn.innerText = '▶';
+            btn.style.color = '#2eff70';
+            btn.style.borderColor = '#2eff70';
+            rel.style.opacity = '0.4';
+        } else {
+            partidaTotalPausedMs += Date.now() - pauseStartTime;
+            btn.innerText = '⏸';
+            btn.style.color = '#aaa';
+            btn.style.borderColor = '#333';
+            rel.style.opacity = '1';
+        }
+        actualizarIndicadoresTiempo();
+    }
+
+    function sumar(n) {
+        d['p'+d.t] += n;
+        d['s'+d.t] += n;
+        if (d['s'+d.t] > d['ms'+d.t]) d['ms'+d.t] = d['s'+d.t];
+        actualizarUI();
+    }
+
+    function restar() {
+        if (d['p'+d.t] > 0) {
+            d['p'+d.t]--;
+            if (d['s'+d.t]>0) d['s'+d.t]--;
+        }
+        actualizarUI();
+    }
+
+    function cambio() {
+        d['e'+d.t]++;
+        d['s'+d.t]=0;
+        d.t = d.t===1?2:1;
+        tiempoRestante = cfg.tiempo;
+        iniciarReloj();
+        actualizarUI();
+        document.getElementById('lbl-ent-top').innerText = 'ENTRADA ' + (d['e'+d.t]+1);
+    }
+
+    function intercambiarBolasTv() {
+        bolasInvertidas = !bolasInvertidas;
+        const b1 = document.getElementById('bola1-sb');
+        const b2 = document.getElementById('bola2-sb');
+        function swap(el,a,b){
+            if (!el) return;
+            if (el.classList.contains(a)) { el.classList.remove(a);el.classList.add(b);}
+            else if (el.classList.contains(b)) { el.classList.remove(b);el.classList.add(a);}
+        }
+        swap(b1,'bola-blanca','bola-dorada');
+        swap(b2,'bola-blanca','bola-dorada');
+        actualizarTecladoHeader();
+    }
+
+    function siguienteSet() {
+        // TODO: integrar con HISTORIAL.guardarPartida si se requiere
+        d = { p1:0,p2:0,e1:0,e2:0,s1:0,s2:0,ms1:0,ms2:0,t:1 };
+        tiempoRestante = cfg.tiempo;
+        iniciarReloj();
+        actualizarUI();
+    }
+
+    document.getElementById('btn-pausa').onclick = togglePausa;
+    document.getElementById('btn-bolas-tv').onclick = intercambiarBolasTv;
+    document.getElementById('btn-siguiente-set').onclick = siguienteSet;
+
+    // DEMO inicial
+    actualizarUI();
+    iniciarReloj();
+</script>
+</body>
+</html>
+

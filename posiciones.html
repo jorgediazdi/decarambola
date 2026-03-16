@@ -213,7 +213,16 @@ function renderPartidos() {
 }
 
 function renderReglamento() {
-    var reglamento = torneo.reglamento || 'No se ha definido reglamento.';
+    var reglamento = torneo.reglamento;
+    if (!reglamento || !String(reglamento).trim()) {
+        reglamento =
+            'REGLAMENTO GENÉRICO DEL TORNEO<br><br>' +
+            '• Modalidad: ' + (torneo.modalidad || '3 Bandas') + '.<br>' +
+            '• Sistema de juego: fase de grupos todos contra todos, seguido de llaves eliminatorias según tabla de posiciones.<br>' +
+            '• Orden de desempate en grupos: (1) Puntos, (2) Promedio general, (3) Enfrentamiento directo, (4) Mayor serie, (5) Sorteo si persiste el empate.<br>' +
+            '• Tiempo por entrada y metas de carambolas según configuración del torneo en DeCarambola.<br>' +
+            '• Conducta: se aplican las reglas de etiqueta y comportamiento deportivo del club sede.';
+    }
     var html = '<div class="tabla-container"><div class="tabla-titulo"><span class="tabla-titulo-icon">📋</span><span class="tabla-titulo-txt">REGLAMENTO</span></div><div style="padding:16px;font-size:0.55rem;color:#888;line-height:1.8;">' + reglamento + '</div></div>';
     html += '<div class="tabla-container" style="margin-top:15px;"><div class="tabla-titulo"><span class="tabla-titulo-icon">⚙️</span><span class="tabla-titulo-txt">SISTEMA DE PUNTOS</span></div><div style="padding:16px;display:flex;gap:10px;flex-wrap:wrap;">';
     html += '<div style="flex:1;min-width:80px;background:#0f0f0f;border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.5rem;color:var(--neon);">2</div><div style="font-size:0.4rem;color:#555;">VICTORIA</div></div>';

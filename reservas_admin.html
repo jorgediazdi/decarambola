@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestión de reservas — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#000; --g1:#1a1a1a; --g2:#111; --azul:#3498db; --rojo:#e74c3c; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
+
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20; }
+        .header-titulo { color:var(--oro); font-size:0.85rem; letter-spacing:3px; }
+        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
+        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; }
+
+        .wrap { max-width:520px; margin:0 auto; padding:16px 18px; }
+
+        .tabs { display:flex; gap:6px; margin-bottom:14px; }
+        .tab-btn { flex:1; padding:10px; border-radius:999px; border:1px solid var(--g1); background:#050505; color:#555; font-size:0.55rem; cursor:pointer; font-family:'Arial Black',sans-serif; letter-spacing:2px; }
+        .tab-btn.activo { background:var(--oro); color:#000; border-color:var(--oro); }
+
+        .reserva-card { background:var(--g2); border-radius:14px; padding:12px 14px; border:1px solid var(--g1); margin-bottom:10px; font-size:0.6rem; }
+        .reserva-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+        .reserva-mesa { color:var(--oro); font-size:0.7rem; letter-spacing:2px; }
+        .badge { font-size:0.5rem; padding:3px 8px; border-radius:999px; letter-spacing:1px; }
+        .badge-pendiente { background:rgba(243,156,18,0.2); color:#f39c12; }
+        .badge-confirmada { background:rgba(46,204,113,0.2); color:#2ecc71; }
+        .badge-cancelada { background:rgba(231,76,60,0.2); color:#e74c3c; }
+        .reserva-det { color:#aaa; font-size:0.55rem; }
+        .reserva-acciones { display:flex; gap:8px; margin-top:10px; }
+        .btn-small { flex:1; padding:8px; border-radius:10px; border:1px solid var(--g1); background:#050505; color:#bbb; font-size:0.55rem; cursor:pointer; font-family:'Arial Black',sans-serif; letter-spacing:1px; }
+        .btn-ok { border-color:#2ecc71; color:#2ecc71; }
+        .btn-cancel { border-color:#e74c3c; color:#e74c3c; }
+
+        .vacio { text-align:center; color:#444; font-size:0.6rem; padding:18px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-titulo">GESTIÓN DE RESERVAS</div>
+        <div class="header-sub">Instalaciones del club</div>
+    </div>
+    <a href="index.html" class="btn-hdr">← INICIO</a>
+</div>
+
+<div class="wrap">
+    <div class="tabs">
+        <button class="tab-btn activo" id="tab-pend" onclick="cambiarTab('pendiente')">PENDIENTES</button>
+        <button class="tab-btn" id="tab-conf" onclick="cambiarTab('confirmada')">CONFIRMADAS</button>
+        <button class="tab-btn" id="tab-todo" onclick="cambiarTab('todas')">TODAS</button>
+    </div>
+    <div id="lista-reservas"></div>
+</div>
+
+<script src="core.js"></script>
+<script src="session.js"></script>
+<script>
+let reservas = [];
+let mesasIndex = {};
+let filtroEstado = 'pendiente';
+
+function getClubId() {
+    if (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) return MasterVIP.getClubId();
+    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    return perfil.club_id || null;
+}
+
+function cambiarTab(est) {
+    filtroEstado = est;
+    document.getElementById('tab-pend').classList.toggle('activo', est === 'pendiente');
+    document.getElementById('tab-conf').classList.toggle('activo', est === 'confirmada');
+    document.getElementById('tab-todo').classList.toggle('activo', est === 'todas');
+    pintarReservas();
+}
+
+function estadoBadge(est) {
+    est = (est || 'pendiente').toLowerCase();
+    if (est === 'confirmada') return '<span class="badge badge-confirmada">CONFIRMADA</span>';
+    if (est === 'cancelada') return '<span class="badge badge-cancelada">CANCELADA</span>';
+    return '<span class="badge badge-pendiente">PENDIENTE</span>';
+}
+
+function nombreMesa(id) {
+    var m = mesasIndex[id];
+    if (!m) return 'INSTALACIÓN';
+    return (m.nombre || ('Instalación ' + (m.numero || ''))).toUpperCase();
+}
+
+function pintarReservas() {
+    var cont = document.getElementById('lista-reservas');
+    if (!cont) return;
+    var lista = reservas.slice();
+    if (filtroEstado !== 'todas') {
+        lista = lista.filter(function(r){ return (r.estado || 'pendiente').toLowerCase() === filtroEstado; });
+    }
+    if (!lista.length) {
+        cont.innerHTML = '<div class="vacio">Sin reservas en este filtro</div>';
+        return;
+    }
+    cont.innerHTML = lista.map(function(r){
+        var fecha = r.fecha_reserva ? new Date(r.fecha_reserva) : null;
+        var fechaTxt = fecha ? fecha.toLocaleString('es') : 'Sin fecha';
+        var dur = r.duracion_minutos ? r.duracion_minutos + ' min' : '—';
+        var notas = r.notas || '';
+        return '<div class="reserva-card">' +
+            '<div class="reserva-top"><div class="reserva-mesa">' + nombreMesa(r.mesa_id) + '</div>' +
+            estadoBadge(r.estado) + '</div>' +
+            '<div class="reserva-det">' +
+            (r.jugador_nombre ? ('👤 ' + r.jugador_nombre + '<br>') : '') +
+            '📅 ' + fechaTxt + ' · ⏱ ' + dur +
+            (notas ? '<br>📝 ' + notas : '') +
+            '</div>' +
+            ( (r.estado || 'pendiente').toLowerCase() === 'pendiente'
+              ? '<div class="reserva-acciones">' +
+                '<button class="btn-small btn-ok" onclick="actualizarReserva(\'' + r.id + '\',\'confirmada\')">CONFIRMAR</button>' +
+                '<button class="btn-small btn-cancel" onclick="actualizarReserva(\'' + r.id + '\',\'cancelada\')">CANCELAR</button>' +
+                '</div>' : '' ) +
+            '</div>';
+    }).join('');
+}
+
+async function actualizarReserva(id, nuevoEstado) {
+    await DB.update('mesas_reservas', id, { estado: nuevoEstado, updated_at: new Date().toISOString() });
+    reservas = reservas.map(function(r){ if (r.id === id) r.estado = nuevoEstado; return r; });
+    pintarReservas();
+}
+
+async function cargarDatos() {
+    var clubId = getClubId();
+    var filtro = clubId ? 'club_id=eq.' + clubId : '';
+    var list = await DB.get('mesas_reservas', filtro || 'limit=100');
+    reservas = list || [];
+    reservas.sort(function(a,b){
+        return new Date(b.fecha_reserva || b.created_at) - new Date(a.fecha_reserva || a.created_at);
+    });
+    // índice de mesas
+    var mesas = await DB.get('mesas', clubId ? 'club_id=eq.' + clubId : 'limit=200');
+    mesasIndex = {};
+    (mesas || []).forEach(function(m){ mesasIndex[m.id] = m; });
+    pintarReservas();
+}
+
+window.onload = function() {
+    try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
+    cargarDatos();
+};
+</script>
+
+</body>
+</html>
+
