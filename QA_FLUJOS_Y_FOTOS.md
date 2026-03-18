@@ -19,7 +19,7 @@
   - **Mesa:** número o nombre (ej. 1, Mesa A) — misma referencia que la ubicación física en el local.
   - **URL cámara de esta mesa:** stream/cámara de esa mesa (Mesa 1 = cámara 1 = misma ubicación).
 - **Vista TV del club:**
-  - Abrir en el TV: `duelo.html?vista=tv` o pantalla ≥ 1024px.
+  - Abrir en el TV: `duelo-tv.html` (Fase 1 registro, luego vista TV) o pantalla ≥ 1024px.
   - En vista TV el **video siempre se muestra** (obligatorio): zona de stream visible y más grande.
   - Si no hay URL de cámara: se muestra "Mesa X — Conecte la cámara de esta mesa".
 - **Móvil:** sin video por defecto; botón "Ver transmisión en vivo" abre el stream en modal.
@@ -39,7 +39,7 @@
 ### Club / sede
 - [ ] Configuración de sede (admin): PIN, anuncio en slider, mesas, disposición.
 - [ ] Sin torneo activo: Control de torneo y Posiciones muestran mensaje "No hay torneo activo" o similar.
-- [ ] Duelo en TV: abrir `duelo.html?vista=tv`, configurar Mesa + URL cámara, iniciar partida → se ve el video de la mesa.
+- [ ] Duelo en TV: abrir `duelo-tv.html`, en Fase 1 configurar jugadores, Mesa + URL cámara (o mesa para stream), Iniciar partida → se ve el video de la mesa.
 
 ### Jugador
 - [ ] Sin club: Inscripciones y Ranking muestran bloqueo "Afiliación obligatoria".

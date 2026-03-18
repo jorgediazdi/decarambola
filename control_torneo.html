@@ -617,7 +617,7 @@ function iniciar(partidaId, j1, j2) {
         tiempoEntrada: torneo.tiempoEntrada || 40,
         entradaObjetivo: torneo.entradaObjetivo || 0
     }));
-    location.href = 'duelo.html';
+    location.href = 'duelo-tv.html';
 }
 
 function copiarLinkArbitro(partidaIdEnc) {
@@ -625,7 +625,7 @@ function copiarLinkArbitro(partidaIdEnc) {
     if (!torneo || !torneo.id) { alert('No hay torneo activo'); return; }
     var base = (window.location.href || '').replace(/control_torneo\.html.*$/, '');
     if (!base.endsWith('/')) base = base.replace(/\/?$/, '/');
-    var url = base + 'duelo.html?torneo=' + encodeURIComponent(torneo.id) + '&partida=' + encodeURIComponent(partidaId) + '&arbitro=1';
+    var url = base + 'duelo-tv.html?torneo=' + encodeURIComponent(torneo.id) + '&partida=' + encodeURIComponent(partidaId) + '&arbitro=1';
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(function() { alert('Link copiado. Envía el enlace al árbitro para que abra duelo en el móvil.'); }).catch(function() { prompt('Copia este enlace:', url); });
     } else {

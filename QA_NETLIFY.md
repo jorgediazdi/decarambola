@@ -50,7 +50,7 @@ Checklist para montar en Netlify y comprobar que nada quede roto tras los últim
 
 ### Otras páginas críticas (una por una)
 
-- [ ] duelo.html
+- [ ] duelo-tv.html
 - [ ] perfil.html
 - [ ] posiciones.html
 - [ ] control_torneo.html

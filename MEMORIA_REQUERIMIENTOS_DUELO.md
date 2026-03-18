@@ -45,9 +45,8 @@ Documento de referencia para ver siempre lo que estás pidiendo antes de subir a
 
 ## URLs para probar antes de subir
 
-- Duelo completo: `http://localhost:9090/duelo.html`
-- Solo fase 2 (pantalla de juego): `http://localhost:9090/duelo.html?demo=1`
-- Fase 2 en TV: `http://localhost:9090/duelo.html?vista=tv&demo=1`
+- Duelo TV (Fase 1 + Fase 2): `http://localhost:9090/duelo-tv.html`
+- Con stream por URL: `http://localhost:9090/duelo-tv.html?stream=...`
 - Preview TV 24": `http://localhost:9090/duelo-tv-preview.html`
 
 ---

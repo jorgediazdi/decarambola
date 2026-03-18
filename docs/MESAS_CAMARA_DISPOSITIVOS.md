@@ -9,7 +9,7 @@ Además, **se pueden parametrizar todos los dispositivos o elementos alrededor**
 ## Dónde se configura
 
 - **Cámaras (una o varias):** En la **Ficha de instalación** (`instalacion_ficha.html`), sección **“Cámaras y dispositivos”**. Ahí se listan nombre + URL por cámara; se guarda en `mesas.urls_camaras` (jsonb). La primera URL también se escribe en `mesas.url_camara` para compatibilidad.
-- **Uso en Duelo:** En `duelo.html`, al elegir mesa, si no se escribe una URL manual, el sistema usa `MasterVIP.getStreamUrlMesa(clubId, numeroMesa)` (primera cámara). Para listar todas: `MasterVIP.getStreamUrlsMesa(clubId, numeroMesa)`.
+- **Uso en Duelo TV:** En `duelo-tv.html`, en la Fase 1 (registro), al indicar mesa sin URL de stream, el sistema usa `MasterVIP.getStreamUrlMesa(clubId, numeroMesa)` (primera cámara). Para listar todas: `MasterVIP.getStreamUrlsMesa(clubId, numeroMesa)`.
 
 ## Resumen técnico
 

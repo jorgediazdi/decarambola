@@ -16,7 +16,7 @@ Se revisó el código (enlaces, scripts, SESSION, lógica clave) y se rellenaron
 | **session.js** | Incluido donde aplica sesión: mesas, reportes, reservas_admin, historial, mesas_config, socios, instalacion_ficha. Otras páginas usan SESSION pero cargan desde index (organizador) o solo core. |
 | **SESSION (verificarAlCargar / iniciar)** | Presente en: perfil, ranking, historial, posiciones, inscripciones, reto_crear, torneos, torneo_amigos, organizador, control_torneo, torneo_crear, Configurador formato, mesas, mesas_config, reservas_admin, reportes, socios, historial_mesas, instalacion_ficha; duelo (iniciar partida para árbitro). ✅ |
 | **Cámaras por mesa** | core.js: getStreamUrlMesa y getStreamUrlsMesa; instalacion_ficha: lista_camaras, guardarCamaras, DB.update mesas con urls_camaras y url_camara. ✅ |
-| **Duelo → stream desde Supabase** | duelo.html usa MasterVIP.getStreamUrlMesa(clubId, cfg.mesa) cuando no hay URL manual. ✅ |
+| **Duelo TV → stream desde Supabase** | duelo-tv.html (Fase 1) usa MasterVIP.getStreamUrlMesa(clubId, cfg.mesa) cuando no hay URL manual. ✅ |
 | **Admin sede → Supabase** | admin_sede.html: PATCH a clubs si hay id, POST (INSERT) si no hay id; actualiza localStorage y WL. ✅ |
 | **PQRS superadmin** | pqrs_admin.html: buildMensajeNotificacion, bloque NOTIFICAR AL USUARIO para autorizados con respuesta_texto, COPIAR / ABRIR WHATSAPP/CORREO. ✅ |
 
@@ -30,7 +30,7 @@ Se revisó el código (enlaces, scripts, SESSION, lógica clave) y se rellenaron
 |--------------|--------|--------|
 | Último commit | `b232a00` — actualizacion carambola suite | |
 | Archivos **modificados** (M) sin commit | Varios | Sensei, Version, control_torneo, core, duelo*, historial, index, inscripciones, instalacion_ficha, mesas_config, organizador, overlay_marcador, posiciones, ranking, reto_crear, supabase_mesas_url_camara.sql, torneo_crear |
-| Archivos **nuevos** (??) sin commit | Muchos | admin_sede, 404, AGENTS.md, docs/, manifest, sw, icon.svg, pqrs_admin, sensei-backend/, _headers, _redirects, certificado_ver, duelo-tv-preview, duelo_movil, Configurador formato, etc. |
+| Archivos **nuevos** (??) sin commit | Muchos | admin_sede, 404, AGENTS.md, docs/, manifest, sw, icon.svg, pqrs_admin, sensei-backend/, _headers, _redirects, certificado_ver, duelo-tv-preview, Configurador formato, etc. |
 
 **Recomendación:** Hacer **commit** de todo lo que quieras que vaya a Netlify (incl. cámaras por mesa, PWA, admin_sede, pqrs_admin, docs, etc.) y luego subir. Si subes por **arrastre de carpeta** en Netlify, lo que esté en disco es lo que se despliega (no hace falta commit para Netlify drag-and-drop, pero sí para tener historial y rollback).
 
@@ -46,7 +46,7 @@ Verificación en código = ✅. Prueba en navegador = pendiente que tú hagas do
 | 2 | **Torneo (crear)** | torneo_crear.html; SESSION organizador | ✅ Código OK — Probar en navegador |
 | 3 | **Configurador formato** | Configurador formato.html; SESSION organizador | ✅ Código OK — Probar en navegador |
 | 4 | **Control torneo** | control_torneo.html; core.js; SESSION organizador | ✅ Código OK — Probar en navegador |
-| 5 | **Duelo (partida)** | duelo.html; getStreamUrlMesa en core; stream opcional | ✅ Código OK — Probar en navegador |
+| 5 | **Duelo TV (partida)** | duelo-tv.html; Fase 1 registro + Fase 2 marcador; getStreamUrlMesa en core; stream opcional | ✅ Código OK — Probar en navegador |
 | 6 | **Duelo TV / overlay** | duelo-tv.html, overlay_marcador.html existen | ✅ Código OK — Probar en navegador |
 | 7 | **Mesas (salón)** | mesas.html; session.js; SESSION organizador | ✅ Código OK — Probar en navegador |
 | 8 | **Mesas config** | mesas_config.html; layout filas, metraje | ✅ Código OK — Probar en navegador |
@@ -106,7 +106,7 @@ Comprobar en navegador que cada rol ve solo lo que debe. En código: index separ
 | 7 | **Posiciones** | posiciones.html; SESSION jugador | ✅ Código OK — Probar en navegador |
 | 8 | **Sensei** | Sensei.html | ✅ Código OK — Probar en navegador |
 | 9 | **Joe / PQRS** | Sensei.html?contacto=1 | ✅ Código OK — Probar en navegador |
-| 10 | **Duelo (como partida)** | duelo.html (link árbitro o control torneo) | ✅ Código OK — Probar en navegador |
+| 10 | **Duelo TV (como partida)** | duelo-tv.html (link árbitro o control torneo) | ✅ Código OK — Probar en navegador |
 
 ---
 

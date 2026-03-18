@@ -22,7 +22,7 @@ Este documento es la **fuente de verdad** para que una IA (Cursor, Sensei con **
 | **Sensei (usuario)** | Mismo jugador u otro | Consultar al **Sensei** solo para **temas de juego** (chat IA con Gemini): técnicas, sistemas, biblioteca, analizar jugada. |
 | **Joe (contacto / PQRS)** | Cualquier usuario | Agente **Joe** para **contacto, PQRS e información de la plataforma y servicios de administración**. Misma pantalla que Sensei (menú o enlace) pero identidad distinta: Joe pide datos para contactar y gestiona PQRS; Sensei solo billar. |
 | **Organizador** | Responsable del torneo | Crear torneo, inscripciones, control de partidas, brackets, posiciones, certificados. **No** gestiona mesas ni sede. |
-| **Árbitro / asistente** | Persona en la mesa sin pantalla administrativa | Recibe link desde Control torneo (duelo.html?torneo=…&partida=…&arbitro=1) para anotar y enviar resultado desde el móvil. |
+| **Árbitro / asistente** | Persona en la mesa sin pantalla administrativa | Recibe link desde Control torneo (duelo-tv.html?torneo=…&partida=…&arbitro=1) para anotar y enviar resultado desde el móvil. |
 | **Administrador del club** | Dueño o gestor del club | Acceso con clave en index (“Soy administrador del club”). Ve **MI CLUB**: sede, personalizar, mesas, reservas, historial, código invitación; **no** ve Jugador/Sensei. **No** es el admin de la plataforma. |
 | **Superadmin (admin de la plataforma)** | Responsable de DeCarambola | Acceso con **clave distinta** (en pqrs_admin.html o enlace “Admin plataforma (superadmin)” en el footer). Solo el superadmin ve y autoriza **PQRS** (tabla pqrs en Supabase). El admin del club no tiene acceso a Gestionar PQRS. |
 | **Desarrollador / mantenedor** | Quien mantiene el repo | Código en “DE CARAMBOLA SUITE.”; no tocar index/core/overlay sin cuidado (Duelo TV, OBS). |
@@ -32,7 +32,7 @@ Este documento es la **fuente de verdad** para que una IA (Cursor, Sensei con **
 ## 3. Módulos principales y documentación existente
 
 - **index.html** — Portal por roles (Jugador, Sensei, Organizador, MI CLUB); modo admin con clave; enlaces a todo.
-- **duelo.html** — Partida en vivo (marcador, entradas, tiempo); puede abrirse desde Control torneo o con link árbitro.
+- **duelo-tv.html** — Duelo TV Premium (Fase 1: registro; Fase 2: marcador + video/stream). Puede abrirse desde Control torneo o con link árbitro.
 - **duelo-tv.html / overlay_marcador.html** — Para OBS/streaming; no modificar sin revisar impacto.
 - **control_torneo.html** — Lista de partidas, iniciar duelo, resultado manual, **link para árbitro/móvil**.
 - **Sensei.html** — Chat con IA, biblioteca, analizar jugada; Diagramas (ocultos hasta estar operativos).

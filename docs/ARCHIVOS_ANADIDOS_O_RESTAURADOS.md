@@ -19,7 +19,7 @@ Lista de **páginas y archivos** que se fueron creando o restaurando. Si algo fa
 | **404.html** | Página de error 404. |
 | **Configurador formato.html** | Configurador de formato de torneo (organizador). |
 | **duelo-tv-preview.html** | Preview para Duelo TV. |
-| **duelo_movil.html** | Duelo en versión móvil. |
+| *(duelo_movil.html eliminado por decisión del proyecto)* | — |
 | **prueba_buffer_video.html** | Prueba de buffer de video. |
 
 El resto de HTML (index, duelo, Sensei, mesas, control_torneo, perfil, ranking, etc.) ya existía; algunos se **modificaron** (cámaras, sesión, etc.).
