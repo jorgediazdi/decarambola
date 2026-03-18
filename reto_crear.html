@@ -756,6 +756,7 @@ function setPaso(n) {
 
 /* ── INIT ── */
 window.onload = function() {
+    try { SESSION.verificarAlCargar('jugador'); } catch(e) {}
     // Fecha mínima: ahora + 5 minutos
     var minDate = new Date(Date.now() + 5*60*1000);
     var pad = function(n){ return n.toString().padStart(2,'0'); };

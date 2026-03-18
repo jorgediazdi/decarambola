@@ -326,7 +326,7 @@
 
         /* ══ NAV BOTTOM ══ */
         .nav-bottom { position:fixed; bottom:0; left:0; right:0; background:linear-gradient(transparent,#000 40%); padding:10px 15px 20px; display:flex; justify-content:center; gap:10px; z-index:50; }
-        .btn-nav { flex:1; max-width:180px; padding:12px; background:var(--g3); border:1px solid var(--g1); color:#666; border-radius:14px; font-size:0.55rem; text-align:center; text-decoration:none; font-family:'Arial Black',sans-serif; letter-spacing:1px; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s; }
+        .btn-nav { flex:1; max-width:160px; padding:12px; background:var(--g3); border:1px solid var(--g1); color:#666; border-radius:14px; font-size:0.55rem; text-align:center; text-decoration:none; font-family:'Arial Black',sans-serif; letter-spacing:1px; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s; }
         .btn-nav:active { border-color:var(--oro); color:var(--oro); }
         .nav-ico { font-size:1rem; line-height:1; }
 
@@ -397,15 +397,15 @@
                 <div class="accion-nom">FIXTURE</div>
                 <div class="accion-det">Ver llaves del torneo</div>
             </a>
-            <a href="historial_mesas.html" class="accion-card">
-                <div class="accion-ico">🕒</div>
-                <div class="accion-nom">HISTORIAL MESAS</div>
-                <div class="accion-det">Sesiones, horas y consumo</div>
+            <a href="ranking.html" class="accion-card">
+                <div class="accion-ico">📈</div>
+                <div class="accion-nom">RANKING</div>
+                <div class="accion-det">Tabla oficial del club</div>
             </a>
-            <a href="admin_sede.html" class="accion-card">
-                <div class="accion-ico">⚙️</div>
-                <div class="accion-nom">MI CLUB</div>
-                <div class="accion-det">Configurar sede</div>
+            <a href="index.html" class="accion-card" style="border-color:rgba(52,152,219,0.3);">
+                <div class="accion-ico">🏠</div>
+                <div class="accion-nom">INICIO</div>
+                <div class="accion-det">Mesas e instalaciones del club → MI CLUB</div>
             </a>
         </div>
 
@@ -452,13 +452,76 @@
 <script src="core.js"></script>
 <script>
 
+    // ═══════════════════════════════════════
+    //  CONFIG MULTI‑DEPORTE (billar, fútbol, pádel…)
+    //  Usa WL.getDeporte() para ajustar textos e iconos
+    // ═══════════════════════════════════════
+    const CONFIG_DEPORTE = {
+        billar: {
+            emojiTorneoVacio: '🎱',
+            modalidadDefault: '3 BANDAS',
+            labelJugadores: 'JUGADORES',
+            labelRankingClub: 'Top Ranking del Club'
+        },
+        futbol: {
+            emojiTorneoVacio: '⚽',
+            modalidadDefault: 'FÚTBOL 5',
+            labelJugadores: 'JUGADORES',
+            labelRankingClub: 'Top Ranking del Equipo'
+        },
+        padel: {
+            emojiTorneoVacio: '🎾',
+            modalidadDefault: 'PÁDEL',
+            labelJugadores: 'JUGADORES',
+            labelRankingClub: 'Top Ranking del Club'
+        },
+        equitacion: {
+            emojiTorneoVacio: '🐎',
+            modalidadDefault: 'ESCUELA',
+            labelJugadores: 'JINETES',
+            labelRankingClub: 'Top Ranking de la Escuela'
+        }
+    };
+
+    function getDeporteActivo() {
+        try {
+            if (window.WL && typeof WL.getDeporte === 'function') {
+                return String(WL.getDeporte() || 'billar').toLowerCase();
+            }
+        } catch (e) {}
+        return 'billar';
+    }
+
+    function getConfigDeporte() {
+        const dep = getDeporteActivo();
+        return CONFIG_DEPORTE[dep] || CONFIG_DEPORTE.billar;
+    }
+
     window.onload = async function () {
-        try { await MasterVIP.init();
-        SESSION.verificarAlCargar('organizador'); } catch(e) { console.warn('Init offline:', e); }
+        try {
+            await MasterVIP.init();
+            SESSION.verificarAlCargar('organizador');
+        } catch(e) {
+            console.warn('Init offline:', e);
+        }
         MasterVIP.applyDesign();
-        // Leer nombre del club desde whitelabel (fuente correcta)
+
+        // Nombre del club desde whitelabel
         const nombreClub = localStorage.getItem('wl_club_nombre') || null;
         document.getElementById('lbl-sede').innerText = nombreClub || 'SIN CONFIGURAR';
+
+        // Ajustar etiquetas por deporte (sin romper el diseño existente)
+        const cfg = getConfigDeporte();
+        try {
+            const kpiJugLbl = document.querySelector('.kpi.neon .kpi-lbl');
+            if (kpiJugLbl) kpiJugLbl.textContent = cfg.labelJugadores;
+
+            const secRanking = Array.from(document.querySelectorAll('.sec-titulo h3'))
+                .find(h => h.textContent.trim().toUpperCase().startsWith('TOP RANKING'));
+            if (secRanking) secRanking.textContent = cfg.labelRankingClub;
+        } catch (e) {
+            console.warn('No se pudieron ajustar algunos textos por deporte:', e);
+        }
 
         await cargarKPIs();
         cargarTorneoActivo();
@@ -499,29 +562,28 @@
         const zona   = document.getElementById('zona-torneo');
 
         if (!torneo) {
+            const cfg = getConfigDeporte();
             zona.innerHTML = `
                 <div class="no-torneo">
-                    <div class="icono">🎱</div>
+                    <div class="icono">${cfg.emojiTorneoVacio}</div>
                     <p>NO HAY TORNEO ACTIVO<br>CREA UNO Y EMPIEZA A INSCRIBIR</p>
                 </div>`;
             return;
         }
 
-        const inscritos = torneo.inscritos?.length || 0;
-        const rondaActual = torneo.rondas?.length || 0;
+        const inscritos = (torneo && torneo.inscritos) ? torneo.inscritos.length : 0;
+        const rondaActual = (torneo && torneo.rondas) ? torneo.rondas.length : 0;
         const totalRondas = MasterVIP.totalRondas(torneo.cupoMax);
         const bolsa = MasterVIP.calcularBolsa(torneo);
         const rondaNom = rondaActual > 0
             ? MasterVIP.nombreRonda(totalRondas, rondaActual)
             : 'INSCRIPCIONES';
 
-        const esAmigos = (!!torneo.tipo && String(torneo.tipo).toUpperCase() === 'AMIGOS')
-            || (torneo.reglamento && String(torneo.reglamento).indexOf('ORIGEN:AMIGOS') >= 0);
-
+        const cfg = getConfigDeporte();
         zona.innerHTML = `
             <div class="torneo-card">
                 <div class="torneo-nombre">${torneo.nombre}</div>
-                <div class="torneo-codigo">${torneo.codigo} · ${torneo.modalidad || (esAmigos ? 'TORNEO ENTRE AMIGOS' : '3 BANDAS')}</div>
+                <div class="torneo-codigo">${torneo.codigo} · ${torneo.modalidad || cfg.modalidadDefault}</div>
 
                 <div class="torneo-stats">
                     <div class="ts">
@@ -558,7 +620,7 @@
     /* ══ INSCRITOS ══ */
     function cargarInscritos(torneo) {
         const zona = document.getElementById('zona-inscritos');
-        if (!torneo?.inscritos?.length) {
+        if (!(torneo && torneo.inscritos && torneo.inscritos.length)) {
             zona.innerHTML = '<div class="empty">Sin jugadores inscritos aún</div>';
             return;
         }
@@ -731,9 +793,51 @@
 <div class="nav-bottom">
     <a href="index.html" class="btn-nav"><span class="nav-ico">&#127968;</span> INICIO</a>
     <a href="torneo_crear.html" class="btn-nav"><span class="nav-ico">&#127942;</span> CREAR TORNEO</a>
-    <a href="control_torneo.html" class="btn-nav"><span class="nav-ico">&#127918;</span> CONTROL TORNEO</a>
 </div>
 
 <script src="whitelabel.js"></script>
+<script>
+// Ajuste de textos por deporte usando WL.getDeporte()
+(function () {
+    if (!window.WL || typeof WL.getDeporte !== 'function') return;
+    var deporte = (WL.getDeporte() || 'billar').toLowerCase();
+
+    var hMarca = document.querySelector('.header-marca span');
+    var hSub   = document.querySelector('.header-marca small');
+
+    if (!hMarca || !hSub) return;
+
+    var textos = {
+        billar: {
+            titulo: 'DECARAMBOLA · BILLAR',
+            subt:   'PANEL ORGANIZADOR · TOUR DE BILLAR'
+        },
+        futbol: {
+            titulo: 'DECARAMBOLA · FÚTBOL 5',
+            subt:   'PANEL ORGANIZADOR · LIGAS & TORNEOS'
+        },
+        padel: {
+            titulo: 'DECARAMBOLA · PÁDEL',
+            subt:   'PANEL ORGANIZADOR · CIRCUITO PÁDEL'
+        },
+        equitacion: {
+            titulo: 'DECARAMBOLA · EQUESTRIAN',
+            subt:   'PANEL ORGANIZADOR · ESCUELA & TORNEOS'
+        },
+        tenis: {
+            titulo: 'DECARAMBOLA · TENIS',
+            subt:   'PANEL ORGANIZADOR · LIGAS & TORNEOS'
+        },
+        basquet: {
+            titulo: 'DECARAMBOLA · BÁSQUET',
+            subt:   'PANEL ORGANIZADOR · LIGAS & TORNEOS'
+        }
+    };
+
+    var conf = textos[deporte] || textos.billar;
+    hMarca.textContent = conf.titulo;
+    hSub.textContent   = conf.subt;
+})();
+</script>
 </body>
 </html>

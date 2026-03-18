@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado — DeCarambola</title>
+    <style>
+        :root { --oro: #d4af37; --bg: #0a0a0a; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; min-height: 100vh;
+            background: var(--bg);
+            color: #eee;
+            font-family: 'Arial Black', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+        }
+        .corona { font-size: 2.5rem; margin-bottom: 4px; }
+        .titulo { color: #666; font-size: 0.5rem; letter-spacing: 4px; margin-bottom: 4px; }
+        .ganador { color: var(--oro); font-size: 1.4rem; letter-spacing: 2px; margin-bottom: 16px; }
+        .marcador {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 16px 0;
+            padding: 12px 0;
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+        }
+        .j { text-align: center; }
+        .j-pts { font-size: 1.8rem; font-family: 'Courier New', monospace; }
+        .j-pts.ganador { color: var(--oro); }
+        .j-nom { font-size: 0.65rem; color: #666; letter-spacing: 2px; margin-top: 4px; }
+        .vs { color: #333; font-size: 0.9rem; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.7rem; color: #888; margin-top: 12px; }
+        .stats b { display: block; color: #ccc; font-size: 0.85rem; }
+        .aceptada { margin-top: 12px; font-size: 0.65rem; color: var(--oro); letter-spacing: 2px; }
+        .foot { margin-top: 8px; font-size: 0.5rem; color: #444; letter-spacing: 2px; }
+        .qr-wrap { margin-top: 14px; padding: 10px; background: #fff; border-radius: 12px; display: inline-block; }
+        .qr-wrap img { display: block; width: 220px; height: 220px; }
+    </style>
+</head>
+<body>
+    <div class="card" id="card">
+        <div class="corona">🏆</div>
+        <div class="titulo">CERTIFICADO DUELO — DECARAMBOLA</div>
+        <div class="ganador" id="ganador">—</div>
+        <div class="marcador">
+            <div class="j">
+                <div class="j-pts" id="p1">0</div>
+                <div class="j-nom" id="n1">J1</div>
+            </div>
+            <div class="vs">VS</div>
+            <div class="j">
+                <div class="j-pts" id="p2">0</div>
+                <div class="j-nom" id="n2">J2</div>
+            </div>
+        </div>
+        <div class="stats">
+            <div><b id="prom1">0.000</b> PROM J1</div>
+            <div><b id="prom2">0.000</b> PROM J2</div>
+            <div><b id="ms1">0</b> SERIE MAYOR J1</div>
+            <div><b id="ms2">0</b> SERIE MAYOR J2</div>
+        </div>
+        <div class="aceptada">✓ Partida registrada y aceptada</div>
+        <div class="qr-wrap">
+            <img id="qr-cert" alt="QR del certificado" title="Escanear con el teléfono para ver este certificado" />
+        </div>
+        <div class="foot">Escanee el QR con el teléfono para verificar</div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        (function() {
+            var p = new URLSearchParams(window.location.search);
+            var n1 = decodeURIComponent(p.get('n1') || 'JUGADOR A');
+            var n2 = decodeURIComponent(p.get('n2') || 'JUGADOR B');
+            var p1 = parseInt(p.get('p1') || '0', 10);
+            var p2 = parseInt(p.get('p2') || '0', 10);
+            var e1 = parseInt(p.get('e1') || '0', 10);
+            var e2 = parseInt(p.get('e2') || '0', 10);
+            var ms1 = parseInt(p.get('ms1') || '0', 10);
+            var ms2 = parseInt(p.get('ms2') || '0', 10);
+            var ganador = decodeURIComponent(p.get('ganador') || (p1 >= p2 ? n1 : n2));
+
+            document.getElementById('n1').textContent = n1;
+            document.getElementById('n2').textContent = n2;
+            document.getElementById('p1').textContent = p1;
+            document.getElementById('p2').textContent = p2;
+            document.getElementById('p1').classList.toggle('ganador', p1 >= p2);
+            document.getElementById('p2').classList.toggle('ganador', p2 >= p1);
+            document.getElementById('ganador').textContent = ganador;
+            document.getElementById('prom1').textContent = e1 > 0 ? (p1 / e1).toFixed(3) : '0.000';
+            document.getElementById('prom2').textContent = e2 > 0 ? (p2 / e2).toFixed(3) : '0.000';
+            document.getElementById('ms1').textContent = ms1;
+            document.getElementById('ms2').textContent = ms2;
+
+            var qrEl = document.getElementById('qr-cert');
+            if (qrEl && typeof QRCode !== 'undefined') {
+                var urlCert = window.location.href;
+                QRCode.toDataURL(urlCert, { width: 280, margin: 2 }, function(err, dataUrl) {
+                    if (!err && dataUrl) qrEl.src = dataUrl;
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

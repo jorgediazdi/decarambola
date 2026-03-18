@@ -41,7 +41,8 @@
         .preview-plano { background:var(--g2); border:2px solid var(--oro); border-radius:18px; padding:16px; margin:14px 0; min-height:180px; display:grid; gap:8px; }
         .preview-fila { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
         .preview-celda { width:56px; height:56px; border-radius:12px; background:rgba(212,175,55,0.15); border:2px solid var(--oro); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:0.5rem; color:var(--oro); text-align:center; padding:4px; }
-        .preview-celda .nom { font-size:0.6rem; font-weight:bold; color:#fff; }
+        .preview-celda .nom { font-size:0.85rem; font-weight:bold; color:var(--oro); }
+.preview-celda:hover { background:rgba(212,175,55,0.25); border-color:var(--oro); }
         .layout-btns { display:flex; gap:8px; margin-top:10px; }
         .layout-btns button { padding:8px 14px; border-radius:10px; border:1px solid var(--g1); background:var(--g3); color:#888; font-size:0.55rem; cursor:pointer; font-family:'Arial Black',sans-serif; }
 
@@ -89,6 +90,17 @@
             </div>
         </div>
         <div class="campo-doble">
+            <label style="grid-column:1/-1;color:#555;font-size:0.48rem;letter-spacing:2px;">METRAJE SALA (opcional — para visualizar)</label>
+            <div class="campo">
+                <label>Ancho (m)</label>
+                <input type="number" id="metraje_ancho" min="0" step="0.5" placeholder="Ej: 12" oninput="actualizarPreview()">
+            </div>
+            <div class="campo">
+                <label>Largo (m)</label>
+                <input type="number" id="metraje_largo" min="0" step="0.5" placeholder="Ej: 8" oninput="actualizarPreview()">
+            </div>
+        </div>
+        <div class="campo-doble">
             <div class="campo">
                 <label>Horario apertura</label>
                 <input type="time" id="apertura" value="08:00">
@@ -124,6 +136,11 @@
                 <span data-tipo="PISTA">PISTA</span>
                 <span data-tipo="PING PONG">PING PONG</span>
             </div>
+        </div>
+        <div class="campo">
+            <label>Layout por fila (opcional)</label>
+            <input type="text" id="layout_filas" placeholder="Ej: 6, 3, 3 — una fila de 6 mesas, otra de 3, otra de 3" oninput="actualizarPreview(); actualizarCantidadDesdeLayout();">
+            <div style="font-size:0.65rem;color:#666;margin-top:6px;">Si lo dejas vacío se usa la cuadrícula Filas × Columnas de arriba. Con 6, 3, 3 tendrás 12 mesas numeradas en ese orden.</div>
         </div>
         <div class="campo-doble">
             <div class="campo">
@@ -173,7 +190,8 @@
 
     <!-- PASO 3 -->
     <div class="paso" id="paso3">
-        <div class="sec-titulo">LAYOUT VISUAL</div>
+        <div class="sec-titulo">LAYOUT VISUAL — Cada número es la mesa para atender fácil</div>
+        <div id="metraje_label" style="font-size:0.7rem;color:var(--oro);margin-bottom:8px;display:none;"></div>
         <div class="preview-plano" id="preview_plano"></div>
         <div class="layout-btns">
             <button type="button" onclick="setLayout('horizontal')">HORIZONTAL</button>
@@ -286,6 +304,21 @@ function agregarPromo() {
 
 function setLayout(mode) { layoutMode = mode; actualizarPreview(); }
 
+function getLayoutFilas() {
+    var raw = (document.getElementById('layout_filas') && document.getElementById('layout_filas').value || '').trim();
+    if (!raw) return null;
+    var arr = raw.split(/[\s,;]+/).map(function(x) { return parseInt(x, 10); }).filter(function(n) { return n > 0; });
+    return arr.length ? arr : null;
+}
+
+function actualizarCantidadDesdeLayout() {
+    var arr = getLayoutFilas();
+    if (!arr) return;
+    var sum = arr.reduce(function(a, b) { return a + b; }, 0);
+    var inp = document.getElementById('cantidad');
+    if (inp && sum >= 1 && sum <= 50) inp.value = sum;
+}
+
 function actualizarPreview() {
     var filas = parseInt(document.getElementById('filas').value, 10) || 1;
     var columnas = parseInt(document.getElementById('columnas').value, 10) || 1;
@@ -293,21 +326,52 @@ function actualizarPreview() {
     var cantidad = parseInt(document.getElementById('cantidad').value, 10) || 1;
     var numIni = parseInt(document.getElementById('numeracion_inicial').value, 10) || 1;
     var cont = document.getElementById('preview_plano');
+    var metrajeEl = document.getElementById('metraje_label');
     if (!cont) return;
+
+    var ancho = parseFloat(document.getElementById('metraje_ancho') && document.getElementById('metraje_ancho').value) || 0;
+    var largo = parseFloat(document.getElementById('metraje_largo') && document.getElementById('metraje_largo').value) || 0;
+    if (metrajeEl) {
+        if (ancho > 0 && largo > 0) {
+            metrajeEl.style.display = 'block';
+            metrajeEl.textContent = 'Sala: ' + ancho + ' m × ' + largo + ' m';
+        } else {
+            metrajeEl.style.display = 'none';
+        }
+    }
+
     cont.innerHTML = '';
     var idx = 0;
-    for (var f = 0; f < filas && idx < cantidad; f++) {
-        var fila = document.createElement('div');
-        fila.className = 'preview-fila';
-        for (var c = 0; c < columnas && idx < cantidad; c++) {
-            idx++;
-            var num = numIni + idx - 1;
-            var celda = document.createElement('div');
-            celda.className = 'preview-celda';
-            celda.innerHTML = '<span class="nom">' + num + '</span><span>' + tipo + '</span>';
-            fila.appendChild(celda);
+    var layoutPorFila = getLayoutFilas();
+    if (layoutPorFila && layoutPorFila.length) {
+        for (var r = 0; r < layoutPorFila.length && idx < cantidad; r++) {
+            var cuantas = layoutPorFila[r];
+            var fila = document.createElement('div');
+            fila.className = 'preview-fila';
+            for (var c = 0; c < cuantas && idx < cantidad; c++) {
+                idx++;
+                var num = numIni + idx - 1;
+                var celda = document.createElement('div');
+                celda.className = 'preview-celda';
+                celda.innerHTML = '<span class="nom">' + num + '</span><span>' + tipo + '</span>';
+                fila.appendChild(celda);
+            }
+            cont.appendChild(fila);
         }
-        cont.appendChild(fila);
+    } else {
+        for (var f = 0; f < filas && idx < cantidad; f++) {
+            var fila = document.createElement('div');
+            fila.className = 'preview-fila';
+            for (var c = 0; c < columnas && idx < cantidad; c++) {
+                idx++;
+                var num = numIni + idx - 1;
+                var celda = document.createElement('div');
+                celda.className = 'preview-celda';
+                celda.innerHTML = '<span class="nom">' + num + '</span><span>' + tipo + '</span>';
+                fila.appendChild(celda);
+            }
+            cont.appendChild(fila);
+        }
     }
 }
 
@@ -406,7 +470,10 @@ async function guardarTodo() {
             }
         }
 
+        var metrajeAncho = parseFloat(document.getElementById('metraje_ancho') && document.getElementById('metraje_ancho').value) || 0;
+        var metrajeLargo = parseFloat(document.getElementById('metraje_largo') && document.getElementById('metraje_largo').value) || 0;
         var salonConfig = { nombre_salon: nombreSalon, filas: filas, columnas: columnas, apertura: apertura, cierre: cierre, moneda: moneda, tarifas: tarifas, salon_id: salonId };
+        if (metrajeAncho > 0 || metrajeLargo > 0) salonConfig.metraje = { ancho: metrajeAncho, largo: metrajeLargo };
         localStorage.setItem('mesas_salon_config', JSON.stringify(salonConfig));
         alert('Configuración guardada. Ya puedes usar el Salón en vivo.');
         location.href = 'mesas.html';

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Entrenamiento — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#000; --g1:#1a1a1a; --g2:#111; --neon:#2eff70; --azul:#3498db; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
+
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20; }
+        .header-titulo { color:var(--oro); font-size:0.85rem; letter-spacing:3px; }
+        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
+        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; }
+
+        .wrap { max-width:520px; margin:0 auto; padding:16px 18px; }
+
+        .card { display:block; background:var(--g2); border:2px solid var(--g1); border-radius:16px; padding:18px; margin-bottom:14px; text-decoration:none; color:#fff; transition:border-color 0.2s, box-shadow 0.2s; }
+        .card:active { border-color:var(--oro); box-shadow:0 0 20px rgba(212,175,55,0.15); }
+        .card-tit { font-size:0.85rem; letter-spacing:2px; margin-bottom:6px; }
+        .card.card-partida .card-tit { color:var(--neon); }
+        .card.card-sensei .card-tit { color:var(--oro); }
+        .card.card-retos .card-tit { color:#e74c3c; }
+        .card-desc { font-size:0.55rem; color:#666; line-height:1.4; }
+        .card svg { width:28px; height:28px; margin-bottom:8px; opacity:0.9; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-titulo">ENTRENAMIENTO</div>
+        <div class="header-sub">Practica y mejora tu juego</div>
+    </div>
+    <a href="index.html" class="btn-hdr">← INICIO</a>
+</div>
+
+<div class="wrap">
+    <a href="mi_partida.html" class="card card-partida">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 8v4l3 3"/>
+        </svg>
+        <div class="card-tit">MI PARTIDA</div>
+        <div class="card-desc">Solo tus carambolas: registra entradas, promedio y serie. Guarda en tu perfil.</div>
+    </a>
+
+    <a href="duelo.html" class="card card-partida">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="7" cy="7" r="3"/><circle cx="17" cy="17" r="3"/>
+            <line x1="7" y1="10" x2="17" y2="14"/>
+        </svg>
+        <div class="card-tit">PARTIDA / DUELO</div>
+        <div class="card-desc">Juega una partida de práctica o en vivo. Marcador, tiempo y opción de stream.</div>
+    </a>
+
+    <a href="Sensei.html" class="card card-sensei">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 16v-4M12 8h.01"/>
+        </svg>
+        <div class="card-tit">SENSEI (IA)</div>
+        <div class="card-desc">Consulta técnicas, sistemas y biblioteca. El Sensei te ayuda a mejorar con IA.</div>
+    </a>
+
+    <a href="reto_crear.html" class="card card-retos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/>
+            <line x1="17" y1="11" x2="17" y2="19"/><line x1="13" y1="15" x2="21" y2="15"/>
+        </svg>
+        <div class="card-tit">RETOS</div>
+        <div class="card-desc">Crea o acepta retos contra otros jugadores para entrenar con objetivo.</div>
+    </a>
+</div>
+
+<script src="core.js"></script>
+<script src="session.js"></script>
+<script>
+try { if (typeof SESSION !== 'undefined' && SESSION.verificarAlCargar) SESSION.verificarAlCargar('jugador'); } catch(e) {}
+</script>
+</body>
+</html>

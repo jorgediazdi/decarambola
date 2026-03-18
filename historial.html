@@ -28,31 +28,6 @@
         .sesion-mesa { color:var(--oro); font-size:0.6rem; }
         .sesion-det { color:#aaa; font-size:0.55rem; }
         .vacio { text-align:center; color:#444; font-size:0.6rem; padding:18px; }
-        .vacio strong { color:#ccc; }
-        .btn-jugar {
-            margin-top:10px;
-            display:inline-block;
-            padding:10px 18px;
-            border-radius:14px;
-            border:1px solid var(--azul);
-            background:rgba(52,152,219,0.1);
-            color:var(--azul);
-            font-size:0.6rem;
-            font-family:'Arial Black',sans-serif;
-            letter-spacing:1px;
-            text-decoration:none;
-        }
-        .btn-jugar:active { background:rgba(52,152,219,0.2); }
-        .sec-partidas { margin-top:24px; padding-top:16px; border-top:1px solid var(--g1); }
-        .sec-partidas .sec-tit { font-size:0.65rem; color:var(--oro); margin-bottom:12px; }
-        .kpi-row { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
-        .kpi-mini { background:var(--g2); border-radius:10px; padding:10px; border:1px solid var(--g1); text-align:center; }
-        .kpi-mini .v { font-size:1.1rem; font-weight:900; color:var(--oro); }
-        .kpi-mini .l { font-size:0.48rem; color:#666; letter-spacing:1px; margin-top:4px; }
-        .ultimas-list { margin-top:8px; }
-        .ultimas-list .item { background:var(--g2); border-radius:8px; padding:8px 10px; margin-bottom:6px; font-size:0.55rem; border:1px solid var(--g1); display:flex; justify-content:space-between; }
-        .ultimas-list .item .res { color:var(--oro); }
-        .trofeos-placeholder, .fortalezas-placeholder { background:rgba(212,175,55,0.06); border:1px solid rgba(212,175,55,0.2); border-radius:10px; padding:12px; font-size:0.55rem; color:#888; margin-top:10px; }
     </style>
 </head>
 <body>
@@ -88,27 +63,9 @@
             <div class="kpi-sub">Basado en costo_total</div>
         </div>
     </div>
-    <p style="font-size:0.5rem;color:#333;letter-spacing:1px;margin:-8px 0 12px;">Las sesiones se registran al usar las mesas del club.</p>
 
     <div class="sec-tit">MIS SESIONES RECIENTES</div>
     <div id="lista-sesiones"></div>
-
-    <div class="sec-partidas">
-        <div class="sec-tit">ESTADÍSTICAS DE PARTIDAS</div>
-        <div class="kpi-row" id="stats-partidas">
-            <div class="kpi-mini"><div class="v" id="stat-jugadas">0</div><div class="l">Partidas jugadas</div></div>
-            <div class="kpi-mini"><div class="v" id="stat-ganadas">0</div><div class="l">Ganadas</div></div>
-            <div class="kpi-mini"><div class="v" id="stat-perdidas">0</div><div class="l">Perdidas</div></div>
-            <div class="kpi-mini"><div class="v" id="stat-pct">0%</div><div class="l">% victorias</div></div>
-        </div>
-        <div class="kpi-mini" style="margin-bottom:8px;"><div class="v" id="stat-promedio">0.000</div><div class="l">Promedio (últimos partidos)</div></div>
-        <div class="sec-tit" style="margin-top:14px;">ÚLTIMAS PARTIDAS</div>
-        <div id="ultimas-partidas" class="ultimas-list"></div>
-        <div class="sec-tit" style="margin-top:14px;">TROFEOS</div>
-        <div id="trofeos-block" class="trofeos-placeholder">Próximamente: torneos ganados y podios</div>
-        <div class="sec-tit" style="margin-top:14px;">FORTALEZAS Y DEBILIDADES</div>
-        <div id="fortalezas-block" class="fortalezas-placeholder">Próximamente: análisis según tu historial</div>
-    </div>
 </div>
 
 <script src="core.js"></script>
@@ -160,47 +117,6 @@ async function cargarDatos() {
 
     pintarKPIs();
     pintarSesiones();
-    pintarEstadisticasPartidas();
-}
-
-function pintarEstadisticasPartidas() {
-    var nombre = getJugadorNombre();
-    var clave = 'historial_' + (nombre || 'anon');
-    var historial = [];
-    try { historial = JSON.parse(localStorage.getItem(clave)) || []; } catch(e) {}
-    var jugadorId = (function(){ try { var a = JSON.parse(localStorage.getItem('jugador_activo')); return a && a.id; } catch(e){ return null; } })();
-    if (typeof window.HISTORIAL !== 'undefined' && window.HISTORIAL.obtener) {
-        window.HISTORIAL.obtener(jugadorId, nombre).then(function(h){ pintarStats(h || []); }).catch(function(){ pintarStats(historial); });
-    } else {
-        pintarStats(historial);
-    }
-}
-
-function pintarStats(historial) {
-    var total = historial.length;
-    var ganadas = 0, perdidas = 0, sumaProm = 0;
-    historial.forEach(function(p){
-        if (p.gano) ganadas++; else perdidas++;
-        sumaProm += parseFloat(p.promedio_partida) || 0;
-    });
-    var pct = total ? ((ganadas / total) * 100).toFixed(1) : 0;
-    var prom = total ? (sumaProm / total).toFixed(3) : '0.000';
-    document.getElementById('stat-jugadas').textContent = total;
-    document.getElementById('stat-ganadas').textContent = ganadas;
-    document.getElementById('stat-perdidas').textContent = perdidas;
-    document.getElementById('stat-pct').textContent = pct + '%';
-    document.getElementById('stat-promedio').textContent = prom;
-    var cont = document.getElementById('ultimas-partidas');
-    if (!cont) return;
-    var slice = (historial || []).slice(0, 10);
-    if (!slice.length) { cont.innerHTML = '<div class="vacio">Sin partidas registradas</div>'; return; }
-    cont.innerHTML = slice.map(function(p){
-        var rival = p.rival_nombre || p.rival || p.oponente || '—';
-        var prom = p.promedio_partida != null ? Number(p.promedio_partida).toFixed(3) : '—';
-        var res = p.gano ? 'Ganada' : 'Perdida';
-        var fecha = (p.fecha || p.created_at || '').substring(0, 10);
-        return '<div class="item"><span>' + rival + (fecha ? ' · ' + fecha : '') + ' · ' + prom + '</span><span class="res">' + res + '</span></div>';
-    }).join('');
 }
 
 function pintarKPIs() {
@@ -222,12 +138,7 @@ function pintarSesiones() {
     if (!cont) return;
     var lista = sesiones.slice(0, 40);
     if (!lista.length) {
-        cont.innerHTML =
-            '<div class="vacio">' +
-                '<strong>Aún no tienes sesiones registradas en este club.</strong><br>' +
-                'Cuando juegues en una mesa, tus sesiones aparecerán aquí.' +
-                '<br><a href="mesas.html" class="btn-jugar">🎱 JUGAR AHORA</a>' +
-            '</div>';
+        cont.innerHTML = '<div class="vacio">Aún no tienes sesiones registradas en este club.</div>';
         return;
     }
     cont.innerHTML = lista.map(function(s){

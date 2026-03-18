@@ -65,6 +65,11 @@
         .btn-paso { width:100%; padding:12px; margin-top:8px; border-radius:12px; border:none; font-size:0.65rem; cursor:pointer; font-family:'Arial Black',sans-serif; }
         .btn-paso.sec { background:var(--g3); color:#888; border:1px solid var(--g1); }
         .vacio { text-align:center; color:#444; font-size:0.6rem; padding:20px; }
+        .fila-camara { display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+        .fila-camara input { flex:1; min-width:80px; }
+        .fila-camara .nom-camara { width:100px; flex-shrink:0; }
+        .fila-camara .url-camara { flex:1; min-width:120px; }
+        .fila-camara .btn-quitar { flex-shrink:0; padding:6px 10px; font-size:0.55rem; background:rgba(231,76,60,0.2); color:#e74c3c; border:none; border-radius:8px; cursor:pointer; }
     </style>
 </head>
 <body>
@@ -87,6 +92,14 @@
         </div>
         <div class="ficha-row"><span>Jugador que más la usa</span><span class="v" id="stat_jugador">—</span></div>
         <div class="ficha-row"><span>Promedio horas/día</span><span class="v" id="stat_promedio">—</span></div>
+    </div>
+
+    <div class="ficha-card" id="card_camara">
+        <div class="ficha-titulo">CÁMARAS Y DISPOSITIVOS</div>
+        <p class="ficha-nota" style="font-size:0.55rem;color:#666;margin-bottom:12px;line-height:1.4;">Cada mesa puede tener varias cámaras. La primera se usa por defecto en Duelo/transmisión. Añade las que necesites y parametriza los dispositivos alrededor.</p>
+        <div id="lista_camaras"></div>
+        <button type="button" class="btn-paso sec" onclick="anadirCamara()" style="margin-top:8px;">+ AÑADIR CÁMARA</button>
+        <button type="button" class="btn-paso" onclick="guardarCamaras()" style="margin-top:8px;">GUARDAR CÁMARAS</button>
     </div>
 
     <div class="ficha-card" id="card_alertas" style="display:none;">
@@ -202,6 +215,8 @@ async function cargar() {
     if (!mantenimientos) mantenimientos = [];
     mantenimientos.sort(function(a,b){ return new Date(b.fecha||b.created_at) - new Date(a.fecha||a.created_at); });
 
+    pintarListaCamaras();
+
     pintarEstadisticas();
     pintarSemaforo();
     pintarAlertas();
@@ -312,6 +327,75 @@ function pintarHistorialSesiones() {
 }
 
 function mostrarFormMant() { document.getElementById('form_mant').style.display = 'block'; }
+
+var listadoCamaras = [];
+
+function getCamarasFromMesa() {
+    if (!mesa) return [];
+    if (mesa.urls_camaras && Array.isArray(mesa.urls_camaras) && mesa.urls_camaras.length > 0)
+        return mesa.urls_camaras.map(function (c) { return { nombre: c.nombre || ('Cámara ' + (c.orden !== undefined ? c.orden + 1 : '')), url: (typeof c === 'string' ? c : (c && c.url)) || '' }; });
+    if (mesa.url_camara && mesa.url_camara.trim()) return [{ nombre: 'Cámara 1', url: mesa.url_camara.trim() }];
+    return [];
+}
+
+function pintarListaCamaras() {
+    listadoCamaras = getCamarasFromMesa();
+    var cont = document.getElementById('lista_camaras');
+    if (!cont) return;
+    if (listadoCamaras.length === 0) {
+        listadoCamaras = [{ nombre: 'Cámara 1', url: '' }];
+    }
+    cont.innerHTML = listadoCamaras.map(function (c, i) {
+        return '<div class="fila-camara" data-idx="' + i + '">' +
+            '<input type="text" class="nom-camara" placeholder="Nombre" value="' + (c.nombre || '').replace(/"/g, '&quot;') + '" data-idx="' + i + '">' +
+            '<input type="url" class="url-camara" placeholder="https://... o rtmp://..." value="' + (c.url || '').replace(/"/g, '&quot;') + '" data-idx="' + i + '">' +
+            '<button type="button" class="btn-quitar" onclick="quitarCamara(' + i + ')">Quitar</button></div>';
+    }).join('');
+}
+
+function anadirCamara() {
+    var cont = document.getElementById('lista_camaras');
+    if (!cont) return;
+    var idx = listadoCamaras.length;
+    listadoCamaras.push({ nombre: 'Cámara ' + (idx + 1), url: '' });
+    var div = document.createElement('div');
+    div.className = 'fila-camara';
+    div.setAttribute('data-idx', idx);
+    div.innerHTML = '<input type="text" class="nom-camara" placeholder="Nombre" value="Cámara ' + (idx + 1) + '" data-idx="' + idx + '">' +
+        '<input type="url" class="url-camara" placeholder="https://... o rtmp://..." value="" data-idx="' + idx + '">' +
+        '<button type="button" class="btn-quitar" onclick="quitarCamara(' + idx + ')">Quitar</button>';
+    cont.appendChild(div);
+}
+
+function quitarCamara(idx) {
+    listadoCamaras.splice(idx, 1);
+    pintarListaCamaras();
+}
+
+function leerCamarasDelDom() {
+    var nom = document.querySelectorAll('#lista_camaras .nom-camara');
+    var url = document.querySelectorAll('#lista_camaras .url-camara');
+    var out = [];
+    for (var i = 0; i < Math.max(nom.length, url.length); i++) {
+        var n = (nom[i] && nom[i].value || '').trim() || ('Cámara ' + (i + 1));
+        var u = (url[i] && url[i].value || '').trim();
+        out.push({ nombre: n, url: u });
+    }
+    return out;
+}
+
+function guardarCamaras() {
+    if (!mesaId) return;
+    listadoCamaras = leerCamarasDelDom();
+    var urlsCamaras = listadoCamaras.filter(function (c) { return c.url; }).map(function (c, i) { return { nombre: c.nombre || ('Cámara ' + (i + 1)), url: c.url }; });
+    var primeraUrl = urlsCamaras.length > 0 ? urlsCamaras[0].url : null;
+    DB.update('mesas', mesaId, { urls_camaras: urlsCamaras, url_camara: primeraUrl }).then(function () {
+        if (mesa) { mesa.urls_camaras = urlsCamaras; mesa.url_camara = primeraUrl; }
+        alert('Cámaras guardadas.');
+    }).catch(function (e) {
+        alert('No se pudo guardar: ' + (e && e.message ? e.message : 'error'));
+    });
+}
 
 function guardarMantenimiento() {
     if (!mesaId) return;

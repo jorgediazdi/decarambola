@@ -43,6 +43,8 @@
         .mensaje.user { background:linear-gradient(135deg,#1a1200,#0f0a00); border:1px solid rgba(212,175,55,0.25); color:#ddd; margin-left:auto; }
         .mensaje.sensei { background:#080600; border:1px solid #151510; color:#bbb; }
         .sensei-label { color:var(--oro); font-weight:bold; font-size:0.85rem; letter-spacing:2px; margin-bottom:8px; display:block; font-family:'Arial Black',sans-serif; }
+        .joe-label { color:var(--azul); font-weight:bold; font-size:0.85rem; letter-spacing:2px; margin-bottom:8px; display:block; font-family:'Arial Black',sans-serif; }
+        .mensaje.joe { border-color:rgba(52,152,219,0.2); }
         .sugerencias { padding:14px 20px; background:#080600; border-top:1px solid rgba(212,175,55,0.1); }
         .sug-titulo { color:#555; font-size:0.8rem; letter-spacing:1px; margin-bottom:10px; }
         .sug-btns { display:flex; flex-wrap:wrap; gap:8px; }
@@ -246,9 +248,10 @@
                 <div class="menu-texto"><div class="menu-titulo">CONSULTAR AL SENSEI</div><div class="menu-desc">Pregunta sobre técnicas, sistemas y estrategias</div></div>
                 <div class="menu-arrow">›</div>
             </div>
-            <div class="menu-item" onclick="mostrarSeccion('diagramas')">
+            <!-- Diagramas ocultos hasta que estén operativos -->
+            <div class="menu-item" id="menu-diagramas" style="display:none;" onclick="mostrarSeccion('diagramas')">
                 <div class="menu-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
-                <div class="menu-texto"><div class="menu-titulo">DIAGRAMAS ANIMADOS</div><div class="menu-desc">Aprende los sistemas visualmente</div></div>
+                <div class="menu-texto"><div class="menu-titulo">DIAGRAMAS ANIMADOS</div><div class="menu-desc">Aprende los sistemas visualmente (próximamente)</div></div>
                 <div class="menu-arrow">›</div>
             </div>
             <div class="menu-item" onclick="mostrarSeccion('biblioteca')">
@@ -261,21 +264,26 @@
                 <div class="menu-texto"><div class="menu-titulo">ANALIZAR JUGADA</div><div class="menu-desc">Sube tu video y la IA te explica qué pasó</div></div>
                 <div class="menu-arrow">›</div>
             </div>
+            <div class="menu-item" onclick="iniciarModoContacto()">
+                <div class="menu-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+                <div class="menu-texto"><div class="menu-titulo">JOE — CONTACTO Y PQRS</div><div class="menu-desc">Contacto, PQRS e información de la plataforma y servicios de administración</div></div>
+                <div class="menu-arrow">›</div>
+            </div>
         </div>
 
         <!-- CHAT -->
         <div class="seccion" id="sec-chat">
             <div class="tarjeta">
-                <div class="tarjeta-header"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="tarjeta-header-texto">CONSULTAR AL SENSEI</span></div>
+                <div class="tarjeta-header"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="tarjeta-header-texto" id="chat-header-texto">CONSULTAR AL SENSEI</span></div>
                 <div class="mensajes" id="mensajes"><div class="mensaje sensei"><span class="sensei-label">SENSEI</span>Bienvenido, estudiante. Soy tu maestro de billar. Pregúntame sobre sistemas de diamantes, técnicas de los grandes maestros, o cualquier duda sobre el juego.</div></div>
-                <div class="sugerencias"><div class="sug-titulo">PREGUNTAS FRECUENTES</div><div class="sug-btns"><button class="sug-btn" onclick="ask('¿Qué es el sistema de diamantes?')">Sistema diamantes</button><button class="sug-btn" onclick="ask('¿Cómo calculo un tiro de 3 bandas?')">Calcular 3 bandas</button><button class="sug-btn" onclick="ask('¿Qué es el efecto lateral?')">Efecto lateral</button></div></div>
+                <div class="sugerencias"><div class="sug-titulo">PREGUNTAS FRECUENTES</div><div class="sug-btns"><button class="sug-btn" onclick="ask('¿Qué es el sistema de diamantes?')">Sistema diamantes</button><button class="sug-btn" onclick="ask('¿Cómo calculo un tiro de 3 bandas?')">Calcular 3 bandas</button><button class="sug-btn" onclick="ask('¿Qué es el efecto lateral?')">Efecto lateral</button><button class="sug-btn" onclick="iniciarModoContacto()" style="border-color:rgba(52,152,219,0.4);color:#3498db;">Joe — Contacto / PQRS</button></div></div>
                 <div class="input-area"><input type="text" id="input" placeholder="Escribe tu pregunta..." onkeypress="if(event.key==='Enter')send()"><button id="send" onclick="send()">ENVIAR</button></div>
             </div>
             <button class="btn-volver" onclick="volverMenu()">◂ VOLVER AL MENÚ</button>
         </div>
 
-        <!-- DIAGRAMAS ANIMADOS -->
-        <div class="seccion" id="sec-diagramas">
+        <!-- DIAGRAMAS ANIMADOS (oculto hasta que estén operativos) -->
+        <div class="seccion" id="sec-diagramas" style="display:none !important;">
             <div class="tarjeta">
                 <div class="tarjeta-header"><svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg><span class="tarjeta-header-texto">DIAGRAMAS ANIMADOS</span></div>
                 <div class="diagrama-container">
@@ -510,6 +518,7 @@
 
     <div class="footer"><a href="index.html">DECARAMBOLA.COM</a></div>
 
+    <script src="core.js"></script>
     <script>
     // Estrellas
     (function(){var c=document.getElementById('stars');for(var i=0;i<50;i++){var s=document.createElement('div');s.className='star';var z=Math.random()*1.5+0.5;s.style.cssText='width:'+z+'px;height:'+z+'px;left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;animation-delay:'+Math.random()*3+'s;';c.appendChild(s);}})();
@@ -517,10 +526,38 @@
     var modalidadActual='tresbandas';
     var tipoAnalisis='jugada';
     var temaActualModal='';
+    var contactMode=false;
+    var contactStep=0;
+    var contactData={};
+    var JOE_NAME='Joe';
     
     function cambiarModalidad(btn,mod){document.querySelectorAll('.mod-btn').forEach(b=>b.classList.remove('activo'));btn.classList.add('activo');modalidadActual=mod;}
-    function mostrarSeccion(id){document.getElementById('menu-principal').style.display='none';document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('visible'));document.getElementById('sec-'+id).classList.add('visible');window.scrollTo(0,0);}
-    function volverMenu(){document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('visible'));document.getElementById('menu-principal').style.display='flex';window.scrollTo(0,0);}
+    function mostrarSeccion(id){
+        document.getElementById('menu-principal').style.display='none';
+        document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('visible'));
+        document.getElementById('sec-'+id).classList.add('visible');
+        contactMode=false;
+        var h=document.getElementById('chat-header-texto');
+        if(h) h.textContent='CONSULTAR AL SENSEI';
+        window.scrollTo(0,0);
+    }
+    function volverMenu(){document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('visible'));document.getElementById('menu-principal').style.display='flex';contactMode=false;var h=document.getElementById('chat-header-texto');if(h) h.textContent='CONSULTAR AL SENSEI';window.scrollTo(0,0);}
+    
+    function iniciarModoContacto(){
+        contactMode=true;
+        contactStep=1;
+        contactData={};
+        document.getElementById('menu-principal').style.display='none';
+        document.querySelectorAll('.seccion').forEach(function(s){s.classList.remove('visible');});
+        document.getElementById('sec-chat').classList.add('visible');
+        var h=document.getElementById('chat-header-texto');
+        if(h) h.textContent='JOE — CONTACTO Y PQRS';
+        var msgs=document.getElementById('mensajes');
+        msgs.innerHTML='';
+        addMsg('Soy '+JOE_NAME+', el asistente de la plataforma DeCarambola. Para contacto, PQRS o información sobre nuestros servicios de administración, aquí estoy. Para poder contactarte necesito algunos datos. <strong>¿Cómo te llamas?</strong>','sensei');
+        document.getElementById('input').placeholder='Tu nombre...';
+        window.scrollTo(0,0);
+    }
     function cambiarTipoAnalisis(btn,tipo){document.querySelectorAll('.upload-tab').forEach(t=>t.classList.remove('activo'));btn.classList.add('activo');tipoAnalisis=tipo;}
     
     // Reiniciar animación de diagrama
@@ -530,16 +567,74 @@
         svg.parentNode.replaceChild(clone, svg);
     }
     
-    const API="https://sensei-billar-api.onrender.com";
+const API="https://sensei-billar-api.onrender.com";
+    // Registro de uso: si está vacío no se envía nada (Sensei funciona igual). Para activar: 1) En terminal: cd sensei-backend && npm install && npm start  2) Poner aquí la URL, ej: 'http://localhost:3456' (o la URL de tu backend en producción).
+    var SENSEI_USO_API = '';
+
+    // Supabase pqrs: usa URL y Anon Key de core.js (script src="core.js" arriba)
+    var PQRS_TIPOS = ['peticion','queja','reclamo','sugerencia'];
+    
+    function inferirTipoPQRS(mensaje) {
+        if (!mensaje || typeof mensaje !== 'string') return 'peticion';
+        var m = mensaje.toLowerCase();
+        if (/\bqueja\b/.test(m)) return 'queja';
+        if (/\breclamo\b/.test(m)) return 'reclamo';
+        if (/\bsugerencia\b/.test(m)) return 'sugerencia';
+        return 'peticion';
+    }
+    
+    async function insertarPqrsEnSupabase(payload) {
+        var url = (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : 'https://iwvogyloebvieloequzr.supabase.co');
+        var key = (typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : '');
+        var body = {
+            nombre: payload.nombre,
+            contacto: payload.contacto,
+            mensaje: payload.mensaje,
+            tipo: PQRS_TIPOS.indexOf(payload.tipo) >= 0 ? payload.tipo : 'peticion',
+            estado: 'pendiente_revision',
+            club_id: payload.club_id || null
+        };
+        var res = await fetch(url + '/rest/v1/pqrs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': key,
+                'Authorization': 'Bearer ' + key,
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+            var errText = await res.text();
+            throw new Error(errText || 'Supabase error ' + res.status);
+        }
+        return await res.json();
+    }
     
     // CHAT
-    function addMsg(text,type){
+    function registrarUso(tipo, modalidad, temaResumen, util) {
+        if (!SENSEI_USO_API) return;
+        var body = { tipo: tipo, modalidad: modalidad || null, tema_o_resumen: temaResumen || null };
+        if (util !== undefined && util !== null) body.util = util;
+        fetch(SENSEI_USO_API + '/uso', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(function(){});
+    }
+    function registrarUsoConUtil(btn, util) {
+        var tema = (btn && btn.getAttribute('data-tema')) || '';
+        tema = tema.replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&lt;/g,'<');
+        var mod = (btn && btn.getAttribute('data-modalidad')) || modalidadActual;
+        registrarUso('chat', mod, tema, util);
+        if (btn && btn.parentElement) btn.parentElement.innerHTML = '✓ Gracias';
+    }
+    function addMsg(text,type,opts){
         const msgs=document.getElementById("mensajes");
         const div=document.createElement("div");
-        div.className="mensaje "+type;
+        var isJoe=type==="sensei"&&contactMode;
+        div.className="mensaje "+(isJoe?"joe ":type);
         if(type==="sensei"){
-            div.innerHTML='<span class="sensei-label">SENSEI</span>'+text+
-                '<br><button class="btn-hablar" onclick="hablarMensaje(this,'+JSON.stringify(text).replace(/</g,'&lt;')+')" title="Escuchar al Sensei">🔊 ESCUCHAR</button>';
+            var temaParaUso = (opts && opts.temaParaUso) ? opts.temaParaUso.replace(/'/g,"\\'").slice(0,200) : '';
+            var teSirvioHtml = (!isJoe && SENSEI_USO_API && temaParaUso) ? '<br><span class="te-sirvio-wrap" style="font-size:0.8rem;color:#666;">¿Te sirvió? <button type="button" class="btn-te-sirvio" style="background:transparent;border:1px solid #333;color:#888;padding:4px 10px;border-radius:8px;cursor:pointer;font-size:0.75rem;margin-left:6px;" onclick="registrarUso(\'chat\',\''+modalidadActual+'\',\''+temaParaUso+'\',true);this.parentElement.innerHTML=\'✓ Gracias\';">Sí</button> <button type="button" class="btn-te-sirvio" style="background:transparent;border:1px solid #333;color:#888;padding:4px 10px;border-radius:8px;cursor:pointer;font-size:0.75rem;" onclick="registrarUso(\'chat\',\''+modalidadActual+'\',\''+temaParaUso+'\',false);this.parentElement.innerHTML=\'✓ Gracias\';">No</button></span>' : '';
+            div.innerHTML=(isJoe?'<span class="joe-label">'+JOE_NAME.toUpperCase()+'</span>':'<span class="sensei-label">SENSEI</span>')+text+
+                '<br><button class="btn-hablar" onclick="hablarMensaje(this,'+JSON.stringify(text).replace(/</g,'&lt;')+')" title="Escuchar">🔊 ESCUCHAR</button>'+teSirvioHtml;
         }else{
             div.textContent=text;
         }
@@ -553,6 +648,50 @@
         if(!text)return;
         addMsg(text,"user");
         input.value="";
+        if(contactMode){
+            btn.disabled=true;
+            if(contactStep===1){
+                contactData.nombre=text;
+                contactStep=2;
+                addMsg('Gracias, '+text+'. <strong>¿Correo electrónico o teléfono para responderte?</strong>','sensei');
+                document.getElementById('input').placeholder='Correo o teléfono...';
+            }else if(contactStep===2){
+                contactData.contacto=text;
+                contactStep=3;
+                addMsg('Perfecto. <strong>Cuéntame tu petición, queja, reclamo o sugerencia</strong> (o escribe tu mensaje en una frase).','sensei');
+                document.getElementById('input').placeholder='Tu mensaje...';
+            }else if(contactStep===3){
+                contactData.mensaje=text;
+                contactData.fecha=new Date().toISOString();
+                var tipo = inferirTipoPQRS(text);
+                var clubId = null;
+                try{ var p = JSON.parse(localStorage.getItem('mi_perfil')||'{}'); clubId = p.club_id || null; }catch(e){}
+                var payload = { nombre: contactData.nombre, contacto: contactData.contacto, mensaje: contactData.mensaje, fecha: contactData.fecha, tipo: tipo, club_id: clubId };
+                var supabaseOk = false;
+                try {
+                    await insertarPqrsEnSupabase(payload);
+                    supabaseOk = true;
+                } catch (err) {
+                    console.warn('[Joe] Supabase pqrs insert failed:', err);
+                    try {
+                        var list = JSON.parse(localStorage.getItem('PQRS_CONTACTOS')||'[]');
+                        list.push({ nombre: payload.nombre, contacto: payload.contacto, mensaje: payload.mensaje, fecha: payload.fecha });
+                        localStorage.setItem('PQRS_CONTACTOS', JSON.stringify(list));
+                    } catch (e) {}
+                }
+                if (supabaseOk) {
+                    addMsg('Gracias. Tu mensaje ha quedado registrado en la plataforma. Te contactaremos a <strong>'+contactData.contacto+'</strong>. El administrador revisará y te responderá. Si quieres consultar algo del billar, vuelve al menú y habla con el Sensei.','sensei');
+                } else {
+                    addMsg('Tu mensaje se guardó localmente pero no se pudo enviar a la plataforma (error de red). Te contactaremos a <strong>'+contactData.contacto+'</strong> cuando sea posible. Intenta de nuevo más tarde si sigue fallando.','sensei');
+                }
+                contactStep=0;
+                contactMode=false;
+                document.getElementById('input').placeholder='Escribe tu pregunta...';
+            }
+            btn.disabled=false;
+            btn.textContent="ENVIAR";
+            return;
+        }
         btn.disabled=true;
         btn.innerHTML='<span class="loading"></span>';
         try{
@@ -562,8 +701,8 @@
                 body:JSON.stringify({mensaje:text+" (Modalidad: "+modalidadActual+")"})
             });
             const data=await res.json();
-            addMsg(data.respuesta,"sensei");
-            // Auto-voz si está activa
+            addMsg(data.respuesta,"sensei",{ temaParaUso: text.slice(0,200) });
+            registrarUso('chat', modalidadActual, text.slice(0,200), null);
             if(autoHablar) {
                 setTimeout(function() {
                     var lastBtn = document.querySelectorAll(".btn-hablar");
@@ -706,6 +845,11 @@
 
     // ANALIZAR VIDEO
     async function procesarArchivo(input){if(!input.files||!input.files[0])return;const archivo=input.files[0];const esVideo=archivo.type.startsWith('video/');const esImagen=archivo.type.startsWith('image/');const previewCont=document.getElementById('preview-container');if(esVideo){previewCont.innerHTML='<video class="video-preview" controls><source src="'+URL.createObjectURL(archivo)+'" type="'+archivo.type+'"></video>';}else if(esImagen){previewCont.innerHTML='<img class="video-preview" src="'+URL.createObjectURL(archivo)+'" alt="Preview">';}const resultadoCont=document.getElementById('resultado-analisis');resultadoCont.innerHTML='<div style="text-align:center;padding:25px;"><span class="loading loading-grande"></span><div style="color:#888;font-size:1rem;margin-top:12px;">El Sensei está analizando tu '+(tipoAnalisis==='chiripa'?'posible chiripa':'jugada')+'...</div></div>';const formData=new FormData();formData.append(esVideo?'video':'imagen',archivo);formData.append('tipo',tipoAnalisis);try{const endpoint=esVideo?'/analizar-video':'/analizar-imagen';const res=await fetch(API+endpoint,{method:'POST',body:formData});const data=await res.json();resultadoCont.innerHTML='<div class="resultado-analisis"><span class="sensei-label">SENSEI</span><div class="resultado-texto">'+data.respuesta+'</div></div>';}catch(e){resultadoCont.innerHTML='<div class="resultado-analisis"><span class="sensei-label">SENSEI</span><div class="resultado-texto">¡Ups! Hubo un problema. Intenta con un archivo más pequeño.</div></div>';}input.value='';}
+
+    // Abrir en modo contacto si viene ?contacto=1 (p. ej. desde index "Contactar")
+    if (typeof URLSearchParams !== 'undefined' && new URLSearchParams(window.location.search).get('contacto') === '1') {
+        setTimeout(iniciarModoContacto, 150);
+    }
     </script>
 <script src="whitelabel.js"></script>
 </body>

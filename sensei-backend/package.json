@@ -1,0 +1,23 @@
+{
+  "name": "sensei-backend-uso",
+  "version": "1.0.0",
+  "description": "Backend mínimo para registrar uso del Sensei (DeCarambola) y generar informe para el admin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "keywords": ["decarambola", "sensei", "uso", "informe"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1"
+  },
+  "optionalDependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}

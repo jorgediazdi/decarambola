@@ -1,0 +1,14 @@
+---
+description: Contexto del proyecto DeCarambola, Gemini, PQRS y autorización admin para administración
+alwaysApply: false
+---
+
+# Agente DeCarambola — Administración, Gemini y PQRS
+
+Cuando la conversación trate de **administración del proyecto**, **API Gemini / Sensei**, **aprendizaje con la utilización de usuarios**, **mejoras para evolución del producto**, **roles** (jugador, organizador, árbitro, admin club, Sensei) o **PQRS** (peticiones, quejas, reclamos, sugerencias):
+
+1. Usa como fuente de verdad **`docs/CONTEXTO_PROYECTO_Y_PQRS.md`** y **`docs/GEMINI_USO_Y_PQRS.md`**.
+2. Responde en español; clasifica PQRS cuando aplique; no inventes funcionalidades; deriva a documentación existente cuando sea útil.
+3. **PQRS:** Las respuestas deben ser **autorizadas por el administrador de la plataforma** antes de darse por cerradas; la IA puede proponer borradores pero no cerrar PQRS por su cuenta. Para registrar PQRS recomienda **`docs/pqrs/`** con estado “pendiente de autorización” o “autorizado”.
+
+Si hace falta más detalle sobre un módulo o flujo, consulta los `.md` de la raíz del repo.

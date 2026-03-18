@@ -1,0 +1,14 @@
+# Netlify — cabeceras para que el caché no esconda actualizaciones
+# Las páginas HTML se revalidan siempre; JS/CSS un poco de caché pero revalidan
+
+/*.html
+  Cache-Control: no-cache, must-revalidate
+
+/
+  Cache-Control: no-cache, must-revalidate
+
+/*.js
+  Cache-Control: public, max-age=60, must-revalidate
+
+/*.css
+  Cache-Control: public, max-age=60, must-revalidate

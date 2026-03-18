@@ -89,6 +89,44 @@ const MasterVIP = {
         return perfil.club_id || null;
     },
 
+    // URL de cámara/stream de una mesa (primera cámara si hay varias). Consulta mesas.urls_camaras o mesas.url_camara.
+    getStreamUrlMesa: function (clubId, numeroMesa) {
+        if (!clubId || (numeroMesa !== 0 && !numeroMesa)) return Promise.resolve(null);
+        var num = typeof numeroMesa === 'string' ? parseInt(numeroMesa, 10) : numeroMesa;
+        if (isNaN(num)) return Promise.resolve(null);
+        return DB.get('mesas', 'club_id=eq.' + encodeURIComponent(clubId) + '&numero=eq.' + num + '&limit=1')
+            .then(function (rows) {
+                var m = rows && rows[0];
+                if (!m) return null;
+                if (m.urls_camaras && Array.isArray(m.urls_camaras) && m.urls_camaras.length > 0) {
+                    var first = m.urls_camaras[0];
+                    return (first && typeof first === 'object' && first.url) ? first.url : (typeof first === 'string' ? first : null);
+                }
+                return (m.url_camara && m.url_camara.trim()) ? m.url_camara.trim() : null;
+            })
+            .catch(function () { return null; });
+    },
+    // Todas las URLs de cámaras de una mesa (para selector multi-cámara).
+    getStreamUrlsMesa: function (clubId, numeroMesa) {
+        if (!clubId || (numeroMesa !== 0 && !numeroMesa)) return Promise.resolve([]);
+        var num = typeof numeroMesa === 'string' ? parseInt(numeroMesa, 10) : numeroMesa;
+        if (isNaN(num)) return Promise.resolve([]);
+        return DB.get('mesas', 'club_id=eq.' + encodeURIComponent(clubId) + '&numero=eq.' + num + '&limit=1')
+            .then(function (rows) {
+                var m = rows && rows[0];
+                if (!m) return [];
+                if (m.urls_camaras && Array.isArray(m.urls_camaras) && m.urls_camaras.length > 0) {
+                    return m.urls_camaras.map(function (c) {
+                        if (typeof c === 'string') return { nombre: 'Cámara', url: c };
+                        return { nombre: (c && c.nombre) || 'Cámara', url: (c && c.url) || '' };
+                    }).filter(function (c) { return c.url; });
+                }
+                if (m.url_camara && m.url_camara.trim()) return [{ nombre: 'Cámara 1', url: m.url_camara.trim() }];
+                return [];
+            })
+            .catch(function () { return []; });
+    },
+
     // ─────────────────────────────────────────
     // 2. JUGADORES
     // ─────────────────────────────────────────

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Configurar sede — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#0b0b0b; --azul:#3498db; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:100px; }
+
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .header-titulo { color:var(--oro); font-size:0.95rem; letter-spacing:3px; }
+        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
+        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; color:inherit; }
+
+        .wrap { max-width:500px; margin:0 auto; padding:16px 18px; }
+
+        .sec-titulo { color:#666; font-size:0.5rem; letter-spacing:3px; margin:16px 0 10px; }
+        .campo { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:12px 14px; margin-bottom:10px; }
+        .campo label { display:block; color:#555; font-size:0.48rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+        .campo input { width:100%; background:transparent; border:none; border-bottom:1px solid var(--g1); color:#fff; font-size:1rem; padding:6px 0; outline:none; font-family:'Arial Black',sans-serif; }
+
+        .color-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+        .color-chip { width:36px; height:36px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition:transform 0.2s, border-color 0.2s; }
+        .color-chip:hover { transform:scale(1.1); }
+        .color-chip.sel { border-color:#fff; box-shadow:0 0 12px currentColor; }
+
+        .logo-area { background:var(--g2); border:2px dashed var(--oro); border-radius:18px; padding:24px; text-align:center; margin:14px 0; }
+        .logo-preview { width:100px; height:100px; margin:0 auto 12px; border-radius:50%; background:var(--g3); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+        .logo-preview img { width:100%; height:100%; object-fit:cover; }
+        .logo-preview .ph { color:#555; font-size:2rem; }
+        .logo-upload-btn { display:inline-block; margin-top:8px; padding:10px 18px; background:var(--g3); border:1px solid var(--oro); border-radius:12px; color:var(--oro); font-size:0.6rem; letter-spacing:2px; cursor:pointer; }
+        .logo-upload-btn:hover { background:rgba(212,175,55,0.15); }
+        .logo-input { display:none; }
+        .logo-url-campo { margin-top:10px; }
+        .logo-url-campo input { font-size:0.75rem; }
+
+        .btn-guardar { width:100%; padding:16px; margin-top:20px; background:linear-gradient(135deg,var(--oro),#a07800); color:#000; border:none; border-radius:16px; font-size:0.9rem; font-weight:bold; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:2px; }
+        .btn-guardar:disabled { opacity:0.6; cursor:not-allowed; }
+        .msg { text-align:center; padding:10px; border-radius:12px; font-size:0.7rem; margin-top:10px; display:none; }
+        .msg.ok { display:block; background:rgba(46,255,112,0.15); color:#2eff70; border:1px solid rgba(46,255,112,0.3); }
+        .msg.err { display:block; background:rgba(231,76,60,0.15); color:#e74c3c; border:1px solid rgba(231,76,60,0.3); }
+        .codigo-readonly { background:var(--g2); color:#888; padding:10px 14px; border-radius:10px; font-size:0.8rem; margin-bottom:10px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-titulo">CONFIGURAR SEDE</div>
+        <div class="header-sub">Nombre · Ciudad · Color · Logo</div>
+    </div>
+    <a href="index.html" class="btn-hdr">← MENÚ</a>
+</div>
+
+<div class="wrap">
+    <div class="sec-titulo">CÓDIGO DE INVITACIÓN</div>
+    <div class="codigo-readonly" id="codigo-display">—</div>
+
+    <div class="sec-titulo">NOMBRE DEL CLUB</div>
+    <div class="campo">
+        <input type="text" id="inp-nombre" placeholder="Ej: Club Tres Bandas" maxlength="120">
+    </div>
+
+    <div class="sec-titulo">CIUDAD</div>
+    <div class="campo">
+        <input type="text" id="inp-ciudad" placeholder="Ej: Bogotá" maxlength="80">
+    </div>
+
+    <div class="sec-titulo">COLOR PRIMARIO</div>
+    <div class="campo">
+        <div class="color-chips" id="color-chips"></div>
+    </div>
+
+    <div class="sec-titulo">LOGO DEL CLUB</div>
+    <div class="logo-area">
+        <div class="logo-preview" id="logo-preview"><span class="ph">🎱</span></div>
+        <div class="logo-upload-btn" onclick="document.getElementById('logo-file').click()">ELEGIR IMAGEN</div>
+        <input type="file" id="logo-file" class="logo-input" accept="image/*" onchange="previewLogo(this)">
+        <div class="logo-url-campo campo" style="margin-top:12px;">
+            <label>O pega la URL del logo</label>
+            <input type="url" id="inp-logo-url" placeholder="https://...">
+        </div>
+    </div>
+
+    <button class="btn-guardar" id="btn-guardar" onclick="guardarSede()">GUARDAR CAMBIOS</button>
+    <div class="msg" id="msg"></div>
+</div>
+
+<script src="whitelabel.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    var SUPABASE_URL = 'https://iwvogyloebvieloequzr.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
+    var COLORES = ['#d4af37','#3498db','#e74c3c','#2ecc71','#9b59b6','#1abc9c','#e67e22','#34495e'];
+
+    function get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
+    function set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
+    function getObj(key) { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; } }
+
+    function getClubActivo() {
+        var club = getObj('club_activo');
+        if (club && (club.nombre || club.codigo)) return club;
+        var clubes = getObj('mis_clubes') || [];
+        return clubes.find(function(c) { return c.admin === true; }) || null;
+    }
+
+    function mostrarMsg(texto, esError) {
+        var el = document.getElementById('msg');
+        if (!el) return;
+        el.textContent = texto;
+        el.className = 'msg ' + (esError ? 'err' : 'ok');
+    }
+
+    function renderColorChips(selColor) {
+        var cont = document.getElementById('color-chips');
+        if (!cont) return;
+        cont.innerHTML = COLORES.map(function(c) {
+            var sel = (c === selColor) ? ' sel' : '';
+            return '<div class="color-chip' + sel + '" data-c="' + c + '" style="background:' + c + '" onclick="elegirColor(this)"></div>';
+        }).join('');
+    }
+
+    window.elegirColor = function(el) {
+        document.querySelectorAll('.color-chip').forEach(function(c) { c.classList.remove('sel'); });
+        el.classList.add('sel');
+    };
+
+    function getColorSeleccionado() {
+        var sel = document.querySelector('.color-chip.sel');
+        return sel ? sel.getAttribute('data-c') : COLORES[0];
+    }
+
+    window.previewLogo = function(input) {
+        var file = input && input.files && input.files[0];
+        var prev = document.getElementById('logo-preview');
+        var urlInp = document.getElementById('inp-logo-url');
+        if (urlInp) urlInp.value = '';
+        if (!file || !prev) return;
+        var reader = new FileReader();
+        reader.onload = function() {
+            prev.innerHTML = '<img src="' + reader.result + '" alt="Logo">';
+            prev.setAttribute('data-dataurl', reader.result);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    function cargarDatos() {
+        var club = getClubActivo();
+        if (!club) {
+            document.getElementById('codigo-display').textContent = 'No hay club activo. Crea o únete a un club desde Inicio.';
+            document.getElementById('btn-guardar').disabled = true;
+            return;
+        }
+
+        document.getElementById('codigo-display').textContent = club.codigo || '—';
+        document.getElementById('inp-nombre').value = club.nombre || get('wl_club_nombre') || '';
+        document.getElementById('inp-ciudad').value = club.ciudad || '';
+        var cfg = getObj('CLUB_CONFIG') || {};
+        var color = club.color || get('wl_club_color') || cfg.color || COLORES[0];
+        renderColorChips(color);
+
+        var logoUrl = club.logo_url || get('wl_club_logo_url') || cfg.logoUrl || cfg.logo || '';
+        document.getElementById('inp-logo-url').value = logoUrl && logoUrl.indexOf('http') === 0 ? logoUrl : '';
+        var prev = document.getElementById('logo-preview');
+        if (logoUrl) {
+            if (logoUrl.indexOf('data:') === 0) {
+                prev.innerHTML = '<img src="' + logoUrl + '" alt="Logo">';
+                prev.setAttribute('data-dataurl', logoUrl);
+            } else {
+                prev.innerHTML = '<img src="' + logoUrl + '" alt="Logo" onerror="this.parentNode.innerHTML=\'<span class=ph>🎱</span>\'">';
+                prev.removeAttribute('data-dataurl');
+            }
+        } else {
+            prev.innerHTML = '<span class="ph">🎱</span>';
+            prev.removeAttribute('data-dataurl');
+        }
+    }
+
+    function actualizarClubLocal(nombre, ciudad, color, logoUrl) {
+        var club = getClubActivo();
+        if (!club) return;
+        club.nombre = nombre;
+        club.ciudad = ciudad;
+        club.color = color;
+        club.logo_url = logoUrl || club.logo_url || '';
+        localStorage.setItem('club_activo', JSON.stringify(club));
+        var clubes = getObj('mis_clubes') || [];
+        var idx = clubes.findIndex(function(c) { return c.codigo === club.codigo; });
+        if (idx >= 0) {
+            clubes[idx] = club;
+            localStorage.setItem('mis_clubes', JSON.stringify(clubes));
+        }
+        set('wl_club_nombre', nombre);
+        set('wl_club_color', color);
+        if (logoUrl) set('wl_club_logo_url', logoUrl);
+        var cfg = getObj('CLUB_CONFIG') || {};
+        cfg.color = color;
+        cfg.logoUrl = logoUrl || cfg.logoUrl;
+        cfg.logo = logoUrl || cfg.logo;
+        localStorage.setItem('CLUB_CONFIG', JSON.stringify(cfg));
+        if (window.WL && window.WL.setClub) {
+            window.WL.setClub({ id: club.id, nombre: nombre, logo_url: logoUrl || club.logo_url, color_primario: color });
+        }
+        var perfil = getObj('mi_perfil') || {};
+        perfil.club = nombre;
+        perfil.club_logo_url = logoUrl || perfil.club_logo_url;
+        localStorage.setItem('mi_perfil', JSON.stringify(perfil));
+    }
+
+    window.guardarSede = function() {
+        var nombre = (document.getElementById('inp-nombre').value || '').trim();
+        var ciudad = (document.getElementById('inp-ciudad').value || '').trim();
+        var color = getColorSeleccionado();
+        var logoUrlInp = (document.getElementById('inp-logo-url').value || '').trim();
+        var prev = document.getElementById('logo-preview');
+        var dataUrl = prev && prev.getAttribute('data-dataurl');
+        var logoUrl = logoUrlInp || dataUrl || '';
+
+        if (!nombre) {
+            mostrarMsg('Escribe el nombre del club.', true);
+            return;
+        }
+
+        var club = getClubActivo();
+        if (!club) {
+            mostrarMsg('No hay club activo.', true);
+            return;
+        }
+
+        var btn = document.getElementById('btn-guardar');
+        btn.disabled = true;
+        mostrarMsg('Guardando…', false);
+
+        actualizarClubLocal(nombre, ciudad, color, logoUrl || undefined);
+
+        var id = club.id;
+        var codigo = club.codigo;
+        var payload = {
+            nombre: nombre,
+            ciudad: ciudad || null,
+            color_primario: color,
+            logo_url: logoUrl || null,
+            activo: true
+        };
+
+        function onSuccess() {
+            mostrarMsg('✅ Cambios guardados. El código de invitación y el whitelabel se actualizarán.', false);
+            btn.disabled = false;
+            cargarDatos();
+        }
+        function onError(err) {
+            mostrarMsg('Guardado local correcto. Error al sincronizar con la nube: ' + (err || 'revisa conexión'), true);
+            btn.disabled = false;
+        }
+
+        if (id) {
+            fetch(SUPABASE_URL + '/rest/v1/clubs?id=eq.' + encodeURIComponent(id), {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(function(r) {
+                if (r.ok || r.status === 204) onSuccess();
+                else return r.text().then(onError);
+            })
+            .catch(onError);
+        } else {
+            payload.codigo = codigo || ('CLB-' + Math.floor(Math.random() * 900 + 100));
+            fetch(SUPABASE_URL + '/rest/v1/clubs', {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_KEY,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var fila = Array.isArray(data) ? data[0] : data;
+                if (fila && fila.id) {
+                    club.id = fila.id;
+                    localStorage.setItem('club_activo', JSON.stringify(club));
+                    var clubes = getObj('mis_clubes') || [];
+                    var i = clubes.findIndex(function(c) { return c.codigo === club.codigo; });
+                    if (i >= 0) { clubes[i] = club; localStorage.setItem('mis_clubes', JSON.stringify(clubes)); }
+                    set('wl_club_id', fila.id);
+                    if (window.WL && window.WL.setClub) {
+                        window.WL.setClub({ id: fila.id, nombre: nombre, logo_url: logoUrl || null, color_primario: color });
+                    }
+                    onSuccess();
+                } else {
+                    onError('No se devolvió id del club');
+                }
+            })
+            .catch(onError);
+        }
+    };
+
+    document.getElementById('inp-logo-url').addEventListener('change', function() {
+        var url = (this.value || '').trim();
+        var prev = document.getElementById('logo-preview');
+        if (!prev) return;
+        if (url) {
+            prev.removeAttribute('data-dataurl');
+            prev.innerHTML = '<img src="' + url + '" alt="Logo" onerror="this.parentNode.innerHTML=\'<span class=ph>🎱</span>\'">';
+        } else if (!prev.getAttribute('data-dataurl')) {
+            prev.innerHTML = '<span class="ph">🎱</span>';
+        }
+    });
+
+    cargarDatos();
+})();
+</script>
+
+</body>
+</html>

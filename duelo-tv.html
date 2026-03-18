@@ -72,6 +72,56 @@
             animation:parpadeo 0.5s infinite;
         }
         @keyframes parpadeo { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+        /* Botón pantalla completa (oculta barra de URL en la TV) */
+        .btn-fullscreen {
+            position:fixed;
+            right:12px;
+            bottom:10px;
+            z-index:100;
+            background:rgba(0,0,0,0.6);
+            border:1px solid #333;
+            color:#777;
+            padding:5px 9px;
+            border-radius:999px;
+            font-size:0.55rem;
+            letter-spacing:1px;
+            cursor:pointer;
+            font-family:'Arial Black',sans-serif;
+        }
+        .btn-fullscreen span {
+            margin-right:4px;
+            font-size:0.7rem;
+        }
+        .btn-fullscreen:hover {
+            color:#ddd;
+            border-color:#666;
+        }
+
+        /* Botón pantalla completa (oculta barra de URL en la TV) */
+        .btn-fullscreen {
+            position:fixed;
+            right:12px;
+            bottom:10px;
+            z-index:100;
+            background:rgba(0,0,0,0.6);
+            border:1px solid #333;
+            color:#777;
+            padding:5px 9px;
+            border-radius:999px;
+            font-size:0.55rem;
+            letter-spacing:1px;
+            cursor:pointer;
+            font-family:'Arial Black',sans-serif;
+        }
+        .btn-fullscreen span {
+            margin-right:4px;
+            font-size:0.7rem;
+        }
+        .btn-fullscreen:hover {
+            color:#ddd;
+            border-color:#666;
+        }
         .btn-pausa {
             background:rgba(255,255,255,0.06);
             border:1px solid #333;
@@ -123,6 +173,7 @@
             font-family:'Arial Black',sans-serif;
         }
         .btn-bolas-tv:active { background:rgba(255,255,255,0.15); }
+        .btn-bolas-tv.desactivado { opacity:0.4; pointer-events:none; cursor:not-allowed; }
 
         .barra-indicadores {
             display:flex;
@@ -149,6 +200,8 @@
             grid-template-columns:1fr 1fr 1fr;
             gap:0;
             padding:8px 10px 12px;
+            padding-bottom:170px;
+            min-height:0;
         }
         .panel-jugador {
             background:#0a0a0a;
@@ -160,9 +213,9 @@
             padding:14px 10px 12px;
         }
         .panel-jugador.activo {
-            background:rgba(212,175,55,0.08);
-            border-color:rgba(212,175,55,0.45);
-            box-shadow:inset 0 0 0 2px rgba(212,175,55,0.12);
+            background:rgba(212,175,55,0.12);
+            border:2px solid var(--oro);
+            box-shadow:0 0 24px rgba(212,175,55,0.35), inset 0 0 0 1px rgba(212,175,55,0.15);
         }
         .panel-jugador h2 {
             font-size:0.8rem;
@@ -230,7 +283,7 @@
         }
 
         .stats-grid {
-            margin-top:12px;
+            margin-top:6px;
             width:100%;
             max-width:220px;
             display:grid;
@@ -249,6 +302,22 @@
             font-weight:900;
             color:#fff;
             font-size:clamp(1.1rem,2.2vw,1.6rem);
+        }
+
+        /* Ajuste para pantallas de portátil / alturas bajas:
+           permitir scroll vertical y comprimir un poco padding
+           para que las estadísticas no queden ocultas */
+        @media (max-height: 750px) {
+            body {
+                overflow-y:auto;
+            }
+            .tv-main {
+                padding:4px 6px 8px;
+                padding-bottom:170px;
+            }
+            .panel-jugador {
+                padding:10px 8px 8px;
+            }
         }
 
         .panel-meta-bar {
@@ -567,14 +636,20 @@
         </div>
         <button class="btn-sig" onclick="cambio()">► SIGUIENTE ENTRADA</button>
     </div>
+    </div>
 </div>
+
+<!-- Botón para poner la TV a pantalla completa y ocultar barra de direcciones -->
+<button class="btn-fullscreen" id="btn-fullscreen" type="button">
+    <span>⛶</span>PANTALLA COMPLETA
+</button>
 
 <script src="core.js"></script>
 <script>
     // Estado
     let bolasInvertidas = false;
     let d = { p1:12,p2:10,e1:2,e2:2,s1:3,s2:0,ms1:5,ms2:2,t:1 };
-    let cfg = { meta1:25,meta2:25,tiempo:40,mesa:'3',streamUrl:'' };
+    let cfg = { meta1:25,meta2:25,tiempo:40,mesa:'2',streamUrl:'' };
 
     let tiempoRestante = cfg.tiempo;
     let timer = null;
@@ -582,6 +657,7 @@
     let partidaStartTime = Date.now();
     let partidaTotalPausedMs = 0;
     let pauseStartTime = 0;
+    let partidaTerminada = false;
 
     function actualizarUI() {
         document.getElementById('lbl1-sb').innerText = 'JUGADOR A';
@@ -626,6 +702,11 @@
         document.getElementById('tk-t2').innerText = cfg.meta2>0?cfg.meta2:'∞';
         document.getElementById('tk-meta1').className = 'turno-meta-item' + (d.t===1?' activo':'');
         document.getElementById('tk-meta2').className = 'turno-meta-item' + (d.t===2?' activo':'');
+        var p1 = document.getElementById('panel-j1'), p2 = document.getElementById('panel-j2');
+        if (p1) p1.classList.toggle('activo', d.t === 1);
+        if (p2) p2.classList.toggle('activo', d.t === 2);
+        var btnBolas = document.getElementById('btn-bolas-tv');
+        if (btnBolas) btnBolas.classList.toggle('desactivado', d.p1 + d.p2 > 0);
     }
 
     function actualizarIndicadoresTiempo() {
@@ -674,6 +755,13 @@
     }
 
     function sumar(n) {
+        if (partidaTerminada) return;
+        const meta = d.t === 1 ? cfg.meta1 : cfg.meta2;
+        if (meta > 0 && d['p'+d.t] >= meta) return;
+        if (meta > 0 && d['p'+d.t] + n >= meta) {
+            mostrarConfirmacionMeta(n);
+            return;
+        }
         d['p'+d.t] += n;
         d['s'+d.t] += n;
         if (d['s'+d.t] > d['ms'+d.t]) d['ms'+d.t] = d['s'+d.t];
@@ -681,11 +769,123 @@
     }
 
     function restar() {
+        if (partidaTerminada) return;
         if (d['p'+d.t] > 0) {
             d['p'+d.t]--;
             if (d['s'+d.t]>0) d['s'+d.t]--;
         }
         actualizarUI();
+    }
+
+    function mostrarConfirmacionMeta(n) {
+        const meta = d.t === 1 ? cfg.meta1 : cfg.meta2;
+        const nom = d.t === 1 ? 'JUGADOR A' : 'JUGADOR B';
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:998;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;';
+        overlay.innerHTML =
+            '<div style="font-size:2.5rem;">🎱</div>' +
+            '<div style="color:#aaa;font-size:0.55rem;letter-spacing:3px;">¿ALCANZÓ LA META?</div>' +
+            '<div style="color:var(--oro);font-size:1.1rem;letter-spacing:2px;text-align:center;">' + nom + ' llegó a ' + meta + ' carambolas</div>' +
+            '<div style="color:#666;font-size:0.6rem;text-align:center;max-width:280px;">Confirmar ganador para terminar, o subir meta para seguir jugando.</div>' +
+            '<div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;">' +
+            '<button type="button" id="btn-conf-ganador" style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:14px 24px;border-radius:14px;font-size:0.85rem;font-weight:bold;cursor:pointer;">✓ CONFIRMAR GANADOR</button>' +
+            '<button type="button" id="btn-subir-meta" style="background:rgba(46,255,112,0.15);color:#2eff70;border:1px solid rgba(46,255,112,0.4);padding:14px 24px;border-radius:14px;font-size:0.8rem;cursor:pointer;">Subir meta +5 y seguir</button>' +
+            '</div>';
+        overlay.querySelector('#btn-conf-ganador').onclick = function() {
+            document.body.removeChild(overlay);
+            partidaTerminada = true;
+            clearInterval(timer);
+            d['p'+d.t] += n;
+            d['s'+d.t] += n;
+            if (d['s'+d.t] > d['ms'+d.t]) d['ms'+d.t] = d['s'+d.t];
+            actualizarUI();
+            mostrarOpcionesCertificado();
+        };
+        overlay.querySelector('#btn-subir-meta').onclick = function() {
+            document.body.removeChild(overlay);
+            if (d.t === 1) cfg.meta1 += 5; else cfg.meta2 += 5;
+            d['p'+d.t] += n;
+            d['s'+d.t] += n;
+            if (d['s'+d.t] > d['ms'+d.t]) d['ms'+d.t] = d['s'+d.t];
+            actualizarUI();
+        };
+        document.body.appendChild(overlay);
+    }
+
+    function mostrarOpcionesCertificado() {
+        const nom = d.p1 >= d.p2 ? 'JUGADOR A' : (d.p2 >= d.p1 ? 'JUGADOR B' : (d.ms1 >= d.ms2 ? 'JUGADOR A' : 'JUGADOR B'));
+        const ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;';
+        ov.innerHTML =
+            '<div style="font-size:3rem;">🏆</div>' +
+            '<div style="color:var(--oro);font-size:1.3rem;letter-spacing:3px;">¡GANÓ ' + nom + '!</div>' +
+            '<div style="color:#666;font-size:0.6rem;text-align:center;max-width:280px;">¿Emitir certificado? Si certifica, la partida se guarda en historial y cuenta para el promedio. Si no certifica, no se guarda ni cuenta.</div>' +
+            '<div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;">' +
+            '<button type="button" id="btn-emitir-certi" style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:14px 24px;border-radius:14px;font-size:0.85rem;font-weight:bold;cursor:pointer;">📄 EMITIR CERTIFICADO (QR)</button>' +
+            '<button type="button" id="btn-no-certi" style="background:#222;color:#aaa;border:1px solid #333;padding:14px 24px;border-radius:14px;font-size:0.8rem;cursor:pointer;">No certificar / Nueva partida</button>' +
+            '</div>';
+        ov.querySelector('#btn-emitir-certi').onclick = function() {
+            document.body.removeChild(ov);
+            guardarPartidaTVEnHistorial();
+            mostrarOverlayQR();
+        };
+        ov.querySelector('#btn-no-certi').onclick = function() {
+            document.body.removeChild(ov);
+            partidaTerminada = false;
+            siguienteSet();
+        };
+        document.body.appendChild(ov);
+    }
+
+    function guardarPartidaTVEnHistorial() {
+        try {
+            if (typeof window.HISTORIAL === 'undefined' || !window.HISTORIAL.guardarPartida) return;
+            const nom1 = 'JUGADOR A', nom2 = 'JUGADOR B';
+            const fecha = new Date().toISOString();
+            const entradaObj = cfg.meta1 || 0;
+            const prom1 = d.e1 > 0 ? (d.p1 / d.e1) : 0;
+            const prom2 = d.e2 > 0 ? (d.p2 / d.e2) : 0;
+            HISTORIAL.guardarPartida({
+                jugador_id: null, jugador_nombre: nom1, rival_nombre: nom2, rival_promedio: prom2,
+                entrada_objetivo: entradaObj, entradas_jugador: d.e1, carambolas_jugador: d.p1,
+                promedio_partida: prom1, gano: d.p1 >= d.p2, tipo: 'duelo', torneo_nombre: null,
+                serie_mayor: d.ms1, fecha: fecha
+            });
+            HISTORIAL.guardarPartida({
+                jugador_id: null, jugador_nombre: nom2, rival_nombre: nom1, rival_promedio: prom1,
+                entrada_objetivo: entradaObj, entradas_jugador: d.e2, carambolas_jugador: d.p2,
+                promedio_partida: prom2, gano: d.p2 >= d.p1, tipo: 'duelo', torneo_nombre: null,
+                serie_mayor: d.ms2, fecha: fecha
+            });
+        } catch (e) {}
+    }
+
+    function mostrarOverlayQR() {
+        var el1 = document.getElementById('lbl1-sb'), el2 = document.getElementById('lbl2-sb');
+        var nom1 = (el1 && el1.innerText) ? el1.innerText.trim() : 'JUGADOR A';
+        var nom2 = (el2 && el2.innerText) ? el2.innerText.trim() : 'JUGADOR B';
+        var ganador = d.p1 >= d.p2 ? nom1 : (d.p2 >= d.p1 ? nom2 : (d.ms1 >= d.ms2 ? nom1 : nom2));
+        var basePublica = (typeof localStorage !== 'undefined' && localStorage.getItem('wl_cert_base_url')) || 'https://decarambola.com';
+        var base = basePublica.replace(/\/$/, '') + '/certificado_ver.html';
+        var qs = '?n1=' + encodeURIComponent(nom1) + '&n2=' + encodeURIComponent(nom2) +
+            '&p1=' + d.p1 + '&p2=' + d.p2 + '&e1=' + d.e1 + '&e2=' + d.e2 +
+            '&ms1=' + d.ms1 + '&ms2=' + d.ms2 + '&ganador=' + encodeURIComponent(ganador);
+        var urlCerti = base + qs;
+        var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(urlCerti);
+        var avisoCel = '<div style="color:#888;font-size:0.55rem;text-align:center;">Partida guardada. El jugador escanea el QR o abre el enlace desde el celular en decarambola.com y ve el certificado: con eso acepta el resultado.</div>';
+        var ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;';
+        ov.innerHTML =
+            '<div style="color:var(--oro);font-size:0.7rem;letter-spacing:3px;">CERTIFICADO EMITIDO</div>' +
+            avisoCel +
+            '<img src="' + qrSrc + '" alt="QR certificado" style="width:200px;height:200px;border:4px solid var(--oro);border-radius:12px;">' +
+            '<button type="button" id="btn-nueva-despues-qr" style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:14px 28px;border-radius:14px;font-size:0.9rem;font-weight:bold;cursor:pointer;">Nueva partida</button>';
+        ov.querySelector('#btn-nueva-despues-qr').onclick = function() {
+            document.body.removeChild(ov);
+            partidaTerminada = false;
+            siguienteSet();
+        };
+        document.body.appendChild(ov);
     }
 
     function cambio() {
@@ -699,6 +899,7 @@
     }
 
     function intercambiarBolasTv() {
+        if (d.p1 + d.p2 > 0) return;
         bolasInvertidas = !bolasInvertidas;
         const b1 = document.getElementById('bola1-sb');
         const b2 = document.getElementById('bola2-sb');
@@ -713,11 +914,34 @@
     }
 
     function siguienteSet() {
-        // TODO: integrar con HISTORIAL.guardarPartida si se requiere
+        partidaTerminada = false;
         d = { p1:0,p2:0,e1:0,e2:0,s1:0,s2:0,ms1:0,ms2:0,t:1 };
         tiempoRestante = cfg.tiempo;
         iniciarReloj();
         actualizarUI();
+    }
+
+    // Inicializar panel de video con una URL de stream (YouTube u otra) pasada por query string.
+    // Ejemplo:
+    // duelo-tv.html?stream=https://www.youtube.com/embed/VIDEO_ID?autoplay=1
+    function initVideoPanel() {
+        const params = new URLSearchParams(window.location.search);
+        const stream = params.get('stream');
+        const iframe = document.getElementById('stream-iframe');
+        const placeholder = document.getElementById('video-placeholder');
+        const header = document.getElementById('lbl-video-header');
+
+        if (stream) {
+            cfg.streamUrl = stream;
+            iframe.src = stream;
+            iframe.style.display = 'block';
+            placeholder.style.display = 'none';
+            header.innerText = 'MESA — STREAM EN VIVO';
+        } else {
+            iframe.style.display = 'none';
+            placeholder.style.display = 'flex';
+            header.innerText = 'MESA — VIDEO / STREAM';
+        }
     }
 
     document.getElementById('btn-pausa').onclick = togglePausa;
@@ -727,6 +951,7 @@
     // DEMO inicial
     actualizarUI();
     iniciarReloj();
+    initVideoPanel();
 </script>
 </body>
 </html>

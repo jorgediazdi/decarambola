@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestionar PQRS — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#0b0b0b; --azul:#3498db; --rojo:#e74c3c; --neon:#2eff70; }
+        * { box-sizing: border-box; }
+        body { background: var(--negro); color: #fff; font-family: 'Arial Black', Arial, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+        .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+        .back { color: #888; text-decoration: none; font-size: 0.9rem; letter-spacing: 1px; }
+        .back:hover { color: var(--oro); }
+        .header h1 { flex: 1; color: var(--azul); font-size: 1rem; letter-spacing: 2px; margin: 0; }
+        .contenido { padding: 20px 16px 80px; max-width: 560px; margin: 0 auto; }
+        .filtro { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+        .filtro-btn { padding: 10px 14px; background: #111; border: 1px solid #222; border-radius: 12px; color: #666; font-size: 0.75rem; cursor: pointer; font-family: inherit; letter-spacing: 1px; }
+        .filtro-btn.activo { background: rgba(52,152,219,0.15); border-color: var(--azul); color: var(--azul); }
+        .filtro-btn:hover { border-color: #333; color: #aaa; }
+        .pqrs-lista { display: flex; flex-direction: column; gap: 14px; }
+        .pqrs-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 16px; overflow: hidden; }
+        .pqrs-card.pendiente { border-color: rgba(52,152,219,0.3); }
+        .pqrs-card.autorizado { border-color: rgba(46,255,112,0.2); }
+        .pqrs-card.rechazado { border-color: rgba(231,76,60,0.2); opacity: 0.85; }
+        .pqrs-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: #050505; border-bottom: 1px solid #111; flex-wrap: wrap; gap: 8px; }
+        .pqrs-nombre { color: var(--oro); font-size: 0.9rem; }
+        .pqrs-estado { font-size: 0.6rem; padding: 4px 10px; border-radius: 10px; letter-spacing: 1px; }
+        .pqrs-estado.pendiente_revision { background: rgba(52,152,219,0.2); color: var(--azul); }
+        .pqrs-estado.autorizado { background: rgba(46,255,112,0.15); color: var(--neon); }
+        .pqrs-estado.rechazado { background: rgba(231,76,60,0.15); color: var(--rojo); }
+        .pqrs-estado.cerrado { background: #1a1a1a; color: #555; }
+        .pqrs-body { padding: 14px; }
+        .pqrs-row { font-size: 0.8rem; margin-bottom: 8px; color: #bbb; }
+        .pqrs-row strong { color: #888; font-size: 0.65rem; letter-spacing: 1px; display: block; margin-bottom: 2px; }
+        .pqrs-mensaje { background: #080808; border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 0.85rem; line-height: 1.5; color: #ccc; font-family: Arial, sans-serif; font-weight: normal; }
+        .pqrs-acciones { display: flex; gap: 10px; padding: 12px 14px; border-top: 1px solid #111; flex-wrap: wrap; }
+        .pqrs-acciones textarea { width: 100%; min-height: 80px; background: #0a0a0a; border: 1px solid #222; border-radius: 10px; color: #ddd; padding: 12px; font-size: 0.85rem; font-family: Arial, sans-serif; margin-bottom: 10px; resize: vertical; }
+        .btn { padding: 12px 18px; border: none; border-radius: 12px; font-size: 0.8rem; font-family: inherit; font-weight: bold; cursor: pointer; letter-spacing: 1px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-autorizar { background: var(--neon); color: #000; }
+        .btn-rechazar { background: rgba(231,76,60,0.2); color: var(--rojo); border: 1px solid rgba(231,76,60,0.5); }
+        .pqrs-notif { margin-top: 8px; font-size: 0.78rem; white-space: pre-wrap; }
+        .pqrs-notif-info { font-size: 0.7rem; color: #666; margin-top: 6px; }
+        .pqrs-notif-btns { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .empty { text-align: center; padding: 50px 20px; color: #444; font-size: 0.9rem; }
+        .empty div { font-size: 2.5rem; margin-bottom: 12px; }
+        .loading { text-align: center; padding: 30px; color: #555; }
+        .error-msg { background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.3); color: var(--rojo); padding: 14px; border-radius: 12px; margin-bottom: 16px; font-size: 0.85rem; }
+        .acceso-denegado { text-align: center; padding: 60px 24px; }
+        .acceso-denegado h2 { color: #555; font-size: 1.1rem; margin-bottom: 16px; }
+        .acceso-denegado a { color: var(--azul); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back">◂ VOLVER</a>
+        <h1>GESTIONAR PQRS (SUPERADMIN)</h1>
+        <button type="button" id="btn-salir-superadmin" style="display:none;background:transparent;border:1px solid #333;color:#666;padding:8px 12px;border-radius:10px;font-size:0.65rem;cursor:pointer;letter-spacing:1px;">Salir</button>
+    </div>
+    <div class="contenido" id="contenido">
+        <div class="loading" id="loading">Comprobando acceso...</div>
+        <div id="panel-lista" style="display:none;">
+            <div class="filtro">
+                <button type="button" class="filtro-btn activo" data-estado="">TODOS</button>
+                <button type="button" class="filtro-btn" data-estado="pendiente_revision">PENDIENTES</button>
+                <button type="button" class="filtro-btn" data-estado="autorizado">AUTORIZADOS</button>
+                <button type="button" class="filtro-btn" data-estado="rechazado">RECHAZADOS</button>
+            </div>
+            <div class="pqrs-lista" id="pqrs-lista"></div>
+            <div class="empty" id="empty" style="display:none;">
+                <div>📬</div>
+                <p>No hay PQRS con este filtro.</p>
+            </div>
+        </div>
+        <div class="acceso-denegado" id="acceso-denegado" style="display:none;">
+            <h2>Administrador de la plataforma (superadmin)</h2>
+            <p>No es el admin del club: es el <strong>superadmin</strong> de DeCarambola. Solo quien tenga la clave puede ver y autorizar PQRS.</p>
+            <div id="login-superadmin" style="margin-top:20px;">
+                <input type="password" id="superadmin-clave" placeholder="Clave superadmin" style="width:100%;max-width:260px;padding:12px;background:#111;border:1px solid #222;border-radius:10px;color:#ddd;font-size:1rem;margin-bottom:10px;text-align:center;">
+                <br><button type="button" id="btn-superadmin-entrar" class="btn btn-autorizar" style="margin-top:8px;">ENTRAR</button>
+            </div>
+            <p style="margin-top:24px;"><a href="index.html">Ir al inicio</a></p>
+        </div>
+    </div>
+<script src="core.js"></script>
+<script>
+(function() {
+    var SUPERADMIN_PIN_KEY = 'plataforma_superadmin_pin';
+    var SUPERADMIN_ACTIVO_KEY = 'plataforma_superadmin_activo';
+    var DEV_MODE_KEY = 'dev_mode_activo';
+
+    function esSuperadmin() {
+        if (typeof URLSearchParams !== 'undefined' && new URLSearchParams(window.location.search).get('dev') === '1') return true;
+        try { if (sessionStorage.getItem(DEV_MODE_KEY) === 'true') return true; } catch(e) {}
+        return sessionStorage.getItem(SUPERADMIN_ACTIVO_KEY) === 'true';
+    }
+
+    function pedirClaveSuperadmin() {
+        var pinGuardado = localStorage.getItem(SUPERADMIN_PIN_KEY);
+        var clave = (document.getElementById('superadmin-clave') || {}).value;
+        if (!clave || !clave.trim()) { alert('Escribe la clave.'); return false; }
+        if (pinGuardado) {
+            if (clave.trim() !== pinGuardado) { alert('Clave incorrecta.'); return false; }
+        } else {
+            var conf = prompt('Primera vez: confirma la clave de superadmin');
+            if (conf !== clave.trim()) { alert('No coinciden.'); return false; }
+            localStorage.setItem(SUPERADMIN_PIN_KEY, clave.trim());
+        }
+        sessionStorage.setItem(SUPERADMIN_ACTIVO_KEY, 'true');
+        return true;
+    }
+
+    function getSupabase() {
+        var url = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
+        var key = typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : '';
+        return { url: url, key: key };
+    }
+
+    async function fetchPqrs(estadoFiltro) {
+        var s = getSupabase();
+        if (!s.url || !s.key) throw new Error('Supabase no configurado');
+        var q = s.url + '/rest/v1/pqrs?order=created_at.desc&select=*';
+        if (estadoFiltro) q += '&estado=eq.' + encodeURIComponent(estadoFiltro);
+        var res = await fetch(q, {
+            headers: { 'apikey': s.key, 'Authorization': 'Bearer ' + s.key }
+        });
+        if (!res.ok) throw new Error('Error ' + res.status);
+        return await res.json();
+    }
+
+    async function actualizarPqrs(id, datos) {
+        var s = getSupabase();
+        var res = await fetch(s.url + '/rest/v1/pqrs?id=eq.' + encodeURIComponent(id), {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': s.key,
+                'Authorization': 'Bearer ' + s.key
+            },
+            body: JSON.stringify(datos)
+        });
+        if (!res.ok) throw new Error('Error ' + res.status);
+    }
+
+    function formatearFecha(iso) {
+        if (!iso) return '—';
+        try {
+            var d = new Date(iso);
+            return d.toLocaleDateString('es') + ' ' + d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+        } catch(e) { return iso; }
+    }
+
+    function buildMensajeNotificacion(p) {
+        var nombre = (p.nombre || 'billarista').trim();
+        var tipo = (p.tipo || 'peticion').toLowerCase();
+        var saludo = 'Hola ' + nombre + ',';
+        var lineaTipo = 'Sobre tu ' + tipo.toUpperCase() + ' en DeCarambola:';
+        var cuerpo = p.respuesta_texto && p.respuesta_texto.trim()
+            ? p.respuesta_texto.trim()
+            : 'Tu mensaje ha sido revisado y autorizado por el administrador de la plataforma.';
+        var cierre = 'Gracias por jugar y entrenar con DeCarambola.';
+        return saludo + '\n\n' + lineaTipo + '\n\n' + cuerpo + '\n\n' + cierre;
+    }
+
+    var _pqrsCache = [];
+
+    function renderLista(items, estadoFiltro) {
+        var list = document.getElementById('pqrs-lista');
+        var empty = document.getElementById('empty');
+        list.innerHTML = '';
+        if (!items || items.length === 0) {
+            empty.style.display = 'block';
+            return;
+        }
+        empty.style.display = 'none';
+        items.forEach(function(p) {
+            var card = document.createElement('div');
+            var estadoCard = (p.estado === 'pendiente_revision') ? 'pendiente' : (p.estado || '');
+            card.className = 'pqrs-card ' + estadoCard;
+            var estadoCls = (p.estado || 'pendiente_revision');
+            var resp = p.respuesta_texto ? '<div class="pqrs-row"><strong>RESPUESTA AUTORIZADA</strong><div class="pqrs-mensaje">' + escapeHtml(p.respuesta_texto) + '</div></div>' : '';
+            var notif = '';
+            if (p.estado === 'autorizado' && p.respuesta_texto) {
+                var msg = buildMensajeNotificacion(p);
+                notif =
+                    '<div class="pqrs-row">' +
+                        '<strong>NOTIFICAR AL USUARIO</strong>' +
+                        '<div class="pqrs-notif-info">Texto sugerido para enviar por WhatsApp o correo.</div>' +
+                        '<div class="pqrs-mensaje pqrs-notif">' + escapeHtml(msg) + '</div>' +
+                        '<div class="pqrs-notif-btns">' +
+                            '<button type="button" class="btn btn-autorizar" style="font-size:0.7rem;padding:8px 12px;" onclick="window.copiarRespuestaPqrs(\'' + p.id + '\')">COPIAR TEXTO</button>' +
+                            '<button type="button" class="btn" style="background:#111;color:#6cf;font-size:0.7rem;padding:8px 12px;" onclick="window.abrirCanalPqrs(\'' + p.id + '\')">ABRIR WHATSAPP/CORREO</button>' +
+                        '</div>' +
+                    '</div>';
+            }
+            var acciones = '';
+            if (p.estado === 'pendiente_revision') {
+                acciones = '<div class="pqrs-acciones"><textarea id="resp-' + p.id + '" placeholder="Opcional: texto de respuesta al usuario..."></textarea><button type="button" class="btn btn-autorizar" onclick="window.autorizarPqrs(\'' + p.id + '\')">AUTORIZAR</button><button type="button" class="btn btn-rechazar" onclick="window.rechazarPqrs(\'' + p.id + '\')">RECHAZAR</button></div>';
+            }
+            card.innerHTML = '<div class="pqrs-head"><span class="pqrs-nombre">' + escapeHtml(p.nombre || '—') + '</span><span class="pqrs-estado ' + (p.estado || '') + '">' + estadoCls.toUpperCase().replace('_',' ') + '</span></div>' +
+                '<div class="pqrs-body">' +
+                '<div class="pqrs-row"><strong>CONTACTO</strong>' + escapeHtml(p.contacto || '—') + '</div>' +
+                '<div class="pqrs-row"><strong>TIPO</strong>' + (p.tipo || 'peticion') + '</div>' +
+                '<div class="pqrs-row"><strong>FECHA</strong>' + formatearFecha(p.created_at) + '</div>' +
+                '<div class="pqrs-row"><strong>MENSAJE</strong></div><div class="pqrs-mensaje">' + escapeHtml(p.mensaje || '') + '</div>' + resp + notif +
+                '</div>' + acciones;
+            list.appendChild(card);
+        });
+    }
+
+    function escapeHtml(t) {
+        if (t == null) return '';
+        var d = document.createElement('div');
+        d.textContent = t;
+        return d.innerHTML;
+    }
+
+    window.autorizarPqrs = async function(id) {
+        var ta = document.getElementById('resp-' + id);
+        var respuesta = ta ? ta.value.trim() : '';
+        try {
+            await actualizarPqrs(id, {
+                estado: 'autorizado',
+                respuesta_texto: respuesta || null,
+                respuesta_autorizada_at: new Date().toISOString()
+            });
+            await cargarLista();
+        } catch (e) {
+            alert('Error al autorizar: ' + e.message);
+        }
+    };
+
+    window.rechazarPqrs = async function(id) {
+        if (!confirm('¿Rechazar esta PQRS?')) return;
+        try {
+            await actualizarPqrs(id, { estado: 'rechazado' });
+            await cargarLista();
+        } catch (e) {
+            alert('Error al rechazar: ' + e.message);
+        }
+    };
+
+    var filtroActual = '';
+    async function cargarLista() {
+        var listEl = document.getElementById('pqrs-lista');
+        var emptyEl = document.getElementById('empty');
+        listEl.innerHTML = '';
+        emptyEl.style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('loading').textContent = 'Cargando PQRS...';
+        try {
+            var items = await fetchPqrs(filtroActual);
+            _pqrsCache = items || [];
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('panel-lista').style.display = 'block';
+            renderLista(items, filtroActual);
+        } catch (e) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('panel-lista').style.display = 'block';
+            document.getElementById('pqrs-lista').innerHTML = '<div class="error-msg">No se pudieron cargar los datos. ' + e.message + '</div>';
+        }
+    }
+
+    function findPqrsById(id) {
+        return (_pqrsCache || []).find(function(p) { return p.id === id; }) || null;
+    }
+
+    window.copiarRespuestaPqrs = function(id) {
+        var p = findPqrsById(id);
+        if (!p) { alert('No se encontró la PQRS en memoria.'); return; }
+        var msg = buildMensajeNotificacion(p);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(msg).then(function() {
+                alert('Texto copiado al portapapeles.');
+            }).catch(function() {
+                prompt('Copia manualmente este texto:', msg);
+            });
+        } else {
+            prompt('Copia manualmente este texto:', msg);
+        }
+    };
+
+    window.abrirCanalPqrs = function(id) {
+        var p = findPqrsById(id);
+        if (!p) { alert('No se encontró la PQRS en memoria.'); return; }
+        var contacto = (p.contacto || '').trim();
+        var msg = buildMensajeNotificacion(p);
+        if (!contacto) {
+            alert('No hay dato de contacto. Usa el texto copiado y contacta por el canal adecuado.');
+            return;
+        }
+        if (contacto.indexOf('@') !== -1) {
+            var mailto = 'mailto:' + encodeURIComponent(contacto) +
+                '?subject=' + encodeURIComponent('Respuesta a tu PQRS en DeCarambola') +
+                '&body=' + encodeURIComponent(msg);
+            window.location.href = mailto;
+        } else {
+            var phone = contacto.replace(/[^0-9+]/g, '');
+            if (!phone) {
+                alert('El contacto no parece un número de WhatsApp válido. Usa el texto copiado y contacta por otro medio.');
+                return;
+            }
+            var url = 'https://wa.me/' + encodeURIComponent(phone.replace(/^0+/, '')) +
+                '?text=' + encodeURIComponent(msg);
+            window.open(url, '_blank');
+        }
+    };
+
+    function init() {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('acceso-denegado').style.display = 'none';
+        document.getElementById('panel-lista').style.display = 'none';
+
+        if (!esSuperadmin()) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('acceso-denegado').style.display = 'block';
+            var btnEntrar = document.getElementById('btn-superadmin-entrar');
+            var inputClave = document.getElementById('superadmin-clave');
+            if (btnEntrar) btnEntrar.onclick = function() {
+                if (pedirClaveSuperadmin()) {
+                    document.getElementById('acceso-denegado').style.display = 'none';
+                    document.getElementById('panel-lista').style.display = 'block';
+                    var sb = document.getElementById('btn-salir-superadmin'); if (sb) sb.style.display = 'block';
+                    cargarLista();
+                }
+            };
+            if (inputClave) inputClave.onkeypress = function(e) { if (e && e.key === 'Enter') btnEntrar && btnEntrar.click(); };
+            return;
+        }
+
+        var sb = document.getElementById('btn-salir-superadmin');
+        if (sb) { sb.style.display = 'block'; sb.onclick = function() { sessionStorage.removeItem(SUPERADMIN_ACTIVO_KEY); window.location.reload(); }; }
+
+        document.querySelectorAll('.filtro-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filtro-btn').forEach(function(b) { b.classList.remove('activo'); });
+                btn.classList.add('activo');
+                filtroActual = btn.getAttribute('data-estado') || '';
+                cargarLista();
+            });
+        });
+
+        cargarLista();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+})();
+</script>
+</body>
+</html>

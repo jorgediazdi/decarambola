@@ -258,15 +258,18 @@
     (function () {
       'use strict';
       var API_URL = 'https://sensei-billar-api.onrender.com/overlay/state';
-      var POLL_MS = 3000;
+      var params = new URLSearchParams(window.location.search);
+      // Grabando: ?rec=1 o ?interval=30 → refresco cada 30 s (menos carga, mejor buffer). En vivo YouTube puede usar 120 s si quieres.
+      var intervalSec = params.get('interval');
+      var rec = params.get('rec');
+      var POLL_MS = intervalSec ? Math.max(5000, parseInt(intervalSec, 10) * 1000) : (rec === '1' ? 30000 : 3000);
       var timer = null;
 
       function qs(id) { return document.getElementById(id); }
 
       function getMatchId() {
         try {
-          var p = new URLSearchParams(window.location.search);
-          return p.get('match_id') || null;
+          return params.get('match_id') || null;
         } catch (e) {
           return null;
         }
