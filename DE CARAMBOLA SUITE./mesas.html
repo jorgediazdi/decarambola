@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Salón en vivo — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2ecc71; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0b; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:100px; }
+
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; flex-wrap:wrap; gap:8px; }
+        .header-marca { display:flex; align-items:center; gap:10px; }
+        .header-titulo { color:var(--oro); font-size:0.95rem; letter-spacing:3px; }
+        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
+        .header-reloj { font-family:'Courier New',monospace; font-size:0.85rem; color:#888; }
+        .header-countdown { font-size:0.5rem; color:#666; }
+        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; }
+
+        .wrap { max-width:500px; margin:0 auto; padding:16px 18px; }
+
+        .leyenda { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px; font-size:0.5rem; color:#666; letter-spacing:2px; }
+        .leyenda span { display:flex; align-items:center; gap:6px; }
+        .leyenda .dot { width:10px; height:10px; border-radius:50%; }
+        .leyenda .dot.libre { background:#2ecc71; }
+        .leyenda .dot.ocupada { background:#e74c3c; }
+        .leyenda .dot.reservada { background:#f39c12; }
+        .leyenda .dot.mantenimiento { background:#3498db; }
+        .leyenda .dot.fuera { background:#555; }
+
+        .plano-salón { background:var(--g2); border:2px solid var(--g1); border-radius:18px; padding:16px; margin:14px 0; min-height:220px; display:grid; gap:10px; align-content:start; justify-content:center; }
+        .plano-fila { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+        .mesa-celda { width:64px; height:64px; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:0.5rem; text-align:center; padding:4px; cursor:pointer; border:2px solid transparent; transition:0.2s; position:relative; }
+        .mesa-celda:active { transform:scale(0.96); }
+        .mesa-celda.estado-libre { background:rgba(46,204,113,0.15); border-color:#2ecc71; color:#2ecc71; }
+        .mesa-celda.estado-ocupada { background:rgba(231,76,60,0.2); border-color:#e74c3c; color:#e74c3c; }
+        .mesa-celda.estado-reservada { background:rgba(243,156,18,0.15); border-color:#f39c12; color:#f39c12; }
+        .mesa-celda.estado-mantenimiento { background:rgba(52,152,219,0.15); border-color:#3498db; color:#3498db; }
+        .mesa-celda.estado-fuera_servicio { background:rgba(51,51,51,0.4); border-color:#555; color:#555; }
+        .mesa-celda .nom { font-weight:bold; font-size:0.65rem; color:#fff; }
+        .mesa-celda .tipo { font-size:0.45rem; color:#888; }
+        .mesa-celda .crono { font-size:0.55rem; margin-top:2px; font-family:'Courier New',monospace; }
+        .mesa-celda .costo { font-size:0.48rem; color:#888; }
+        .mesa-celda .emoji-estado { position:absolute; top:4px; right:4px; font-size:0.6rem; }
+
+        .actualizar-info { text-align:center; color:#444; font-size:0.48rem; margin-top:8px; }
+
+        .modal-mesa { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:100; align-items:center; justify-content:center; padding:20px; }
+        .modal-mesa.visible { display:flex; }
+        .modal-caja { background:var(--g2); border:2px solid var(--oro); border-radius:20px; padding:20px; max-width:340px; width:100%; }
+        .modal-titulo { color:var(--oro); font-size:0.9rem; margin-bottom:14px; letter-spacing:2px; }
+        .modal-acciones { display:flex; flex-direction:column; gap:10px; }
+        .modal-btn { padding:14px; border-radius:14px; border:none; font-size:0.7rem; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:1px; }
+        .modal-btn.abrir { background:rgba(46,204,113,0.2); color:#2ecc71; border:1px solid #2ecc71; }
+        .modal-btn.cerrar { background:rgba(231,76,60,0.2); color:#e74c3c; border:1px solid #e74c3c; }
+        .modal-btn.mant { background:rgba(52,152,219,0.2); color:#3498db; border:1px solid #3498db; }
+        .modal-btn.reservar { background:rgba(243,156,18,0.2); color:#f39c12; border:1px solid #f39c12; }
+        .modal-btn.fuera { background:rgba(85,85,85,0.4); color:#aaa; border:1px solid #555; }
+        .modal-btn.libre { background:rgba(46,204,113,0.2); color:#2ecc71; border:1px solid #2ecc71; }
+        .modal-btn.ficha { background:rgba(212,175,55,0.2); color:var(--oro); border:1px solid var(--oro); }
+        .modal-btn.cerrar-modal { background:var(--g3); color:#666; border:1px solid var(--g1); }
+        .modal-crono { font-size:1.4rem; font-family:'Courier New',monospace; color:#fff; margin:10px 0; text-align:center; }
+        .modal-costo { font-size:0.65rem; color:#888; text-align:center; margin-bottom:10px; }
+        .vacio { text-align:center; color:#444; font-size:0.6rem; padding:20px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-marca">
+        <span id="header-logo"></span>
+        <div>
+            <div class="header-titulo">SALÓN EN VIVO</div>
+            <div class="header-sub" id="lbl-salon">Cargando…</div>
+        </div>
+    </div>
+    <div style="text-align:right;">
+        <div class="header-reloj" id="header-reloj">--:--:--</div>
+        <div class="header-countdown" id="header-countdown">Actualizando en 30s</div>
+    </div>
+    <a href="index.html" class="btn-hdr">← Volver</a>
+</div>
+
+<div class="wrap">
+    <div class="leyenda">
+        <span><span class="dot libre"></span> LIBRE</span>
+        <span><span class="dot ocupada"></span> OCUPADA</span>
+        <span><span class="dot reservada"></span> RESERVADA</span>
+        <span><span class="dot mantenimiento"></span> MANTENIMIENTO</span>
+        <span><span class="dot fuera"></span> FUERA DE SERVICIO</span>
+    </div>
+    <div class="plano-salón" id="plano_salon"></div>
+    <div class="actualizar-info" id="actualizar_info">Actualización cada 30 s</div>
+</div>
+
+<div class="modal-mesa" id="modal_mesa">
+    <div class="modal-caja">
+        <div class="modal-titulo" id="modal_titulo">—</div>
+        <div class="modal-crono" id="modal_crono">—</div>
+        <div class="modal-costo" id="modal_costo"></div>
+        <div class="modal-acciones" id="modal_acciones"></div>
+        <button class="modal-btn cerrar-modal" onclick="cerrarModal()">Cerrar</button>
+    </div>
+</div>
+
+<script src="core.js"></script>
+<script src="session.js"></script>
+<script>
+try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
+
+var salonConfig = null;
+var mesasLista = [];
+var sesionesAbiertas = {};
+var mesaSeleccionada = null;
+var intervaloRefresh = null;
+var intervaloCrono = null;
+var countdownSegundos = 30;
+
+function getClubId() {
+    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    if (perfil.club_id) return perfil.club_id;
+    var clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null');
+    return (clubActivo && clubActivo.id) ? clubActivo.id : null;
+}
+
+function actualizarReloj() {
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    var el = document.getElementById('header-reloj');
+    if (el) el.textContent = (h<10?'0':'')+h + ':' + (m<10?'0':'')+m + ':' + (s<10?'0':'')+s;
+}
+
+async function cargarDatos() {
+    try { salonConfig = JSON.parse(localStorage.getItem('mesas_salon_config') || 'null'); } catch(e) {}
+    if (!salonConfig) salonConfig = { nombre_salon: 'Salón', filas: 2, columnas: 4 };
+    document.getElementById('lbl-salon').textContent = salonConfig.nombre_salon || 'Salón';
+
+    var clubId = getClubId();
+    var salonId = salonConfig && salonConfig.salon_id;
+    var list;
+    if (salonId) list = await DB.get('mesas', 'salon_id=eq.' + salonId);
+    else if (clubId) list = await DB.get('mesas', 'club_id=eq.' + clubId);
+    else list = await DB.get('mesas', 'limit=50');
+    mesasLista = (list || []).slice(0, 50);
+    mesasLista.sort(function(a,b){ return (a.numero||0) - (b.numero||0); });
+
+    sesionesAbiertas = {};
+    var hist = await DB.get('mesas_historial', 'estado=eq.abierta');
+    if (hist && hist.length) hist.forEach(function(h){ sesionesAbiertas[h.mesa_id] = { inicio: h.inicio_sesion, jugador_nombre: h.jugador_nombre || '', id: h.id }; });
+}
+
+function renderPlano() {
+    var cont = document.getElementById('plano_salon');
+    if (!cont) return;
+    var filas = salonConfig.filas || 1;
+    var columnas = salonConfig.columnas || 4;
+    var byNum = {};
+    mesasLista.forEach(function(m){ byNum[m.numero] = m; });
+    var nums = mesasLista.map(function(m){ return m.numero; }).sort(function(a,b){ return a - b; });
+    var html = '';
+    var idx = 0;
+    for (var f = 0; f < filas; f++) {
+        html += '<div class="plano-fila">';
+        for (var c = 0; c < columnas && idx < mesasLista.length; c++) {
+            var m = mesasLista[idx];
+            if (!m) break;
+            idx++;
+            var estado = (m.estado || 'libre').toLowerCase().replace(' ', '_');
+            if (estado === 'fuera') estado = 'fuera_servicio';
+            var sesion = sesionesAbiertas[m.id];
+            var crono = '', costo = '', emoji = '🟢';
+            if (estado === 'ocupada' && sesion) {
+                var inicio = new Date(sesion.inicio).getTime();
+                var seg = Math.floor((Date.now() - inicio) / 1000);
+                var h = Math.floor(seg/3600), min = Math.floor((seg%3600)/60), s = seg%60;
+                crono = (h?h+':':'') + (min<10?'0':'')+min + ':' + (s<10?'0':'')+s;
+                var tarifaHora = m.tarifa_hora || 0;
+                costo = '$' + Math.round((tarifaHora/60) * (Date.now()-inicio)/60000);
+                emoji = '🔴';
+            }
+            if (estado === 'reservada') emoji = '🟡';
+            if (estado === 'mantenimiento') emoji = '🔵';
+            if (estado === 'fuera_servicio') emoji = '⚫';
+            html += '<div class="mesa-celda estado-' + estado + '" data-id="' + m.id + '" onclick="abrirModal(\'' + m.id + '\')">';
+            html += '<span class="emoji-estado">' + emoji + '</span>';
+            html += '<span class="nom">' + (m.nombre || m.numero) + '</span>';
+            html += '<span class="tipo">' + (m.tipo_instalacion || '') + '</span>';
+            if (crono) html += '<span class="crono">' + crono + '</span>';
+            if (costo) html += '<span class="costo">' + costo + '</span>';
+            if (sesion && sesion.jugador_nombre) html += '<span class="tipo">' + sesion.jugador_nombre + '</span>';
+            html += '</div>';
+        }
+        html += '</div>';
+    }
+    cont.innerHTML = html || '<div class="vacio">Sin instalaciones. Configura en Configurar instalaciones.</div>';
+}
+
+function actualizarCronos() {
+    var needUpdate = false;
+    mesasLista.forEach(function(m){
+        if ((m.estado||'') !== 'ocupada') return;
+        if (sesionesAbiertas[m.id]) needUpdate = true;
+    });
+    if (needUpdate) renderPlano();
+}
+
+function abrirModal(mesaId) {
+    var m = mesasLista.find(function(x){ return x.id === mesaId; });
+    if (!m) return;
+    mesaSeleccionada = m;
+    var estado = (m.estado || 'libre').toLowerCase().replace(' ', '_');
+    if (estado === 'fuera') estado = 'fuera_servicio';
+    document.getElementById('modal_titulo').textContent = (m.nombre || m.numero) + ' · ' + (m.estado || 'libre').toUpperCase();
+    var sesion = sesionesAbiertas[m.id];
+    var acciones = document.getElementById('modal_acciones');
+    acciones.innerHTML = '';
+    if (estado === 'libre') {
+        acciones.innerHTML = '<button class="modal-btn abrir" onclick="accionMesa(\'abrir\')">▶ ABRIR SESIÓN</button>' +
+            '<button class="modal-btn reservar" onclick="accionMesa(\'reservar\')">📅 RESERVAR</button>' +
+            '<button class="modal-btn mant" onclick="accionMesa(\'mantenimiento\')">🔧 MANTENIMIENTO</button>' +
+            '<button class="modal-btn fuera" onclick="accionMesa(\'fuera_servicio\')">⚫ FUERA DE SERVICIO</button>';
+        document.getElementById('modal_crono').textContent = '—';
+        document.getElementById('modal_costo').textContent = '';
+    } else if (estado === 'ocupada' && sesion) {
+        var inicio = new Date(sesion.inicio).getTime();
+        var seg = Math.floor((Date.now() - inicio) / 1000);
+        var h = Math.floor(seg/3600), min = Math.floor((seg%3600)/60), s = seg%60;
+        document.getElementById('modal_crono').textContent = (h?h+':':'') + (min<10?'0':'')+min + ':' + (s<10?'0':'')+s;
+        document.getElementById('modal_costo').textContent = 'Costo: $' + Math.round(((m.tarifa_hora||0)/60) * (Date.now()-inicio)/60000);
+        acciones.innerHTML = '<button class="modal-btn cerrar" onclick="accionMesa(\'cerrar\')">⏹ CERRAR SESIÓN</button>';
+    } else {
+        document.getElementById('modal_crono').textContent = '—';
+        document.getElementById('modal_costo').textContent = '';
+        acciones.innerHTML = '<button class="modal-btn libre" onclick="accionMesa(\'libre\')">✅ MARCAR LIBRE</button>';
+    }
+    acciones.innerHTML += '<button class="modal-btn ficha" onclick="irFicha()">📋 VER FICHA</button>';
+    document.getElementById('modal_mesa').classList.add('visible');
+}
+
+function cerrarModal() { document.getElementById('modal_mesa').classList.remove('visible'); mesaSeleccionada = null; }
+function irFicha() { if (mesaSeleccionada) location.href = 'instalacion_ficha.html?id=' + encodeURIComponent(mesaSeleccionada.id); cerrarModal(); }
+
+function accionMesa(accion) {
+    if (!mesaSeleccionada) return;
+    var m = mesaSeleccionada;
+    if (accion === 'abrir') {
+        var nombre = (prompt('Nombre del jugador o cliente:') || '').trim() || 'Cliente';
+        var inicio = new Date().toISOString();
+        DB.insert('mesas_historial', { mesa_id: m.id, club_id: getClubId(), jugador_nombre: nombre, inicio_sesion: inicio, estado: 'abierta' }).then(function(res){
+            var nuevoId = Array.isArray(res) && res[0] ? res[0].id : (res && res.id ? res.id : null);
+            if (nuevoId) sesionesAbiertas[m.id] = { inicio: inicio, jugador_nombre: nombre, id: nuevoId };
+            DB.update('mesas', m.id, { estado: 'ocupada', updated_at: new Date().toISOString() });
+            refresh(); cerrarModal();
+        });
+    } else if (accion === 'cerrar') {
+        var hist = sesionesAbiertas[m.id];
+        if (!hist) { cerrarModal(); return; }
+        var inicio = new Date(hist.inicio).getTime();
+        var horas = (Date.now() - inicio) / 3600000;
+        var costo = (m.tarifa_hora || 0) * horas;
+        DB.update('mesas_historial', hist.id, { fin_sesion: new Date().toISOString(), horas_reales: Math.round(horas*100)/100, costo_total: Math.round(costo*100)/100, estado: 'cerrada' });
+        DB.get('instalaciones_componentes', 'mesa_id=eq.' + m.id).then(function(comps){
+            (comps||[]).forEach(function(c){
+                var actual = parseInt(c.horas_uso_actual,10)||0;
+                var nuevo = actual + Math.round(horas);
+                var opt = parseInt(c.horas_uso_optimo,10)||500, alert = parseInt(c.horas_uso_alerta,10)||800;
+                var est = nuevo >= alert ? 'urgente' : (nuevo >= opt ? 'desgaste' : 'optimo');
+                DB.update('instalaciones_componentes', c.id, { horas_uso_actual: nuevo, estado: est, updated_at: new Date().toISOString() });
+            });
+        });
+        DB.update('mesas', m.id, { estado: 'libre', updated_at: new Date().toISOString() });
+        refresh(); cerrarModal();
+    } else if (['mantenimiento','reservada','fuera_servicio','libre'].indexOf(accion) >= 0) {
+        DB.update('mesas', m.id, { estado: accion, updated_at: new Date().toISOString() });
+        refresh(); cerrarModal();
+    } else if (accion === 'reservar') {
+        var nombre = (prompt('Nombre para la reserva:') || '').trim() || 'Reserva';
+        var clubId = getClubId();
+        var ahora = new Date();
+        var duracionMin = 60;
+        DB.insert('mesas_reservas', {
+            mesa_id: m.id,
+            club_id: clubId,
+            jugador_nombre: nombre,
+            fecha_reserva: ahora.toISOString(),
+            duracion_minutos: duracionMin,
+            estado: 'pendiente',
+            notas: 'Reserva creada desde Salón en vivo'
+        }).then(function() {
+            DB.update('mesas', m.id, { estado: 'reservada', updated_at: new Date().toISOString() });
+            refresh(); cerrarModal();
+        });
+    }
+}
+
+async function refresh() {
+    await cargarDatos();
+    renderPlano();
+    countdownSegundos = 30;
+    document.getElementById('actualizar_info').textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es');
+}
+
+function tickCountdown() {
+    countdownSegundos--;
+    var el = document.getElementById('header-countdown');
+    if (el) el.textContent = 'Actualizando en ' + countdownSegundos + 's';
+    if (countdownSegundos <= 0) { countdownSegundos = 30; refresh(); }
+}
+
+window.onload = function() {
+    var logoEl = document.getElementById('header-logo');
+    if (typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) { if (logoEl) logoEl.innerHTML = MasterVIP.getLogoHTML(40); }
+    else if (logoEl) logoEl.innerHTML = '<span style="font-size:1.5rem;">🎱</span>';
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
+    refresh();
+    intervaloCrono = setInterval(actualizarCronos, 1000);
+    intervaloRefresh = setInterval(tickCountdown, 1000);
+};
+window.onbeforeunload = function() { if (intervaloRefresh) clearInterval(intervaloRefresh); if (intervaloCrono) clearInterval(intervaloCrono); };
+</script>
+</body>
+</html>
