@@ -3,7 +3,7 @@
  * Permite "Añadir a la pantalla de inicio" (PWA).
  * No implementa caché offline completo; se puede ampliar después.
  */
-const CACHE_NAME = 'decarambola-v1';
+const CACHE_NAME = 'decarambola-v2';
 
 self.addEventListener('install', function (event) {
   self.skipWaiting();
