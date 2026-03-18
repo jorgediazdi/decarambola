@@ -1,8 +1,7 @@
 # DeCarambola — Deploy en Netlify
-# Sitio estático: HTML, JS, CSS. En cada deploy se inyecta la fecha en index.html.
+# Sitio estático: sin build, publicar tal cual (evita que un comando roto deje el sitio viejo).
 
 [build]
-  command = "BUILD_DATE=$(date -u '+%d %b %Y %H:%M UTC') && sed -i.bak \"s#__BUILD_DATE__#$BUILD_DATE#g\" index.html && rm -f index.html.bak"
   publish = "."
 
 # index.html se sirve en / ; el resto de archivos (.html, .js, etc.) se sirven por ruta.
