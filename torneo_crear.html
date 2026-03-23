@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#d4af37">
 <title>DeCarambola — Crear Torneo</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -22,8 +23,12 @@ body {
     background:#0a0a0a; border-bottom:2px solid var(--borde);
     padding:20px 18px 18px;
     position:sticky; top:0; z-index:60;
-    display:flex; align-items:center; gap:14px;
+    display:flex; flex-direction:column; align-items:stretch; gap:12px;
 }
+.header-row-main {
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap; width:100%;
+}
+.header-grow { flex:1; min-width:160px; }
 .back-btn {
     width:42px; height:42px; border-radius:12px;
     background:#111; border:1px solid #222;
@@ -38,12 +43,25 @@ body {
     border-radius:10px; padding:5px 14px;
     font-size:0.54rem; letter-spacing:2px; color:#555; white-space:nowrap;
 }
+.header-actions {
+    display:flex; flex-direction:column; align-items:flex-end; gap:6px;
+    width:100%;
+}
+.btn-hdr {
+    background:rgba(10,10,10,0.95); border:1px solid var(--borde); color:#888;
+    padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
+    text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
+    letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+}
+.btn-hdr:hover, .btn-hdr:focus-visible {
+    border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none;
+}
 
 /* ═══ PROGRESS BAR ═══ */
 .prog-wrap {
     background:#080808; border-bottom:1px solid var(--borde);
     padding:16px 18px 14px;
-    position:sticky; top:70px; z-index:59;
+    position:sticky; top:118px; z-index:59;
 }
 .prog-rail {
     display:flex; align-items:flex-start;
@@ -122,6 +140,18 @@ body {
 }
 .input-base:focus { border-bottom-color:rgba(212,175,55,0.45); }
 .input-base::placeholder { color:#2a2a2a; font-size:0.8rem; letter-spacing:1px; }
+/* type=date no permite escribir bien en Safari; usamos texto ISO */
+.input-fecha {
+    font-family: ui-monospace, 'Courier New', monospace;
+    letter-spacing: 0.06em;
+    font-size: 1.05rem;
+}
+.input-fecha-hint {
+    color: #444;
+    font-size: 0.5rem;
+    letter-spacing: 1px;
+    margin-top: 8px;
+}
 .input-num {
     padding:12px 16px; background:#0a0a0a;
     border:1px solid #222; border-radius:14px;
@@ -436,19 +466,32 @@ body {
 }
 .btn-nav:active { border-color:var(--oro); color:var(--oro); }
 </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <meta name="theme-color" content="#d4af37">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <!-- HEADER -->
 <div class="header">
-    <a href="index.html" class="back-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-    </a>
-    <div>
-        <div class="h-titulo">CREAR TORNEO</div>
-        <div class="h-sub">NUEVO EVENTO · DECARAMBOLA</div>
+    <div class="header-row-main">
+        <a href="organizador.html" class="back-btn" aria-label="Volver al panel organizador">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <div class="header-grow">
+            <div class="h-titulo">CREAR TORNEO</div>
+            <div class="h-sub">NUEVO EVENTO · DECARAMBOLA</div>
+        </div>
+        <div class="sede-chip" id="lbl-sede">GLOBAL</div>
     </div>
-    <div class="sede-chip" id="lbl-sede">GLOBAL</div>
+    <div class="header-actions">
+        <a href="torneos.html" class="btn-hdr">Torneos</a>
+        <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
+        <a href="control_torneo.html" class="btn-hdr">Control torneo</a>
+        <a href="club/index.html" class="btn-hdr">Portal club</a>
+        <a href="index.html" class="btn-hdr">Inicio app</a>
+    </div>
 </div>
 
 <!-- PROGRESS BAR -->
@@ -492,6 +535,16 @@ body {
 
     <div class="card">
         <div class="card-lbl">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            SITIO DEL TORNEO / CLUB
+        </div>
+        <input type="text" class="input-base" id="t-sitio"
+               placeholder="Ej: Club Billar Élite · Medellín"
+               oninput="this.value=this.value.toUpperCase()">
+    </div>
+
+    <div class="card">
+        <div class="card-lbl">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
             NOMBRE DEL TORNEO
         </div>
@@ -505,7 +558,10 @@ body {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             FECHA DE INICIO
         </div>
-        <input type="date" class="input-base" id="t-fecha">
+        <input type="text" class="input-base input-fecha" id="t-fecha" placeholder="2026-03-20"
+               inputmode="numeric" autocomplete="off" maxlength="10"
+               title="AAAA-MM-DD">
+        <div class="input-fecha-hint">Escribe la fecha: <strong>AAAA-MM-DD</strong> (año-mes-día). Ej: 2026-03-20</div>
     </div>
 
     <div class="card">
@@ -591,6 +647,7 @@ body {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
             CONFIGURADOR AVANZADO DE FORMATOS
         </a>
+        <p style="font-size:0.48rem;color:#333;letter-spacing:0.5px;margin-top:8px;line-height:1.5;">Opcional: diseña formato (jugadores, rondas, reglas) allí y lo importas en este paso.</p>
     </div>
 
     <!-- CUPO -->
@@ -817,7 +874,7 @@ body {
 <script src="core.js"></script>
 <script>
 var estado = {
-    paso:0, nombre:'', fecha:'', modalidad:'3 Bandas',
+    paso:0, sitio:'', nombre:'', fecha:'', modalidad:'3 Bandas',
     sistema:'', cupo:0, tiempo:40, meta:10, reglamento:'',
     inscripcion:50000, base:100000,
     pctPremios:80, pctFee:20, dist1:50, dist2:30, dist3:20,
@@ -830,7 +887,8 @@ window.onload = function() {
     var sede = MasterVIP.getSede();
     document.getElementById('lbl-sede').innerText = sede.nombre !== 'GLOBAL' ? sede.nombre : 'GLOBAL';
     var hoy = new Date().toISOString().split('T')[0];
-    document.getElementById('t-fecha').min = hoy;
+    var inpFecha = document.getElementById('t-fecha');
+    if (inpFecha && !inpFecha.value.trim()) inpFecha.value = hoy;
     calcBolsa();
     cargarFormatoImportado();
 };
@@ -852,12 +910,33 @@ function irPaso(num) {
     window.scrollTo(0,0);
 }
 
+/** Fecha torneo en ISO (AAAA-MM-DD); null si inválida */
+function parseFechaTorneoISO(s) {
+    s = (s || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+    var p = s.split('-');
+    var y = parseInt(p[0], 10), mo = parseInt(p[1], 10) - 1, d = parseInt(p[2], 10);
+    var dt = new Date(y, mo, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo || dt.getDate() !== d) return null;
+    return s;
+}
+
 function validar(num) {
     if (num===0) {
+        estado.sitio    = (document.getElementById('t-sitio').value||'').trim();
         estado.nombre   = (document.getElementById('t-nombre').value||'').trim();
-        estado.fecha    = document.getElementById('t-fecha').value;
+        var rawFecha = (document.getElementById('t-fecha').value || '').trim();
+        if (!estado.sitio)  { showToast('Indica el sitio del torneo o club'); return false; }
         if (!estado.nombre) { showToast('Ponle un nombre al torneo'); return false; }
-        if (!estado.fecha)  { showToast('Define la fecha del torneo'); return false; }
+        if (!rawFecha)      { showToast('Define la fecha del torneo'); return false; }
+        var iso = parseFechaTorneoISO(rawFecha);
+        if (!iso) { showToast('Fecha inválida. Usa AAAA-MM-DD (ej: 2026-03-20)'); return false; }
+        var t = new Date(iso + 'T12:00:00');
+        var hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        t.setHours(0, 0, 0, 0);
+        if (t < hoy) { showToast('La fecha no puede ser anterior a hoy'); return false; }
+        estado.fecha = iso;
     }
     if (num===1) {
         if (!estado.sistema && !estado.formatoImportado) { showToast('Elige el sistema de torneo'); return false; }
@@ -990,7 +1069,7 @@ var SIST_NOM = {brackets:'ELIMINACIÓN DIRECTA',grupos:'GRUPOS + ELIMINACIÓN',s
 
 function generarResumen() {
     document.getElementById('res-nombre').innerText = estado.nombre||'—';
-    document.getElementById('res-fecha').innerText  = (estado.fecha||'—')+' · '+estado.modalidad;
+    document.getElementById('res-fecha').innerText  = (estado.sitio ? estado.sitio + ' · ' : '') + (estado.fecha||'—') + ' · ' + estado.modalidad;
     var bolsa = Math.round(((estado.cupo*(estado.inscripcion||0))+(estado.base||0))*((estado.pctPremios||80)/100));
     var fmt = estado.formatoImportado;
     var sisteNom = fmt ? fmt.formatoNombre : (SIST_NOM[estado.sistema]||estado.sistema);
@@ -1017,7 +1096,7 @@ function generarResumen() {
 function crearTorneo() {
     var fmt = estado.formatoImportado;
     var torneo = MasterVIP.crearTorneo({
-        nombre: estado.nombre, fechaInicio: estado.fecha, modalidad: estado.modalidad,
+        sede: estado.sitio, nombre: estado.nombre, fechaInicio: estado.fecha, modalidad: estado.modalidad,
         sistema: estado.sistema||(fmt?fmt.formatoId:'brackets'),
         cupoMax: estado.cupo, tiempoEntrada: estado.tiempo,
         entradaObjetivo: estado.meta, reglamento: estado.reglamento,
@@ -1037,6 +1116,20 @@ function showToast(msg) {
     t.innerHTML=msg; t.classList.add('show');
     setTimeout(function(){ t.classList.remove('show'); }, 2400);
 }
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
 </script>
 </body>
 </html>

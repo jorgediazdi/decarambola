@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Jugadores y socios — DeCarambola</title>
     <style>
         :root { --oro:#d4af37; --negro:#000; --g1:#1a1a1a; --g2:#111; --azul:#3498db; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
 
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20; }
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; position:sticky; top:0; z-index:20; }
         .header-titulo { color:var(--oro); font-size:0.85rem; letter-spacing:3px; }
         .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
-        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+        .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
 
         .wrap { max-width:520px; margin:0 auto; padding:16px 18px; }
 
@@ -28,15 +31,27 @@
         .socio-promo { color:#999; font-size:0.5rem; margin-top:2px; }
         .vacio { text-align:center; color:#444; font-size:0.6rem; padding:18px; }
     </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:'Arial Black',Arial,sans-serif!important;}</style>
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-salon">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <div class="header">
     <div>
         <div class="header-titulo">JUGADORES &amp; SOCIOS</div>
         <div class="header-sub">Miembros del club</div>
     </div>
-    <a href="index.html" class="btn-hdr">← INICIO</a>
+    <div class="header-actions">
+        <a href="mesas.html" class="btn-hdr">Salón en vivo</a>
+        <a href="reservas_admin.html" class="btn-hdr">Reservas</a>
+        <a href="reportes.html" class="btn-hdr">Reportes</a>
+        <a href="mesas_config.html" class="btn-hdr">Config. salón</a>
+        <a href="apps/club/sala/tarifas_salon.html" class="btn-hdr">Tarifas del salón</a>
+        <a href="club/index.html" class="btn-hdr">Portal club</a>
+        <a href="index.html" class="btn-hdr">Inicio app</a>
+    </div>
 </div>
 
 <div class="wrap">
@@ -106,6 +121,20 @@ window.onload = function() {
 };
 </script>
 
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>
 

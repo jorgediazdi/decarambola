@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Configurar instalaciones — DeCarambola</title>
     <style>
         :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:120px; }
 
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; position:sticky; top:0; z-index:50; flex-wrap:wrap; }
         .header-titulo { color:#d4af37; font-size:0.95rem; letter-spacing:3px; }
         .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
-        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; color:inherit; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+        .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
 
         .wrap { max-width:500px; margin:0 auto; padding:16px 18px; }
 
@@ -28,6 +31,7 @@
         .campo { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:12px 14px; margin-bottom:10px; }
         .campo label { display:block; color:#555; font-size:0.48rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
         .campo input, .campo select { width:100%; background:transparent; border:none; border-bottom:1px solid var(--g1); color:#fff; font-size:1rem; padding:6px 0; outline:none; font-family:'Arial Black',sans-serif; }
+        .campo-ayuda { font-size:0.58rem; color:#666; margin-top:8px; line-height:1.35; letter-spacing:0.5px; }
         .campo-doble { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
         .chip-sug { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
@@ -40,28 +44,47 @@
 
         .preview-plano { background:var(--g2); border:2px solid var(--oro); border-radius:18px; padding:16px; margin:14px 0; min-height:180px; display:grid; gap:8px; }
         .preview-fila { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
-        .preview-celda { width:56px; height:56px; border-radius:12px; background:rgba(212,175,55,0.15); border:2px solid var(--oro); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:0.5rem; color:var(--oro); text-align:center; padding:4px; }
+        .preview-celda { width:56px; height:56px; border-radius:12px; background:rgba(212,175,55,0.15); border:2px solid var(--oro); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:0.5rem; color:var(--oro); text-align:center; padding:4px; animation:preview-luz 2.5s ease-in-out infinite; }
+        @keyframes preview-luz { 0%, 100% { box-shadow:0 0 6px rgba(212,175,55,0.25); } 50% { box-shadow:0 0 14px rgba(212,175,55,0.5), 0 0 22px rgba(46,204,113,0.12); } }
         .preview-celda .nom { font-size:0.85rem; font-weight:bold; color:var(--oro); }
-.preview-celda:hover { background:rgba(212,175,55,0.25); border-color:var(--oro); }
+        .preview-celda:hover { background:rgba(212,175,55,0.25); border-color:var(--oro); }
         .layout-btns { display:flex; gap:8px; margin-top:10px; }
         .layout-btns button { padding:8px 14px; border-radius:10px; border:1px solid var(--g1); background:var(--g3); color:#888; font-size:0.55rem; cursor:pointer; font-family:'Arial Black',sans-serif; }
 
         .promo-fila { display:grid; grid-template-columns:1fr 80px 1fr auto; gap:8px; align-items:center; margin-bottom:8px; font-size:0.55rem; }
         .promo-fila input { padding:6px; border-radius:8px; border:1px solid var(--g1); background:var(--g3); color:#fff; }
+        .desc-franja-fila { display:grid; grid-template-columns:1fr 1fr 72px auto; gap:8px; align-items:center; margin-bottom:8px; font-size:0.55rem; }
+        .desc-franja-fila input { padding:6px; border-radius:8px; border:1px solid var(--g1); background:var(--g3); color:#fff; }
+        .desc-dia-fila { background:var(--g3); border:1px solid var(--g1); border-radius:12px; padding:10px; margin-bottom:10px; font-size:0.52rem; }
+        .desc-dia-fila .dias-chk { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
+        .desc-dia-fila .dias-chk label { color:#888; cursor:pointer; }
+        .info-tarifa { font-size:0.58rem; color:#888; line-height:1.45; margin-bottom:12px; padding:10px; background:var(--g3); border-radius:12px; border:1px solid var(--g1); }
 
         .btn-paso { width:100%; padding:16px; margin-top:16px; background:linear-gradient(135deg,var(--oro),#a07800); color:#000; border:none; border-radius:16px; font-size:0.9rem; font-weight:bold; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:2px; }
         .btn-paso.sec { background:var(--g3); color:#888; border:1px solid var(--g1); }
         .vacio { text-align:center; color:#444; font-size:0.6rem; padding:20px; }
     </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:'Arial Black',Arial,sans-serif!important;}</style>
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-salon">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <div class="header">
     <div>
         <div class="header-titulo">CONFIGURAR INSTALACIONES</div>
         <div class="header-sub" id="lbl-paso">Paso 1 · Datos del salón</div>
     </div>
-    <a href="index.html" class="btn-hdr">← MENÚ</a>
+    <div class="header-actions">
+        <a href="socios.html" class="btn-hdr">Jugadores</a>
+        <a href="mesas.html" class="btn-hdr">Salón en vivo</a>
+        <a href="reservas_admin.html" class="btn-hdr">Reservas</a>
+        <a href="reportes.html" class="btn-hdr">Reportes</a>
+        <a href="apps/club/sala/tarifas_salon.html" class="btn-hdr">Tarifas del salón</a>
+        <a href="club/index.html" class="btn-hdr">Portal club</a>
+        <a href="index.html" class="btn-hdr">Inicio app</a>
+    </div>
 </div>
 
 <div class="wrap">
@@ -81,12 +104,14 @@
         </div>
         <div class="campo-doble">
             <div class="campo">
-                <label>Filas (1-10)</label>
-                <input type="number" id="filas" min="1" max="10" value="2" oninput="actualizarPreview()">
+                <label>Número de filas del plano</label>
+                <input type="number" id="filas" min="1" max="10" step="1" inputmode="numeric" value="2" oninput="actualizarPreview()" onblur="sanitizarEnteroPlano('filas',1,10)">
+                <div class="campo-ayuda">Escribe <strong>un solo número</strong> del 1 al 10 (no el rango “1-10”).</div>
             </div>
             <div class="campo">
-                <label>Columnas (1-12)</label>
-                <input type="number" id="columnas" min="1" max="12" value="4" oninput="actualizarPreview()">
+                <label>Número de columnas del plano</label>
+                <input type="number" id="columnas" min="1" max="12" step="1" inputmode="numeric" value="4" oninput="actualizarPreview()" onblur="sanitizarEnteroPlano('columnas',1,12)">
+                <div class="campo-ayuda">Escribe <strong>un solo número</strong> del 1 al 12 (no “1-12”; solo el número, ej. <strong>4</strong>).</div>
             </div>
         </div>
         <div class="campo-doble">
@@ -205,6 +230,9 @@
     <!-- PASO 4 -->
     <div class="paso" id="paso4">
         <div class="sec-titulo">TARIFAS Y PROMOCIONES</div>
+        <div class="info-tarifa">
+            <strong style="color:var(--oro);">Liquidación:</strong> el costo de cada sesión es <strong>(tarifa por hora efectiva ÷ 60) × minutos reales</strong>. Mañana / noche / fin de semana sustituyen la base en esas franjas si las rellenas. Los % de descuento usan el <strong>mayor %</strong> que coincida (global, franja u día).
+        </div>
         <div class="campo">
             <label>Tarifa por hora</label>
             <input type="number" id="tarifa_hora" min="0" step="0.01" value="0" oninput="calcularMedia()">
@@ -227,6 +255,17 @@
             <label>Tarifa fin de semana</label>
             <input type="number" id="tarifa_finde" min="0" step="0.01" value="0">
         </div>
+        <div class="sec-titulo">DESCUENTOS (%)</div>
+        <div class="campo">
+            <label>Descuento global (% sobre la tarifa vigente)</label>
+            <input type="number" id="desc_global_pct" min="0" max="100" step="1" value="0" placeholder="0">
+        </div>
+        <div class="sec-titulo" style="margin-top:8px;">Por franja horaria</div>
+        <div id="lista_desc_franjas"></div>
+        <button type="button" class="btn-paso sec" style="margin-top:4px;" onclick="agregarDescFranja()">+ Franja horaria + % descuento</button>
+        <div class="sec-titulo" style="margin-top:14px;">Por días de la semana</div>
+        <div id="lista_desc_dias"></div>
+        <button type="button" class="btn-paso sec" style="margin-top:4px;" onclick="agregarDescDias()">+ Días + % descuento</button>
         <div class="sec-titulo">PROMOCIONES</div>
         <div id="lista_promos"></div>
         <button type="button" class="btn-paso sec" style="margin-top:8px;" onclick="agregarPromo()">+ Agregar promoción</button>
@@ -254,6 +293,16 @@ var avisoRestringidoActivo = false;
 })();
 if (!avisoRestringidoActivo) {
 try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
+
+function sanitizarEnteroPlano(id, min, max) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var m = String(el.value || '').match(/\d+/);
+    var n = m ? parseInt(m[0], 10) : min;
+    if (isNaN(n)) n = min;
+    el.value = Math.max(min, Math.min(max, n));
+    actualizarPreview();
+}
 
 var pasoActual = 1;
 var layoutMode = 'grid';
@@ -300,6 +349,25 @@ function agregarPromo() {
     div.className = 'promo-fila';
     div.innerHTML = '<input type="text" placeholder="Nombre promoción"><input type="number" placeholder="% desc" value="10"><input type="text" placeholder="Horario aplicable"><button type="button" class="btn-quitar" onclick="this.closest(\'.promo-fila\').remove()">✕</button>';
     document.getElementById('lista_promos').appendChild(div);
+}
+
+function agregarDescFranja() {
+    var div = document.createElement('div');
+    div.className = 'desc-franja-fila';
+    div.innerHTML = '<input type="time" class="df-desde" value="14:00"><input type="time" class="df-hasta" value="18:00"><input type="number" class="df-pct" min="0" max="100" step="1" placeholder="%" value="10"><button type="button" class="btn-quitar" onclick="this.closest(\'.desc-franja-fila\').remove()">✕</button>';
+    document.getElementById('lista_desc_franjas').appendChild(div);
+}
+
+function agregarDescDias() {
+    var div = document.createElement('div');
+    div.className = 'desc-dia-fila';
+    var chks = '';
+    var nombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    for (var d = 0; d < 7; d++) {
+        chks += '<label><input type="checkbox" class="dd-dia" value="' + d + '"> ' + nombres[d] + '</label>';
+    }
+    div.innerHTML = '<div class="dias-chk">' + chks + '</div><div style="display:flex;gap:8px;align-items:center;"><span style="color:#666;">% desc.</span><input type="number" class="dd-pct" min="0" max="100" step="1" value="15" style="width:80px;padding:6px;border-radius:8px;border:1px solid var(--g1);background:var(--g3);color:#fff;"><button type="button" class="btn-quitar" onclick="this.closest(\'.desc-dia-fila\').remove()">✕</button></div>';
+    document.getElementById('lista_desc_dias').appendChild(div);
 }
 
 function setLayout(mode) { layoutMode = mode; actualizarPreview(); }
@@ -399,6 +467,23 @@ async function guardarTodo() {
     var tarifaFinde = parseFloat(document.getElementById('tarifa_finde').value) || 0;
 
     var tarifas = { hora: tarifaHora, media: tarifaMedia, manana: tarifaManana, noche: tarifaNoche, finde: tarifaFinde };
+    tarifas.descuento_global_pct = Math.min(100, Math.max(0, parseFloat(document.getElementById('desc_global_pct').value) || 0));
+    tarifas.reglas_descuento = [];
+    document.querySelectorAll('#lista_desc_franjas .desc-franja-fila').forEach(function (row) {
+        var d0 = row.querySelector('.df-desde');
+        var d1 = row.querySelector('.df-hasta');
+        var pc = row.querySelector('.df-pct');
+        var desde = (d0 && d0.value) || '';
+        var hasta = (d1 && d1.value) || '';
+        var pct = Math.min(100, Math.max(0, parseFloat(pc && pc.value) || 0));
+        if (desde && hasta && pct > 0) tarifas.reglas_descuento.push({ tipo: 'rango_hora', desde: desde, hasta: hasta, pct: pct });
+    });
+    document.querySelectorAll('#lista_desc_dias .desc-dia-fila').forEach(function (row) {
+        var dias = [];
+        row.querySelectorAll('.dd-dia:checked').forEach(function (c) { dias.push(parseInt(c.value, 10)); });
+        var pct = Math.min(100, Math.max(0, parseFloat(row.querySelector('.dd-pct').value) || 0));
+        if (dias.length && pct > 0) tarifas.reglas_descuento.push({ tipo: 'dia_semana', dias: dias, pct: pct });
+    });
     var promos = [];
     document.querySelectorAll('#lista_promos .promo-fila').forEach(function(r){
         var inputs = r.querySelectorAll('input');
@@ -472,7 +557,9 @@ async function guardarTodo() {
 
         var metrajeAncho = parseFloat(document.getElementById('metraje_ancho') && document.getElementById('metraje_ancho').value) || 0;
         var metrajeLargo = parseFloat(document.getElementById('metraje_largo') && document.getElementById('metraje_largo').value) || 0;
-        var salonConfig = { nombre_salon: nombreSalon, filas: filas, columnas: columnas, apertura: apertura, cierre: cierre, moneda: moneda, tarifas: tarifas, salon_id: salonId };
+        var layoutFilasRaw = (document.getElementById('layout_filas') && document.getElementById('layout_filas').value || '').trim();
+        var salonConfig = { nombre_salon: nombreSalon, filas: filas, columnas: columnas, apertura: apertura, cierre: cierre, moneda: moneda, tarifas: tarifas, salon_id: salonId, numeracion_inicial: numIni, tipo_instalacion_default: tipoInst };
+        if (layoutFilasRaw) salonConfig.layout_filas = layoutFilasRaw;
         if (metrajeAncho > 0 || metrajeLargo > 0) salonConfig.metraje = { ancho: metrajeAncho, largo: metrajeLargo };
         localStorage.setItem('mesas_salon_config', JSON.stringify(salonConfig));
         alert('Configuración guardada. Ya puedes usar el Salón en vivo.');
@@ -485,6 +572,20 @@ async function guardarTodo() {
 }
 
 window.onload = function() { actualizarPreview(); };
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
 </script>
 </body>
 </html>

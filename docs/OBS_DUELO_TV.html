@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía OBS + Duelo TV — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --bg:#0b0b0b; --card:#111; --muted:#888; }
+        * { box-sizing:border-box; }
+        body { margin:0; background:var(--bg); color:#ddd; font-family:'Segoe UI',system-ui,sans-serif; line-height:1.55; padding:20px 16px 48px; max-width:720px; margin-left:auto; margin-right:auto; }
+        h1 { color:var(--oro); font-size:1.15rem; letter-spacing:0.08em; margin-bottom:8px; }
+        .sub { color:#555; font-size:0.8rem; margin-bottom:24px; }
+        h2 { color:#ccc; font-size:0.95rem; margin-top:28px; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:6px; }
+        p, li { font-size:0.88rem; color:#bbb; }
+        ul { padding-left:1.2rem; }
+        li { margin:6px 0; }
+        a { color:var(--oro); }
+        .faq { background:var(--card); border:1px solid #1a1a1a; border-radius:12px; padding:16px 18px; margin-top:20px; }
+        .faq h2 { margin-top:0; border:none; color:var(--oro); font-size:0.95rem; }
+        .faq .risk { color:#e8a598; font-size:0.82rem; }
+        .back { display:inline-block; margin-bottom:20px; color:#666; text-decoration:none; font-size:0.8rem; }
+        .back:hover { color:var(--oro); }
+        code { background:#1a1a1a; padding:2px 6px; border-radius:4px; font-size:0.85em; }
+    </style>
+</head>
+<body>
+    <a class="back" href="../Sensei.html">← Volver al Sensei</a>
+    <h1>OBS + Duelo TV</h1>
+    <p class="sub">Guía rápida para transmitir el marcador <strong>duelo-tv.html</strong> con OBS hacia YouTube.</p>
+    <p style="font-size:0.82rem;color:#777;border-left:3px solid var(--oro);padding-left:12px;margin-bottom:20px;">
+        <strong>Política (operación):</strong> canal oficial DeCarambola solo con <strong>evento organizado</strong>; cada local transmite el resto con <strong>su canal</strong>. No compartir clave de transmisión. (Documento interno: <code>docs/POLITICA_TRANSMISION_INTERNA.md</code>)
+    </p>
+
+    <h2>1) Prepara OBS (una vez)</h2>
+    <ul>
+        <li>Instala <strong>OBS Studio</strong>.</li>
+        <li>En <strong>Ajustes → Transmisión</strong>, elige <strong>YouTube</strong> y vincula tu canal (o pega la clave de transmisión si ya la usas).</li>
+        <li>Crea una escena nueva, por ejemplo: <code>Duelo TV</code>.</li>
+    </ul>
+
+    <h2>2) Añade Duelo TV como fuente</h2>
+    <ul>
+        <li>En la escena: <strong>+ → Navegador</strong> (Browser).</li>
+        <li><strong>URL:</strong> la ruta completa a <code>duelo-tv.html</code> en tu servidor.</li>
+        <li>Tamaño típico: <strong>1920 × 1080</strong>.</li>
+    </ul>
+    <p style="font-size:0.82rem;color:#9a9a9a;margin-top:-6px;margin-bottom:18px;">
+        <strong>Marcador vertical (Premium TV):</strong> la página del duelo muestra el marcador en <strong>columna</strong> (jugador 1 arriba, jugador 2 abajo) y <strong>no incluye</strong> el recuadro de cámara/stream en pantalla. Si necesitas <strong>vista con video integrado</strong> para pruebas, usa <code>duelo-tv-preview.html</code> o añade en OBS una segunda fuente (cámara / navegador) y compón el lienzo.
+    </p>
+
+    <h2>3) Configura mesa / club (opcional)</h2>
+    <p>En la Fase 1 de Duelo TV puedes guardar configuración por <strong>mesa</strong> (stream, YouTube Live, asistida, marca de agua). La caja superior muestra el perfil activo.</p>
+
+    <h2>4) Inicia partida y directo</h2>
+    <ol>
+        <li>En Duelo TV: <strong>Iniciar partida</strong>.</li>
+        <li>En OBS: <strong>Iniciar transmisión</strong> cuando quieras salir al aire.</li>
+    </ol>
+    <p>La página web <strong>no inicia</strong> el live de YouTube sola: quien envía el vídeo es <strong>OBS</strong>.</p>
+
+    <h2>5) Cerrar</h2>
+    <ul>
+        <li><strong>Detener transmisión</strong> en OBS.</li>
+        <li>En YouTube el directo queda guardado según la configuración de tu canal.</li>
+    </ul>
+
+    <div class="faq">
+        <h2>Pregunta frecuente: ¿un solo canal de YouTube para todos los clubes?</h2>
+        <p><strong>Sí se puede</strong> técnicamente: todos los clubes usan el mismo <strong>equipo / OBS</strong> con la misma cuenta de YouTube y el mismo canal. La app no “elige” el canal: lo define <strong>quién tiene la clave de transmisión</strong> en OBS.</p>
+        <p class="risk"><strong>Riesgos y límites a tener en cuenta:</strong></p>
+        <ul>
+            <li><strong>Un solo directo a la vez</strong> por clave de transmisión: si dos sedes transmiten al mismo tiempo al mismo canal, necesitan <strong>otro canal</strong> u otro evento/stream; no pueden dos lives simultáneos en la misma clave.</li>
+            <li><strong>Clave de transmisión</strong>: si mucha gente la conoce, <strong>alguien podría transmitir a tu canal</strong> sin autorización. Guárdala como contraseña; solo PC/operador de confianza.</li>
+            <li><strong>Marca y reputación</strong>: todo lo que salga en ese canal afecta a <strong>una sola marca</strong> (tuya o la federación). Un contenido problemático o fuera de normas puede afectar a <strong>todo</strong> el canal.</li>
+            <li><strong>Moderación y derechos</strong>: música, imágenes o comentarios en vivo deben cumplir políticas de YouTube; es responsabilidad de quien opera el directo.</li>
+            <li><strong>Organización</strong>: mezclar muchos clubes en un mismo canal sin listas de reproducción o títulos claros puede dificultar que la audiencia encuentre “su” mesa.</li>
+        </ul>
+        <p><strong>Recomendación:</strong> un canal <strong>central</strong> (oficial) para eventos federados; o <strong>un canal por club</strong> si cada sede gestiona su propia marca y horarios. Puedes usar la misma app DeCarambola en todas; solo cambia <strong>qué cuenta de YouTube</strong> está en OBS en cada lugar.</p>
+    </div>
+
+    <p style="margin-top:28px;font-size:0.75rem;color:#444;">DeCarambola · documento de ayuda</p>
+</body>
+</html>

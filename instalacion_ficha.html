@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Ficha instalación — DeCarambola</title>
     <style>
         :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2ecc71; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0b; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:100px; }
 
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; position:sticky; top:0; z-index:50; }
         .header-titulo { color:var(--oro); font-size:0.9rem; letter-spacing:3px; }
         .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
-        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+        .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
         .badge-estado { font-size:0.5rem; padding:4px 10px; border-radius:8px; letter-spacing:1px; }
         .badge-libre { background:rgba(46,204,113,0.2); color:#2ecc71; }
         .badge-ocupada { background:rgba(231,76,60,0.2); color:#e74c3c; }
@@ -70,9 +73,28 @@
         .fila-camara .nom-camara { width:100px; flex-shrink:0; }
         .fila-camara .url-camara { flex:1; min-width:120px; }
         .fila-camara .btn-quitar { flex-shrink:0; padding:6px 10px; font-size:0.55rem; background:rgba(231,76,60,0.2); color:#e74c3c; border:none; border-radius:8px; cursor:pointer; }
+        .ficha-minihelp { font-size:0.55rem; color:#666; line-height:1.45; margin-bottom:14px; }
+        .alerta-pano { background:rgba(243,156,18,0.12); border:1px solid rgba(243,156,18,0.4); border-radius:12px; padding:12px; margin-bottom:12px; font-size:0.58rem; color:#f39c12; }
+        .alerta-pano.urgente { background:rgba(231,76,60,0.12); border-color:rgba(231,76,60,0.45); color:#e74c3c; }
+        .timeline-item { padding:12px 14px; background:var(--g3); border-radius:12px; margin-bottom:10px; font-size:0.56rem; border-left:4px solid #555; text-align:left; }
+        .timeline-item .t-fecha { color:#888; font-size:0.5rem; letter-spacing:1px; }
+        .timeline-item .t-tipo { font-size:0.48rem; letter-spacing:2px; margin-top:4px; color:var(--oro); }
+        .timeline-item .t-desc { color:#ccc; margin-top:6px; line-height:1.4; }
+        .timeline-item.t-sesion { border-left-color:#3498db; }
+        .timeline-item.t-sesion-abierta { border-left-color:#e74c3c; }
+        .timeline-item.t-mant { border-left-color:#2ecc71; }
+        .timeline-item.t-reserva { border-left-color:#f39c12; }
+        .timeline-item.t-nota { border-left-color:#9b59b6; }
+        .monitor-preview { margin-top:10px; border-radius:12px; overflow:hidden; border:1px solid var(--g1); min-height:120px; background:var(--g3); }
+        .monitor-preview iframe { width:100%; height:200px; border:none; }
+        .btn-link-monitor { display:inline-block; margin-top:8px; font-size:0.55rem; color:var(--azul); }
     </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <meta name="theme-color" content="#d4af37">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <div class="header">
     <div>
@@ -80,7 +102,13 @@
         <div class="header-sub" id="lbl_tipo">—</div>
         <div style="margin-top:6px;"><span id="badge_estado" class="badge-libre">—</span> <span id="lbl_tarifa" style="font-size:0.55rem;color:#888;"></span></div>
     </div>
-    <a href="mesas.html" class="btn-hdr">← Volver al Salón</a>
+    <div class="header-actions">
+        <a href="mesas.html" class="btn-hdr">Salón en vivo</a>
+        <a href="reservas_admin.html" class="btn-hdr">Reservas</a>
+        <a href="reportes.html" class="btn-hdr">Reportes</a>
+        <a href="club/index.html" class="btn-hdr">Portal club</a>
+        <a href="index.html" class="btn-hdr">Inicio app</a>
+    </div>
 </div>
 
 <div class="wrap">
@@ -94,9 +122,53 @@
         <div class="ficha-row"><span>Promedio horas/día</span><span class="v" id="stat_promedio">—</span></div>
     </div>
 
+    <div class="ficha-card" id="card_hoja_vida">
+        <div class="ficha-titulo">HOJA DE VIDA DE LA MESA</div>
+        <p class="ficha-minihelp">Fecha de compra, paño, próximo cambio, detalle de compra, monitor y notas. Se guardan en la nube (columna <code style="color:#888;">hoja_vida</code> en Supabase — si falla, revisa <code style="color:#888;">db/alter_mesas_hoja_vida.sql</code>).</p>
+        <div id="alerta_pano_banner" style="display:none;" class="alerta-pano"></div>
+        <div class="campo">
+            <label>Fecha de compra</label>
+            <input type="date" id="hv_fecha_compra">
+        </div>
+        <div class="campo">
+            <label>Detalle de la compra (proveedor, factura, serie, valor…)</label>
+            <textarea id="hv_detalle_compra" placeholder="Ej: Billares López, factura F-10234, serie ABC…"></textarea>
+        </div>
+        <div class="campo">
+            <label>Último cambio de paño</label>
+            <input type="date" id="hv_fecha_pano">
+        </div>
+        <div class="campo">
+            <label>Intervalo recomendado entre cambios de paño (meses)</label>
+            <input type="number" id="hv_meses_pano" min="1" max="120" value="12" step="1">
+        </div>
+        <div class="ficha-row"><span>Próximo cambio sugerido (automático)</span><span class="v" id="hv_proximo_pano_calc">—</span></div>
+        <div class="campo">
+            <label>Próximo cambio (fecha manual — opcional; si está vacío se usa la sugerida)</label>
+            <input type="date" id="hv_fecha_proximo_pano">
+        </div>
+        <div class="campo">
+            <label>Monitor / panel (URL de stream, MJPEG o enlace)</label>
+            <input type="url" id="hv_url_monitor" placeholder="https://…">
+        </div>
+        <div class="campo">
+            <label>Notas del monitor / equipo audiovisual</label>
+            <textarea id="hv_notas_monitor" placeholder="Modelo, IP, credenciales en caja fuerte, etc."></textarea>
+        </div>
+        <div id="monitor_preview_wrap" class="monitor-preview" style="display:none;"></div>
+        <a id="monitor_abrir" class="btn-link-monitor" href="#" target="_blank" rel="noopener" style="display:none;">Abrir monitor en pestaña nueva →</a>
+        <button type="button" class="btn-paso" onclick="guardarHojaVida()">GUARDAR HOJA DE VIDA</button>
+        <button type="button" class="btn-paso sec" onclick="registrarCambioPanoHoy()" style="margin-top:8px;">MARCAR CAMBIO DE PAÑO HOY</button>
+        <div class="campo" style="margin-top:16px;">
+            <label>Nota libre para el historial (incidencias, actas…)</label>
+            <textarea id="hv_nota_crono" placeholder="Texto que aparecerá en Historia completa"></textarea>
+        </div>
+        <button type="button" class="btn-paso sec" onclick="agregarNotaCronologia()">AÑADIR NOTA AL HISTORIAL</button>
+    </div>
+
     <div class="ficha-card" id="card_camara">
-        <div class="ficha-titulo">CÁMARAS Y DISPOSITIVOS</div>
-        <p class="ficha-nota" style="font-size:0.55rem;color:#666;margin-bottom:12px;line-height:1.4;">Cada mesa puede tener varias cámaras. La primera se usa por defecto en Duelo/transmisión. Añade las que necesites y parametriza los dispositivos alrededor.</p>
+        <div class="ficha-titulo">CÁMARAS / STREAMS DE LA MESA</div>
+        <p class="ficha-nota ficha-minihelp">Varias cámaras por instalación. La primera URL se usa por defecto en duelo/transmisión. Complementa el monitor de la hoja de vida.</p>
         <div id="lista_camaras"></div>
         <button type="button" class="btn-paso sec" onclick="anadirCamara()" style="margin-top:8px;">+ AÑADIR CÁMARA</button>
         <button type="button" class="btn-paso" onclick="guardarCamaras()" style="margin-top:8px;">GUARDAR CÁMARAS</button>
@@ -125,8 +197,8 @@
         <div class="campo">
             <label>Tipo de trabajo</label>
             <select id="mant_tipo">
-                <option value="REVISION">REVISIÓN</option>
-                <option value="REEMPLAZO">REEMPLAZO</option>
+                <option value="REVISION">REVISIÓN TÉCNICA</option>
+                <option value="REEMPLAZO">REEMPLAZO (ej. paño, bandas)</option>
                 <option value="LIMPIEZA">LIMPIEZA</option>
                 <option value="REPARACION">REPARACIÓN</option>
             </select>
@@ -152,7 +224,14 @@
     </div>
 
     <div class="ficha-card">
-        <div class="ficha-titulo">HISTORIAL DE SESIONES (últimas 20)</div>
+        <div class="ficha-titulo">HISTORIA COMPLETA (cronología)</div>
+        <p class="ficha-minihelp">Sesiones abiertas y cerradas, reservas, mantenimientos, revisiones y notas de la hoja de vida, en orden del más reciente al más antiguo.</p>
+        <div id="lista_historia_completa"></div>
+        <div class="vacio" id="sin_historia_completa" style="display:none;">Sin eventos registrados aún</div>
+    </div>
+
+    <div class="ficha-card">
+        <div class="ficha-titulo">DETALLE SESIONES CERRADAS (tabla)</div>
         <div style="overflow-x:auto;">
             <table class="tabla-sesiones" id="tabla_sesiones">
                 <thead><tr><th>Fecha</th><th>Jugador</th><th>Duración</th><th>Costo</th></tr></thead>
@@ -171,8 +250,242 @@ try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); 
 var mesaId = null;
 var mesa = null;
 var historial = [];
+var historialTodo = [];
+var reservasMesa = [];
 var componentes = [];
 var mantenimientos = [];
+var hojaVida = {};
+
+function storageKeyHV(id) { return 'mesa_hoja_vida_' + id; }
+
+function parseHojaVida(m) {
+    var hv = m && m.hoja_vida;
+    if (hv == null || hv === '') return { cronologia: [] };
+    if (typeof hv === 'string') {
+        try { hv = JSON.parse(hv); } catch (e) { return { cronologia: [] }; }
+    }
+    if (!hv || typeof hv !== 'object') return { cronologia: [] };
+    if (!hv.cronologia || !Array.isArray(hv.cronologia)) hv.cronologia = [];
+    return hv;
+}
+
+function hojaVidaRemotaVacia(m) {
+    var hv = m && m.hoja_vida;
+    if (hv == null || hv === '') return true;
+    if (typeof hv === 'string') return hv === '{}' || !hv.trim();
+    if (typeof hv === 'object') return Object.keys(hv).length === 0;
+    return false;
+}
+
+function leerHojaVidaDesdeFormulario() {
+    var cronologia = (hojaVida && hojaVida.cronologia) ? hojaVida.cronologia.slice() : [];
+    return {
+        fecha_compra: (document.getElementById('hv_fecha_compra').value || '').trim() || null,
+        detalle_compra: (document.getElementById('hv_detalle_compra').value || '').trim() || null,
+        fecha_ultimo_cambio_pano: (document.getElementById('hv_fecha_pano').value || '').trim() || null,
+        meses_intervalo_pano: parseInt(document.getElementById('hv_meses_pano').value, 10) || 12,
+        fecha_proximo_pano_manual: (document.getElementById('hv_fecha_proximo_pano').value || '').trim() || null,
+        url_monitor: (document.getElementById('hv_url_monitor').value || '').trim() || null,
+        notas_monitor: (document.getElementById('hv_notas_monitor').value || '').trim() || null,
+        cronologia: cronologia
+    };
+}
+
+function pintarFormularioHojaVida() {
+    var hv = hojaVida;
+    document.getElementById('hv_fecha_compra').value = hv.fecha_compra || '';
+    document.getElementById('hv_detalle_compra').value = hv.detalle_compra || '';
+    document.getElementById('hv_fecha_pano').value = hv.fecha_ultimo_cambio_pano || hv.fecha_cambio_pano || '';
+    document.getElementById('hv_meses_pano').value = hv.meses_intervalo_pano || 12;
+    document.getElementById('hv_fecha_proximo_pano').value = hv.fecha_proximo_pano_manual || '';
+    document.getElementById('hv_url_monitor').value = hv.url_monitor || '';
+    document.getElementById('hv_notas_monitor').value = hv.notas_monitor || '';
+    actualizarProximoPanoYMonitor();
+}
+
+function actualizarProximoPanoYMonitor() {
+    var hv = leerHojaVidaDesdeFormulario();
+    var fp = hv.fecha_ultimo_cambio_pano;
+    var meses = hv.meses_intervalo_pano || 12;
+    var calcEl = document.getElementById('hv_proximo_pano_calc');
+    if (!fp) {
+        if (calcEl) calcEl.textContent = '—';
+    } else {
+        var d = new Date(fp + 'T12:00:00');
+        d.setMonth(d.getMonth() + meses);
+        if (calcEl) calcEl.textContent = d.toLocaleDateString('es');
+    }
+    var manual = (document.getElementById('hv_fecha_proximo_pano').value || '').trim();
+    var proximoTs = null;
+    if (manual) proximoTs = new Date(manual + 'T12:00:00').getTime();
+    else if (fp) {
+        var d2 = new Date(fp + 'T12:00:00');
+        d2.setMonth(d2.getMonth() + meses);
+        proximoTs = d2.getTime();
+    }
+    var ban = document.getElementById('alerta_pano_banner');
+    if (ban && proximoTs) {
+        var dias = Math.ceil((proximoTs - Date.now()) / 86400000);
+        if (dias < 0) {
+            ban.style.display = 'block';
+            ban.className = 'alerta-pano urgente';
+            ban.textContent = '⚠️ Cambio de paño: la fecha objetivo ya pasó (' + Math.abs(dias) + ' días). Registra mantenimiento o actualiza fechas.';
+        } else if (dias <= 30) {
+            ban.style.display = 'block';
+            ban.className = 'alerta-pano';
+            ban.textContent = '📅 Próximo cambio de paño en ' + dias + ' días.';
+        } else {
+            ban.style.display = 'none';
+        }
+    } else if (ban) ban.style.display = 'none';
+
+    var urlMon = (document.getElementById('hv_url_monitor').value || '').trim();
+    var wrap = document.getElementById('monitor_preview_wrap');
+    var lnk = document.getElementById('monitor_abrir');
+    if (wrap && lnk) {
+        if (urlMon && (urlMon.indexOf('http') === 0)) {
+            lnk.href = urlMon;
+            lnk.style.display = 'inline-block';
+            var isEmbeddable = /\.(jpg|jpeg|png|gif|mjpg|mjpeg)(\?|$)/i.test(urlMon) || /mjpeg|mjpg|stream|video/i.test(urlMon);
+            if (isEmbeddable) {
+                wrap.style.display = 'block';
+                wrap.innerHTML = '<iframe src="' + urlMon.replace(/"/g, '&quot;') + '" title="Monitor mesa"></iframe>';
+            } else {
+                wrap.style.display = 'none';
+                wrap.innerHTML = '';
+            }
+        } else {
+            lnk.style.display = 'none';
+            wrap.style.display = 'none';
+            wrap.innerHTML = '';
+        }
+    }
+}
+
+async function guardarHojaVida() {
+    if (!mesaId) return;
+    hojaVida = leerHojaVidaDesdeFormulario();
+    var payload = { hoja_vida: hojaVida, updated_at: new Date().toISOString() };
+    var r = await DB.update('mesas', mesaId, payload);
+    if (r === null) {
+        try {
+            localStorage.setItem(storageKeyHV(mesaId), JSON.stringify(hojaVida));
+        } catch (e) {}
+        alert('No se pudo guardar en Supabase. Datos guardados en este dispositivo. Ejecuta en SQL: db/alter_mesas_hoja_vida.sql (columna hoja_vida).');
+        return;
+    }
+    try { localStorage.removeItem(storageKeyHV(mesaId)); } catch (e) {}
+    if (mesa) mesa.hoja_vida = hojaVida;
+    alert('Hoja de vida guardada.');
+}
+
+async function registrarCambioPanoHoy() {
+    if (!mesaId) return;
+    var hoy = new Date().toISOString().slice(0, 10);
+    document.getElementById('hv_fecha_pano').value = hoy;
+    hojaVida = leerHojaVidaDesdeFormulario();
+    hojaVida.fecha_ultimo_cambio_pano = hoy;
+    hojaVida.cronologia.push({
+        fecha: new Date().toISOString(),
+        titulo: 'Cambio de paño',
+        detalle: 'Registrado desde la ficha (hoy)'
+    });
+    var r = await DB.update('mesas', mesaId, { hoja_vida: hojaVida, updated_at: new Date().toISOString() });
+    if (r === null) {
+        try { localStorage.setItem(storageKeyHV(mesaId), JSON.stringify(hojaVida)); } catch (e) {}
+        alert('Guardado local. Añade columna hoja_vida en Supabase para sincronizar.');
+    } else {
+        if (mesa) mesa.hoja_vida = hojaVida;
+        alert('Cambio de paño registrado.');
+    }
+    componentes.forEach(function (c) {
+        var n = (c.nombre || '').toLowerCase();
+        if (/paño|pano|cloth/i.test(n)) {
+            DB.update('instalaciones_componentes', c.id, { horas_uso_actual: 0, estado: 'optimo', updated_at: new Date().toISOString() });
+        }
+    });
+    cargar();
+}
+
+function agregarNotaCronologia() {
+    var txt = (document.getElementById('hv_nota_crono').value || '').trim();
+    if (!txt) { alert('Escribe una nota.'); return; }
+    hojaVida = leerHojaVidaDesdeFormulario();
+    hojaVida.cronologia.push({ fecha: new Date().toISOString(), titulo: 'Nota', detalle: txt });
+    document.getElementById('hv_nota_crono').value = '';
+    DB.update('mesas', mesaId, { hoja_vida: hojaVida, updated_at: new Date().toISOString() }).then(function (r) {
+        if (r === null) {
+            try { localStorage.setItem(storageKeyHV(mesaId), JSON.stringify(hojaVida)); } catch (e) {}
+            alert('Nota guardada en este dispositivo (revisa migración SQL si falla la nube).');
+        }
+        cargar();
+    });
+}
+
+function pintarHistoriaCompleta() {
+    var cont = document.getElementById('lista_historia_completa');
+    var sin = document.getElementById('sin_historia_completa');
+    if (!cont) return;
+    var ev = [];
+
+    (historialTodo || []).forEach(function (h) {
+        var ts = h.fin_sesion || h.inicio_sesion || h.created_at;
+        if (!ts) return;
+        var t = new Date(ts).getTime();
+        var cerrada = (h.estado || '').toLowerCase() === 'cerrada';
+        var cost = h.costo_total != null ? ' · $' + Math.round(parseFloat(h.costo_total)) : '';
+        var dur = fmtDuracion(parseFloat(h.horas_reales));
+        ev.push({
+            t: t,
+            cls: cerrada ? 't-sesion' : 't-sesion-abierta',
+            tipo: cerrada ? 'SESION CERRADA' : 'SESION ABIERTA',
+            desc: (h.jugador_nombre || '—') + (cerrada ? ' · ' + dur + cost : '')
+        });
+    });
+
+    (mantenimientos || []).forEach(function (m) {
+        var ts = m.fecha || m.created_at;
+        if (!ts) return;
+        var tipo = (m.tipo_trabajo || 'MANTENIMIENTO').replace(/_/g, ' ');
+        var line = tipo + (m.descripcion ? ' · ' + m.descripcion : '') + (m.responsable ? ' · ' + m.responsable : '');
+        if (m.costo != null && parseFloat(m.costo) > 0) line += ' · $' + parseFloat(m.costo).toFixed(0);
+        ev.push({ t: new Date(ts).getTime(), cls: 't-mant', tipo: 'MANTENIMIENTO / REVISIÓN', desc: line });
+    });
+
+    (reservasMesa || []).forEach(function (r) {
+        var ts = r.fecha_reserva || r.created_at;
+        if (!ts) return;
+        ev.push({
+            t: new Date(ts).getTime(),
+            cls: 't-reserva',
+            tipo: 'RESERVA',
+            desc: (r.jugador_nombre || 'Reserva') + ' · ' + (r.estado || '') + (r.notas ? ' · ' + r.notas : '')
+        });
+    });
+
+    ((hojaVida && hojaVida.cronologia) || []).forEach(function (n) {
+        var ts = n.fecha || n.created_at;
+        if (!ts) return;
+        ev.push({ t: new Date(ts).getTime(), cls: 't-nota', tipo: n.titulo || 'NOTA', desc: n.detalle || '' });
+    });
+
+    ev.sort(function (a, b) { return b.t - a.t; });
+
+    if (!ev.length) {
+        cont.innerHTML = '';
+        if (sin) sin.style.display = 'block';
+        return;
+    }
+    if (sin) sin.style.display = 'none';
+    function esc(s) {
+        if (!s) return '—';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    }
+    cont.innerHTML = ev.map(function (e) {
+        var f = new Date(e.t).toLocaleString('es');
+        return '<div class="timeline-item ' + e.cls + '"><div class="t-fecha">' + esc(f) + '</div><div class="t-tipo">' + esc(e.tipo) + '</div><div class="t-desc">' + esc(e.desc) + '</div></div>';
+    }).join('');
+}
 
 function getParamId() { var p = new URLSearchParams(window.location.search); return p.get('id'); }
 
@@ -204,16 +517,39 @@ async function cargar() {
     badge.className = 'badge-estado badge-' + (est === 'fuera_servicio' ? 'fuera' : est);
     document.getElementById('lbl_tarifa').textContent = 'Tarifa/h: $' + (mesa.tarifa_hora || 0);
 
-    historial = await DB.get('mesas_historial', 'mesa_id=eq.' + mesaId + '&estado=eq.cerrada');
-    if (!historial) historial = [];
-    historial.sort(function(a,b){ return new Date(b.fin_sesion||b.created_at) - new Date(a.fin_sesion||a.created_at); });
+    var histAll = await DB.get('mesas_historial', 'mesa_id=eq.' + mesaId);
+    historialTodo = histAll || [];
+    historial = historialTodo.filter(function (h) { return (h.estado || '').toLowerCase() === 'cerrada'; });
+    historial.sort(function (a, b) { return new Date(b.fin_sesion || b.created_at) - new Date(a.fin_sesion || a.created_at); });
+
+    reservasMesa = await DB.get('mesas_reservas', 'mesa_id=eq.' + mesaId);
+    if (!reservasMesa) reservasMesa = [];
+    reservasMesa.sort(function (a, b) { return new Date(b.fecha_reserva || b.created_at) - new Date(a.fecha_reserva || a.created_at); });
 
     componentes = await DB.get('instalaciones_componentes', 'mesa_id=eq.' + mesaId);
     if (!componentes) componentes = [];
 
     mantenimientos = await DB.get('instalaciones_mantenimiento', 'mesa_id=eq.' + mesaId);
     if (!mantenimientos) mantenimientos = [];
-    mantenimientos.sort(function(a,b){ return new Date(b.fecha||b.created_at) - new Date(a.fecha||a.created_at); });
+    mantenimientos.sort(function (a, b) { return new Date(b.fecha || b.created_at) - new Date(a.fecha || a.created_at); });
+
+    hojaVida = parseHojaVida(mesa);
+    try {
+        var loc = localStorage.getItem(storageKeyHV(mesaId));
+        if (loc && hojaVidaRemotaVacia(mesa)) {
+            var parsed = JSON.parse(loc);
+            if (parsed && typeof parsed === 'object') {
+                hojaVida = parsed;
+                if (!hojaVida.cronologia || !Array.isArray(hojaVida.cronologia)) hojaVida.cronologia = [];
+            }
+        }
+    } catch (e) {}
+
+    pintarFormularioHojaVida();
+    ['hv_fecha_pano', 'hv_meses_pano', 'hv_fecha_proximo_pano', 'hv_url_monitor'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.oninput = actualizarProximoPanoYMonitor;
+    });
 
     pintarListaCamaras();
 
@@ -222,6 +558,7 @@ async function cargar() {
     pintarAlertas();
     pintarHistorialMantenimiento();
     pintarHistorialSesiones();
+    pintarHistoriaCompleta();
     llenarSelectComponentes();
 }
 
@@ -426,6 +763,20 @@ function guardarMantenimiento() {
 }
 
 window.onload = cargar;
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
 </script>
 </body>
 </html>

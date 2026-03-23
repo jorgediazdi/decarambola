@@ -1,0 +1,353 @@
+/**
+ * DeCarambola — Capa UX compartida (portal club / sala / organizador)
+ * Alineado visualmente con index.html (oro, negro, neón, estrellas).
+ *
+ * Uso:
+ *   <link rel="stylesheet" href="css/ux-shell.css">
+ *   <body class="dc-ux dc-ux-skin">
+ *   <div class="stars" id="stars-bg" aria-hidden="true"></div>
+ *   + script que reparte estrellas (ver index.html o club/index.html)
+ */
+:root {
+    /* Tokens = index.html */
+    --dc-oro: #d4af37;
+    --dc-negro: #0b0b0b;
+    --dc-neon: #2eff70;
+    --dc-azul: #3498db;
+    --dc-rojo: #e74c3c;
+    --dc-g1: #1a1a1a;
+    --dc-g2: #111;
+    --dc-g3: #0a0a0a;
+    --dc-font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --dc-safe-top: env(safe-area-inset-top, 0px);
+    --dc-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Fondo estrellas (misma base que index.html) ── */
+#stars-bg.stars,
+.stars#stars-bg,
+body.dc-ux-skin .stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(ellipse at 50% 0%, #0d0800 0%, #000 70%);
+}
+
+body.dc-ux-skin .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle 3s infinite alternate;
+}
+
+@keyframes twinkle {
+    0% {
+        opacity: 0.1;
+    }
+    100% {
+        opacity: 0.7;
+    }
+}
+
+/* Contenido por encima del cielo */
+body.dc-ux-skin .header,
+body.dc-ux-skin .ctx-strip,
+body.dc-ux-skin .wrap,
+body.dc-ux-skin .toast,
+body.dc-ux-skin .contenido,
+body.dc-ux-skin .tabs,
+body.dc-ux-skin .nav-bottom,
+body.dc-ux-skin .prog-wrap,
+body.dc-ux-skin #vista-lista,
+body.dc-ux-skin #vista-cuadro,
+body.dc-ux-skin #vista-info,
+body.dc-ux-skin .dc-ux-layer,
+body.dc-ux-skin > header.hero,
+body.dc-ux-skin > .sec,
+body.dc-ux-skin > .grid,
+body.dc-ux-skin > .hdr,
+body.dc-ux-skin > .wrap,
+body.dc-ux-skin .hdr,
+body.dc-ux-skin.apps-map > h1,
+body.dc-ux-skin.apps-map > p,
+body.dc-ux-skin.apps-map > ul,
+body.dc-ux-skin.apps-map > .back,
+body.dc-ux-skin .club-hub-main {
+    position: relative;
+    z-index: 10;
+}
+
+/* duelo-tv.html: fase registro + marcador por encima del cielo de estrellas */
+body.dc-ux-skin #fase1,
+body.dc-ux-skin #fase2 {
+    position: relative;
+    z-index: 5;
+}
+
+/* Menú jugador colapsable (evita 7 botones seguidos en móvil) */
+.jug-nav-fold {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+}
+.jug-nav-fold > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 11px 14px;
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    color: #888;
+    text-align: center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.jug-nav-fold > summary::-webkit-details-marker {
+    display: none;
+}
+.jug-nav-fold > summary::marker {
+    content: '';
+}
+.jug-nav-fold[open] > summary {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: #aaa;
+}
+.jug-nav-fold__links {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 10px 12px 12px;
+}
+.jug-nav-fold__links a {
+    display: block;
+    text-align: center;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid #2a2a2a;
+    background: rgba(10, 10, 10, 0.9);
+    color: #888;
+    font-size: 0.52rem;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    font-weight: 600;
+    transition: border-color 0.15s, color 0.15s;
+}
+.jug-nav-fold__links a:hover,
+.jug-nav-fold__links a:focus-visible {
+    border-color: rgba(212, 175, 55, 0.35);
+    color: var(--dc-oro);
+    outline: none;
+}
+
+/* Barra sticky portal club (saltos de sección) */
+body.dc-ux-skin .club-hub-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+}
+
+body.dc-ux-skin {
+    background: var(--dc-negro);
+    color: #eaeaea;
+}
+
+/* HTML en raíz legacy: conservar Arial Black (páginas que ya la usaban) */
+body.dc-ux.dc-ux-skin.m-root-legacy {
+    font-family: 'Arial Black', Arial, sans-serif !important;
+}
+
+/* Overlay OBS / marcador: sin cielo ni fondo opaco */
+body.dc-ux.dc-ux-skin.m-root-overlay {
+    background: transparent !important;
+    font-family: 'Oswald', sans-serif !important;
+}
+
+body.dc-ux.dc-ux-skin.m-root-overlay .stars,
+body.dc-ux.dc-ux-skin.m-root-overlay #stars-bg {
+    display: none !important;
+}
+
+/* Tarjetas estilo “torneo activo” del home */
+body.dc-ux-skin .dc-card-site {
+    background: linear-gradient(135deg, #1a1200, #0a0800);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 18px;
+}
+
+/* Franja contexto: acento oro para nombre club (marca principal del sitio) */
+body.dc-ux-skin .ctx-strip strong {
+    color: var(--dc-oro) !important;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+}
+
+body.dc-ux-skin .ctx-dot.ok {
+    background: var(--dc-neon);
+    box-shadow: 0 0 10px rgba(46, 255, 112, 0.45);
+}
+
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body.dc-ux {
+    font-family: var(--dc-font-ui);
+    font-size: 15px;
+    line-height: 1.45;
+    padding-bottom: calc(100px + var(--dc-safe-bottom));
+}
+
+/* Cabeceras existentes: vidrio + zona segura */
+body.dc-ux .header {
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    background: rgba(5, 5, 5, 0.9) !important;
+    padding-top: calc(14px + var(--dc-safe-top)) !important;
+    border-bottom-color: #222 !important;
+}
+
+/* Subtítulos de cabecera más legibles */
+body.dc-ux .header-sub,
+body.dc-ux .header-marca small {
+    color: #8a8a8a !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.06em !important;
+}
+
+/* Enlaces / botones cabecera */
+body.dc-ux .btn-hdr {
+    font-family: var(--dc-font-ui) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em !important;
+}
+
+body.dc-ux a:focus-visible,
+body.dc-ux button:focus-visible,
+body.dc-ux input:focus-visible,
+body.dc-ux select:focus-visible,
+body.dc-ux textarea:focus-visible,
+body.dc-ux .btn-hdr:focus-visible {
+    outline: 2px solid rgba(212, 175, 55, 0.55);
+    outline-offset: 2px;
+}
+
+/* Títulos display conservan impacto */
+body.dc-ux .header-titulo,
+body.dc-ux .header-marca span {
+    font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Navegación dual en cabecera (Portal + Inicio) */
+body.dc-ux .header-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+body.dc-ux .header-actions .btn-hdr {
+    min-width: 7.5rem;
+    text-align: center;
+    background: rgba(10, 10, 10, 0.95) !important;
+    border-color: #2a2a2a !important;
+}
+
+/* Estados vacío / error reutilizables */
+body.dc-ux .dc-empty,
+body.dc-ux .vacio,
+body.dc-ux .empty {
+    text-align: center;
+    padding: 28px 18px;
+    border-radius: 14px;
+    border: 1px dashed #2a2a2a;
+    background: rgba(10, 10, 10, 0.6);
+    color: #8a8a8a;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    max-width: 340px;
+    margin: 0 auto;
+}
+
+body.dc-ux .dc-empty strong,
+body.dc-ux .vacio strong {
+    color: #ccc;
+    font-weight: 600;
+}
+
+/* Toasts (js/ux-club.js) */
+.dc-ux-toast {
+    position: fixed;
+    bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    max-width: min(92vw, 380px);
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    font-family: var(--dc-font-ui);
+}
+
+.dc-ux-toast--visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.dc-ux-toast--ok {
+    background: #1a2f22;
+    border: 1px solid rgba(46, 204, 113, 0.4);
+    color: #b8f5d0;
+}
+
+.dc-ux-toast--err {
+    background: #2a1818;
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    color: #ffc9c9;
+}
+
+/* Spinner opcional */
+body.dc-ux .dc-ux-spinner {
+    width: 36px;
+    height: 36px;
+    margin: 0 auto 14px;
+    border: 3px solid #222;
+    border-top-color: #d4af37;
+    border-radius: 50%;
+    animation: dcux-spin 0.7s linear infinite;
+}
+
+@keyframes dcux-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Cabecera: filo dorado cuando hay dc-ux + dc-ux-skin (gana a border-bottom-color gris) */
+body.dc-ux.dc-ux-skin .header {
+    border-bottom: 1px solid rgba(212, 175, 55, 0.22) !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Título de cabecera — glow marca (como index / reservas) */
+body.dc-ux-skin .header-titulo,
+body.dc-ux-skin .h-titulo {
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.38);
+}
+
+/* Modales por encima del cielo de estrellas */
+body.dc-ux-skin .modal-mesa {
+    z-index: 200 !important;
+}

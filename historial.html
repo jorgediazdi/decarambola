@@ -3,163 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi historial — DeCarambola</title>
+    <meta name="theme-color" content="#d4af37">
+    <title>Historial de partidas — DeCarambola</title>
     <style>
-        :root { --oro:#d4af37; --negro:#000; --g1:#1a1a1a; --g2:#111; --azul:#3498db; }
+        :root { --oro:#d4af37; --negro:#000; --g1:#1a1a1a; --g2:#111; --neon:#2eff70; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
-
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20; }
-        .header-titulo { color:var(--oro); font-size:0.85rem; letter-spacing:3px; }
-        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
-        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; }
-
-        .wrap { max-width:520px; margin:0 auto; padding:16px 18px; }
-
-        .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; flex-direction:column; gap:10px; position:sticky; top:0; z-index:20; }
+        .header-titulo { color:var(--oro); font-size:0.82rem; letter-spacing:3px; }
+        .header-sub { color:#555; font-size:0.52rem; letter-spacing:0.06em; margin-top:4px; line-height:1.45; }
+        .wrap { max-width:520px; margin:0 auto; padding:16px 18px; position:relative; z-index:5; }
+        .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
         .kpi { background:var(--g2); border-radius:14px; padding:14px; border:1px solid var(--g1); }
-        .kpi-label { color:#666; font-size:0.5rem; letter-spacing:2px; margin-bottom:6px; }
-        .kpi-value { font-size:1.2rem; font-weight:900; color:var(--oro); }
-        .kpi-sub { color:#777; font-size:0.5rem; margin-top:4px; }
-
-        .sec-tit { color:#555; font-size:0.55rem; letter-spacing:2px; margin:12px 0 6px; }
-        .sesion-item { background:var(--g2); border-radius:12px; padding:10px 12px; border:1px solid var(--g1); margin-bottom:8px; font-size:0.58rem; }
-        .sesion-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-        .sesion-mesa { color:var(--oro); font-size:0.6rem; }
-        .sesion-det { color:#aaa; font-size:0.55rem; }
-        .vacio { text-align:center; color:#444; font-size:0.6rem; padding:18px; }
+        .kpi-label { color:#666; font-size:0.48rem; letter-spacing:0.12em; margin-bottom:6px; }
+        .kpi-value { font-size:1.15rem; font-weight:900; color:var(--oro); font-family:'Courier New',monospace; }
+        .kpi-sub { color:#777; font-size:0.48rem; margin-top:4px; line-height:1.3; }
+        .sec-tit { color:#555; font-size:0.55rem; letter-spacing:2px; margin:16px 0 8px; }
+        .part-item { background:var(--g2); border-radius:12px; padding:12px 14px; border:1px solid var(--g1); margin-bottom:8px; font-size:0.55rem; }
+        .part-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; }
+        .part-tipo { color:var(--neon); font-size:0.5rem; letter-spacing:0.08em; }
+        .part-fecha { color:#666; font-size:0.48rem; white-space:nowrap; }
+        .part-main { color:#ccc; font-size:0.62rem; line-height:1.35; }
+        .part-stats { color:#888; font-size:0.52rem; margin-top:6px; }
+        .gano { color:var(--neon); }
+        .perdio { color:#c66; }
+        .vacio { text-align:center; color:#555; font-size:0.58rem; padding:22px 12px; line-height:1.5; }
+        .note { font-size:0.52rem; color:#666; line-height:1.45; margin-bottom:14px; padding:12px; border-radius:12px; border:1px solid #222; background:#0c0c0c; }
+        .note a { color:var(--oro); }
     </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
 
 <div class="header">
     <div>
-        <div class="header-titulo">MI HISTORIAL</div>
-        <div class="header-sub" id="hdr_nombre">Jugador</div>
+        <div class="header-titulo">HISTORIAL DE PARTIDAS</div>
+        <div class="header-sub" id="hdr_nombre">—</div>
+        <div class="header-sub">Torneos, retos, duelos y entrenamientos guardados desde <strong>Mi partida</strong> (botón guardar).</div>
     </div>
-    <a href="index.html" class="btn-hdr">← INICIO</a>
+    <details class="jug-nav-fold">
+        <summary>☰ Menú</summary>
+        <div class="jug-nav-fold__links">
+            <a href="/jugador/">Hub jugador</a>
+            <a href="/perfil.html">Mi perfil</a>
+            <a href="/categorias.html">Categorías</a>
+            <a href="/ranking.html">Ranking</a>
+            <a href="/Sensei.html">Sensei</a>
+            <a href="/historial_salon.html">Uso de mesas (salón)</a>
+            <a href="/club/">Portal club</a>
+            <a href="/index.html">Inicio app</a>
+        </div>
+    </details>
 </div>
 
 <div class="wrap">
+    <p class="note">¿Horas en <strong>mesa del club</strong> y dinero? Eso está en <a href="/historial_salon.html">Historial salón (mesas)</a>.</p>
+
     <div class="kpi-grid">
         <div class="kpi">
-            <div class="kpi-label">HORAS TOTALES</div>
-            <div class="kpi-value" id="kpi_horas">0</div>
-            <div class="kpi-sub">Uso acumulado</div>
+            <div class="kpi-label">PARTIDAS / SESIONES</div>
+            <div class="kpi-value" id="kpi_n">0</div>
+            <div class="kpi-sub">Registros con tu nombre</div>
         </div>
         <div class="kpi">
-            <div class="kpi-label">SESIONES</div>
-            <div class="kpi-value" id="kpi_sesiones">0</div>
-            <div class="kpi-sub">Sesiones cerradas</div>
+            <div class="kpi-label">PROMEDIO (lista)</div>
+            <div class="kpi-value" id="kpi_prom">0.000</div>
+            <div class="kpi-sub">Media de promedio por sesión</div>
         </div>
         <div class="kpi">
-            <div class="kpi-label">PROMEDIO HORAS/SESIÓN</div>
-            <div class="kpi-value" id="kpi_promedio">0</div>
-            <div class="kpi-sub">Intensidad de juego</div>
+            <div class="kpi-label">VICTORIAS</div>
+            <div class="kpi-value" id="kpi_g">0</div>
+            <div class="kpi-sub">Cuando aplica (duelo/torneo)</div>
         </div>
         <div class="kpi">
-            <div class="kpi-label">TOTAL CONSUMIDO</div>
-            <div class="kpi-value" id="kpi_ingresos">$0</div>
-            <div class="kpi-sub">Basado en costo_total</div>
+            <div class="kpi-label">MEJOR SERIE</div>
+            <div class="kpi-value" id="kpi_ser">0</div>
+            <div class="kpi-sub">Mayor serie registrada</div>
         </div>
     </div>
 
-    <div class="sec-tit">MIS SESIONES RECIENTES</div>
-    <div id="lista-sesiones"></div>
+    <div class="sec-tit">ÚLTIMAS ACTIVIDADES</div>
+    <div id="lista-partidas"></div>
 </div>
 
-<script src="core.js"></script>
-<script src="session.js"></script>
+<script src="/Version.js"></script>
+<script src="/core.js"></script>
+<script src="/session.js"></script>
 <script>
-let sesiones = [];
-let mesasIndex = {};
-
-function getClubId() {
-    if (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) return MasterVIP.getClubId();
-    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-    return perfil.club_id || null;
+function normNombre(s) {
+    return String(s || '')
+        .trim()
+        .toUpperCase();
 }
 
-function getJugadorNombre() {
-    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-    if (perfil && perfil.nombre) return perfil.nombre;
+function getPerfilNombre() {
     try {
-        var activo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
-        if (activo && activo.nombre) return activo.nombre;
-    } catch(e) {}
+        var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        if (perfil.nombre) return String(perfil.nombre).trim();
+    } catch (e) {}
+    try {
+        var act = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+        if (act && act.nombre) return String(act.nombre).trim();
+    } catch (e2) {}
     return '';
 }
 
-function nombreMesa(id) {
-    var m = mesasIndex[id];
-    if (!m) return 'INSTALACIÓN';
-    return (m.nombre || ('Instalación ' + (m.numero || ''))).toUpperCase();
+function getJugadorId() {
+    try {
+        var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        return perfil.jugador_id || perfil.id_jugador || perfil.jugadorId || null;
+    } catch (e) {
+        return null;
+    }
 }
 
-async function cargarDatos() {
-    var nombre = getJugadorNombre();
-    if (nombre) document.getElementById('hdr_nombre').textContent = nombre;
-    var clubId = getClubId();
-    var filtros = [];
-    filtros.push('estado=eq.cerrada');
-    if (clubId) filtros.push('club_id=eq.' + clubId);
-    if (nombre) filtros.push('jugador_nombre=eq.' + encodeURIComponent(nombre));
-    var filtro = filtros.join('&');
-    var data = await DB.get('mesas_historial', filtro);
-    sesiones = data || [];
-    sesiones.sort(function(a,b){
-        return new Date(b.fin_sesion || b.created_at) - new Date(a.fin_sesion || a.created_at);
+function tsPartida(row) {
+    var f = row.fecha || row.created_at || row.fin || '';
+    if (!f) return 0;
+    var d = new Date(f);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+}
+
+function promDeRow(row) {
+    var p = parseFloat(row.promedio_partida || row.promedio || row.promedio_j1 || row.promedio_j2 || 0);
+    return isNaN(p) ? 0 : p;
+}
+
+function ganoDeRow(row) {
+    if (typeof row.gano === 'boolean') return row.gano;
+    if (row.gano === 'true' || row.gano === true) return true;
+    if (row.ganador_id && row.jugador_id && String(row.ganador_id) === String(row.jugador_id)) return true;
+    return false;
+}
+
+function tipoLabel(t) {
+    var x = String(t || '').toLowerCase();
+    if (x === 'entrenamiento') return 'Entrenamiento';
+    if (x === 'reto') return 'Reto';
+    if (x === 'torneo') return 'Torneo';
+    return t ? String(t) : 'Partida';
+}
+
+function cargarEntrenamientosLocales(nombreKey) {
+    var out = [];
+    try {
+        var h = JSON.parse(localStorage.getItem('ranking_historico_club') || '[]');
+        if (!Array.isArray(h)) return out;
+        h.forEach(function (x) {
+            if (normNombre(x.nombre) !== nombreKey) return;
+            out.push({
+                _src: 'mi_partida',
+                fecha: x.fecha,
+                tipo: 'Entrenamiento',
+                rival: '—',
+                prom: parseFloat(x.promedio) || 0,
+                carambolas: x.carambolas,
+                entradas: x.entradas,
+                serie: x.serieMax,
+                gano: null,
+                ts: (function () {
+                    var d = new Date(x.fecha);
+                    return isNaN(d.getTime()) ? 0 : d.getTime();
+                })()
+            });
+        });
+    } catch (e) {}
+    return out;
+}
+
+async function cargarTodo() {
+    var nombre = getPerfilNombre();
+    var nk = normNombre(nombre);
+    document.getElementById('hdr_nombre').textContent = nombre || 'Identifícate en Mi partida o perfil';
+
+    var jid = getJugadorId();
+    var partidasApi = [];
+    if (typeof HISTORIAL !== 'undefined' && HISTORIAL.obtener) {
+        partidasApi = (await HISTORIAL.obtener(jid, nombre)) || [];
+    }
+
+    var unified = [];
+
+    (partidasApi || []).forEach(function (row) {
+        var prom = promDeRow(row);
+        var tipo = tipoLabel(row.tipo);
+        unified.push({
+            _src: 'nube_ls',
+            fecha: row.fecha || row.created_at,
+            tipo: tipo,
+            rival: row.rival_nombre || row.rival || '—',
+            prom: prom,
+            carambolas: row.carambolas,
+            entradas: row.entradas,
+            serie: row.serie_mayor || 0,
+            gano: row.gano,
+            ts: tsPartida(row),
+            raw: row
+        });
     });
 
-    var mesas = await DB.get('mesas', clubId ? 'club_id=eq.' + clubId : 'limit=200');
-    mesasIndex = {};
-    (mesas || []).forEach(function(m){ mesasIndex[m.id] = m; });
-
-    pintarKPIs();
-    pintarSesiones();
-}
-
-function pintarKPIs() {
-    var totalHoras = 0, totalCosto = 0;
-    sesiones.forEach(function(s){
-        totalHoras += parseFloat(s.horas_reales) || 0;
-        totalCosto += parseFloat(s.costo_total) || 0;
+    cargarEntrenamientosLocales(nk).forEach(function (x) {
+        unified.push(x);
     });
-    var n = sesiones.length;
-    var prom = n ? (totalHoras / n) : 0;
-    document.getElementById('kpi_horas').textContent = totalHoras.toFixed(1);
-    document.getElementById('kpi_sesiones').textContent = n;
-    document.getElementById('kpi_promedio').textContent = prom.toFixed(1);
-    document.getElementById('kpi_ingresos').textContent = '$' + Math.round(totalCosto).toLocaleString('es');
-}
 
-function pintarSesiones() {
-    var cont = document.getElementById('lista-sesiones');
-    if (!cont) return;
-    var lista = sesiones.slice(0, 40);
-    if (!lista.length) {
-        cont.innerHTML = '<div class="vacio">Aún no tienes sesiones registradas en este club.</div>';
+    unified.sort(function (a, b) {
+        return (b.ts || 0) - (a.ts || 0);
+    });
+
+    var slice = unified.slice(0, 60);
+
+    var n = slice.length;
+    var sumProm = 0;
+    var nProm = 0;
+    var victorias = 0;
+    var maxSerie = 0;
+    slice.forEach(function (r) {
+        if (r.prom > 0) {
+            sumProm += r.prom;
+            nProm++;
+        }
+        if (r.gano === true) victorias++;
+        var sm = parseInt(r.serie, 10) || 0;
+        if (sm > maxSerie) maxSerie = sm;
+    });
+
+    document.getElementById('kpi_n').textContent = n;
+    document.getElementById('kpi_prom').textContent = nProm ? (sumProm / nProm).toFixed(3) : '0.000';
+    document.getElementById('kpi_g').textContent = victorias;
+    document.getElementById('kpi_ser').textContent = maxSerie;
+
+    var cont = document.getElementById('lista-partidas');
+    if (!n) {
+        cont.innerHTML =
+            '<div class="vacio">Todavía no hay partidas guardadas.<br><br>· En <strong>Mi partida</strong>: al terminar, usá <strong>Guardar</strong> (hace falta cédula en el perfil).<br>· En <strong>Duelo móvil</strong>: cuando el flujo guarde resultado, aparecerá aquí.<br>· Los torneos del organizador se suman si el sistema registró la partida con tu id.</div>';
         return;
     }
-    cont.innerHTML = lista.map(function(s){
-        var fecha = s.fin_sesion || s.inicio_sesion || s.created_at;
-        var fTxt = fecha ? new Date(fecha).toLocaleString('es') : 'Sin fecha';
-        var h = parseFloat(s.horas_reales) || 0;
-        var c = parseFloat(s.costo_total) || 0;
-        return '<div class="sesion-item">' +
-            '<div class="sesion-top"><div class="sesion-mesa">' + nombreMesa(s.mesa_id) + '</div>' +
-            '<div style="color:#777;font-size:0.5rem;">' + fTxt + '</div></div>' +
-            '<div class="sesion-det">⏱ ' + h.toFixed(1) + ' h · 💰 $' + Math.round(c) + '</div>' +
-            '</div>';
-    }).join('');
+
+    cont.innerHTML = slice
+        .map(function (r) {
+            var fTxt = r.fecha ? (isNaN(new Date(r.fecha).getTime()) ? String(r.fecha) : new Date(r.fecha).toLocaleString('es')) : '—';
+            var res = '';
+            if (r.gano === true) res = '<span class="gano">Victoria</span>';
+            else if (r.gano === false) res = '<span class="perdio">Derrota</span>';
+            else res = '<span style="color:#666">—</span>';
+            var line =
+                (r.carambolas != null ? '🎯 ' + r.carambolas + ' car. · ' : '') +
+                (r.entradas != null ? r.entradas + ' ent. · ' : '') +
+                'Prom ' +
+                (r.prom || 0).toFixed(3);
+            if (r.serie) line += ' · Serie ' + r.serie;
+            return (
+                '<div class="part-item">' +
+                '<div class="part-top"><span class="part-tipo">' +
+                r.tipo +
+                '</span><span class="part-fecha">' +
+                fTxt +
+                '</span></div>' +
+                '<div class="part-main">vs <strong>' +
+                (r.rival || '—') +
+                '</strong> · ' +
+                res +
+                '</div>' +
+                '<div class="part-stats">' +
+                line +
+                '</div></div>'
+            );
+        })
+        .join('');
 }
 
-window.onload = function() {
-    try { SESSION.verificarAlCargar('jugador'); } catch(e) {}
-    cargarDatos();
+window.onload = function () {
+    try {
+        SESSION.verificarAlCargar('jugador');
+    } catch (e) {}
+    cargarTodo();
 };
 </script>
-
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText =
+            'width:' +
+            sz +
+            'px;height:' +
+            sz +
+            'px;top:' +
+            Math.random() * 100 +
+            '%;left:' +
+            Math.random() * 100 +
+            '%;animation-delay:' +
+            Math.random() * 3 +
+            's;animation-duration:' +
+            (2 + Math.random() * 3) +
+            's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>
-

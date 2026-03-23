@@ -374,8 +374,12 @@ body {
 }
 .btn-nav:active { border-color:var(--oro); color:var(--oro); }
 </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <meta name="theme-color" content="#d4af37">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <div class="header">
     <a href="index.html" class="back-btn">&#8592;</a>
@@ -386,6 +390,8 @@ body {
 </div>
 
 <div class="wrap">
+
+    <p style="font-size:0.58rem;color:#555;letter-spacing:1px;margin-bottom:18px;line-height:1.6;padding:0 4px;">Aquí solo defines <strong style="color:#666;">estructura y reglas</strong> (jugadores, rondas, carambolas, handicap). No creas el torneo aún. Al pulsar &quot;USAR ESTE FORMATO&quot; vas a <strong style="color:var(--oro);">Crear torneo</strong> para completar nombre, fecha, sede y premios.</p>
 
     <!-- ── PASO 1 ── -->
     <div class="paso-badge">
@@ -1319,5 +1325,19 @@ setJug(48);
 })();
 </script>
 <script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

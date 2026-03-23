@@ -3,13 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Control Torneo — DeCarambola</title>
     <style>
 :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; --borde:#1a1a1a; --card:#0a0a0a; }
         * { box-sizing: border-box; }
         body { background: var(--negro); color: #fff; font-family: 'Arial Black', sans-serif; margin: 0; padding: 0; }
-        .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 15px 20px; position: sticky; top: 0; z-index: 50; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 15px 20px; position: sticky; top: 0; z-index: 50; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; width: 100%; }
+        .btn-hdr {
+            background: rgba(10,10,10,0.95); border: 1px solid #1a1a1a; color: #888;
+            padding: 8px 12px; border-radius: 10px; font-size: 0.52rem; cursor: pointer;
+            text-decoration: none; font-family: 'Arial Black', sans-serif; font-weight: 600;
+            letter-spacing: 0.06em; transition: border-color 0.15s, color 0.15s;
+        }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color: rgba(212,175,55,0.35); color: var(--oro); outline: none; }
+        .header-titulo { color: var(--oro); font-size: 0.95rem; letter-spacing: 2px; }
         .bolsa-chip { background: #0a1a0a; border: 1px solid var(--neon); border-radius: 20px; padding: 6px 14px; text-align: center; }
         .bolsa-chip b { color: var(--neon); font-size: 0.9rem; display: block; line-height: 1; }
         .bolsa-chip small { color: #333; font-size: 0.5rem; }
@@ -64,7 +74,7 @@
         .empty-state { text-align: center; padding: 60px 20px; color: #222; }
         .empty-state div { font-size: 3rem; margin-bottom: 15px; }
         .empty-state p { font-size: 0.8rem; line-height: 1.8; }
-        .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde); position: sticky; top: 64px; z-index: 40; }
+        .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde); position: sticky; top: 118px; z-index: 40; }
         .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: #444; font-size: 0.65rem; font-family: 'Arial Black', sans-serif; letter-spacing: 2px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
         .tab-btn.activa { color: var(--oro); border-bottom-color: var(--oro); }
         .lista-wrap { padding: 16px 15px 120px; max-width: 500px; margin: 0 auto; }
@@ -103,8 +113,11 @@
         .btn-nav { flex: 1; padding: 13px 8px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; color: #777; font-size: 0.65rem; cursor: pointer; text-align: center; text-decoration: none; display: block; transition: 0.2s; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
         .btn-nav:active { border-color: var(--oro); color: var(--oro); }
     </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
     <div class="header">
         <div class="header-top">
             <div style="display:flex;align-items:center;gap:10px;">
@@ -119,11 +132,19 @@
                 <b id="lbl-bolsa">$ 0</b>
             </div>
         </div>
+        <div class="header-actions">
+            <a href="organizador.html" class="btn-hdr">Panel organizador</a>
+            <a href="torneos.html" class="btn-hdr">Torneos</a>
+            <a href="torneo_crear.html" class="btn-hdr">Nuevo torneo</a>
+            <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
+            <a href="club/index.html" class="btn-hdr">Portal club</a>
+            <a href="index.html" class="btn-hdr">Inicio app</a>
+        </div>
     </div>
     <div class="tabs">
         <button class="tab-btn activa" id="tab-lista" onclick="cambiarVista('lista')">☰ LISTA</button>
         <button class="tab-btn" id="tab-cuadro" onclick="cambiarVista('cuadro')">⊞ CUADRO</button>
-        <button class="tab-btn" id="tab-info" onclick="cambiarVista('info')" id="tab-info">&#8505; TORNEO</button>
+        <button class="tab-btn" id="tab-info" onclick="cambiarVista('info')">&#8505; TORNEO</button>
     </div>
     <div id="vista-lista">
         <div class="lista-wrap" id="contenido">
@@ -202,15 +223,17 @@ var vistaActual = 'lista';
 window.onload = async function() {
     try {
         await MasterVIP.init();
-        SESSION.verificarAlCargar('organizador');
+        SESSION.verificarAlCargar('jugador');
     } catch(e) { console.warn('Init offline:', e); }
     try { await MasterVIP.cargarTorneosNube(); } catch(e) { console.warn('Torneos desde Supabase:', e); }
-    MasterVIP.applyDesign();
-    var _nombreSede = localStorage.getItem('wl_club_nombre') || 'GLOBAL';
-    if (_nombreSede !== 'GLOBAL') {
-        var hdr = document.getElementById('club-logo-hdr');
-        if (hdr) hdr.innerHTML = MasterVIP.getLogoHTML(34);
-    }
+    try {
+        if (typeof MasterVIP !== 'undefined') MasterVIP.applyDesign();
+        var _nombreSede = localStorage.getItem('wl_club_nombre') || 'GLOBAL';
+        if (_nombreSede !== 'GLOBAL' && typeof MasterVIP !== 'undefined') {
+            var hdr = document.getElementById('club-logo-hdr');
+            if (hdr) hdr.innerHTML = MasterVIP.getLogoHTML(34);
+        }
+    } catch(e) { console.warn('Apply design:', e); }
     cargar();
     var p = new URLSearchParams(window.location.search);
     if (p.get('vista') === 'cuadro' && typeof cambiarVista === 'function') cambiarVista('cuadro');
@@ -231,26 +254,62 @@ function cambiarVista(v) {
 }
 
 function cargar() {
-    torneo = MasterVIP.getTorneoActivo();
+    try {
+        torneo = typeof MasterVIP !== 'undefined' ? MasterVIP.getTorneoActivo() : null;
+    } catch (e) {
+        console.warn('cargar torneo:', e);
+        torneo = null;
+    }
+    if (typeof MasterVIP !== 'undefined' && !torneo) {
+        var lista = MasterVIP.getTorneos();
+        var activo = lista.find(function(t) { return t.estado === 'EN_CURSO'; }) || lista.find(function(t) { return t.estado === 'ABIERTO'; }) || lista[0];
+        if (activo) {
+            localStorage.setItem('TORNEO_ACTIVO_ID', activo.id);
+            torneo = activo;
+        }
+    }
+    var emptyList = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.<br>Crea uno desde el menú principal.</p></div>';
+    var emptyCuadro = '<div class="empty-state" style="padding:40px 20px;"><div>🎱</div><p>No hay torneo activo.<br>Crea uno desde el menú principal.</p></div>';
+    var elSub = document.getElementById('lbl-sub');
+    var elBolsa = document.getElementById('lbl-bolsa');
+    var fmtPesos = typeof MasterVIP !== 'undefined' && MasterVIP.formatearPesos ? MasterVIP.formatearPesos(0) : '$ 0';
     if (!torneo) {
-        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.<br>Crea uno desde el menú principal.</p></div>';
+        document.getElementById('lbl-torneo').innerText = 'CONTROL';
+        if (elSub) elSub.innerText = 'Sin torneo activo';
+        if (elBolsa) elBolsa.innerText = fmtPesos;
+        document.getElementById('contenido').innerHTML = emptyList;
+        document.getElementById('cuadro-contenido').innerHTML = emptyCuadro;
         return;
     }
     document.getElementById('lbl-torneo').innerText = torneo.nombre;
-    document.getElementById('lbl-sub').innerText = torneo.codigo + ' · ' + (torneo.modalidad || '') + ' · ' + (torneo.inscritos || []).length + ' JUG.';
-    document.getElementById('lbl-bolsa').innerText = MasterVIP.formatearPesos(MasterVIP.calcularBolsa(torneo));
+    if (elSub) elSub.innerText = torneo.codigo + ' · ' + (torneo.modalidad || '') + ' · ' + (torneo.inscritos || []).length + ' JUG.';
+    if (elBolsa) elBolsa.innerText = typeof MasterVIP !== 'undefined' ? MasterVIP.formatearPesos(MasterVIP.calcularBolsa(torneo)) : fmtPesos;
     if (!torneo.rondas || torneo.rondas.length === 0) {
-        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎲</div><p>El sorteo aún no se ha realizado.<br>Ve a <b style="color:var(--oro)">Inscripciones</b> para cerrarlo.</p></div>';
+        var msgSorteo = '<div class="empty-state"><div>🎲</div><p>El sorteo aún no se ha realizado.<br>Ve a <b style="color:var(--oro)">Inscripciones</b> para cerrarlo.</p></div>';
+        document.getElementById('contenido').innerHTML = msgSorteo;
+        document.getElementById('cuadro-contenido').innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div>🎲</div><p>El sorteo aún no se ha realizado.<br>Ve a <b style="color:var(--oro)">Inscripciones</b> para cerrar y sortear.</p></div>';
         return;
     }
-    // Si finalizado, ir directo a tabla final
+    try {
+        dibujarLista();
+        dibujarCuadro();
+        dibujarInfo();
+    } catch (err) {
+        console.error('control_torneo dibujar:', err);
+        var msg = (err && err.message) ? String(err.message) : 'Error desconocido';
+        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>⚠️</div><p>No se pudo mostrar el torneo.</p><p style="font-size:0.55rem;color:#666;margin-top:10px;">' + msg + '</p><p style="font-size:0.5rem;color:#444;margin-top:8px;">Revisa datos o vuelve a sincronizar.</p></div>';
+        var cuadro = document.getElementById('cuadro-contenido');
+        if (cuadro) cuadro.innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div>⚠️</div><p>Error al dibujar cuadro.</p></div>';
+        var info = document.getElementById('info-contenido');
+        if (info) info.innerHTML = '<div class="empty-state"><div>⚠️</div><p>Error al cargar info.</p></div>';
+    }
     if (torneo.estado === 'FINALIZADO' && torneo.campeon) {
         cambiarVista('info');
-        return;
+    } else if (vistaActual === 'cuadro') {
+        cambiarVista('cuadro');
+    } else if (vistaActual === 'info') {
+        cambiarVista('info');
     }
-    dibujarLista();
-    if (vistaActual === 'cuadro') dibujarCuadro();
-    if (vistaActual === 'info') dibujarInfo();
 }
 
 function dibujarLista() {
@@ -261,11 +320,12 @@ function dibujarLista() {
     }
     for (var ri = 0; ri < torneo.rondas.length; ri++) {
         var ronda = torneo.rondas[ri];
+        var partidas = (ronda && ronda.partidas) ? ronda.partidas : [];
         var esActual = ri === torneo.rondas.length - 1;
         var nomRonda = MasterVIP.nombreRonda(totalRondas, ronda.numero);
         html += '<div class="ronda-bloque"><div class="ronda-titulo"><div class="ronda-titulo-linea"></div><span class="ronda-titulo-txt">' + nomRonda + '</span>' + (esActual ? '<span class="ronda-titulo-badge">EN CURSO</span>' : '<span class="ronda-titulo-badge" style="background:#1a1a1a;color:#333;">COMPLETADA</span>') + '<div class="ronda-titulo-linea"></div></div>';
-        for (var pi = 0; pi < ronda.partidas.length; pi++) {
-            html += buildCardLista(ronda.partidas[pi], pi + 1, esActual);
+        for (var pi = 0; pi < partidas.length; pi++) {
+            html += buildCardLista(partidas[pi], pi + 1, esActual);
         }
         if (ri < torneo.rondas.length - 1) {
             html += '<div class="conector"><div class="conector-linea"></div></div>';
@@ -320,15 +380,16 @@ function dibujarCuadro() {
     var html = '';
     for (var ri = 0; ri < torneo.rondas.length; ri++) {
         var ronda = torneo.rondas[ri];
+        var partidas = (ronda && ronda.partidas) ? ronda.partidas : [];
         var nomRonda = MasterVIP.nombreRonda(totalRondas, ronda.numero);
-        html += '<div class="col-ronda"><div class="col-header"><div class="col-header-nom">' + nomRonda + '</div><div class="col-header-jugs">' + ronda.partidas.length * 2 + ' JUG.</div></div><div class="col-slots">';
-        for (var pi = 0; pi < ronda.partidas.length; pi++) {
-            html += '<div class="col-slot">' + buildCardCuadro(ronda.partidas[pi]) + '</div>';
+        html += '<div class="col-ronda"><div class="col-header"><div class="col-header-nom">' + nomRonda + '</div><div class="col-header-jugs">' + partidas.length * 2 + ' JUG.</div></div><div class="col-slots">';
+        for (var pi = 0; pi < partidas.length; pi++) {
+            html += '<div class="col-slot">' + buildCardCuadro(partidas[pi]) + '</div>';
         }
         html += '</div></div>';
         if (ri < torneo.rondas.length - 1) {
             html += '<div class="col-conector">';
-            for (var ci = 0; ci < ronda.partidas.length; ci += 2) {
+            for (var ci = 0; ci < partidas.length; ci += 2) {
                 html += '<div class="con-grupo"><div class="con-top"></div><div class="con-mid"></div><div class="con-bot"></div></div>';
             }
             html += '</div>';
@@ -377,8 +438,9 @@ function calcTablaFinal() {
     // Recorrer todas las partidas y acumular stats
     for (var ri = 0; ri < torneo.rondas.length; ri++) {
         var ronda = torneo.rondas[ri];
-        for (var pi = 0; pi < ronda.partidas.length; pi++) {
-            var p = ronda.partidas[pi];
+        var partidasRR = (ronda && ronda.partidas) ? ronda.partidas : [];
+        for (var pi = 0; pi < partidasRR.length; pi++) {
+            var p = partidasRR[pi];
             if (p.estado !== 'TERMINADA') continue;
 
             // J1
@@ -509,13 +571,20 @@ function dibujarInfo() {
     var bolsa = MasterVIP.calcularBolsa(torneo);
     var completadas = 0, totalPartidas = 0;
     for (var ri = 0; ri < (torneo.rondas || []).length; ri++) {
-        for (var pi = 0; pi < torneo.rondas[ri].partidas.length; pi++) {
+        var rPart = (torneo.rondas[ri] && torneo.rondas[ri].partidas) ? torneo.rondas[ri].partidas : [];
+        for (var pi = 0; pi < rPart.length; pi++) {
             totalPartidas++;
-            if (torneo.rondas[ri].partidas[pi].estado === 'TERMINADA') completadas++;
+            if (rPart[pi].estado === 'TERMINADA') completadas++;
         }
     }
     var pct = totalPartidas > 0 ? Math.round((completadas / totalPartidas) * 100) : 0;
-    var html = '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:14px;">ℹ DATOS DEL TORNEO</div>' + kpiRow('NOMBRE', torneo.nombre) + kpiRow('CÓDIGO', torneo.codigo) + kpiRow('SEDE', torneo.sede) + kpiRow('MODALIDAD', torneo.modalidad || '—') + kpiRow('SISTEMA', (torneo.sistema || 'llaves').toUpperCase()) + kpiRow('JUGADORES', (torneo.inscritos || []).length + ' / ' + torneo.cupoMax) + kpiRow('ESTADO', torneo.estado) + '</div>';
+    var r = torneo.reglas || {};
+    var meta = torneo.entradaObjetivo || r.metaDirecto || 0;
+    var tiempo = torneo.tiempoEntrada || 40;
+    var sistemaNom = (torneo.sistema || 'llaves').toUpperCase();
+    if (torneo.formatoDetalle && torneo.formatoDetalle.formatoNombre) sistemaNom = torneo.formatoDetalle.formatoNombre;
+    var html = '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:14px;">ℹ DATOS DEL TORNEO</div>' + kpiRow('NOMBRE', torneo.nombre) + kpiRow('CÓDIGO', torneo.codigo) + kpiRow('SEDE', torneo.sede) + kpiRow('MODALIDAD', torneo.modalidad || '—') + kpiRow('SISTEMA', sistemaNom) + kpiRow('JUGADORES', (torneo.inscritos || []).length + ' / ' + torneo.cupoMax) + kpiRow('ESTADO', torneo.estado) + '</div>';
+    html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:14px;">📋 REGLAS (configuración del torneo)</div>' + kpiRow('CARAMBOLAS (meta)', meta) + kpiRow('TIEMPO POR ENTRADA', tiempo + ' s') + kpiRow('FORMATO', sistemaNom) + (torneo.reglamento ? kpiRow('REGLAMENTO', torneo.reglamento) : '') + '</div>';
     html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:14px;">💰 PREMIOS</div>' + kpiRow('INSCRIPCIÓN', MasterVIP.formatearPesos(torneo.inscripcion || 0) + ' / JUG.') + kpiRow('APORTE CLUB', MasterVIP.formatearPesos(torneo.baseClub || 0)) + kpiRow('BOLSA TOTAL', MasterVIP.formatearPesos(bolsa)) + kpiRow('🥇 CAMPEÓN', MasterVIP.formatearPesos(Math.round(bolsa * 0.50))) + kpiRow('🥈 SEGUNDO', MasterVIP.formatearPesos(Math.round(bolsa * 0.25))) + kpiRow('🥉 TERCERO', MasterVIP.formatearPesos(Math.round(bolsa * 0.15))) + '</div>';
     html += '<div style="background:var(--card);border:1px solid var(--borde);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size: 0.65rem;letter-spacing:3px;color:#555;margin-bottom:10px;">📊 PROGRESO</div><div style="font-size: 0.6rem;color:#555;margin-bottom:6px;">' + completadas + ' DE ' + totalPartidas + ' PARTIDAS JUGADAS</div><div style="height:8px;background:var(--borde);border-radius:10px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,var(--oro),#ffe066);border-radius:10px;"></div></div><div style="font-size:0.38rem;color:#444;margin-top:5px;text-align:right;">' + pct + '% COMPLETADO</div></div>';
     document.getElementById('info-contenido').innerHTML = html;
@@ -601,6 +670,7 @@ async function guardarResultado() {
     }
 }
 
+function iniciarBtn(btn) {
     var pid = decodeURIComponent(btn.getAttribute('data-id') || '');
     var j1 = decodeURIComponent(btn.getAttribute('data-j1') || '');
     var j2 = decodeURIComponent(btn.getAttribute('data-j2') || '');
@@ -634,5 +704,19 @@ function copiarLinkArbitro(partidaIdEnc) {
 }
 </script>
 <script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

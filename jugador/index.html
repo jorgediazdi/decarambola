@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
+    <meta name="description" content="App jugador DeCarambola — partida, perfil, torneos">
+    <title>App jugador — DeCarambola</title>
+    <link rel="stylesheet" href="/css/ux-shell.css">
+    <link rel="stylesheet" href="/css/hub-sections.css">
+    <style>
+        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --g1:#1a1a1a; --g2:#111; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body.dc-ux.dc-ux-skin.jugador-hub {
+            font-family:'Arial Black',Arial,sans-serif !important;
+        }
+        .jug-hub-wrap { width:100%; max-width:640px; margin:0 auto; padding:0 18px 28px; }
+        /* Cuadros grandes tipo “menú principal” (tocar con el pulgar) */
+        .jug-principal-label {
+            font-size:0.5rem;
+            letter-spacing:0.22em;
+            color:#555;
+            text-align:center;
+            margin:0 0 12px;
+            font-family:'Arial Black',Arial,sans-serif;
+        }
+        .jug-principal-tiles {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:12px;
+            margin-bottom:24px;
+        }
+        @media (max-width:340px) {
+            .jug-principal-tiles { grid-template-columns:1fr; }
+        }
+        a.jug-tile {
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            text-align:center;
+            min-height:118px;
+            padding:18px 12px;
+            border-radius:20px;
+            border:1px solid rgba(212,175,55,0.32);
+            background:linear-gradient(165deg, rgba(24,20,14,0.96), rgba(10,8,5,0.82));
+            box-shadow:0 10px 28px rgba(0,0,0,0.4);
+            text-decoration:none;
+            color:#eaeaea;
+            transition:border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+            -webkit-tap-highlight-color:transparent;
+        }
+        a.jug-tile:active { transform:scale(0.98); }
+        a.jug-tile:focus-visible { outline:2px solid rgba(212,175,55,0.5); outline-offset:3px; }
+        a.jug-tile--club {
+            border-color:rgba(46,255,112,0.38);
+            background:linear-gradient(165deg, rgba(0,28,14,0.55), rgba(8,12,8,0.88));
+        }
+        .jug-tile-ico {
+            font-size:2.35rem;
+            line-height:1;
+            margin-bottom:10px;
+            filter:drop-shadow(0 0 14px rgba(212,175,55,0.35));
+        }
+        a.jug-tile--club .jug-tile-ico { filter:drop-shadow(0 0 14px rgba(46,255,112,0.35)); }
+        .jug-tile-lab {
+            font-family:'Arial Black',Arial,sans-serif;
+            font-size:0.62rem;
+            letter-spacing:0.12em;
+            color:var(--oro);
+        }
+        a.jug-tile--club .jug-tile-lab { color:var(--neon); }
+        .jug-tile-sub {
+            font-size:0.55rem;
+            color:#666;
+            margin-top:6px;
+            letter-spacing:0.03em;
+            line-height:1.3;
+            max-width:140px;
+        }
+        .hdr-top-nav {
+            width:100%;
+            background:#000;
+            border-bottom:1px solid #1a1a1a;
+            padding:12px 16px;
+            position:sticky;
+            top:0;
+            z-index:50;
+            display:flex;
+            flex-direction:column;
+            align-items:stretch;
+            gap:10px;
+            margin-bottom:18px;
+        }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
+        .btn-hdr {
+            background:rgba(10,10,10,0.95); border:1px solid #1a1a1a; color:#888;
+            padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
+            text-decoration:none; font-family:'Arial Black',Arial,sans-serif; font-weight:600;
+            letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+        }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
+        .jug-mini-hdr {
+            text-align:center;
+            margin-bottom:14px;
+            padding-bottom:12px;
+            border-bottom:1px solid rgba(46,255,112,0.18);
+        }
+        .jug-mini-hdr h1 {
+            color:var(--neon);
+            font-size:0.88rem;
+            letter-spacing:3px;
+            text-shadow: 0 0 24px rgba(46,255,112,0.35);
+        }
+        .jug-mini-hdr p { color:#666; font-size:0.55rem; letter-spacing:2px; margin-top:8px; }
+        .jug-club-brand {
+            display:none;
+            align-items:center;
+            gap:14px;
+            padding:14px 16px;
+            margin-bottom:16px;
+            border-radius:16px;
+            border:1px solid rgba(46,255,112,0.22);
+            background:rgba(0,24,12,0.45);
+            max-width:520px;
+            margin-left:auto;
+            margin-right:auto;
+        }
+        .jug-club-brand img {
+            width:56px;
+            height:56px;
+            border-radius:50%;
+            object-fit:contain;
+            background:#111;
+            border:2px solid rgba(46,255,112,0.35);
+            flex-shrink:0;
+        }
+        .jug-club-label { font-size:0.42rem; color:#555; letter-spacing:0.18em; display:block; margin-bottom:4px; }
+        .jug-club-nombre { font-size:0.72rem; color:var(--neon); letter-spacing:0.06em; }
+    </style>
+</head>
+<body class="dc-ux dc-ux-skin m-root-legacy jugador-hub">
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+    <div class="hdr-top-nav" style="max-width:640px;margin:0 auto;padding:0 18px;">
+        <details class="jug-nav-fold">
+            <summary>☰ Más enlaces (inicio, perfil, ranking…)</summary>
+            <div class="jug-nav-fold__links">
+                <a href="/index.html">Inicio app (pestañas)</a>
+                <a href="/perfil.html">Mi perfil</a>
+                <a href="/categorias.html">Categorías</a>
+                <a href="/ranking.html">Ranking</a>
+                <a href="/historial.html">Historial de partidas</a>
+                <a href="/historial_salon.html">Horas en mesa (salón)</a>
+                <a href="/Sensei.html">Sensei</a>
+                <a href="/club/">Portal club</a>
+            </div>
+        </details>
+    </div>
+
+    <div class="jug-hub-wrap">
+    <div class="jug-club-brand" id="jugador-club-brand" style="display:none">
+        <img id="wl-jugador-logo" alt="" />
+        <div>
+            <span class="jug-club-label">TU CLUB (AFILIACIÓN)</span>
+            <span id="wl-jugador-nombre" class="jug-club-nombre"></span>
+        </div>
+    </div>
+    <div class="jug-mini-hdr">
+        <h1>APP JUGADOR</h1>
+        <p>Partida · perfil · torneos · retos</p>
+    </div>
+
+    <p class="jug-principal-label">PRINCIPAL — TOCA UN CUADRO</p>
+    <nav class="jug-principal-tiles" aria-label="Accesos principales">
+        <a class="jug-tile" href="/duelo-tv.html?modo=movil">
+            <span class="jug-tile-ico" aria-hidden="true">🎱</span>
+            <span class="jug-tile-lab">DUELO 2 JUG.</span>
+            <span class="jug-tile-sub">Premium sin cámara — Fase 1 = configurar</span>
+        </a>
+        <a class="jug-tile" href="/duelo-tv.html?modo=produccion" style="border-color:rgba(52,152,219,0.35);">
+            <span class="jug-tile-ico" aria-hidden="true">📡</span>
+            <span class="jug-tile-lab" style="color:#7eb8e8;">DUELO + CÁMARA</span>
+            <span class="jug-tile-sub">Grabar / stream / herramienta propia</span>
+        </a>
+        <a class="jug-tile" href="/perfil.html">
+            <span class="jug-tile-ico" aria-hidden="true">👤</span>
+            <span class="jug-tile-lab">PERFIL</span>
+            <span class="jug-tile-sub">Tu cuenta y club</span>
+        </a>
+        <a class="jug-tile" href="/apps/club/organizador/inscripciones.html">
+            <span class="jug-tile-ico" aria-hidden="true">🏆</span>
+            <span class="jug-tile-lab">TORNEOS</span>
+            <span class="jug-tile-sub">Inscripciones y llaves</span>
+        </a>
+        <a class="jug-tile jug-tile--club" href="/club/">
+            <span class="jug-tile-ico" aria-hidden="true">🏛️</span>
+            <span class="jug-tile-lab">PORTAL CLUB</span>
+            <span class="jug-tile-sub">Staff: mesas, sede, TV</span>
+        </a>
+    </nav>
+
+    <div class="dc-hub dc-hub--jugador" id="jugador-hub-main">
+        <p class="dc-hub-lead"><strong>Más opciones.</strong> Despliega cada bloque (mismo estilo que el <a href="/club/" style="color:#8ab88a;">portal club</a>).</p>
+
+        <details class="dc-hub-fold" open>
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">1</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Partida y entrenamiento</span>
+                    <span class="dc-hub-fold__sub">Duelo en vivo, cronómetro y entradas de práctica</span>
+                </span>
+                <span class="dc-hub-fold__count">3</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <div class="grid">
+                    <a class="item" href="/duelo-tv.html?modo=movil">
+                        <span class="item-main"><span class="item-title">Duelo móvil (sin cámara)</span><span class="item-desc">Fase 1 = config · mismo Premium TV · <code style="font-size:0.45rem;color:#666;">?modo=movil</code></span></span>
+                        <span class="tag">2 JUG.</span>
+                    </a>
+                    <a class="item" href="/duelo-tv.html?modo=produccion">
+                        <span class="item-main"><span class="item-title">Duelo + cámara / grabar</span><span class="item-desc">Panel stream para quien transmite desde el celular</span></span>
+                        <span class="tag">PROD</span>
+                    </a>
+                    <a class="item" href="/mi_partida.html">
+                        <span class="item-main"><span class="item-title">Mi partida</span><span class="item-desc">Entrenar con cronómetro</span></span>
+                        <span class="tag">CRONO</span>
+                    </a>
+                    <a class="item" href="/entrenamiento.html">
+                        <span class="item-main"><span class="item-title">Entrenamiento</span><span class="item-desc">Acceso rápido (redirect)</span></span>
+                    </a>
+                </div>
+            </div>
+        </details>
+
+        <details class="dc-hub-fold">
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">2</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Perfil y club</span>
+                    <span class="dc-hub-fold__sub">Historial, ranking y categorías</span>
+                </span>
+                <span class="dc-hub-fold__count">4</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <div class="grid">
+                    <a class="item" href="/perfil.html">
+                        <span class="item-main"><span class="item-title">Mi perfil</span><span class="item-desc">Datos y preferencias</span></span>
+                    </a>
+                    <a class="item" href="/historial.html">
+                        <span class="item-main"><span class="item-title">Historial de partidas</span><span class="item-desc">Promedio, rivales, entrenos guardados</span></span>
+                    </a>
+                    <a class="item" href="/historial_salon.html">
+                        <span class="item-main"><span class="item-title">Horas en mesa (salón)</span><span class="item-desc">Si el club registra sesiones en mesa</span></span>
+                    </a>
+                    <a class="item" href="/ranking.html">
+                        <span class="item-main"><span class="item-title">Ranking del club</span><span class="item-desc">Posición y evolución</span></span>
+                    </a>
+                    <a class="item" href="/categorias.html">
+                        <span class="item-main"><span class="item-title">Categorías</span><span class="item-desc">Modalidades y niveles</span></span>
+                    </a>
+                </div>
+            </div>
+        </details>
+
+        <details class="dc-hub-fold">
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">3</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Torneos y retos</span>
+                    <span class="dc-hub-fold__sub">Oficial (inscripciones) · Torneo amigos (informal) · Reto caserito</span>
+                </span>
+                <span class="dc-hub-fold__count">7</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <div class="grid">
+                    <a class="item" href="/apps/club/organizador/inscripciones.html">
+                        <span class="item-main"><span class="item-title">Inscripciones</span><span class="item-desc">Altas al torneo</span></span>
+                    </a>
+                    <a class="item" href="/apps/club/organizador/Brackets.html">
+                        <span class="item-main"><span class="item-title">Brackets / llaves</span><span class="item-desc">Cuadros del evento</span></span>
+                    </a>
+                    <a class="item" href="/apps/club/organizador/posiciones.html">
+                        <span class="item-main"><span class="item-title">Posiciones</span><span class="item-desc">Tabla del torneo</span></span>
+                    </a>
+                    <a class="item" href="/apps/club/organizador/Certificados.html">
+                        <span class="item-main"><span class="item-title">Certificados</span><span class="item-desc">Descarga o impresión</span></span>
+                    </a>
+                    <a class="item" href="/apps/club/organizador/torneos.html">
+                        <span class="item-main"><span class="item-title">Listado de torneos</span><span class="item-desc">Estados e historial</span></span>
+                    </a>
+                    <a class="item" href="/torneo_amigos.html">
+                        <span class="item-main"><span class="item-title">Torneo entre amigos</span><span class="item-desc">Evento informal (el que llamabas “amigos”)</span></span>
+                    </a>
+                    <a class="item" href="/reto_crear.html">
+                        <span class="item-main"><span class="item-title">Reto caserito</span><span class="item-desc">Desafío rápido entre jugadores</span></span>
+                    </a>
+                </div>
+            </div>
+        </details>
+
+        <details class="dc-hub-fold">
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">4</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Ayuda</span>
+                    <span class="dc-hub-fold__sub">Sensei y contacto con la plataforma</span>
+                </span>
+                <span class="dc-hub-fold__count">2</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <div class="grid">
+                    <a class="item" href="/Sensei.html">
+                        <span class="item-main"><span class="item-title">Sensei</span><span class="item-desc">Aprende billar con IA</span></span>
+                    </a>
+                    <a class="item" href="/Sensei.html?contacto=1">
+                        <span class="item-main"><span class="item-title">Contacto / PQRS</span><span class="item-desc">Mensajes al equipo (Joe)</span></span>
+                    </a>
+                </div>
+            </div>
+        </details>
+    </div>
+    </div>
+
+<script src="/Version.js"></script>
+<script src="/whitelabel.js"></script>
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+</body>
+</html>

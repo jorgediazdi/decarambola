@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#d4af37">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="stylesheet" href="css/hub-sections.css">
     <title>DeCarambola — Billar Tres Bandas</title>
     <style>
         :root {
@@ -270,6 +271,87 @@
         .ver-mas span { display:block; animation:bajar 1.5s ease-in-out infinite; }
         @keyframes bajar { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
 
+        /* Hubs /jugador /club /admin — rutas explícitas + área táctil (evita fallos con jugador/ en algunos navegadores) */
+        .urls-por-rol {
+            position:relative;
+            z-index:12;
+            text-align:center;
+            margin-top:14px;
+            padding:0 12px 4px;
+        }
+        .urls-por-rol-hint {
+            color:#444;
+            font-size:0.42rem;
+            letter-spacing:1px;
+            margin:0 auto 14px;
+            max-width:360px;
+            line-height:1.5;
+        }
+        /* Tres “web apps” separadas para probar y controlar por rol */
+        .tres-apps-wrap {
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+            max-width:420px;
+            margin:0 auto;
+            text-align:left;
+        }
+        .tres-app-card {
+            display:block;
+            text-decoration:none;
+            border-radius:18px;
+            padding:16px 18px 14px;
+            border:2px solid #222;
+            background:linear-gradient(165deg, #0a0a0a, #050505);
+            box-shadow:0 6px 20px rgba(0,0,0,0.35);
+            transition:border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+            -webkit-tap-highlight-color:rgba(212,175,55,0.12);
+        }
+        .tres-app-card:active { transform:scale(0.99); }
+        .tres-app-card .tac-tag {
+            font-size:0.38rem;
+            letter-spacing:2px;
+            color:#555;
+            margin-bottom:6px;
+        }
+        .tres-app-card .tac-tit {
+            font-size:0.72rem;
+            letter-spacing:2px;
+            margin-bottom:6px;
+            font-weight:900;
+        }
+        .tres-app-card .tac-desc {
+            font-size:0.45rem;
+            color:#666;
+            letter-spacing:0.5px;
+            line-height:1.55;
+            margin-bottom:10px;
+        }
+        .tres-app-card .tac-cta {
+            font-size:0.48rem;
+            letter-spacing:2px;
+            opacity:0.85;
+        }
+        .tres-app-card.app-jug {
+            border-color:rgba(46,255,112,0.45);
+            box-shadow:0 0 0 1px rgba(46,255,112,0.08), 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .tres-app-card.app-jug .tac-tit { color:var(--neon); }
+        .tres-app-card.app-jug .tac-cta { color:var(--neon); }
+        .tres-app-card.app-club {
+            border-color:rgba(52,152,219,0.45);
+            box-shadow:0 0 0 1px rgba(52,152,219,0.08), 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .tres-app-card.app-club .tac-tit { color:var(--azul); }
+        .tres-app-card.app-club .tac-cta { color:var(--azul); }
+        .tres-app-card.app-admin {
+            border-color:rgba(212,175,55,0.35);
+            background:linear-gradient(165deg, #100c00, #060502);
+        }
+        .tres-app-card.app-admin .tac-tit { color:var(--oro); }
+        .tres-app-card.app-admin .tac-cta { color:var(--oro); }
+        .tres-app-card.app-admin .tac-tag { color:#665; }
+
         /* ── PANELES DE MENÚ ── */
         .panel { display:none; margin-top:5px; }
         .panel.visible { display:block; animation:slideDown 0.3s ease; }
@@ -428,6 +510,268 @@
             background:linear-gradient(135deg,#120e00,#0a0800) !important;
         }
 
+        /* ── ADMINISTRACIÓN DE MESAS (Supabase) ── */
+        .mesas-admin {
+            margin: 22px 0 8px;
+            padding: 20px 16px 22px;
+            border-radius: 22px;
+            background: linear-gradient(165deg, #0e0c0a, #060504);
+            border: 1px solid rgba(212, 175, 55, 0.18);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+        }
+        .mesas-admin-hd {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .mesas-admin-tit {
+            color: var(--oro);
+            font-size: 0.62rem;
+            letter-spacing: 0.18em;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+        }
+        .mesas-admin-sub {
+            color: #444;
+            font-size: 0.48rem;
+            letter-spacing: 0.06em;
+            margin-top: 6px;
+            line-height: 1.45;
+            max-width: 280px;
+        }
+        .mesas-admin-refresh {
+            background: rgba(52, 152, 219, 0.12);
+            border: 1px solid rgba(52, 152, 219, 0.35);
+            color: var(--azul);
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.48rem;
+            font-family: 'Arial Black', sans-serif;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .mesas-admin-refresh:active { transform: scale(0.97); }
+        .mesas-admin-status {
+            font-size: 0.45rem;
+            color: #555;
+            letter-spacing: 0.06em;
+            margin-bottom: 14px;
+            min-height: 1.2em;
+        }
+        .mesas-admin-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        @media (min-width: 380px) {
+            .mesas-admin-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .mesa-card {
+            border-radius: 16px;
+            padding: 14px 14px 12px;
+            background: linear-gradient(145deg, #12100c, #080706);
+            border: 1px solid #222;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .mesa-card--libre {
+            border-color: rgba(100, 100, 100, 0.35);
+        }
+        .mesa-card--ocupada {
+            border-color: rgba(46, 255, 112, 0.55);
+            box-shadow: 0 0 24px rgba(46, 255, 112, 0.12);
+            background: linear-gradient(145deg, #061208, #0a120e);
+        }
+        .mesa-card--otro {
+            border-color: rgba(212, 175, 55, 0.35);
+            box-shadow: 0 0 18px rgba(212, 175, 55, 0.08);
+        }
+        .mesa-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .mesa-num {
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            color: #ddd;
+        }
+        .mesa-luz {
+            font-size: 0.45rem;
+            letter-spacing: 0.12em;
+        }
+        .mesa-luz.on { color: #ffeb3b; text-shadow: 0 0 10px rgba(255, 235, 59, 0.5); }
+        .mesa-luz.off { color: #444; }
+        .mesa-estado {
+            font-size: 0.5rem;
+            color: #666;
+            margin-bottom: 12px;
+            letter-spacing: 0.06em;
+        }
+        .mesa-estado-val { color: #aaa; margin-left: 4px; }
+        .mesa-card--ocupada .mesa-estado-val { color: var(--neon); }
+        .mesa-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .mesa-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 10px;
+            font-size: 0.48rem;
+            font-family: 'Arial Black', sans-serif;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            transition: transform 0.12s, opacity 0.15s;
+        }
+        .mesa-btn:active { transform: scale(0.98); }
+        .mesa-btn-open {
+            background: linear-gradient(135deg, var(--neon), #18a038);
+            color: #000;
+        }
+        .mesa-btn-close {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid #2a2a2a;
+            color: #888;
+        }
+        .mesa-empty, .mesa-err {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: 0.52rem;
+            color: #555;
+            padding: 16px;
+            letter-spacing: 0.06em;
+        }
+        .mesa-err { color: #c77; }
+        .mesas-login-gate {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 28px 18px;
+            border-radius: 16px;
+            border: 1px dashed rgba(212, 175, 55, 0.35);
+            background: rgba(0, 0, 0, 0.35);
+        }
+        .mesas-login-gate h3 {
+            color: var(--oro);
+            font-size: 0.62rem;
+            letter-spacing: 0.14em;
+            margin-bottom: 10px;
+        }
+        .mesas-login-gate p {
+            color: #666;
+            font-size: 0.5rem;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        .mesas-login-gate a {
+            display: inline-block;
+            padding: 14px 22px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--neon), #18a038);
+            color: #000;
+            font-size: 0.55rem;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            font-weight: 800;
+        }
+        .mesas-user-bar {
+            font-size: 0.48rem;
+            color: #555;
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+        }
+        .mesas-user-bar strong { color: #888; }
+        .mesa-apertura {
+            font-size: 0.42rem;
+            color: #555;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.35);
+        }
+        .mesa-apertura strong { color: #888; }
+
+        /* Modal cobro mesa */
+        .mesa-cobro-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            background: rgba(0, 0, 0, 0.88);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: mesaCobroFade 0.25s ease;
+        }
+        @keyframes mesaCobroFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .mesa-cobro-box {
+            width: 100%;
+            max-width: 340px;
+            border-radius: 22px;
+            padding: 26px 22px 22px;
+            background: linear-gradient(165deg, #161008, #0a0805);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            box-shadow: 0 0 48px rgba(212, 175, 55, 0.15), 0 24px 60px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+        .mesa-cobro-icon { font-size: 2.2rem; margin-bottom: 8px; }
+        .mesa-cobro-tit {
+            color: var(--oro);
+            font-size: 0.58rem;
+            letter-spacing: 0.2em;
+            margin-bottom: 14px;
+        }
+        .mesa-cobro-mesa { color: #aaa; font-size: 0.52rem; letter-spacing: 0.08em; margin-bottom: 16px; }
+        .mesa-cobro-tiempo {
+            color: #666;
+            font-size: 0.48rem;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .mesa-cobro-total {
+            font-size: 1.35rem;
+            color: var(--neon);
+            text-shadow: 0 0 24px rgba(46, 255, 112, 0.35);
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            margin: 12px 0 6px;
+            letter-spacing: 0.02em;
+        }
+        .mesa-cobro-tarifa {
+            font-size: 0.42rem;
+            color: #444;
+            letter-spacing: 0.08em;
+            margin-bottom: 22px;
+        }
+        .mesa-cobro-actions { display: flex; flex-direction: column; gap: 10px; }
+        .mesa-cobro-btn {
+            border: none;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 0.52rem;
+            font-family: 'Arial Black', sans-serif;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+        }
+        .mesa-cobro-btn-ok {
+            background: linear-gradient(135deg, var(--neon), #18a038);
+            color: #000;
+        }
+        .mesa-cobro-btn-cancel {
+            background: transparent;
+            border: 1px solid #333;
+            color: #777;
+        }
+
         /* FOOTER */
         /* Banner modo desarrollo (?dev=1) */
         body.modo-dev::before {
@@ -449,6 +793,10 @@
     </style>
 </head>
 <body>
+<!-- VERSIÓN 7 ÍTEMS - Si ves este recuadro, el deploy es el correcto -->
+<div id="badge-version-deploy" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:linear-gradient(135deg,#d4af37,#a07800);color:#000;padding:20px 40px;border-radius:20px;font-size:1.5rem;font-weight:bold;box-shadow:0 0 40px rgba(212,175,55,0.6);border:4px solid #fff;animation:fadeOutBadge 4s forwards;">✓ VERSIÓN 7 ÍTEMS</div>
+<style>@keyframes fadeOutBadge{0%{opacity:1}70%{opacity:1}100%{opacity:0;pointer-events:none}}</style>
+<script>setTimeout(function(){var b=document.getElementById('badge-version-deploy');if(b)b.style.display='none';},4000);</script>
 
 <!-- FONDO -->
 <div class="stars" id="stars-bg"></div>
@@ -497,8 +845,8 @@
         <div class="torneo-nombre" id="torneo-nombre">—</div>
         <div class="torneo-info" id="torneo-info">—</div>
         <div class="torneo-btns">
-            <a href="Brackets.html" class="btn-t oro">&#127939; VER LLAVES</a>
-            <a href="posiciones.html" class="btn-t ghost">&#128202; POSICIONES</a>
+            <a href="apps/club/organizador/Brackets.html" class="btn-t oro">&#127939; VER LLAVES</a>
+            <a href="apps/club/organizador/posiciones.html" class="btn-t ghost">&#128202; POSICIONES</a>
         </div>
     </div>
 
@@ -550,6 +898,49 @@
             </div>
         </a>
     </div>
+
+    <div class="urls-por-rol">
+        <div style="color:var(--oro);font-size:0.52rem;letter-spacing:3px;margin-bottom:4px;">DOS ENTRADAS PRINCIPALES · MISMA PLATAFORMA</div>
+        <div style="color:#333;font-size:0.45rem;letter-spacing:2px;margin-bottom:8px;"><strong>Jugador</strong> (público) y <strong>panel sala / torneos</strong> (club u organizador: <strong>mismo panel</strong>, dos formas de llamarlo)</div>
+        <p class="urls-por-rol-hint">Las tarjetas de arriba abren menús <strong>dentro de esta página</strong>. Aquí, accesos directos por rol. El <strong>backoffice</strong> es solo equipo DeCarambola (no es otra “app de club”).</p>
+        <nav class="tres-apps-wrap" aria-label="Entradas por rol">
+            <a class="tres-app-card app-jug" href="jugador/index.html">
+                <div class="tac-tag">ENTRADA 1 · JUGADOR</div>
+                <div class="tac-tit">🎱 APP JUGADOR</div>
+                <div class="tac-desc">Donde aterriza todo el mundo: duelo, perfil, ranking, torneos, Sensei.</div>
+                <div class="tac-cta">Abrir jugador/index.html →</div>
+            </a>
+            <a class="tres-app-card app-club" href="club/index.html">
+                <div class="tac-tag">ENTRADA 2 · CLUB = ORGANIZADOR</div>
+                <div class="tac-tit">🏛️ PANEL SALA / TORNEOS</div>
+                <div class="tac-desc">Un solo panel: mesas, reservas, organizador, TV, certificados. “Club” y “organizador” son la misma ruta de administración.</div>
+                <div class="tac-cta">Abrir club/index.html →</div>
+            </a>
+            <a class="tres-app-card app-admin" href="admin/index.html">
+                <div class="tac-tag">EQUIPO PLATAFORMA · OPCIONAL</div>
+                <div class="tac-tit">🔐 BACKOFFICE</div>
+                <div class="tac-desc">PQRS y tareas internas DeCarambola. No sustituye al panel del club.</div>
+                <div class="tac-cta">Abrir admin/index.html →</div>
+            </a>
+        </nav>
+        <p style="text-align:center;margin-top:14px;">
+            <a href="auth.html" style="color:#2eff70;font-size:0.55rem;letter-spacing:0.08em;text-decoration:none;border-bottom:1px solid rgba(46,255,112,0.35);">🔑 Entrar con correo (Supabase Auth)</a>
+            <span style="color:#333;font-size:0.45rem;display:block;margin-top:6px;">Guía: docs/PASOS_AUTH_EMPEZAR.md</span>
+        </p>
+    </div>
+
+    <!-- Administración de mesas (Supabase) -->
+    <section class="mesas-admin" id="mesas-admin-root" aria-label="Administración de mesas">
+        <div class="mesas-admin-hd">
+            <div>
+                <div class="mesas-admin-tit">ADMINISTRACIÓN DE MESAS</div>
+                <p class="mesas-admin-sub">Requiere <strong style="color:#666;">iniciar sesión</strong> (rol <code style="color:#555;">club_admin</code> o <code style="color:#555;">superadmin</code>) y migración <code style="color:#555;">004_mesas_rls_paso1.sql</code>. Disponible = <strong style="color:#666;">libre</strong> en BD. Guía: <code style="color:#555;">docs/PASO1_RLS_MESAS.md</code></p>
+            </div>
+            <button type="button" class="mesas-admin-refresh" id="mesas-admin-refresh">ACTUALIZAR</button>
+        </div>
+        <div class="mesas-admin-status" id="mesas-admin-status"></div>
+        <div class="mesas-admin-grid" id="mesas-admin-grid"></div>
+    </section>
 
     <div class="ver-mas" id="ver-mas-btn">
         VER MÁS <span>&#8964;</span>
@@ -629,14 +1020,14 @@
                 </svg>
                 PARTIDA
             </a>
-            <a href="entrenamiento.html" class="rapida-btn r-neon">
+            <a href="mi_partida.html" class="rapida-btn r-neon" title="Entrenamiento: Mi partida">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
                     <circle cx="12" cy="12" r="9"/>
                     <path d="M12 8v4l3 3"/>
                 </svg>
                 ENTRENAR
             </a>
-            <a href="inscripciones.html" class="rapida-btn r-oro">
+            <a href="apps/club/organizador/inscripciones.html" class="rapida-btn r-oro">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
                     <circle cx="10" cy="7" r="4"/>
                     <path d="M2 21v-2a6 6 0 0 1 10.5-4"/>
@@ -676,6 +1067,22 @@
             <span class="mli-arrow">›</span>
         </a>
 
+        <a href="apps/club/organizador/posiciones.html" class="menu-lista-item" id="menu-posiciones">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
+                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                    <line x1="8" y1="18" x2="21" y2="18"/>
+                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+                    <line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color:#3498db;">POSICIONES</div>
+                <div class="mli-desc">Tabla del torneo · Torneos de amigos</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
         <a href="ranking.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round">
@@ -704,7 +1111,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="Brackets.html" class="menu-lista-item">
+        <a href="apps/club/organizador/Brackets.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
                     <rect x="2" y="9" width="4" height="6" rx="1"/>
@@ -722,7 +1129,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="posiciones.html" class="menu-lista-item">
+        <a href="apps/club/organizador/posiciones.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
                     <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
@@ -738,7 +1145,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="Certificados.html" class="menu-lista-item">
+        <a href="apps/club/organizador/Certificados.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2eff70" stroke-width="1.5" stroke-linecap="round">
                     <circle cx="12" cy="8" r="5"/>
@@ -748,6 +1155,20 @@
             <div class="mli-info">
                 <div class="mli-titulo" style="color:#2eff70;">CERTIFICADOS</div>
                 <div class="mli-desc">Diplomas y reconocimientos</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
+        <a href="Sensei.html?contacto=1" class="menu-lista-item">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color:#3498db;">CONTACTO — JOE</div>
+                <div class="mli-desc">Tu asistente para conocer la plataforma y resolver dudas. PQRS.</div>
             </div>
             <span class="mli-arrow">›</span>
         </a>
@@ -905,36 +1326,18 @@
             </div>
         </div>
 
-        <!-- Gestión del club si es admin -->
-        <div id="sec-admin-club" style="display:none;margin-top:8px;">
-            <div class="club-block">
-                <div class="seccion-label">&#9881; ADMINISTRAR MI CLUB</div>
-                <a href="admin_sede.html" class="menu-lista-item">
-                <span class="mli-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                    </svg>
-                </span>
+        <!-- Administración del club: mismos 6 bloques que club/index.html (no lista larga única) -->
+        <div id="sec-admin-club" style="display:block;margin-top:16px;">
+            <div class="seccion-label">&#127970; PORTAL DEL CLUB</div>
+            <a href="club/index.html" class="menu-lista-item" style="border-color:rgba(212,175,55,0.35);margin-bottom:12px;">
+                <span class="mli-icon" style="font-size:1.2rem;">&#128279;</span>
                 <div class="mli-info">
-                    <div class="mli-titulo" style="color:var(--azul);">CONFIGURAR SEDE</div>
-                    <div class="mli-desc">Nombre · Colores · Logo</div>
+                    <div class="mli-titulo" style="color:var(--oro);">VISTA COMPLETA</div>
+                    <div class="mli-desc">Abrir portal club en pantalla completa (recomendado)</div>
                 </div>
                 <span class="mli-arrow">›</span>
             </a>
-            <a href="Configurador%20formato.html" class="menu-lista-item">
-                <span class="mli-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M12 2v2M12 20v2M2 12h2M20 12h2"/>
-                    </svg>
-                </span>
-                <div class="mli-info">
-                    <div class="mli-titulo" style="color:var(--azul);">PERSONALIZAR</div>
-                    <div class="mli-desc">Identidad visual del club</div>
-                </div>
-                <span class="mli-arrow">›</span>
-            </a>
-            <div class="menu-lista-item" onclick="copiarCodigo()" style="cursor:pointer;">
+            <div class="menu-lista-item" onclick="copiarCodigo()" style="cursor:pointer;margin-bottom:14px;">
                 <span class="mli-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
                         <rect x="9" y="9" width="13" height="13" rx="2"/>
@@ -947,64 +1350,152 @@
                 </div>
                 <span class="mli-arrow">›</span>
             </div>
-            </div>
-            <!-- DECARAMBOLA_CLUB_7_ITEMS: si ves esto en "ver código fuente", la versión nueva está desplegada -->
-            <div class="club-block">
-                <div class="seccion-label">&#128722; MESAS E INSTALACIONES</div>
-                <a href="mesas.html" class="menu-lista-item">
-                <span class="mli-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
-                        <rect x="2" y="6" width="20" height="12" rx="1"/>
-                        <line x1="12" y1="6" x2="12" y2="18"/>
-                    </svg>
-                </span>
-                <div class="mli-info">
-                    <div class="mli-titulo" style="color:var(--azul);">SALÓN EN VIVO</div>
-                    <div class="mli-desc">Estado de mesas del club</div>
-                </div>
-                <span class="mli-arrow">›</span>
-            </a>
-            <a href="mesas_config.html" class="menu-lista-item">
-                <span class="mli-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                    </svg>
-                </span>
-                <div class="mli-info">
-                    <div class="mli-titulo" style="color:var(--azul);">CONFIGURAR INSTALACIONES</div>
-                    <div class="mli-desc">Salones · Mesas · Disposición</div>
-                </div>
-                <span class="mli-arrow">›</span>
-            </a>
-            <a href="reservas_admin.html" class="menu-lista-item">
-                <span class="mli-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                </span>
-                <div class="mli-info">
-                    <div class="mli-titulo" style="color:var(--azul);">RESERVAS</div>
-                    <div class="mli-desc">Gestionar reservas</div>
-                </div>
-                <span class="mli-arrow">›</span>
-            </a>
-            <a href="historial_mesas.html" class="menu-lista-item">
-                <span class="mli-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
-                    <path d="M12 8v4l3 3"/>
-                    <circle cx="12" cy="12" r="9"/>
-                </svg>
-                </span>
-                <div class="mli-info">
-                    <div class="mli-titulo" style="color:var(--azul);">HISTORIAL</div>
-                    <div class="mli-desc">Uso de mesas · Sesiones</div>
-                </div>
-                <span class="mli-arrow">›</span>
-            </a>
+
+            <div class="dc-hub dc-hub--club dc-hub--embed" id="hub-club-embed">
+                <p class="dc-hub-lead" style="font-size:0.62rem;"><strong>6 áreas.</strong> Despliega cada bloque. Dentro, rejilla de accesos (no una sola lista larga).</p>
+
+                <details class="dc-hub-fold" open>
+                    <summary class="dc-hub-fold__sum">
+                        <span class="dc-hub-fold__kbd">1</span>
+                        <span class="dc-hub-fold__text">
+                            <span class="dc-hub-fold__title">Salón y recepción</span>
+                            <span class="dc-hub-fold__sub">Mesas, reservas, historial e instalación</span>
+                        </span>
+                        <span class="dc-hub-fold__count">6</span>
+                        <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+                    </summary>
+                    <div class="dc-hub-fold__body">
+                        <details class="dc-hub-nested" open>
+                            <summary class="dc-hub-nested__sum">Operación diaria<span class="dc-hub-nested__chev" aria-hidden="true"></span></summary>
+                            <div class="dc-hub-nested__inner">
+                                <div class="grid dc-hub-mosaic">
+                                    <a class="item" href="apps/club/sala/mesas.html"><span class="item-main"><span class="item-title">Salón en vivo</span><span class="item-desc">Mesas y actividad</span></span></a>
+                                    <a class="item" href="apps/club/sala/reservas_admin.html"><span class="item-main"><span class="item-title">Reservas</span><span class="item-desc">Gestionar solicitudes</span></span></a>
+                                    <a class="item" href="apps/club/sala/historial_mesas.html"><span class="item-main"><span class="item-title">Historial</span><span class="item-desc">Sesiones</span></span></a>
+                                </div>
+                            </div>
+                        </details>
+                        <details class="dc-hub-nested">
+                            <summary class="dc-hub-nested__sum">Instalación<span class="dc-hub-nested__chev" aria-hidden="true"></span></summary>
+                            <div class="dc-hub-nested__inner">
+                                <div class="grid dc-hub-mosaic">
+                                    <a class="item" href="apps/club/sala/instalacion_ficha.html"><span class="item-main"><span class="item-title">Ficha mesa</span><span class="item-desc">Enlace público / QR</span></span><span class="tag">QR</span></a>
+                                    <a class="item" href="apps/club/sala/mesas_config.html"><span class="item-main"><span class="item-title">Config. mesas</span><span class="item-desc">Alta y edición</span></span></a>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </details>
+
+                <details class="dc-hub-fold">
+                    <summary class="dc-hub-fold__sum">
+                        <span class="dc-hub-fold__kbd">2</span>
+                        <span class="dc-hub-fold__text">
+                            <span class="dc-hub-fold__title">Economía</span>
+                            <span class="dc-hub-fold__sub">Tarifas y reportes</span>
+                        </span>
+                        <span class="dc-hub-fold__count">2</span>
+                        <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+                    </summary>
+                    <div class="dc-hub-fold__body">
+                        <div class="grid dc-hub-mosaic">
+                            <a class="item" href="apps/club/sala/tarifas_salon.html"><span class="item-main"><span class="item-title">Tarifas</span><span class="item-desc">Precio y promos</span></span><span class="tag">$/min</span></a>
+                            <a class="item" href="apps/club/sala/reportes.html"><span class="item-main"><span class="item-title">Reportes</span><span class="item-desc">Cierre y uso</span></span></a>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="dc-hub-fold">
+                    <summary class="dc-hub-fold__sum">
+                        <span class="dc-hub-fold__kbd">3</span>
+                        <span class="dc-hub-fold__text">
+                            <span class="dc-hub-fold__title">Club y marca</span>
+                            <span class="dc-hub-fold__sub">Sede, formato, socios</span>
+                        </span>
+                        <span class="dc-hub-fold__count">3</span>
+                        <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+                    </summary>
+                    <div class="dc-hub-fold__body">
+                        <div class="grid dc-hub-mosaic">
+                            <a class="item" href="apps/club/sala/admin_sede.html"><span class="item-main"><span class="item-title">Configurar sede</span><span class="item-desc">Nombre, logo, color</span></span><span class="tag">MARCA</span></a>
+                            <a class="item" href="apps/club/sala/configurador_formato.html"><span class="item-main"><span class="item-title">Formato torneo</span><span class="item-desc">Reglas y estructura</span></span></a>
+                            <a class="item" href="apps/club/sala/socios.html"><span class="item-main"><span class="item-title">Socios</span><span class="item-desc">Base jugadores</span></span></a>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="dc-hub-fold">
+                    <summary class="dc-hub-fold__sum">
+                        <span class="dc-hub-fold__kbd">4</span>
+                        <span class="dc-hub-fold__text">
+                            <span class="dc-hub-fold__title">Torneos</span>
+                            <span class="dc-hub-fold__sub">Organizador</span>
+                        </span>
+                        <span class="dc-hub-fold__count">8</span>
+                        <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+                    </summary>
+                    <div class="dc-hub-fold__body">
+                        <details class="dc-hub-nested" open>
+                            <summary class="dc-hub-nested__sum">Antes del evento<span class="dc-hub-nested__chev" aria-hidden="true"></span></summary>
+                            <div class="dc-hub-nested__inner">
+                                <div class="grid dc-hub-mosaic">
+                                    <a class="item" href="apps/club/organizador/organizador.html"><span class="item-main"><span class="item-title">Panel</span><span class="item-desc">Torneo activo</span></span></a>
+                                    <a class="item" href="apps/club/organizador/torneo_crear.html"><span class="item-main"><span class="item-title">Crear</span><span class="item-desc">Nuevo evento</span></span></a>
+                                    <a class="item" href="apps/club/organizador/inscripciones.html"><span class="item-main"><span class="item-title">Inscripciones</span><span class="item-desc">Altas</span></span></a>
+                                    <a class="item" href="apps/club/organizador/torneos.html"><span class="item-main"><span class="item-title">Listado</span><span class="item-desc">Historial</span></span></a>
+                                </div>
+                            </div>
+                        </details>
+                        <details class="dc-hub-nested">
+                            <summary class="dc-hub-nested__sum">Durante / después<span class="dc-hub-nested__chev" aria-hidden="true"></span></summary>
+                            <div class="dc-hub-nested__inner">
+                                <div class="grid dc-hub-mosaic">
+                                    <a class="item" href="apps/club/organizador/control_torneo.html"><span class="item-main"><span class="item-title">Control vivo</span><span class="item-desc">Árbitro</span></span></a>
+                                    <a class="item" href="apps/club/organizador/Brackets.html"><span class="item-main"><span class="item-title">Brackets</span><span class="item-desc">Llaves</span></span></a>
+                                    <a class="item" href="apps/club/organizador/posiciones.html"><span class="item-main"><span class="item-title">Posiciones</span><span class="item-desc">Tabla</span></span></a>
+                                    <a class="item" href="apps/club/organizador/Certificados.html"><span class="item-main"><span class="item-title">Certificados</span><span class="item-desc">Impresión</span></span></a>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </details>
+
+                <details class="dc-hub-fold dc-hub-fold--tv">
+                    <summary class="dc-hub-fold__sum">
+                        <span class="dc-hub-fold__kbd">5</span>
+                        <span class="dc-hub-fold__text">
+                            <span class="dc-hub-fold__title">TV y streaming</span>
+                            <span class="dc-hub-fold__sub">Pantalla mesa, móvil, OBS</span>
+                        </span>
+                        <span class="dc-hub-fold__count">4</span>
+                        <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+                    </summary>
+                    <div class="dc-hub-fold__body">
+                        <div class="grid dc-hub-mosaic">
+                            <a class="item" href="club/duelo_premium_tv.html"><span class="item-main"><span class="item-title">Duelo Premium TV</span><span class="item-desc">Señal fija</span></span><span class="tag">TV</span></a>
+                            <a class="item" href="duelo-tv.html"><span class="item-main"><span class="item-title">Duelo móvil</span><span class="item-desc">Compartir</span></span></a>
+                            <a class="item" href="overlay_marcador.html"><span class="item-main"><span class="item-title">Overlay</span><span class="item-desc">OBS</span></span><span class="tag">OBS</span></a>
+                            <a class="item" href="duelo-tv-preview.html"><span class="item-main"><span class="item-title">Preview</span><span class="item-desc">Antes de TV</span></span></a>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="dc-hub-fold">
+                    <summary class="dc-hub-fold__sum">
+                        <span class="dc-hub-fold__kbd">6</span>
+                        <span class="dc-hub-fold__text">
+                            <span class="dc-hub-fold__title">Soporte</span>
+                            <span class="dc-hub-fold__sub">Equipo DeCarambola</span>
+                        </span>
+                        <span class="dc-hub-fold__count">1</span>
+                        <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+                    </summary>
+                    <div class="dc-hub-fold__body">
+                        <div class="grid dc-hub-mosaic">
+                            <a class="item" href="Sensei.html?contacto=1"><span class="item-main"><span class="item-title">Contacto / PQRS</span><span class="item-desc">Mensajes</span></span></a>
+                        </div>
+                    </div>
+                </details>
             </div>
         </div>
 
@@ -1018,7 +1509,7 @@
         <!-- TORNEO — sección principal -->
         <div class="seccion-label">&#127942; TORNEO</div>
 
-        <a href="torneo_crear.html" class="menu-lista-item mli-destacado">
+        <a href="apps/club/organizador/torneo_crear.html" class="menu-lista-item mli-destacado">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round">
                     <circle cx="12" cy="12" r="9"/>
@@ -1033,7 +1524,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="inscripciones.html" class="menu-lista-item">
+        <a href="apps/club/organizador/inscripciones.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round">
                     <circle cx="10" cy="7" r="4"/>
@@ -1049,7 +1540,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="control_torneo.html" class="menu-lista-item">
+        <a href="apps/club/organizador/control_torneo.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round">
                     <rect x="2" y="3" width="20" height="14" rx="2"/>
@@ -1064,7 +1555,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="Brackets.html" class="menu-lista-item">
+        <a href="apps/club/organizador/Brackets.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round">
                     <rect x="2" y="9" width="4" height="6" rx="1"/>
@@ -1082,7 +1573,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="posiciones.html" class="menu-lista-item">
+        <a href="apps/club/organizador/posiciones.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round">
                     <rect x="3" y="12" width="4" height="9" rx="1"/>
@@ -1097,7 +1588,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="Certificados.html" class="menu-lista-item">
+        <a href="apps/club/organizador/Certificados.html" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round">
                     <circle cx="12" cy="8" r="5"/>
@@ -1125,7 +1616,7 @@
     </div>
     <div class="footer-txt">DECARAMBOLA · BILLAR TRES BANDAS</div>
     <div class="footer-version" id="build-version">v4 · actualizado al publicar</div>
-    <a href="Sensei.html?contacto=1" style="display:inline-block;margin-top:6px;color:#444;font-size:0.45rem;letter-spacing:1px;text-decoration:none;">Joe — Contacto / PQRS</a>
+    <a href="Sensei.html?contacto=1" style="display:inline-block;margin-top:6px;color:#555;font-size:0.5rem;letter-spacing:1px;text-decoration:none;">Contacto — Joe (asistente plataforma y PQRS)</a>
     <a href="pqrs_admin.html" style="display:inline-block;margin-top:4px;color:#333;font-size:0.4rem;letter-spacing:1px;text-decoration:none;">Admin plataforma (superadmin)</a>
     <div class="footer-version">v4.0 · 2026</div>
     <button type="button" id="btn-entrar-admin" onclick="pedirClaveAdmin()" style="display:none; margin-top:8px; background:transparent; border:1px solid #333; color:#555; padding:6px 12px; border-radius:8px; font-size:0.5rem; cursor:pointer; letter-spacing:1px;">Soy administrador del club</button>
@@ -1134,6 +1625,7 @@
 
 <script src="Version.js"></script>
 <script src="core.js"></script>
+<script src="session.js"></script>
 <script>
 // ── Estrellas aleatorias ──
 (function() {
@@ -1176,7 +1668,10 @@ function abrirPanel(tipo) {
     setTimeout(() => panel.scrollIntoView({behavior:'smooth', block:'start'}), 100);
 
     if (tipo === 'jug') cargarDatosJugador();
-    if (tipo === 'club') cargarMisClubes();
+    if (tipo === 'club') {
+        normalizarPanelClub();
+        cargarMisClubes();
+    }
 }
 
 // ── Identificación por cédula ──
@@ -1375,6 +1870,16 @@ function mostrarSeccion(id) {
     }
 }
 
+function normalizarPanelClub() {
+    // Evita estados "intermedios" en móvil cuando se vuelve al panel club.
+    ['sec-unirse','sec-crear-club','sec-mis-clubes'].forEach(function(s) {
+        var el = document.getElementById(s);
+        if (el) el.style.display = 'none';
+    });
+    var admin = document.getElementById('sec-admin-club');
+    if (admin) admin.style.display = 'block';
+}
+
 function generarCodigo(nombre) {
     var prefix = nombre.replace(/[^A-Z]/g,'').substring(0,3) || 'CLB';
     var num = Math.floor(Math.random()*900)+100;
@@ -1395,10 +1900,19 @@ function crearClub() {
     clubes.unshift(club);
     localStorage.setItem('mis_clubes', JSON.stringify(clubes));
     localStorage.setItem('club_activo', JSON.stringify(club));
+    if (window.WL && window.WL.setClub) {
+        window.WL.setClub({
+            id: club.id || null,
+            nombre: club.nombre,
+            logo_url: club.logo_url || '',
+            color_primario: club.color || colorClubSel
+        });
+    }
     actualizarHeaderClub(club);
     document.getElementById('sec-crear-club').style.display = 'none';
-    document.getElementById('sec-admin-club').style.display = 'block';
     document.getElementById('lbl-codigo-club').innerText = codigo;
+    aplicarVisibilidadAccesoClub();
+    iniciarSlider();
     alert('✅ Club creado\nCódigo: ' + codigo + '\nCompártelo con tus jugadores');
 }
 
@@ -1471,6 +1985,8 @@ async function unirseClub() {
         mostrarSeccion(null);
         alert('✅ Bienvenido a ' + club.nombre + '\n📍 ' + (club.ciudad||''));
         cargarMisClubes();
+        aplicarVisibilidadAccesoClub();
+        iniciarSlider();
 
     } catch(e) {
         console.error('Error buscando club:', e);
@@ -1503,9 +2019,17 @@ function activarClub(el) { var codigo = typeof el === 'string' ? el : el.dataset
     var club = clubes.find(function(c){ return c.codigo===codigo; });
     if(!club) return;
     localStorage.setItem('club_activo', JSON.stringify(club));
+    if (window.WL && window.WL.setClub) {
+        window.WL.setClub({
+            id: club.id || null,
+            nombre: club.nombre,
+            logo_url: club.logo_url || '',
+            color_primario: club.color || '#d4af37'
+        });
+    }
     actualizarHeaderClub(club);
-    if(club.admin){
-        document.getElementById('sec-admin-club').style.display='block';
+    aplicarVisibilidadAccesoClub();
+    if (club.admin && document.getElementById('lbl-codigo-club')) {
         document.getElementById('lbl-codigo-club').innerText = club.codigo;
     }
 }
@@ -1537,6 +2061,36 @@ var _sliderIdx = 0;
 var _sliderSlides = [];
 var _sliderTimer = null;
 
+/** Personal del club (admin en mis_clubes, PIN activo o dev) — no es el jugador socios */
+function puedeVerGestionClubEnHome() {
+    try {
+        if (typeof esModoDevActivo === 'function' && esModoDevActivo()) return true;
+    } catch (e1) {}
+    if (localStorage.getItem('club_admin_activo') === 'true') return true;
+    try {
+        if (typeof SESSION !== 'undefined' && SESSION.isClubAdmin && SESSION.isClubAdmin()) return true;
+    } catch (e2) {}
+    return localStorage.getItem('club_admin') === 'true';
+}
+
+/** Oculta entradas a gestión del club para quien no es staff del club */
+function aplicarVisibilidadAccesoClub() {
+    try {
+        if (typeof SESSION !== 'undefined' && SESSION.actualizarVisibilidadPanelClub) {
+            SESSION.actualizarVisibilidadPanelClub();
+        }
+    } catch (e) {}
+    var ok = puedeVerGestionClubEnHome();
+    var elNav = document.querySelector('a.tres-app-card.app-club');
+    var elHomeCard = document.getElementById('card-club');
+    var elAdmin = document.getElementById('sec-admin-club');
+    var elSlide = document.getElementById('slide-club');
+    if (elNav) elNav.style.display = ok ? '' : 'none';
+    if (elHomeCard) elHomeCard.style.display = ok ? '' : 'none';
+    if (elAdmin) elAdmin.style.display = ok ? 'block' : 'none';
+    if (elSlide && !ok) elSlide.style.display = 'none';
+}
+
 function iniciarSlider() {
     _sliderSlides = [];
 
@@ -1544,8 +2098,8 @@ function iniciarSlider() {
     var nombreSede = localStorage.getItem('wl_club_nombre') || 'GLOBAL';
     var color = localStorage.getItem('wl_club_color') || '#d4af37';
 
-    // Slide club — si hay sede configurada con nombre real
-    if (nombreSede && nombreSede !== 'GLOBAL') {
+    // Slide club — solo si puede gestionar el club (evita que el jugador entre a gestión)
+    if (puedeVerGestionClubEnHome() && nombreSede && nombreSede !== 'GLOBAL') {
         var slideClub = document.getElementById('slide-club');
         var badgeClub = document.getElementById('badge-club');
         var lblClub   = document.getElementById('lbl-club-nombre');
@@ -1680,6 +2234,8 @@ function pedirClaveAdmin() {
         localStorage.setItem(CLUB_ADMIN_KEY, clave);
     }
     localStorage.setItem(CLUB_ADMIN_ACTIVO_KEY, 'true');
+    aplicarVisibilidadAccesoClub();
+    iniciarSlider();
     aplicarVisibilidadModoAdmin();
 }
 
@@ -1688,6 +2244,8 @@ function salirModoAdmin() {
     sessionStorage.removeItem(DEV_MODE_KEY);
     document.body.classList.remove('modo-dev');
     if (document.getElementById('btn-salir-admin')) document.getElementById('btn-salir-admin').textContent = 'Salir de modo admin';
+    aplicarVisibilidadAccesoClub();
+    iniciarSlider();
     aplicarVisibilidadModoAdmin();
 }
 
@@ -1696,10 +2254,14 @@ window.onload = function() {
     try { if(typeof MasterVIP !== 'undefined') MasterVIP.applyDesign?.(); } catch(e) {}
     cargarSede();
     cargarTorneoActivo();
+    aplicarVisibilidadAccesoClub();
     iniciarSlider();
     aplicarVisibilidadModoAdmin();
-    // Abrir panel jugador si ya está identificado (y no estamos en modo admin)
-    if (localStorage.getItem(CLUB_ADMIN_ACTIVO_KEY) !== 'true') {
+    // Deep link: inscripciones / torneos envían a afiliarse o elegir club
+    var h = (location.hash || '').replace(/^#/, '');
+    if (h === 'club' || h === 'afiliacion') {
+        setTimeout(function() { abrirPanel('club'); }, 200);
+    } else if (localStorage.getItem(CLUB_ADMIN_ACTIVO_KEY) !== 'true') {
         const u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
         if (u && u.nombre) { abrirPanel('jug'); }
     }
@@ -1716,22 +2278,29 @@ function cargarSede() {
 
 function cargarTorneoActivo() {
     try {
-        const torneo = typeof MasterVIP !== 'undefined' ? MasterVIP.getTorneoActivo() : null;
+        var torneo = typeof MasterVIP !== 'undefined' ? MasterVIP.getTorneoActivo() : null;
+        if (!torneo) {
+            var lista = typeof MasterVIP !== 'undefined' ? MasterVIP.getTorneos() : [];
+            torneo = lista.find(function(t) { return t.estado === 'EN_CURSO'; }) || lista.find(function(t) { return t.estado === 'ABIERTO'; }) || lista.find(function(t) { return t.tipo === 'AMIGOS'; }) || lista[0];
+            if (torneo) localStorage.setItem('TORNEO_ACTIVO_ID', torneo.id);
+        }
         if (torneo && torneo.estado !== 'FINALIZADO') {
             const panel = document.getElementById('panel-torneo');
-            panel.style.display = 'block';
-            document.getElementById('torneo-nombre').innerText = torneo.nombre;
+            if (panel) panel.style.display = 'block';
+            var lblNom = document.getElementById('torneo-nombre');
+            if (lblNom) lblNom.innerText = torneo.nombre;
             const ins = (torneo.inscritos||[]).length;
-            document.getElementById('torneo-info').innerText =
-                ins + ' jugadores · ' + (torneo.modalidad||'') + ' · ' + (torneo.estado||'');
+            var lblInfo = document.getElementById('torneo-info');
+            if (lblInfo) lblInfo.innerText = ins + ' jugadores · ' + (torneo.modalidad||'') + ' · ' + (torneo.estado||'') + (torneo.tipo === 'AMIGOS' ? ' · Amigos' : '');
         }
     } catch(e) {}
 }
 </script>
+<script type="module" src="js/index-mesas-admin.js"></script>
 <script src="whitelabel.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(function() {});
+  navigator.serviceWorker.register('sw.js?v=3', { updateViaCache: 'none' }).catch(function() {});
 }
 </script>
 </body>

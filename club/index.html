@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
+    <meta name="description" content="Portal club DeCarambola — administración de sala, torneos y TV">
+    <title>Portal club — DeCarambola</title>
+    <!-- Rutas desde la raíz del sitio (/css/...) para que carguen bien en iPhone y al duplicar pantalla -->
+    <link rel="stylesheet" href="/css/ux-shell.css">
+    <link rel="stylesheet" href="/css/hub-sections.css">
+    <style>
+        /* Si el CSS externo falla (404, red offline), la página sigue siendo legible */
+        html { background: #0b0b0b; }
+        :root {
+            --text: #eaeaea;
+            --muted: #555;
+            --oro: #d4af37;
+            --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font);
+            font-size: 15px;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: calc(20px + env(safe-area-inset-top)) 18px calc(100px + env(safe-area-inset-bottom));
+            background: #0b0b0b;
+            color: #eaeaea;
+        }
+        .hero, .dc-hub { position: relative; z-index: 5; }
+        .hero {
+            max-width: 540px;
+            margin: 0 auto 22px;
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        .hero-eyebrow {
+            font-size: 0.62rem;
+            letter-spacing: 0.28em;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .hero h1 {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-style: italic;
+            font-size: 1.35rem;
+            letter-spacing: 0.08em;
+            color: var(--oro);
+            margin: 12px 0 10px;
+            text-shadow: 0 0 28px rgba(212, 175, 55, 0.45);
+        }
+        .hero p {
+            color: #666;
+            font-size: 0.78rem;
+            max-width: 360px;
+            margin: 0 auto;
+            letter-spacing: 0.04em;
+        }
+        .club-hero-logo-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .club-hero-logo {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            background: linear-gradient(145deg, #14100a, #0a0806);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+        }
+        .club-access-gate {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(11, 11, 11, 0.98);
+            padding: 24px;
+        }
+        .club-access-gate__box {
+            max-width: 380px;
+            text-align: center;
+        }
+        .club-access-gate__box a {
+            text-decoration: underline;
+        }
+        /* Enlaces globales al pie: no compiten con el hero ni con los recuadros del hub */
+        .club-portal-footer {
+            max-width: 540px;
+            margin: 28px auto 0;
+            padding: 16px 8px 8px;
+            border-top: 1px solid rgba(212, 175, 55, 0.15);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            justify-content: center;
+        }
+        .club-portal-footer a {
+            font-size: 0.65rem;
+            letter-spacing: 0.06em;
+            color: #666;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 2px;
+        }
+        .club-portal-footer a:hover, .club-portal-footer a:focus-visible {
+            color: var(--oro);
+            border-bottom-color: rgba(212, 175, 55, 0.45);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="dc-ux dc-ux-skin">
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+    <!-- Gate staff: club-portal-gate.js muestra esto hasta verificar sesión / rol -->
+    <div id="club-access-gate" class="club-access-gate" style="display:flex" aria-live="polite">
+        <div class="club-access-gate__box">
+            <div id="club-gate-msg"><p style="color:#888;font-size:0.88rem;">Verificando acceso…</p></div>
+        </div>
+    </div>
+
+    <div id="club-portal-main" style="display:none">
+
+    <header class="hero">
+        <div class="hero-eyebrow">DeCarambola</div>
+        <div class="club-hero-logo-wrap">
+            <div id="club-logo-mini" class="club-hero-logo" title="Logo del club (configurar sede)"></div>
+        </div>
+        <h1>Portal club</h1>
+        <p>Un solo lugar para administrar tu sede, torneos y señal en pantalla. <strong style="color:#777;font-weight:600;">Club y organizador comparten este mismo panel</strong> — solo cambia cómo entras al flujo.</p>
+    </header>
+
+    <div class="dc-hub dc-hub--club club-hub-main" id="club-hub-main">
+        <p class="dc-hub-lead"><strong>6 áreas.</strong> Toca cada bloque para desplegar las pantallas. Con <strong>cuenta y permisos</strong> podrás ocultar las que no uses.</p>
+
+        <!-- 1 · Operación diaria -->
+        <details class="dc-hub-fold" open>
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">1</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Salón y recepción</span>
+                    <span class="dc-hub-fold__sub">Mesas en vivo, reservas, historial e instalación física</span>
+                </span>
+                <span class="dc-hub-fold__count">6</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <details class="dc-hub-nested" open>
+                    <summary class="dc-hub-nested__sum">
+                        Operación diaria
+                        <span class="dc-hub-nested__chev" aria-hidden="true"></span>
+                    </summary>
+                    <div class="dc-hub-nested__inner">
+                        <div class="grid dc-hub-mosaic">
+                            <a class="item" href="/apps/club/sala/mesas.html">
+                                <span class="item-main"><span class="item-title">Salón en vivo</span><span class="item-desc">Mesas, tiempos y actividad</span></span>
+                            </a>
+                            <a class="item" href="/apps/club/sala/reservas_admin.html">
+                                <span class="item-main"><span class="item-title">Reservas</span><span class="item-desc">Confirmar o cancelar solicitudes</span></span>
+                            </a>
+                            <a class="item" href="/apps/club/sala/historial_mesas.html">
+                                <span class="item-main"><span class="item-title">Historial de uso</span><span class="item-desc">Sesiones y estadísticas</span></span>
+                            </a>
+                        </div>
+                    </div>
+                </details>
+                <details class="dc-hub-nested">
+                    <summary class="dc-hub-nested__sum">
+                        Instalación física
+                        <span class="dc-hub-nested__chev" aria-hidden="true"></span>
+                    </summary>
+                    <div class="dc-hub-nested__inner">
+                        <div class="grid dc-hub-mosaic">
+                            <a class="item" href="/apps/club/sala/instalacion_ficha.html">
+                                <span class="item-main"><span class="item-title">Ficha de instalación</span><span class="item-desc">Enlace público ?id= para cada mesa</span></span>
+                                <span class="tag">QR</span>
+                            </a>
+                            <a class="item" href="/apps/club/sala/mesas_config.html">
+                                <span class="item-main"><span class="item-title">Configurar instalaciones</span><span class="item-desc">Alta y edición de mesas</span></span>
+                            </a>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </details>
+
+        <!-- 2 · Economía -->
+        <details class="dc-hub-fold">
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">2</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Economía y cierre</span>
+                    <span class="dc-hub-fold__sub">Tarifas del salón y reportes para caja</span>
+                </span>
+                <span class="dc-hub-fold__count">2</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <div class="grid dc-hub-mosaic">
+                    <a class="item" href="/apps/club/sala/tarifas_salon.html">
+                        <span class="item-main"><span class="item-title">Tarifas y descuentos</span><span class="item-desc">Precio por minuto y promos</span></span>
+                        <span class="tag">$/min</span>
+                    </a>
+                    <a class="item" href="/apps/club/sala/reportes.html">
+                        <span class="item-main"><span class="item-title">Reportes de salón</span><span class="item-desc">Resumen operativo y apoyo a cierre</span></span>
+                    </a>
+                </div>
+            </div>
+        </details>
+
+        <!-- 3 · Marca y socios -->
+        <details class="dc-hub-fold">
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">3</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Club y marca</span>
+                    <span class="dc-hub-fold__sub">Identidad visual, formatos y base de jugadores</span>
+                </span>
+                <span class="dc-hub-fold__count">3</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <div class="grid dc-hub-mosaic">
+                    <a class="item" href="/apps/club/sala/admin_sede.html">
+                        <span class="item-main"><span class="item-title">Configurar sede</span><span class="item-desc">Nombre, logo y colores del club</span></span>
+                        <span class="tag">MARCA</span>
+                    </a>
+                    <a class="item" href="/apps/club/sala/configurador_formato.html">
+                        <span class="item-main"><span class="item-title">Personalizar formato</span><span class="item-desc">Reglas y estructura de torneo</span></span>
+                    </a>
+                    <a class="item" href="/apps/club/sala/socios.html">
+                        <span class="item-main"><span class="item-title">Jugadores y socios</span><span class="item-desc">Base de jugadores del club</span></span>
+                    </a>
+                </div>
+            </div>
+        </details>
+
+        <!-- 4 · Torneos -->
+        <details class="dc-hub-fold">
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">4</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Organizador de torneo</span>
+                    <span class="dc-hub-fold__sub">Crear evento, control en pista y cierre</span>
+                </span>
+                <span class="dc-hub-fold__count">8</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <details class="dc-hub-nested" open>
+                    <summary class="dc-hub-nested__sum">
+                        Antes del evento
+                        <span class="dc-hub-nested__chev" aria-hidden="true"></span>
+                    </summary>
+                    <div class="dc-hub-nested__inner">
+                        <div class="grid dc-hub-mosaic">
+                            <a class="item" href="/apps/club/organizador/organizador.html">
+                                <span class="item-main"><span class="item-title">Panel organizador</span><span class="item-desc">Vista general del torneo activo</span></span>
+                            </a>
+                            <a class="item" href="/apps/club/organizador/torneo_crear.html">
+                                <span class="item-main"><span class="item-title">Crear torneo</span><span class="item-desc">Asistente paso a paso</span></span>
+                            </a>
+                            <a class="item" href="/apps/club/organizador/inscripciones.html">
+                                <span class="item-main"><span class="item-title">Inscripciones</span><span class="item-desc">Altas de jugadores al torneo</span></span>
+                            </a>
+                            <a class="item" href="/apps/club/organizador/torneos.html">
+                                <span class="item-main"><span class="item-title">Listado de torneos</span><span class="item-desc">Historial y estados</span></span>
+                            </a>
+                        </div>
+                    </div>
+                </details>
+                <details class="dc-hub-nested">
+                    <summary class="dc-hub-nested__sum">
+                        Durante y después
+                        <span class="dc-hub-nested__chev" aria-hidden="true"></span>
+                    </summary>
+                    <div class="dc-hub-nested__inner">
+                        <div class="grid dc-hub-mosaic">
+                            <a class="item" href="/apps/club/organizador/control_torneo.html">
+                                <span class="item-main"><span class="item-title">Control en vivo</span><span class="item-desc">Partidas y árbitro</span></span>
+                            </a>
+                            <a class="item" href="/apps/club/organizador/Brackets.html">
+                                <span class="item-main"><span class="item-title">Brackets / llaves</span><span class="item-desc">Fixture del torneo</span></span>
+                            </a>
+                            <a class="item" href="/apps/club/organizador/posiciones.html">
+                                <span class="item-main"><span class="item-title">Posiciones</span><span class="item-desc">Tabla y ranking del evento</span></span>
+                            </a>
+                            <a class="item" href="/apps/club/organizador/Certificados.html">
+                                <span class="item-main"><span class="item-title">Certificados</span><span class="item-desc">Impresión o envío</span></span>
+                            </a>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </details>
+
+        <!-- 5 · TV -->
+        <details class="dc-hub-fold dc-hub-fold--tv">
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">5</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Transmisión y TV</span>
+                    <span class="dc-hub-fold__sub">Pantalla en mesa, móvil y capa para OBS</span>
+                </span>
+                <span class="dc-hub-fold__count">4</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <div class="grid dc-hub-mosaic">
+                    <a class="item" href="/club/duelo_premium_tv.html">
+                        <span class="item-main"><span class="item-title">Duelo Premium TV</span><span class="item-desc">Señal fija para pantalla en la mesa</span></span>
+                        <span class="tag">TV</span>
+                    </a>
+                    <a class="item" href="/duelo-tv.html">
+                        <span class="item-main"><span class="item-title">Duelo móvil / compartir</span><span class="item-desc">Partida en vivo desde el navegador</span></span>
+                    </a>
+                    <a class="item" href="/overlay_marcador.html">
+                        <span class="item-main"><span class="item-title">Overlay marcador</span><span class="item-desc">Capa para OBS / streaming</span></span>
+                        <span class="tag">OBS</span>
+                    </a>
+                    <a class="item" href="/duelo-tv-preview.html">
+                        <span class="item-main"><span class="item-title">Preview Duelo TV</span><span class="item-desc">Vista previa antes de proyectar</span></span>
+                    </a>
+                </div>
+            </div>
+        </details>
+
+        <!-- 6 · Soporte -->
+        <details class="dc-hub-fold">
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">6</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Soporte</span>
+                    <span class="dc-hub-fold__sub">Contacto con el equipo DeCarambola</span>
+                </span>
+                <span class="dc-hub-fold__count">1</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <div class="grid dc-hub-mosaic">
+                    <a class="item" href="/Sensei.html?contacto=1">
+                        <span class="item-main"><span class="item-title">Contacto / PQRS</span><span class="item-desc">Mensajes al equipo DeCarambola</span></span>
+                    </a>
+                </div>
+            </div>
+        </details>
+    </div><!-- /#club-hub-main -->
+
+    <footer class="club-portal-footer" aria-label="Enlaces rápidos">
+        <a href="/index.html">← App completa</a>
+        <a href="/index.html#club">Elegir club</a>
+        <a href="/docs/MAPA_ARCHIVOS_HTML.md" title="Listado de pantallas HTML">Mapa de archivos</a>
+    </footer>
+
+    </div><!-- /#club-portal-main -->
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+<script src="/Version.js"></script>
+<script src="/whitelabel.js"></script>
+<script type="module">
+import { initClubPortalGate } from '/js/club-portal-gate.js';
+initClubPortalGate();
+</script>
+</body>
+</html>

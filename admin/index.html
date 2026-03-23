@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#e74c3c">
+    <meta name="description" content="Backoffice DeCarambola — flujos de plataforma y soporte">
+    <title>Backoffice — DeCarambola</title>
+    <link rel="stylesheet" href="../css/ux-shell.css">
+    <link rel="stylesheet" href="../css/hub-sections.css">
+    <style>
+        :root {
+            --text: #eaeaea;
+            --muted: #666;
+            --oro: #d4af37;
+            --rojo: #e74c3c;
+            --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            --font-d: 'Arial Black', Arial, sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font);
+            font-size: 15px;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: calc(20px + env(safe-area-inset-top)) 18px calc(100px + env(safe-area-inset-bottom));
+        }
+        .hero {
+            max-width: 540px;
+            margin: 0 auto 20px;
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(231, 76, 60, 0.25);
+        }
+        .hero-eyebrow {
+            font-size: 0.62rem;
+            letter-spacing: 0.28em;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .hero h1 {
+            font-family: var(--font-d);
+            font-size: 1.05rem;
+            letter-spacing: 0.2em;
+            color: var(--rojo);
+            margin: 12px 0 10px;
+            text-shadow: 0 0 24px rgba(231, 76, 60, 0.35);
+        }
+        .hero p {
+            color: #777;
+            font-size: 0.78rem;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.45;
+        }
+        .hero-nav {
+            margin-top: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .hero-nav a {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            background: linear-gradient(160deg, #140808, #0a0606);
+            color: var(--text);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .hero-nav a:hover, .hero-nav a:focus-visible {
+            border-color: rgba(231, 76, 60, 0.6);
+            box-shadow: 0 0 18px rgba(231, 76, 60, 0.12);
+            outline: none;
+        }
+        .flow-strip {
+            max-width: 540px;
+            margin: 0 auto 22px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+        @media (max-width: 380px) {
+            .flow-strip { grid-template-columns: 1fr; }
+        }
+        .flow-step {
+            padding: 12px 10px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.35);
+        }
+        .flow-step strong {
+            display: block;
+            font-family: var(--font-d);
+            font-size: 0.55rem;
+            letter-spacing: 0.12em;
+            color: var(--oro);
+            margin-bottom: 6px;
+        }
+        .flow-step span {
+            font-size: 0.68rem;
+            color: #888;
+            line-height: 1.35;
+        }
+        .note {
+            max-width: 540px;
+            margin: 0 auto 20px;
+            padding: 12px 14px;
+            font-size: 0.72rem;
+            line-height: 1.45;
+            color: #7a7a7a;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .note strong { color: #999; }
+        .note a { color: #d4af37; }
+    </style>
+</head>
+<body class="dc-ux dc-ux-skin">
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+    <header class="hero">
+        <div class="hero-eyebrow">DeCarambola</div>
+        <h1>BACKOFFICE</h1>
+        <p>Herramientas de <strong style="color:#aaa;">plataforma</strong>: atender, reproducir y documentar — no es la lista de deseos del producto.</p>
+        <nav class="hero-nav" aria-label="Salir del backoffice">
+            <a href="../index.html">← Inicio público (apps)</a>
+        </nav>
+    </header>
+
+    <p class="note"><strong>Portal club:</strong> el menú se presenta en <strong>6 bloques plegables</strong>; <strong>las mismas pantallas siguen enlazadas</strong>. Si echas en falta algo: <a href="../club/index.html">club/index.html</a>.</p>
+
+    <div class="flow-strip" aria-label="Tu flujo en 3 pasos">
+        <div class="flow-step">
+            <strong>1 · BANDEJA</strong>
+            <span>Entrar a PQRS y gestionar contactos entrantes.</span>
+        </div>
+        <div class="flow-step">
+            <strong>2 · REPRODUCIR</strong>
+            <span>Abrir jugador o club como el usuario para ver el fallo.</span>
+        </div>
+        <div class="flow-step">
+            <strong>3 · DOCUMENTAR</strong>
+            <span>Registrar en docs o checklist lo que toque desplegar.</span>
+        </div>
+    </div>
+
+    <div class="dc-hub dc-hub--staff" id="admin-hub-main">
+        <p class="dc-hub-lead"><strong>3 áreas.</strong> Misma lógica que <a href="../jugador/index.html" style="color:#c98;">jugador</a> y <a href="../club/index.html" style="color:#c98;">club</a>: pocos bloques visibles, detalle dentro.</p>
+
+        <details class="dc-hub-fold" open>
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">1</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Atención y calidad</span>
+                    <span class="dc-hub-fold__sub">Flujo diario del staff DeCarambola</span>
+                </span>
+                <span class="dc-hub-fold__count">2</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <div class="grid">
+                    <a class="item" href="../pqrs_admin.html">
+                        <span class="item-main"><span class="item-title">Gestionar PQRS / contactos</span><span class="item-desc">Bandeja de mensajes y seguimiento</span></span>
+                        <span class="tag">PRINCIPAL</span>
+                    </a>
+                    <a class="item" href="../Sensei.html?contacto=1">
+                        <span class="item-main"><span class="item-title">Formulario de contacto (vista usuario)</span><span class="item-desc">Comprobar lo que ve el jugador o el club</span></span>
+                    </a>
+                </div>
+            </div>
+        </details>
+
+        <details class="dc-hub-fold">
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">2</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Auditar el producto</span>
+                    <span class="dc-hub-fold__sub">Mismas apps que usan club y jugador (QA)</span>
+                </span>
+                <span class="dc-hub-fold__count">3</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <div class="grid">
+                    <a class="item" href="../jugador/index.html">
+                        <span class="item-main"><span class="item-title">App jugador</span><span class="item-desc">Hub de partida, perfil y torneos</span></span>
+                        <span class="tag">QA</span>
+                    </a>
+                    <a class="item" href="../club/index.html">
+                        <span class="item-main"><span class="item-title">Portal club</span><span class="item-desc">Salón, torneos, TV — por bloques</span></span>
+                        <span class="tag">QA</span>
+                    </a>
+                    <a class="item" href="../Sensei.html">
+                        <span class="item-main"><span class="item-title">Sensei</span><span class="item-desc">Asistente y aprendizaje</span></span>
+                    </a>
+                </div>
+            </div>
+        </details>
+
+        <details class="dc-hub-fold">
+            <summary class="dc-hub-fold__sum">
+                <span class="dc-hub-fold__kbd">3</span>
+                <span class="dc-hub-fold__text">
+                    <span class="dc-hub-fold__title">Documentación en el repo</span>
+                    <span class="dc-hub-fold__sub">Referencia técnica (sin contraseñas)</span>
+                </span>
+                <span class="dc-hub-fold__count">6+</span>
+                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
+            </summary>
+            <div class="dc-hub-fold__body">
+                <nav class="dc-hub-doc-links" aria-label="Documentación técnica">
+                    <a href="../docs/MAPA_ARCHIVOS_HTML.md">Mapa de todos los .html (nada oculto)</a>
+                    <a href="../docs/FLUJO_OPERATIVO_HUBS.md">Flujo operativo — hubs (jugador · club · admin)</a>
+                    <a href="../docs/INVENTARIO_ARQUITECTURA_ROLES.md">Inventario arquitectura y roles</a>
+                    <a href="../docs/QA_CHECKLIST_SUBIDA.md">QA checklist subida</a>
+                    <a href="../docs/SUPABASE_TABLAS.md">Supabase tablas</a>
+                    <a href="../docs/RLS_PRODUCCION.md">RLS producción</a>
+                    <a href="../docs/PASO_1_VERIFICAR_PQRS_SUPABASE.md">Verificar PQRS + Supabase</a>
+                </nav>
+            </div>
+        </details>
+    </div>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+</body>
+</html>

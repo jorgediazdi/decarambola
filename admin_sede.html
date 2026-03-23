@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Configurar sede — DeCarambola</title>
     <style>
         :root { --oro:#d4af37; --negro:#0b0b0b; --azul:#3498db; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
@@ -43,15 +44,24 @@
         .msg.err { display:block; background:rgba(231,76,60,0.15); color:#e74c3c; border:1px solid rgba(231,76,60,0.3); }
         .codigo-readonly { background:var(--g2); color:#888; padding:10px 14px; border-radius:10px; font-size:0.8rem; margin-bottom:10px; }
     </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <div class="header">
     <div>
         <div class="header-titulo">CONFIGURAR SEDE</div>
         <div class="header-sub">Nombre · Ciudad · Color · Logo</div>
     </div>
-    <a href="index.html" class="btn-hdr">← MENÚ</a>
+    <div class="header-actions">
+        <a href="mesas.html" class="btn-hdr">Salón en vivo</a>
+        <a href="reservas_admin.html" class="btn-hdr">Reservas</a>
+        <a href="mesas_config.html" class="btn-hdr">Config. instalaciones</a>
+        <a href="club/index.html" class="btn-hdr">Portal club</a>
+        <a href="index.html" class="btn-hdr">Inicio app</a>
+    </div>
 </div>
 
 <div class="wrap">
@@ -322,5 +332,19 @@
 })();
 </script>
 
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

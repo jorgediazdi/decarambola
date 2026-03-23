@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
+    <meta name="description" content="Gestión de reservas de mesas e instalaciones — DeCarambola">
+    <title>Reservas — DeCarambola</title>
+    <style>
+        :root {
+            --oro:#d4af37;
+            --negro:#0b0b0b;
+            --neon:#2eff70;
+            --surface:#111;
+            --surface2:#0a0a0a;
+            --border:#222;
+            --text:#eaeaea;
+            --muted:#8a8a8a;
+            --muted2:#555;
+            --ok:#2ecc71;
+            --warn:#f39c12;
+            --danger:#e74c3c;
+            --azul:#3498db;
+            --radius:14px;
+            --radius-sm:10px;
+            --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            --font-display: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+        }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body {
+            background: var(--negro);
+            color: var(--text);
+            font-family: var(--font-ui);
+            font-size: 15px;
+            line-height: 1.45;
+            min-height: 100vh;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background: rgba(5,5,5,0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 18px;
+            padding-top: calc(14px + env(safe-area-inset-top, 0px));
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header-titulo {
+            font-family: var(--font-display);
+            color: var(--oro);
+            font-size: 0.72rem;
+            letter-spacing: 0.18em;
+            font-weight: 900;
+            text-shadow: 0 0 22px rgba(212, 175, 55, 0.4);
+        }
+        .header-sub {
+            color: var(--muted2);
+            font-size: 0.68rem;
+            margin-top: 4px;
+            letter-spacing: 0.04em;
+        }
+        .header-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+        .btn-hdr {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: var(--font-ui);
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .btn-hdr:hover, .btn-hdr:focus-visible {
+            border-color: rgba(212,175,55,0.35);
+            color: var(--oro);
+            outline: none;
+        }
+
+        .ctx-strip {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 10px 18px 0;
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .ctx-strip strong { color: var(--oro); font-weight: 600; }
+        .ctx-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--warn);
+            flex-shrink: 0;
+        }
+        .ctx-dot.ok { background: var(--neon); box-shadow: 0 0 8px rgba(46, 255, 112, 0.45); }
+
+        .wrap { max-width: 520px; margin: 0 auto; padding: 16px 18px; }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 4px;
+            background: linear-gradient(180deg, #0f0f0f, #0a0a0a);
+            border-radius: 999px;
+            border: 1px solid rgba(212, 175, 55, 0.22);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px 8px;
+            border-radius: 999px;
+            border: none;
+            background: transparent;
+            color: var(--muted2);
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            font-family: var(--font-display);
+            transition: background 0.15s, color 0.15s;
+        }
+        .tab-btn:hover { color: var(--muted); }
+        .tab-btn:focus-visible {
+            outline: 2px solid var(--oro);
+            outline-offset: 2px;
+        }
+        .tab-btn.activo {
+            background: var(--oro);
+            color: #000;
+        }
+
+        .reserva-card {
+            background: linear-gradient(145deg, #1a1200, #0c0a06);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            margin-bottom: 10px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        }
+        .reserva-card:hover { border-color: rgba(212, 175, 55, 0.45); }
+        .reserva-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .reserva-mesa {
+            font-family: var(--font-display);
+            color: var(--oro);
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            line-height: 1.3;
+        }
+        .badge {
+            font-size: 0.58rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            letter-spacing: 0.06em;
+            flex-shrink: 0;
+        }
+        .badge-pendiente { background: rgba(243,156,18,0.15); color: #f1c40f; border: 1px solid rgba(243,156,18,0.25); }
+        .badge-confirmada { background: rgba(46,204,113,0.12); color: var(--ok); border: 1px solid rgba(46,204,113,0.25); }
+        .badge-cancelada { background: rgba(231,76,60,0.12); color: var(--danger); border: 1px solid rgba(231,76,60,0.25); }
+
+        .reserva-det {
+            color: var(--muted);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .reserva-det b { color: var(--text); font-weight: 600; }
+
+        .reserva-acciones {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .btn-small {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--muted);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            font-family: var(--font-display);
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .btn-small:focus-visible {
+            outline: 2px solid var(--oro);
+            outline-offset: 2px;
+        }
+        .btn-ok {
+            border-color: rgba(46,204,113,0.45);
+            color: var(--ok);
+            background: rgba(46,204,113,0.06);
+        }
+        .btn-ok:hover { background: rgba(46,204,113,0.12); }
+        .btn-cancel {
+            border-color: rgba(231,76,60,0.45);
+            color: #ff6b6b;
+            background: rgba(231,76,60,0.06);
+        }
+        .btn-cancel:hover { background: rgba(231,76,60,0.1); }
+
+        .panel-msg {
+            text-align: center;
+            padding: 36px 20px;
+            border-radius: var(--radius);
+            border: 1px dashed rgba(212, 175, 55, 0.25);
+            background: linear-gradient(160deg, #12100a, #080705);
+        }
+        .panel-msg--load { border-style: solid; }
+        .panel-msg h3 {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            color: var(--oro);
+            margin-bottom: 10px;
+        }
+        .panel-msg p {
+            color: var(--muted);
+            font-size: 0.85rem;
+            max-width: 280px;
+            margin: 0 auto 16px;
+        }
+        .panel-msg a {
+            color: var(--oro);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .panel-msg a:hover { text-decoration: underline; }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            margin: 0 auto 16px;
+            border: 3px solid var(--border);
+            border-top-color: var(--oro);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast {
+            position: fixed;
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            max-width: min(92vw, 360px);
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+        }
+        .toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.ok { background: #1a2f22; border: 1px solid rgba(46,204,113,0.4); color: #b8f5d0; }
+        .toast.err { background: #2a1818; border: 1px solid rgba(231,76,60,0.4); color: #ffc9c9; }
+    </style>
+    <link rel="stylesheet" href="../../../css/ux-shell.css">
+    <style>
+        body.dc-ux.dc-ux-skin.reservas-admin-hub {
+            font-family: var(--font-ui);
+            font-size: 15px;
+            line-height: 1.45;
+        }
+        body.dc-ux-skin.reservas-admin-hub .header-titulo {
+            text-shadow: 0 0 22px rgba(212, 175, 55, 0.38);
+        }
+    </style>
+</head>
+<body class="dc-ux dc-ux-skin reservas-admin-hub">
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+<div class="header">
+    <div>
+        <div class="header-titulo">RESERVAS</div>
+        <div class="header-sub">Confirmá o cancelá solicitudes de instalaciones</div>
+    </div>
+    <div class="header-actions">
+        <a href="socios.html" class="btn-hdr">Jugadores</a>
+        <a href="mesas.html" class="btn-hdr">Salón en vivo</a>
+        <a href="reportes.html" class="btn-hdr">Reportes</a>
+        <a href="mesas_config.html" class="btn-hdr">Config. salón</a>
+        <a href="tarifas_salon.html" class="btn-hdr">Tarifas del salón</a>
+        <a href="../../../club/index.html" class="btn-hdr">Portal club</a>
+        <a href="../../../index.html" class="btn-hdr">Inicio app</a>
+    </div>
+</div>
+
+<div class="ctx-strip" id="ctx-strip" style="display:none;">
+    <span class="ctx-dot" id="ctx-dot"></span>
+    <span id="ctx-text"></span>
+</div>
+
+<div class="wrap">
+    <div class="tabs" role="tablist" aria-label="Filtro de reservas">
+        <button type="button" class="tab-btn activo" id="tab-pend" role="tab" aria-selected="true" onclick="cambiarTab('pendiente')">Pendientes</button>
+        <button type="button" class="tab-btn" id="tab-conf" role="tab" aria-selected="false" onclick="cambiarTab('confirmada')">Confirmadas</button>
+        <button type="button" class="tab-btn" id="tab-todo" role="tab" aria-selected="false" onclick="cambiarTab('todas')">Todas</button>
+    </div>
+    <div id="lista-reservas" aria-live="polite"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="../../../core.js"></script>
+<script src="../../../session.js"></script>
+<script>
+let reservas = [];
+let mesasIndex = {};
+let filtroEstado = 'pendiente';
+let loadDone = false;
+
+function getClubId() {
+    if (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) return MasterVIP.getClubId();
+    try {
+        var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        return perfil.club_id || null;
+    } catch (e) { return null; }
+}
+
+function clubNombreContexto() {
+    return (localStorage.getItem('wl_club_nombre') || '').trim() || null;
+}
+
+function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function toast(msg, tipo) {
+    var el = document.getElementById('toast');
+    if (!el) return;
+    el.className = 'toast ' + (tipo === 'error' ? 'err' : 'ok');
+    el.textContent = msg;
+    el.classList.add('visible');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function() { el.classList.remove('visible'); }, 3200);
+}
+
+function setCtxStrip(ok, text) {
+    var strip = document.getElementById('ctx-strip');
+    var dot = document.getElementById('ctx-dot');
+    var tx = document.getElementById('ctx-text');
+    if (!strip || !dot || !tx) return;
+    strip.style.display = 'flex';
+    dot.className = 'ctx-dot' + (ok ? ' ok' : '');
+    tx.innerHTML = text;
+}
+
+function cambiarTab(est) {
+    filtroEstado = est;
+    document.getElementById('tab-pend').classList.toggle('activo', est === 'pendiente');
+    document.getElementById('tab-conf').classList.toggle('activo', est === 'confirmada');
+    document.getElementById('tab-todo').classList.toggle('activo', est === 'todas');
+    document.getElementById('tab-pend').setAttribute('aria-selected', est === 'pendiente');
+    document.getElementById('tab-conf').setAttribute('aria-selected', est === 'confirmada');
+    document.getElementById('tab-todo').setAttribute('aria-selected', est === 'todas');
+    if (loadDone) pintarReservas();
+}
+
+function estadoBadge(est) {
+    est = (est || 'pendiente').toLowerCase();
+    if (est === 'confirmada') return '<span class="badge badge-confirmada">Confirmada</span>';
+    if (est === 'cancelada') return '<span class="badge badge-cancelada">Cancelada</span>';
+    return '<span class="badge badge-pendiente">Pendiente</span>';
+}
+
+function nombreMesa(id) {
+    var m = mesasIndex[id];
+    if (!m) return 'INSTALACIÓN';
+    return (m.nombre || ('Instalación ' + (m.numero || ''))).toUpperCase();
+}
+
+function pintarReservas() {
+    var cont = document.getElementById('lista-reservas');
+    if (!cont) return;
+    var lista = reservas.slice();
+    if (filtroEstado !== 'todas') {
+        lista = lista.filter(function(r){ return (r.estado || 'pendiente').toLowerCase() === filtroEstado; });
+    }
+    if (!lista.length) {
+        var hint = filtroEstado === 'pendiente'
+            ? 'Cuando un jugador reserve desde la app, aparecerá aquí para que la confirmes.'
+            : 'No hay reservas con este estado. Probá otro filtro.';
+        cont.innerHTML =
+            '<div class="panel-msg">' +
+            '<h3>Sin resultados</h3>' +
+            '<p>' + hint + '</p>' +
+            '</div>';
+        return;
+    }
+    cont.innerHTML = lista.map(function(r){
+        var fecha = r.fecha_reserva ? new Date(r.fecha_reserva) : null;
+        var fechaTxt = fecha ? fecha.toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' }) : 'Sin fecha';
+        var dur = r.duracion_minutos ? r.duracion_minutos + ' min' : '—';
+        var notas = r.notas ? escapeHtml(r.notas) : '';
+        var jug = r.jugador_nombre ? escapeHtml(r.jugador_nombre) : '';
+        var ridJs = String(r.id || '').replace(/\\/g, '\\\\').replace(/'/g, '\\\'');
+        return '<div class="reserva-card">' +
+            '<div class="reserva-top"><div class="reserva-mesa">' + escapeHtml(nombreMesa(r.mesa_id)) + '</div>' +
+            estadoBadge(r.estado) + '</div>' +
+            '<div class="reserva-det">' +
+            (jug ? '<b>Jugador</b> · ' + jug + '<br>' : '') +
+            '<b>Fecha</b> · ' + fechaTxt + '<br>' +
+            '<b>Duración</b> · ' + dur +
+            (notas ? '<br><b>Notas</b> · ' + notas : '') +
+            '</div>' +
+            ( (r.estado || 'pendiente').toLowerCase() === 'pendiente'
+              ? '<div class="reserva-acciones">' +
+                '<button type="button" class="btn-small btn-ok" onclick="actualizarReserva(\'' + ridJs + '\',\'confirmada\')">Confirmar</button>' +
+                '<button type="button" class="btn-small btn-cancel" onclick="pedirCancelar(\'' + ridJs + '\')">Cancelar</button>' +
+                '</div>' : '' ) +
+            '</div>';
+    }).join('');
+}
+
+function pedirCancelar(id) {
+    if (!confirm('¿Cancelar esta reserva? El jugador verá el estado actualizado.')) return;
+    actualizarReserva(id, 'cancelada');
+}
+
+async function actualizarReserva(id, nuevoEstado) {
+    try {
+        await DB.update('mesas_reservas', id, { estado: nuevoEstado, updated_at: new Date().toISOString() });
+        reservas = reservas.map(function(r){ if (r.id === id) r.estado = nuevoEstado; return r; });
+        pintarReservas();
+        toast(nuevoEstado === 'confirmada' ? 'Reserva confirmada.' : 'Reserva cancelada.', 'ok');
+    } catch (e) {
+        console.error(e);
+        toast('No se pudo guardar. Revisá tu conexión e intentá de nuevo.', 'error');
+    }
+}
+
+function showLoading() {
+    var cont = document.getElementById('lista-reservas');
+    cont.innerHTML =
+        '<div class="panel-msg panel-msg--load">' +
+        '<div class="spinner" aria-hidden="true"></div>' +
+        '<h3>Cargando reservas</h3>' +
+        '<p>Un momento…</p>' +
+        '</div>';
+}
+
+function showNoClub() {
+    var cont = document.getElementById('lista-reservas');
+    cont.innerHTML =
+        '<div class="panel-msg">' +
+        '<h3>Club no vinculado</h3>' +
+        '<p>Para ver reservas necesitás un club activo: en el <b>menú principal</b> → <b>Club</b> unite con código o activá tu sede.</p>' +
+        '<p><a href="../../../index.html#afiliacion">Ir a configurar club →</a></p>' +
+        '</div>';
+    setCtxStrip(false, '<strong>Sin sede</strong> · Configurá tu club en el inicio');
+}
+
+function showError(msg) {
+    var cont = document.getElementById('lista-reservas');
+    cont.innerHTML =
+        '<div class="panel-msg">' +
+        '<h3>No se pudo cargar</h3>' +
+        '<p>' + escapeHtml(msg || 'Error de red o del servidor.') + '</p>' +
+        '<p><a href="#" onclick="cargarDatos();return false;">Reintentar</a></p>' +
+        '</div>';
+}
+
+async function cargarDatos() {
+    loadDone = false;
+    showLoading();
+    var clubId = getClubId();
+    var nom = clubNombreContexto();
+
+    if (!clubId) {
+        loadDone = true;
+        showNoClub();
+        return;
+    }
+
+    setCtxStrip(true, '<strong>' + escapeHtml(nom || 'Club') + '</strong> · Datos en vivo');
+
+    try {
+        var filtro = 'club_id=eq.' + clubId;
+        var list = await DB.get('mesas_reservas', filtro);
+        reservas = list || [];
+        reservas.sort(function(a,b){
+            return new Date(b.fecha_reserva || b.created_at) - new Date(a.fecha_reserva || a.created_at);
+        });
+        var mesas = await DB.get('mesas', 'club_id=eq.' + clubId);
+        mesasIndex = {};
+        (mesas || []).forEach(function(m){ mesasIndex[m.id] = m; });
+        loadDone = true;
+        pintarReservas();
+    } catch (e) {
+        console.error(e);
+        loadDone = true;
+        showError('Comprobá tu conexión. Si el problema sigue, el servicio puede estar en mantenimiento.');
+        toast('Error al cargar reservas.', 'error');
+    }
+}
+
+window.__salaBoot = function() {
+    try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
+    cargarDatos();
+};
+</script>
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+<script type="module">
+import { guardSalaPage } from '../../../js/sala-supabase-gate.js';
+await guardSalaPage({ pageTitle: 'Reservas' });
+</script>
+
+</body>
+</html>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Inscripciones — DeCarambola</title>
     <style>
         :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
@@ -10,8 +11,16 @@
         body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; }
 
         /* HEADER */
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:16px 18px; position:sticky; top:0; z-index:50; }
-        .header-top { display:flex; justify-content:space-between; align-items:center; }
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:16px 18px; position:sticky; top:0; z-index:50; display:flex; flex-direction:column; align-items:stretch; gap:12px; }
+        .header-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
+        .btn-hdr {
+            background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888;
+            padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
+            text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
+            letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+        }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
         .header h1 { color:var(--oro); font-size:1.1rem; letter-spacing:3px; }
         .header small { color:#333; font-size: 0.65rem; letter-spacing:2px; margin-top:4px; display:block; }
         .cupo-badge {
@@ -378,8 +387,12 @@
         .inp-wrap { position:relative; }
         .btn-ver  { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:#555; cursor:pointer; font-size:1rem; padding:4px; }
     </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <meta name="theme-color" content="#d4af37">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <div class="header">
     <div class="header-top">
@@ -391,6 +404,14 @@
             </div>
         </div>
         <div class="cupo-badge" id="cupo-badge">0 / 0</div>
+    </div>
+    <div class="header-actions">
+        <a href="organizador.html" class="btn-hdr">Panel organizador</a>
+        <a href="torneos.html" class="btn-hdr">Torneos</a>
+        <a href="torneo_crear.html" class="btn-hdr">Nuevo torneo</a>
+        <a href="control_torneo.html" class="btn-hdr">Control torneo</a>
+        <a href="club/index.html" class="btn-hdr">Portal club</a>
+        <a href="index.html" class="btn-hdr">Inicio app</a>
     </div>
 </div>
 
@@ -533,15 +554,51 @@ window.addEventListener('load', function() {
 var torneo = null;
 var tabActual = 'nuevo';
 
+/** Torneos: exige estar afiliado a un club y tener sede/club activo (menú principal → Club). */
+function jugadorAfiliadoAClubParaTorneo() {
+    var raw = [];
+    try { raw = JSON.parse(localStorage.getItem('mis_clubes') || '[]'); } catch (e) {}
+    var clubes = Array.isArray(raw) ? raw.filter(function (c) {
+        return !c.tipo || String(c.tipo).toLowerCase() === 'billar';
+    }) : [];
+    var perfil = null;
+    try { perfil = JSON.parse(localStorage.getItem('mi_perfil') || 'null'); } catch (e) {}
+    var tieneClubId = perfil && perfil.club_id;
+
+    if (clubes.length === 0 && !tieneClubId) return false;
+
+    var wl = (localStorage.getItem('wl_club_nombre') || '').trim();
+    if (wl && wl !== 'GLOBAL') return true;
+
+    try {
+        var ca = JSON.parse(localStorage.getItem('club_activo') || 'null');
+        if (ca && ca.codigo && (clubes.length === 0 || clubes.some(function (c) { return c.codigo === ca.codigo; })))
+            return true;
+    } catch (e) {}
+
+    if (tieneClubId) return true;
+
+    return false;
+}
+
 function mostrarBloqueoAfiliacion() {
-    var wrap = document.querySelector('.contenido') || document.body;
+    if (document.getElementById('bloqueo-afiliacion')) return;
+    var raw = [];
+    try { raw = JSON.parse(localStorage.getItem('mis_clubes') || '[]'); } catch (e) {}
+    var nClubes = Array.isArray(raw) ? raw.filter(function (c) {
+        return !c.tipo || String(c.tipo).toLowerCase() === 'billar';
+    }).length : 0;
+    var texto = nClubes > 0
+        ? 'Ya perteneces a uno o más clubes: en el <strong>menú principal</strong> abre la pestaña <strong>Club</strong> → <strong>Mis clubes</strong> y elige tu club activo (así queda tu sede para torneos).'
+        : 'Para participar en torneos debes <strong>afiliarte a un club</strong>: en el menú principal → pestaña <strong>Club</strong> → <strong>Únete con código</strong> (o crea un club si eres organizador).';
     var bloqueo = document.createElement('div');
     bloqueo.id = 'bloqueo-afiliacion';
     bloqueo.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;';
     bloqueo.innerHTML = '<div style="font-size:4rem;margin-bottom:16px;">🎱</div>' +
         '<div style="color:#d4af37;font-size:1.1rem;letter-spacing:2px;margin-bottom:8px;">AFILIACIÓN OBLIGATORIA</div>' +
-        '<p style="color:#888;font-size:0.8rem;max-width:320px;line-height:1.5;margin-bottom:24px;">Debes estar afiliado a un club para participar en torneos. Selecciona tu club en el menú principal.</p>' +
-        '<a href="index.html" style="display:inline-block;padding:16px 32px;background:linear-gradient(135deg,#d4af37,#a07800);color:#000;border-radius:16px;font-size:0.9rem;font-weight:bold;text-decoration:none;font-family:Arial Black,sans-serif;letter-spacing:2px;">IR AL INICIO</a>';
+        '<p style="color:#888;font-size:0.8rem;max-width:340px;line-height:1.55;margin-bottom:20px;">' + texto + '</p>' +
+        '<a href="index.html#afiliacion" style="display:inline-block;padding:16px 28px;background:linear-gradient(135deg,#d4af37,#a07800);color:#000;border-radius:16px;font-size:0.85rem;font-weight:bold;text-decoration:none;font-family:Arial Black,sans-serif;letter-spacing:1px;">IR AL MENÚ — CLUB</a>' +
+        '<p style="margin-top:18px;"><a href="index.html" style="color:#555;font-size:0.65rem;">Volver al inicio</a></p>';
     document.body.appendChild(bloqueo);
 }
 
@@ -549,8 +606,7 @@ window.onload = async function() {
     try { await MasterVIP.init(); } catch(e) { console.warn('Init offline:', e); }
     try { SESSION.verificarAlCargar('jugador'); } catch(e) {}
     MasterVIP.applyDesign();
-    var clubActivo = localStorage.getItem('wl_club_nombre') || '';
-    if (!clubActivo || clubActivo === 'GLOBAL') {
+    if (!jugadorAfiliadoAClubParaTorneo()) {
         mostrarBloqueoAfiliacion();
         return;
     }
@@ -704,6 +760,10 @@ function toggleClave() {
 }
 
 async function inscribirNuevo() {
+    if (!jugadorAfiliadoAClubParaTorneo()) {
+        mostrarBloqueoAfiliacion();
+        return;
+    }
     var nombre    = document.getElementById('inp-nombre').value.trim().toUpperCase();
     var tipoDoc   = document.getElementById('inp-tipo-doc').value;
     var documento = document.getElementById('inp-documento').value.trim().toUpperCase();
@@ -767,6 +827,10 @@ async function inscribirNuevo() {
 }
 
 async function inscribirExistente(nombre) {
+    if (!jugadorAfiliadoAClubParaTorneo()) {
+        mostrarBloqueoAfiliacion();
+        return;
+    }
     var jugador = MasterVIP.buscarJugador(nombre);
     
     if (!jugador) {
@@ -862,5 +926,19 @@ function realizarSorteo() {
 }
 </script>
 <script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

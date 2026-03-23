@@ -280,7 +280,11 @@ const MasterVIP = {
                     posiciones: local.posiciones || [],
                     fechaCreacion: t.created_at,
                     fechaInicio: t.fecha_inicio || local.fechaInicio || null,
-                    campeon: local.campeon || null
+                    campeon: local.campeon || null,
+                    subcampeon: local.subcampeon || null,
+                    formatoDetalle: local.formatoDetalle || null,
+                    reglas: local.reglas || null,
+                    tipo: local.tipo || null
                 };
             });
             localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
@@ -345,18 +349,19 @@ const MasterVIP = {
 
     crearTorneo: async function (config) {
         let torneos = this.getTorneos();
+        const meta = parseInt(config.entradaObjetivo) || (config.reglas && config.reglas.metaDirecto) || 0;
         const torneo = {
             id: 'T' + Date.now(), // ID temporal
             codigo: 'MV-' + new Date().getFullYear() + '-' + String(torneos.length + 1).padStart(4, '0'),
             nombre: config.nombre.toUpperCase(),
-            sede: this.getSede().nombre,
+            sede: (config.sede && String(config.sede).trim()) ? String(config.sede).trim().toUpperCase() : this.getSede().nombre,
             sistema: config.sistema,
             cupoMax: parseInt(config.cupoMax),
             inscripcion: parseFloat(config.inscripcion) || 0,
             baseClub: parseFloat(config.baseClub) || 0,
             pctPremios: parseFloat(config.pctPremios) || 80,
             pctFee: parseFloat(config.pctFee) || 20,
-            entradaObjetivo: parseInt(config.entradaObjetivo) || 0,
+            entradaObjetivo: meta,
             tiempoEntrada: parseInt(config.tiempoEntrada) || 40,
             modalidad: config.modalidad || 'Libre',
             reglamento: config.reglamento || '',
@@ -366,7 +371,10 @@ const MasterVIP = {
             posiciones: [],
             fechaCreacion: new Date().toISOString(),
             fechaInicio: config.fechaInicio || null,
-            campeon: null
+            campeon: null,
+            formatoDetalle: config.formatoDetalle || null,
+            reglas: config.reglas || null,
+            tipo: config.tipo || null
         };
         torneos.push(torneo);
         localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
@@ -611,6 +619,7 @@ const MasterVIP = {
             if (siguiente === 'CAMPEON') {
                 torneo.estado = 'FINALIZADO';
                 torneo.campeon = this._determinarCampeon(torneo);
+                torneo.subcampeon = this._determinarSubcampeon(torneo);
                 // Actualizar torneo finalizado en Supabase
                 if (torneo.id && torneo.id.length > 10) {
                     const campeonJugador = this.buscarJugador(torneo.campeon);
@@ -654,6 +663,13 @@ const MasterVIP = {
         const ultimaRonda = torneo.rondas[torneo.rondas.length - 1];
         const final = ultimaRonda.partidas[0];
         return final ? final.ganador : null;
+    },
+
+    _determinarSubcampeon: function (torneo) {
+        const ultimaRonda = torneo.rondas[torneo.rondas.length - 1];
+        const final = ultimaRonda.partidas[0];
+        if (!final || final.estado !== 'TERMINADA' || !final.ganador) return null;
+        return final.ganador === final.j1 ? (final.j2 || null) : (final.j1 || null);
     },
 
     // ─────────────────────────────────────────
@@ -1288,22 +1304,26 @@ const HISTORIAL = {
     // OBTENER HISTORIAL DE UN JUGADOR
     // ─────────────────────────────────────────
     obtener: async function(jugador_id, jugador_nombre) {
-        // Intentar primero desde Supabase (últimas 50)
-        const clave = 'historial_' + (jugador_id || jugador_nombre);
+        const clave = 'historial_' + (jugador_id || jugador_nombre || 'local');
 
-        const datos = await DB.get('partidas',
-            'jugador_id=eq.' + jugador_id +
-            '&order=created_at.desc&limit=50'
-        );
+        let datos = null;
+        if (jugador_id) {
+            datos = await DB.get(
+                'partidas',
+                'jugador_id=eq.' + encodeURIComponent(String(jugador_id)) + '&order=created_at.desc&limit=50'
+            );
+        }
 
         if (datos && datos.length > 0) {
             localStorage.setItem(clave, JSON.stringify(datos));
             return datos;
         }
 
-        // Fallback localStorage
-        try { return JSON.parse(localStorage.getItem(clave)) || []; }
-        catch(e) { return []; }
+        try {
+            return JSON.parse(localStorage.getItem(clave)) || [];
+        } catch (e) {
+            return [];
+        }
     },
 
     // ─────────────────────────────────────────

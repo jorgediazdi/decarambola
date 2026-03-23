@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b0b0b">
+  <title>Entrar — DeCarambola</title>
+  <link rel="stylesheet" href="css/ux-shell.css">
+  <style>
+    :root { --oro:#d4af37; --neon:#2eff70; --rojo:#e74c3c; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: calc(24px + env(safe-area-inset-top)) 20px calc(32px + env(safe-area-inset-bottom));
+      color: #eaeaea;
+    }
+    .wrap { max-width: 400px; margin: 0 auto; }
+    h1 {
+      font-family: Georgia, serif;
+      font-style: italic;
+      color: var(--oro);
+      font-size: 1.35rem;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .sub { text-align: center; color: #555; font-size: 0.75rem; margin-bottom: 28px; line-height: 1.4; }
+    .card {
+      background: linear-gradient(165deg, #14100a, #0a0806);
+      border: 1px solid rgba(212, 175, 55, 0.22);
+      border-radius: 18px;
+      padding: 22px 20px;
+      margin-bottom: 16px;
+    }
+    label { display: block; font-size: 0.65rem; letter-spacing: 0.12em; color: #666; margin-bottom: 6px; }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #2a2a2a;
+      background: #0a0a0a;
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 14px;
+    }
+    input:focus { outline: none; border-color: rgba(212, 175, 55, 0.45); }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    button, .btn-link {
+      flex: 1;
+      min-width: 120px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-go {
+      background: linear-gradient(135deg, var(--neon), #18b040);
+      color: #000;
+    }
+    .btn-go:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sec {
+      background: transparent;
+      border: 1px solid #333;
+      color: #888;
+    }
+    .btn-out {
+      background: rgba(231, 76, 60, 0.15);
+      border: 1px solid rgba(231, 76, 60, 0.4);
+      color: #e88;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .msg { font-size: 0.8rem; padding: 12px; border-radius: 12px; margin-bottom: 14px; display: none; }
+    .msg.err { display: block; background: rgba(231, 76, 60, 0.12); border: 1px solid rgba(231, 76, 60, 0.35); color: #eaa; }
+    .msg.ok { display: block; background: rgba(46, 255, 112, 0.08); border: 1px solid rgba(46, 255, 112, 0.25); color: #8d8; }
+    .sesion {
+      text-align: center;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(46, 255, 112, 0.06);
+      border: 1px solid rgba(46, 255, 112, 0.2);
+      margin-bottom: 16px;
+      display: none;
+    }
+    .sesion.on { display: block; }
+    .sesion strong { color: var(--neon); font-size: 0.9rem; word-break: break-all; }
+    .nav-foot { text-align: center; margin-top: 24px; }
+    .nav-foot a { color: var(--oro); font-size: 0.75rem; }
+    code { font-size: 0.7rem; color: #666; }
+  </style>
+</head>
+<body class="dc-ux dc-ux-skin">
+  <div class="stars" id="stars-bg" aria-hidden="true"></div>
+  <div class="wrap">
+    <h1>DeCarambola</h1>
+    <p class="sub">Cuenta con correo (Supabase Auth). Mismo proyecto que <code>core.js</code>.</p>
+
+    <div id="sesion" class="sesion" role="status">
+      <div style="font-size:0.65rem;color:#666;margin-bottom:8px;">Sesión activa</div>
+      <strong id="sesion-email">—</strong>
+      <p style="font-size:0.72rem;color:#888;line-height:1.45;margin:14px 0 12px;text-align:left;">
+        <strong>Primero</strong> entrá a la <strong>app jugador</strong> (partida, perfil, torneos). Desde ahí tenés el acceso al <strong>portal del club</strong> si sos personal del club.
+      </p>
+      <a href="/jugador/" class="btn-link btn-go" style="width:100%;margin-bottom:10px;">Ir a app jugador →</a>
+      <a href="/club/" class="btn-link btn-sec" style="width:100%;margin-bottom:10px;">Portal del club (staff) →</a>
+      <button type="button" class="btn-out" id="btn-logout">Cerrar sesión</button>
+    </div>
+
+    <div id="formulario" class="card">
+      <div id="msg" class="msg" aria-live="polite"></div>
+      <label for="email">Correo</label>
+      <input id="email" type="email" autocomplete="email" placeholder="tu@correo.com">
+
+      <label for="pass">Contraseña</label>
+      <input id="pass" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
+
+      <div class="row">
+        <button type="button" class="btn-go" id="btn-in">Iniciar sesión</button>
+        <button type="button" class="btn-sec" id="btn-up">Crear cuenta</button>
+      </div>
+    </div>
+
+    <p style="font-size:0.7rem;color:#444;line-height:1.5;text-align:center;">
+      Después de crear cuenta, si Supabase pide confirmar email, revisa la bandeja o desactiva “Confirm email” en desarrollo (ver <strong>docs/PASOS_AUTH_EMPEZAR.md</strong>).
+    </p>
+
+    <div class="nav-foot">
+      <a href="/index.html">← Inicio</a>
+      ·
+      <a href="/club/">Portal club</a>
+      ·
+      <a href="/jugador/">App jugador</a>
+    </div>
+  </div>
+
+  <!-- Misma URL y clave anónima que core.js (pública, solo para navegador) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script>
+(function () {
+  var SUPABASE_URL = 'https://iwvogyloebvieloequzr.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
+
+  var elMsg = document.getElementById('msg');
+  var elSesion = document.getElementById('sesion');
+  var elForm = document.getElementById('formulario');
+  var elEmail = document.getElementById('email');
+  var elPass = document.getElementById('pass');
+
+  function showMsg(text, ok) {
+    elMsg.className = 'msg ' + (ok ? 'ok' : 'err');
+    elMsg.textContent = text;
+  }
+  function clearMsg() {
+    elMsg.className = 'msg';
+    elMsg.textContent = '';
+  }
+
+  if (typeof supabase === 'undefined' || !supabase.createClient) {
+    showMsg('No se cargó la librería de Supabase. Revisa la conexión a internet.', false);
+    return;
+  }
+
+  var client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  });
+
+  function uiSesion(user) {
+    if (user && user.email) {
+      elSesion.classList.add('on');
+      document.getElementById('sesion-email').textContent = user.email;
+      elForm.style.display = 'none';
+    } else {
+      elSesion.classList.remove('on');
+      elForm.style.display = 'block';
+    }
+  }
+
+  client.auth.getSession().then(function (res) {
+    var s = res.data && res.data.session;
+    uiSesion(s && s.user ? s.user : null);
+  });
+
+  client.auth.onAuthStateChange(function (_event, session) {
+    uiSesion(session && session.user ? session.user : null);
+    clearMsg();
+  });
+
+  document.getElementById('btn-in').onclick = async function () {
+    clearMsg();
+    var email = (elEmail.value || '').trim();
+    var password = elPass.value || '';
+    if (!email || !password) {
+      showMsg('Escribe correo y contraseña.', false);
+      return;
+    }
+    this.disabled = true;
+    var r = await client.auth.signInWithPassword({ email: email, password: password });
+    this.disabled = false;
+    if (r.error) {
+      showMsg(r.error.message || 'Error al iniciar sesión', false);
+      return;
+    }
+    showMsg('Sesión iniciada correctamente.', true);
+  };
+
+  document.getElementById('btn-up').onclick = async function () {
+    clearMsg();
+    var email = (elEmail.value || '').trim();
+    var password = elPass.value || '';
+    if (!email || !password) {
+      showMsg('Escribe correo y contraseña para crear la cuenta.', false);
+      return;
+    }
+    if (password.length < 6) {
+      showMsg('La contraseña debe tener al menos 6 caracteres.', false);
+      return;
+    }
+    this.disabled = true;
+    var r = await client.auth.signUp({ email: email, password: password });
+    this.disabled = false;
+    if (r.error) {
+      showMsg(r.error.message || 'Error al registrarse', false);
+      return;
+    }
+    if (r.data.user && !r.data.session) {
+      showMsg('Revisa tu correo para confirmar la cuenta (o desactiva confirmación en Supabase en desarrollo).', true);
+    } else {
+      showMsg('Cuenta creada e iniciada sesión.', true);
+    }
+  };
+
+  document.getElementById('btn-logout').onclick = async function () {
+    await client.auth.signOut();
+    clearMsg();
+  };
+})();
+
+(function () {
+  var bg = document.getElementById('stars-bg');
+  if (!bg) return;
+  for (var i = 0; i < 50; i++) {
+    var s = document.createElement('div');
+    s.className = 'star';
+    var sz = Math.random() * 2 + 0.5;
+    s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+    bg.appendChild(s);
+  }
+})();
+  </script>
+</body>
+</html>

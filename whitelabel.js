@@ -37,6 +37,35 @@
         try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
     }
 
+    /** JWT de Supabase Auth si hay sesión (para RLS authenticated en clubs). */
+    function getSupabaseAccessToken() {
+        try {
+            var keys = Object.keys(localStorage);
+            for (var i = 0; i < keys.length; i++) {
+                if (keys[i].indexOf('sb-') !== 0 || keys[i].indexOf('-auth-token') < 0) continue;
+                var raw = localStorage.getItem(keys[i]);
+                if (!raw) continue;
+                var j = JSON.parse(raw);
+                if (j && j.access_token) return j.access_token;
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    function authHeaders() {
+        var tok = getSupabaseAccessToken();
+        return {
+            apikey: SUPABASE_KEY,
+            Authorization: 'Bearer ' + (tok || SUPABASE_KEY)
+        };
+    }
+
+    /** /club/ o /club/index.html — no pisar el h1 ni el hero con datos viejos de localStorage (wl_club_nombre). */
+    function esPortalClubHub() {
+        var p = (location.pathname || '').replace(/\/+$/, '') || '/';
+        return p === '/club' || p === '/club/index.html';
+    }
+
     /* ── Leer datos del jugador activo ── */
     function getDatosClub() {
         var perfil = getObj('mi_perfil');
@@ -62,6 +91,9 @@
 
     /* ── Inyectar logo y nombre del club en el header ── */
     function inyectarHeader(datos) {
+        if (esPortalClubHub()) {
+            return;
+        }
         if (!datos.club_nombre && !datos.club_logo_url) return; // Sin club → nada que hacer
 
         /* 1. Reemplazar logo — buscar múltiples selectores posibles */
@@ -134,29 +166,105 @@
         if (datos.club_nombre && document.title.indexOf('DeCarambola') >= 0) {
             document.title = document.title.replace('DeCarambola', datos.club_nombre + ' · DeCarambola');
         }
+
+        /* 8. Hub jugador (jugador/index.html) — logo + nombre del club afiliado */
+        var jugBrand = document.getElementById('jugador-club-brand');
+        if (jugBrand && (datos.club_logo_url || datos.club_nombre)) {
+            jugBrand.style.display = 'flex';
+            var imgJ = document.getElementById('wl-jugador-logo');
+            var nomJ = document.getElementById('wl-jugador-nombre');
+            if (imgJ) {
+                if (datos.club_logo_url) {
+                    imgJ.src = datos.club_logo_url;
+                    imgJ.alt = datos.club_nombre || 'Club';
+                    imgJ.style.display = 'block';
+                } else {
+                    imgJ.style.display = 'none';
+                }
+            }
+            if (nomJ) nomJ.textContent = datos.club_nombre || '';
+        } else if (jugBrand && !datos.club_logo_url && !datos.club_nombre) {
+            jugBrand.style.display = 'none';
+        }
+
+        /* 9. Portal club (club/index.html) — hero con logo */
+        var clubHero = document.getElementById('club-logo-mini');
+        if (clubHero && datos.club_logo_url) {
+            clubHero.innerHTML =
+                '<img src="' + datos.club_logo_url + '" ' +
+                'style="width:100%;height:100%;object-fit:contain;border-radius:50%;background:#111;" ' +
+                'alt="' + (datos.club_nombre || 'Club') + '">';
+        } else if (clubHero && !datos.club_logo_url) {
+            clubHero.innerHTML = '<span style="font-size:2.2rem;opacity:0.35;">🏛️</span>';
+        }
+    }
+
+    function aplicarClubSupabaseEnCache(club) {
+        if (!club) return;
+        if (club.nombre) set('wl_club_nombre', club.nombre);
+        if (club.logo_url) set('wl_club_logo_url', club.logo_url);
+        if (club.color_primario) set('wl_club_color', club.color_primario);
+        var perfil = getObj('mi_perfil');
+        if (perfil) {
+            if (club.nombre) perfil.club = club.nombre;
+            if (club.logo_url) perfil.club_logo_url = club.logo_url;
+            set('mi_perfil', JSON.stringify(perfil));
+        }
+        inyectarHeader(getDatosClub());
+    }
+
+    /**
+     * Sincroniza nombre + logo desde clubs usando mi_perfil.club_id (código o UUID).
+     * Pisa wl_* viejos (ej. "MASTER PRUEBA JH") con lo que hay en Supabase.
+     */
+    function sincronizarClubDesdeMiPerfilClubId() {
+        var perfil = getObj('mi_perfil');
+        if (!perfil || !perfil.club_id) return;
+        var raw = String(perfil.club_id).trim();
+        if (!raw) return;
+        var isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw);
+        var q = isUuid ? 'id=eq.' + encodeURIComponent(raw) : 'codigo=eq.' + encodeURIComponent(raw);
+        var url = SUPABASE_URL + '/rest/v1/clubs?select=nombre,logo_url,color_primario&' + q + '&limit=1';
+        fetch(url, { headers: authHeaders() })
+            .then(function (r) {
+                return r.json();
+            })
+            .then(function (rows) {
+                if (rows && rows[0]) aplicarClubSupabaseEnCache(rows[0]);
+            })
+            .catch(function () {});
     }
 
     /* ── Sincronizar logo desde Supabase si tenemos club_id pero no logo ── */
     function sincronizarLogoDesdeSupabase(club_id) {
         if (!club_id || get('wl_club_logo_url')) return; // ya tenemos logo
-        fetch(SUPABASE_URL + '/rest/v1/clubs?select=id,nombre,logo_url,color_primario&id=eq.' + club_id, {
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': 'Bearer ' + SUPABASE_KEY
-            }
+        fetch(SUPABASE_URL + '/rest/v1/clubs?select=id,nombre,logo_url,color_primario&id=eq.' + encodeURIComponent(club_id), {
+            headers: authHeaders()
         })
         .then(function(r) { return r.json(); })
         .then(function(rows) {
             if (rows && rows.length > 0) {
-                var club = rows[0];
-                if (club.nombre)        set('wl_club_nombre',  club.nombre);
-                if (club.logo_url)      set('wl_club_logo_url', club.logo_url);
-                if (club.color_primario) set('wl_club_color',  club.color_primario);
-                // Relanzar inyección con datos frescos
-                inyectarHeader(getDatosClub());
+                aplicarClubSupabaseEnCache(rows[0]);
             }
         })
         .catch(function() {}); // Silencioso — no bloquea
+    }
+
+    function sincronizarLogoPorCodigo(cod) {
+        if (!cod) return;
+        var url =
+            SUPABASE_URL +
+            '/rest/v1/clubs?select=nombre,logo_url,color_primario&codigo=eq.' +
+            encodeURIComponent(String(cod).trim()) +
+            '&limit=1';
+        fetch(url, { headers: authHeaders() })
+            .then(function (r) {
+                return r.json();
+            })
+            .then(function (rows) {
+                if (rows && rows[0]) aplicarClubSupabaseEnCache(rows[0]);
+            })
+            .catch(function () {});
     }
 
     /* ── Función pública para guardar club al afiliarse ── */
@@ -204,6 +312,9 @@
 
     /* ── MAIN: ejecutar cuando el DOM esté listo ── */
     function init() {
+        if (esPortalClubHub()) {
+            return;
+        }
         var datos = getDatosClub();
 
         // Si hay datos en localStorage → inyectar inmediatamente
@@ -211,10 +322,14 @@
             inyectarHeader(datos);
         }
 
-        // Si el jugador tiene club_id pero no logo → buscar en Supabase
+        // Si hay club_id en perfil (staff o jugador), traer SIEMPRE nombre/logo de Supabase
+        // (evita quedarse con wl_club_nombre viejo tipo "MASTER PRUEBA JH").
         var perfil = getObj('mi_perfil');
-        if (perfil && perfil.club_id && !datos.club_logo_url) {
-            sincronizarLogoDesdeSupabase(perfil.club_id);
+        if (perfil && perfil.club_id) {
+            sincronizarClubDesdeMiPerfilClubId();
+        } else if (perfil && !get('wl_club_logo_url')) {
+            var cod = perfil.club_codigo || perfil.codigo_club || perfil.codigo_invitacion;
+            if (cod) sincronizarLogoPorCodigo(cod);
         }
     }
 

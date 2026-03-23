@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#d4af37">
 <title>Reto Caserito — DeCarambola</title>
 <style>
 :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --rojo:#e74c3c; --azul:#3498db; }
@@ -10,7 +11,16 @@
 body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; }
 
 /* ── HEADER ── */
-.header { background:#000; border-bottom:1px solid #111; padding:14px 16px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:10; }
+.header { background:#000; border-bottom:1px solid #111; padding:14px 16px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:10; }
+.header-top-reto { display:flex; align-items:center; gap:12px; width:100%; flex-wrap:wrap; }
+.header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
+.btn-hdr-nav {
+    background:rgba(10,10,10,0.95); border:1px solid #1a1a1a; color:#888;
+    padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
+    text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
+    letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+}
+.btn-hdr-nav:hover, .btn-hdr-nav:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
 .hdr-titulo { color:var(--oro); font-size:0.95rem; letter-spacing:3px; }
 .hdr-sub { color:#333; font-size:0.38rem; letter-spacing:2px; margin-top:2px; }
 /* Aviso de error suave (ej. falta cédula) */
@@ -157,15 +167,28 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
 .btn-ghost { width:100%; padding:13px; background:none; border:1px solid #1a1a1a; border-radius:14px; color:#555; font-size:0.45rem; font-family:'Arial Black',sans-serif; letter-spacing:2px; cursor:pointer; margin-bottom:8px; }
 .btn-copy { width:100%; padding:13px; background:rgba(52,152,219,0.08); border:1px solid rgba(52,152,219,0.25); border-radius:14px; color:#3498db; font-size:0.45rem; font-family:'Arial Black',sans-serif; letter-spacing:2px; cursor:pointer; margin-bottom:8px; }
 </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <!-- HEADER -->
 <div class="header">
-    <a href="index.html" style="color:#555;font-size:0.45rem;letter-spacing:1px;text-decoration:none;padding:7px 12px;border:1px solid #1a1a1a;border-radius:10px;flex-shrink:0;">← VOLVER</a>
-    <div style="flex:1;padding-left:10px;">
-        <div class="hdr-titulo" id="hdr-titulo">🤜 RETO CASERITO</div>
-        <div class="hdr-sub" id="hdr-sub">DESAFÍA A UN MAESTRO</div>
+    <div class="header-top-reto">
+        <div style="flex:1;min-width:0;">
+            <div class="hdr-titulo" id="hdr-titulo">🤜 RETO CASERITO</div>
+            <div class="hdr-sub" id="hdr-sub">DESAFÍA A UN MAESTRO</div>
+        </div>
+    </div>
+    <div class="header-actions">
+        <a href="jugador/index.html" class="btn-hdr-nav">Hub jugador</a>
+        <a href="torneo_amigos.html" class="btn-hdr-nav">Torneo amigos</a>
+        <a href="perfil.html" class="btn-hdr-nav">Mi perfil</a>
+        <a href="mi_partida.html" class="btn-hdr-nav">Mi partida</a>
+        <a href="Sensei.html" class="btn-hdr-nav">Sensei</a>
+        <a href="club/index.html" class="btn-hdr-nav">Portal club</a>
+        <a href="index.html" class="btn-hdr-nav">Inicio app</a>
     </div>
 </div>
 
@@ -774,5 +797,19 @@ window.onload = function() {
 
 </script>
 <script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

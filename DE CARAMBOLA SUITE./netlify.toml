@@ -1,8 +1,0 @@
-# DeCarambola — Deploy en Netlify
-# Sitio estático: HTML, JS, CSS (sin build).
-
-[build]
-  publish = "."
-  # Sin comando de build; Netlify solo publica la carpeta actual.
-
-# index.html se sirve en / ; el resto de archivos (.html, .js, etc.) se sirven por ruta.

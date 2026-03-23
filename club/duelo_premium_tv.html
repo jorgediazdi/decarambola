@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3498db">
+    <title>Señal Duelo — Club</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#0b0b0b; --azul:#3498db; --g1:#1a1a1a; --g2:#111; --neon:#2eff70; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding:16px 18px 100px; }
+        .hdr { text-align:center; margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--g1); }
+        .hdr h1 { color:var(--azul); font-size:0.9rem; letter-spacing:2px; }
+        .hdr p { color:#555; font-size:0.52rem; letter-spacing:1px; margin-top:6px; line-height:1.6; }
+        .hdr a { color:var(--oro); font-size:0.52rem; text-decoration:none; }
+        .sec { color:#666; font-size:0.5rem; letter-spacing:0.18em; margin:18px 0 10px; max-width:520px; margin-left:auto; margin-right:auto; }
+        .grid { display:flex; flex-direction:column; gap:10px; max-width:520px; margin:0 auto; }
+        a.item {
+            display:flex; align-items:center; justify-content:space-between;
+            background:var(--g2); border:1px solid var(--g1); border-radius:14px;
+            padding:14px 16px; text-decoration:none; color:#ddd; font-size:0.62rem; letter-spacing:0.06em; line-height:1.35;
+        }
+        a.item:hover, a.item:focus-visible { border-color:rgba(52,152,219,0.45); outline:none; }
+        .tag { color:var(--azul); font-size:0.45rem; opacity:0.95; flex-shrink:0; margin-left:8px; }
+        .note {
+            max-width:520px; margin:16px auto 0;
+            padding:14px 16px; border-radius:12px;
+            border:1px solid rgba(212,175,55,0.25); background:rgba(212,175,55,0.06);
+            color:#a98; font-size:0.52rem; line-height:1.55;
+        }
+        .note code { font-size:0.48rem; color:#888; }
+    </style>
+</head>
+<body>
+    <div class="hdr">
+        <h1>SEÑAL DUELO (3 MODOS)</h1>
+        <p>Misma base técnica (<code style="color:#666;">duelo-tv.html</code>), distinto uso. Elegí una fila.</p>
+        <p style="margin-top:12px;"><a href="/club/">← Portal club</a></p>
+    </div>
+
+    <div class="sec">1 · TV / MESA (sin cámara en pantalla)</div>
+    <div class="grid">
+        <a class="item" href="/duelo-tv.html?modo=tv">
+            <span>Abrir señal tipo Premium TV (proyector)</span><span class="tag">TV</span>
+        </a>
+    </div>
+
+    <div class="sec">2 · DUELO MÓVIL (mismo marcador, sin columna cámara)</div>
+    <div class="grid">
+        <a class="item" href="/duelo-tv.html?modo=movil">
+            <span>Operar desde celular: solo marcador, sin panel cámara</span><span class="tag">MÓVIL</span>
+        </a>
+    </div>
+
+    <div class="sec">3 · PRODUCCIÓN (cámara / stream / grabar)</div>
+    <div class="grid">
+        <a class="item" href="/duelo-tv.html?modo=produccion">
+            <span>Quien anota y transmite: se muestra cámara, stream y grabar</span><span class="tag">PROD</span>
+        </a>
+        <a class="item" href="/duelo-tv-preview.html">
+            <span>Vista previa alternativa (layout clásico)</span><span class="tag">PREVIEW</span>
+        </a>
+    </div>
+
+    <div class="sec">HERRAMIENTAS</div>
+    <div class="grid">
+        <a class="item" href="/overlay_marcador.html">Overlay marcador OBS <span class="tag">OBS</span></a>
+        <a class="item" href="/docs/DUELO_TRES_MODOS.md">Documentación modos <span class="tag">DOC</span></a>
+    </div>
+
+    <p class="note">
+        <strong>Por qué se veía “todo mezclado”:</strong> antes se unificó una sola página sin etiquetar modos. Ahora cada uso tiene su <code>?modo=</code>.
+        <strong>SIG. SET</strong> sigue en la barra del marcador (fase 2), no en la configuración inicial.
+    </p>
+</body>
+</html>

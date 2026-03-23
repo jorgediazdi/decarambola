@@ -1,0 +1,10 @@
+# Variables locales (keys Supabase, etc.)
+.env
+.env.local
+
+# Dependencias del script check_club.js
+node_modules/
+
+# macOS / respaldo local (el repo ya es la fuente)
+.DS_Store
+LISTO_PARA_NETLIFY.zip

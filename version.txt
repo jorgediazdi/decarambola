@@ -1,0 +1,3 @@
+DeCarambola Suite - version con 7 items en Club
+Actualizado: 2026-03 - panel Club completo (Configurar Sede, Personalizar, Codigo, Salon en vivo, Configurar instalaciones, Reservas, Historial)
+Si ves este archivo al abrir tu-sitio.netlify.app/version.txt = se subio la carpeta correcta.

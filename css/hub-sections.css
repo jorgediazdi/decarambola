@@ -1,0 +1,446 @@
+/**
+ * DeCarambola — Hubs con secciones plegables (4–6 bloques principales)
+ * Uso: <link href="css/hub-sections.css"> después de ux-shell.css
+ * Envolver en <div class="dc-hub dc-hub--club|jugador|staff">
+ *
+ * details.dc-hub-fold = bloque principal
+ * details.dc-hub-nested = subgrupo dentro del bloque (opcional)
+ */
+
+.dc-hub {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 0 0 28px;
+}
+
+/* Dentro del panel MI CLUB de index.html (no lista infinita en una sola columna) */
+.dc-hub--embed {
+    max-width: 100%;
+    padding-bottom: 8px;
+}
+
+.dc-hub--embed details.dc-hub-fold {
+    margin-bottom: 8px;
+}
+
+/* Rejilla de tarjetas (menos “lista”, más tablero) */
+.dc-hub-mosaic {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+@media (max-width: 340px) {
+    .dc-hub-mosaic {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dc-hub-mosaic a.item {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    padding: 14px 10px 12px;
+    min-height: 96px;
+}
+
+.dc-hub-mosaic a.item .item-main {
+    text-align: center;
+    width: 100%;
+}
+
+.dc-hub-mosaic a.item .item-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.dc-hub-mosaic a.item span.tag {
+    margin-top: auto;
+}
+
+.dc-hub-lead {
+    max-width: 520px;
+    margin: 0 auto 18px;
+    padding: 12px 14px;
+    font-size: 0.74rem;
+    line-height: 1.5;
+    color: #6a6a6a;
+    text-align: center;
+    border-radius: 12px;
+    border: 1px solid rgba(212, 175, 55, 0.12);
+    background: rgba(0, 0, 0, 0.28);
+}
+
+.dc-hub-lead strong {
+    color: #8a8a8a;
+}
+
+/* ── Bloque principal (acordeón) ── */
+details.dc-hub-fold {
+    margin-bottom: 11px;
+    border-radius: 18px;
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    background: linear-gradient(165deg, rgba(22, 18, 12, 0.92), rgba(8, 6, 4, 0.55));
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.32);
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+details.dc-hub-fold[open] {
+    border-color: rgba(212, 175, 55, 0.38);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.38);
+}
+
+summary.dc-hub-fold__sum {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 14px 15px 16px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+summary.dc-hub-fold__sum::-webkit-details-marker {
+    display: none;
+}
+
+summary.dc-hub-fold__sum::marker {
+    content: "";
+}
+
+.dc-hub-fold__kbd {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: rgba(212, 175, 55, 0.95);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.dc-hub-fold__text {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.dc-hub-fold__title {
+    display: block;
+    font-family: "Arial Black", Arial, sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #e8e8e8;
+    line-height: 1.25;
+}
+
+.dc-hub-fold__sub {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: #666;
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+}
+
+.dc-hub-fold__count {
+    flex-shrink: 0;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #555;
+    padding: 5px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.dc-hub-fold__chev {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    margin-left: 2px;
+    border-right: 2px solid #777;
+    border-bottom: 2px solid #777;
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform 0.2s ease;
+}
+
+details.dc-hub-fold[open] > summary .dc-hub-fold__chev {
+    transform: rotate(225deg) translateY(2px);
+}
+
+.dc-hub-fold__body {
+    padding: 0 12px 14px 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Subgrupo anidado */
+details.dc-hub-nested {
+    margin-top: 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(0, 0, 0, 0.22);
+    overflow: hidden;
+}
+
+details.dc-hub-nested:first-child {
+    margin-top: 4px;
+}
+
+summary.dc-hub-nested__sum {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 13px;
+    cursor: pointer;
+    list-style: none;
+    font-family: "Arial Black", Arial, sans-serif;
+    font-size: 0.52rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #707070;
+}
+
+summary.dc-hub-nested__sum::-webkit-details-marker {
+    display: none;
+}
+
+summary.dc-hub-nested__sum::marker {
+    content: "";
+}
+
+.dc-hub-nested__chev {
+    width: 6px;
+    height: 6px;
+    border-right: 2px solid #555;
+    border-bottom: 2px solid #555;
+    transform: rotate(45deg);
+    transition: transform 0.2s;
+}
+
+details.dc-hub-nested[open] > summary .dc-hub-nested__chev {
+    transform: rotate(225deg);
+}
+
+.dc-hub-nested__inner {
+    padding: 0 10px 12px;
+}
+
+/* Grillas dentro de pliegues */
+.dc-hub-fold .grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: none;
+    margin: 0;
+}
+
+/* ── Enlaces tipo tarjeta (compartido hubs) ── */
+.dc-hub a.item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: linear-gradient(145deg, #14100a, #0a0806);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 14px;
+    padding: 13px 14px;
+    text-decoration: none;
+    color: #eaeaea;
+    transition: border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.22);
+}
+
+.dc-hub a.item:active {
+    transform: scale(0.99);
+}
+
+.dc-hub a.item:hover,
+.dc-hub a.item:focus-visible {
+    border-color: rgba(212, 175, 55, 0.42);
+    outline: none;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.07);
+}
+
+.dc-hub .item-main {
+    text-align: left;
+    min-width: 0;
+}
+
+.dc-hub .item-title {
+    font-family: "Arial Black", Arial, sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+    color: #e4e4e4;
+}
+
+.dc-hub .item-desc {
+    display: block;
+    font-size: 0.7rem;
+    color: #777;
+    margin-top: 4px;
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+.dc-hub a.item span.tag {
+    flex-shrink: 0;
+    font-size: 0.48rem;
+    font-weight: 800;
+    font-family: "Arial Black", Arial, sans-serif;
+    letter-spacing: 0.1em;
+    color: #000;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #d4af37, #a07800);
+    border: none;
+}
+
+/* TV / streaming — acento azul */
+.dc-hub-fold--tv a.item {
+    border-color: rgba(52, 152, 219, 0.22);
+    background: linear-gradient(145deg, #000810, #040a12);
+}
+
+.dc-hub-fold--tv a.item:hover,
+.dc-hub-fold--tv a.item:focus-visible {
+    border-color: rgba(52, 152, 219, 0.45);
+    box-shadow: 0 0 18px rgba(52, 152, 219, 0.09);
+}
+
+.dc-hub-fold--tv a.item span.tag {
+    background: linear-gradient(135deg, #3498db, #216598);
+    color: #fff;
+}
+
+/* ── Variante Jugador (neón) ── */
+.dc-hub--jugador details.dc-hub-fold {
+    border-color: rgba(46, 255, 112, 0.2);
+    background: linear-gradient(165deg, rgba(0, 18, 10, 0.9), rgba(4, 8, 6, 0.55));
+}
+
+.dc-hub--jugador details.dc-hub-fold[open] {
+    border-color: rgba(46, 255, 112, 0.38);
+}
+
+.dc-hub--jugador .dc-hub-fold__kbd {
+    color: rgba(46, 255, 112, 0.95);
+    border-color: rgba(46, 255, 112, 0.35);
+}
+
+.dc-hub--jugador .dc-hub-lead {
+    border-color: rgba(46, 255, 112, 0.15);
+}
+
+.dc-hub--jugador a.item {
+    border-color: rgba(46, 255, 112, 0.18);
+    background: linear-gradient(145deg, #000a06, #070707);
+}
+
+.dc-hub--jugador a.item:hover,
+.dc-hub--jugador a.item:focus-visible {
+    border-color: rgba(46, 255, 112, 0.42);
+    box-shadow: 0 0 18px rgba(46, 255, 112, 0.08);
+}
+
+.dc-hub--jugador a.item span.tag {
+    color: #2eff70;
+    font-size: 0.45rem;
+    padding: 4px 9px;
+    background: rgba(46, 255, 112, 0.1);
+    border: 1px solid rgba(46, 255, 112, 0.28);
+}
+
+/* ── Variante Staff / backoffice (rojo) ── */
+.dc-hub--staff details.dc-hub-fold {
+    border-color: rgba(231, 76, 60, 0.22);
+    background: linear-gradient(165deg, rgba(24, 12, 10, 0.92), rgba(8, 4, 4, 0.55));
+}
+
+.dc-hub--staff details.dc-hub-fold[open] {
+    border-color: rgba(231, 76, 60, 0.4);
+}
+
+.dc-hub--staff .dc-hub-fold__kbd {
+    color: rgba(231, 76, 60, 0.95);
+    border-color: rgba(231, 76, 60, 0.4);
+}
+
+.dc-hub--staff .dc-hub-lead {
+    border-color: rgba(231, 76, 60, 0.15);
+}
+
+.dc-hub--staff a.item {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dc-hub--staff a.item:hover,
+.dc-hub--staff a.item:focus-visible {
+    border-color: rgba(231, 76, 60, 0.45);
+    box-shadow: 0 0 16px rgba(231, 76, 60, 0.08);
+}
+
+.dc-hub--staff a.item span.tag {
+    color: #fff;
+    background: linear-gradient(135deg, #e74c3c, #a32);
+}
+
+.dc-hub--staff .hub-block--club a.item span.tag {
+    background: linear-gradient(135deg, #d4af37, #a07800);
+    color: #000;
+}
+
+/* z-index sobre estrellas */
+body.dc-ux-skin .dc-hub {
+    position: relative;
+    z-index: 10;
+}
+
+/* index.html (panel MI CLUB) no usa body.dc-ux-skin */
+#panel-club .dc-hub,
+.panel .dc-hub {
+    position: relative;
+    z-index: 5;
+}
+
+/* Lista de docs (backoffice) */
+.dc-hub-doc-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px 0 2px;
+}
+
+.dc-hub-doc-links a {
+    display: block;
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    background: rgba(0, 0, 0, 0.35);
+    color: #d4af37;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.dc-hub-doc-links a:hover,
+.dc-hub-doc-links a:focus-visible {
+    border-color: rgba(212, 175, 55, 0.45);
+    background: rgba(20, 16, 8, 0.55);
+    outline: none;
+}

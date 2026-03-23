@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#d4af37">
 <title>Mi Partida - DeCarambola</title>
 <style>
 :root{--oro:#d4af37;--neon:#2eff70;--rojo:#e74c3c;--azul:#3498db;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;height:100vh;overflow:hidden;}
+body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;min-height:100vh;height:100vh;height:100dvh;overflow:hidden;}
 
 /* PANTALLAS */
 .pan{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;}
@@ -28,9 +29,16 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;he
 .btn-go:active{transform:scale(.97);}
 .btn-back{width:100%;max-width:420px;background:none;border:none;color:#333;padding:12px;cursor:pointer;font-size:.65rem;font-family:"Arial Black",sans-serif;}
 
-/* JUEGO — todo en columna sin position:fixed */
-#p-jue{justify-content:flex-start;height:100vh;}
-.topbar{width:100%;background:#000;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;height:54px;flex-shrink:0;}
+/* JUEGO — columna 100vh; FINALIZAR abajo siempre a la vista (sin scroll forzado) */
+#p-jue{
+  justify-content:flex-start;
+  min-height:100vh;
+  min-height:100dvh;
+  max-height:100vh;
+  max-height:100dvh;
+  overflow:hidden;
+}
+.topbar{width:100%;background:#000;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:flex-start;padding:10px 16px;min-height:52px;flex-shrink:0;}
 .top-nom{color:var(--oro);font-size:.9rem;letter-spacing:2px;}
 .top-sub{color:#444;font-size:.55rem;margin-top:2px;}
 .btn-fin{
@@ -44,7 +52,12 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;he
   font-family:"Arial Black",sans-serif;
   letter-spacing:1px;
 }
-.zona{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:12px;}
+.zona-wrap{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.zona{flex:1;width:100%;min-height:min-content;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:10px 12px;}
+@media (max-height:640px){
+  .bola{width:130px;height:130px;}
+  .bola-n{font-size:3.2rem;}
+}
 .bola{width:160px;height:160px;border-radius:50%;background:radial-gradient(circle at 32% 32%,#fff9c4 0%,#f5d020 20%,#d4af37 50%,#8a6a00 80%,#2a1a00 100%);box-shadow:inset -12px -12px 24px rgba(0,0,0,.6),inset 5px 5px 12px rgba(255,220,80,.3),8px 8px 25px rgba(0,0,0,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;flex-shrink:0;}
 .bola:active{transform:scale(.88);}
 @keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.18);filter:brightness(1.6)}100%{transform:scale(1)}}
@@ -57,7 +70,9 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;he
 .sv{font-size:2.2rem;color:#fff;font-family:"Courier New",monospace;font-weight:900;display:block;line-height:1;}
 .sl{font-size:.6rem;color:#444;letter-spacing:2px;display:block;margin-top:5px;}
 .hot{color:var(--neon);text-shadow:0 0 12px var(--neon);}
-.teclado{width:100%;padding:8px 14px 22px;background:linear-gradient(transparent,#000 25%);flex-shrink:0;}
+.teclado{width:100%;padding:8px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#000 35%);flex-shrink:0;border-top:1px solid #141414;}
+.jue-pie-fin{width:100%;padding:0 14px 10px;flex-shrink:0;}
+.jue-pie-fin .btn-fin{width:100%;max-width:420px;margin:0 auto;display:block;padding:14px 16px;font-size:0.75rem;}
 .fila{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:10px;}
 .bt{background:#141414;border:1px solid #222;color:#fff;border-radius:18px;font-size:2rem;font-weight:900;font-family:"Arial Black",sans-serif;padding:18px 5px;cursor:pointer;text-align:center;line-height:1;}
 .bt:active{background:#2a2a2a;transform:scale(.9);}
@@ -79,12 +94,34 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;he
 .catbox{border-radius:16px;padding:14px;margin-bottom:18px;border:1px solid;}
 .btn-save{width:100%;padding:20px;background:linear-gradient(135deg,var(--neon),#18b040);color:#000;border:none;border-radius:20px;font-size:1.1rem;font-weight:bold;letter-spacing:2px;cursor:pointer;margin-bottom:10px;}
 .btn-otra{width:100%;background:none;border:1px solid #1a1a1a;color:#333;padding:14px;border-radius:18px;font-size:.8rem;cursor:pointer;font-family:"Arial Black",sans-serif;}
+.jug-f1-nav{width:100%;max-width:420px;margin:0 auto 14px;padding:10px 14px;background:#000;border:1px solid #1a1a1a;border-radius:14px;flex-shrink:0;}
+.jug-nav-sum{cursor:pointer;color:#666;font-size:0.55rem;letter-spacing:0.12em;list-style:none;font-family:"Arial Black",sans-serif;}
+.jug-f1-nav[open] .jug-nav-sum{color:var(--oro);}
+.jug-f1-nav .header-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px;width:100%;margin-top:10px;}
+.jug-f1-nav summary::-webkit-details-marker{display:none;}
+.jug-f1-nav .btn-hdr{background:rgba(10,10,10,0.95);border:1px solid #1a1a1a;color:#888;padding:8px 12px;border-radius:10px;font-size:0.52rem;cursor:pointer;text-decoration:none;font-family:"Arial Black",sans-serif;font-weight:600;letter-spacing:0.06em;transition:border-color .15s,color .15s;}
+.jug-f1-nav .btn-hdr:hover,.jug-f1-nav .btn-hdr:focus-visible{border-color:rgba(212,175,55,.35);color:var(--oro);outline:none;}
 </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <!-- PANTALLA 1: INICIO -->
 <div id="p-ini" class="pan" style="display:flex">
+  <details class="jug-f1-nav" aria-label="Menú de enlaces">
+    <summary class="jug-nav-sum">Enlaces rápidos ▾</summary>
+    <div class="header-actions">
+      <a href="jugador/index.html" class="btn-hdr">Hub jugador</a>
+      <a href="perfil.html" class="btn-hdr">Mi perfil</a>
+      <a href="ranking.html" class="btn-hdr">Ranking</a>
+      <a href="duelo-tv.html" class="btn-hdr">Duelo TV</a>
+      <a href="Sensei.html" class="btn-hdr">Sensei</a>
+      <a href="club/index.html" class="btn-hdr">Portal club</a>
+      <a href="index.html" class="btn-hdr">Inicio app</a>
+    </div>
+  </details>
   <div class="tit">&#9889; MI PARTIDA</div>
   <div class="sub">DeCarambola &middot; SOLO MIS CARAMBOLAS</div>
   <div class="card">
@@ -96,7 +133,7 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;he
   </div>
   <div class="chip" id="chip">Escribe tu nombre para detectar tu promedio</div>
   <button class="btn-go" onclick="iniciar()">&#9654; INICIAR MI PARTIDA</button>
-  <button class="btn-back" onclick="location.href='index.html'">&#8592; VOLVER AL MENU</button>
+  <button class="btn-back" onclick="location.href='jugador/index.html'">&#8592; HUB JUGADOR</button>
 </div>
 
 <!-- PANTALLA 2: JUEGO -->
@@ -106,17 +143,18 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;he
       <div class="top-nom" id="tnom">-</div>
       <div class="top-sub" id="tsub">PROMEDIO: 0.000</div>
     </div>
-    <button class="btn-fin" onclick="fin()">&#127937; FINALIZAR</button>
   </div>
-  <div class="zona">
-    <div class="bola" id="bola" onclick="add(1)">
-      <div class="bola-n" id="car">0</div>
-      <div class="bola-s">CARAMBOLAS</div>
-    </div>
-    <div class="stats">
-      <div class="sb"><span class="sv" id="sent">0</span><span class="sl">ENTRADAS</span></div>
-      <div class="sb"><span class="sv" id="spro">0.000</span><span class="sl">PROMEDIO</span></div>
-      <div class="sb"><span class="sv" id="sser">0</span><span class="sl">SERIE</span></div>
+  <div class="zona-wrap">
+    <div class="zona">
+      <div class="bola" id="bola" onclick="add(1)">
+        <div class="bola-n" id="car">0</div>
+        <div class="bola-s">CARAMBOLAS</div>
+      </div>
+      <div class="stats">
+        <div class="sb"><span class="sv" id="sent">0</span><span class="sl">ENTRADAS</span></div>
+        <div class="sb"><span class="sv" id="spro">0.000</span><span class="sl">PROMEDIO</span></div>
+        <div class="sb"><span class="sv" id="sser">0</span><span class="sl">SERIE</span></div>
+      </div>
     </div>
   </div>
   <div class="teclado">
@@ -128,6 +166,9 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;he
       <button class="bt btr" onclick="restar()">&#8722;</button>
     </div>
     <button class="btn-sig" id="btn-sig" onclick="sig()">SIGUIENTE ENTRADA &#8594;</button>
+  </div>
+  <div class="jue-pie-fin">
+    <button type="button" class="btn-fin" onclick="fin()">&#127937; FINALIZAR SESIÓN</button>
   </div>
 </div>
 
@@ -372,11 +413,25 @@ function guardar(){
   localStorage.setItem('jugador_activo', JSON.stringify({nombre:nom, cedula:doc, promedio:p}));
 
   alert('✅ GUARDADO — Tu promedio ya suma al ranking y torneos');
-  location.href='index.html';
+  location.href='/jugador/';
 }
 
 function reiniciar(){st={c:0,e:0,s:0,sm:0};show('p-ini');}
 </script>
 <script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

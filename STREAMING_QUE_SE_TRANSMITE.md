@@ -1,5 +1,7 @@
 # Qué se transmite con el overlay
 
+> **Pruebas tras subir versión:** **`docs/QA_STREAMING.md`**.
+
 Así queda montado para **saber qué lleva la señal** cuando grabas o transmites a YouTube.
 
 ---

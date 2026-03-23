@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Categorías — DeCarambola</title>
     <style>
         :root { --oro:#d4af37; --g1:#1a1a1a; --g2:#111; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20; }
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:20; }
+        .header-top-cat { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; width:100%; }
         .header-titulo { color:var(--oro); font-size:0.85rem; letter-spacing:3px; }
         .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
-        .btn-hdr { background:none; border:1px solid var(--g1); color:#888; padding:8px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+        .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
         .wrap { max-width:520px; margin:0 auto; padding:16px 18px; }
         .tu-categoria { background:linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04)); border:2px solid var(--oro); border-radius:18px; padding:20px; margin-bottom:20px; text-align:center; }
         .tu-categoria .lbl { font-size:0.5rem; color:#666; letter-spacing:3px; margin-bottom:6px; }
@@ -23,14 +27,31 @@
         .cat-item .nombre { flex:1; font-size:0.8rem; font-weight:900; letter-spacing:1px; }
         .cat-item .rango { font-size:0.55rem; color:#666; }
     </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
     <div class="header">
-        <div>
-            <div class="header-titulo">CATEGORÍAS</div>
-            <div class="header-sub">Billar tres bandas — por promedio</div>
+        <div class="header-top-cat">
+            <div>
+                <div class="header-titulo">CATEGORÍAS</div>
+                <div class="header-sub">Billar tres bandas — por promedio</div>
+            </div>
         </div>
-        <a href="index.html" class="btn-hdr">← INICIO</a>
+        <details class="jug-nav-fold">
+            <summary>☰ Menú</summary>
+            <div class="jug-nav-fold__links">
+                <a href="/jugador/">Hub jugador</a>
+                <a href="/perfil.html">Mi perfil</a>
+                <a href="/ranking.html">Ranking</a>
+                <a href="/historial.html">Historial de partidas</a>
+                <a href="/historial_salon.html">Uso de mesas</a>
+                <a href="/Sensei.html">Sensei</a>
+                <a href="/club/">Portal club</a>
+                <a href="/index.html">Inicio app</a>
+            </div>
+        </details>
     </div>
     <div class="wrap">
         <div class="tu-categoria" id="tu-categoria">
@@ -41,8 +62,9 @@
         <div class="sec-tit">CÓMO SE CLASIFICA EN ESTE DEPORTE</div>
         <div id="lista-categorias"></div>
     </div>
-<script src="core.js"></script>
-<script src="session.js"></script>
+<script src="/Version.js"></script>
+<script src="/core.js"></script>
+<script src="/session.js"></script>
 <script>
 try { if (typeof SESSION !== 'undefined' && SESSION.verificarAlCargar) SESSION.verificarAlCargar('jugador'); } catch(e) {}
 
@@ -87,6 +109,20 @@ function pintar() {
     document.getElementById('lista-categorias').innerHTML = html;
 }
 pintar();
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
 </script>
 </body>
 </html>

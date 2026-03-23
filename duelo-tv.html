@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#d4af37">
     <title>Duelo TV — DeCarambola</title>
     <style>
         :root {
@@ -24,6 +25,45 @@
         }
         body.tv-activo { height: 100vh; overflow: hidden; }
 
+        /* Navegación flujo jugador (solo fase registro) */
+        .jug-f1-nav {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto 16px;
+            padding: 12px 14px;
+            background: #000;
+            border: 1px solid #1a1a1a;
+            border-radius: 14px;
+            flex-shrink: 0;
+        }
+        .jug-f1-nav .header-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            width: 100%;
+        }
+        .jug-f1-nav .btn-hdr {
+            background: rgba(10,10,10,0.95);
+            border: 1px solid #1a1a1a;
+            color: #888;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.52rem;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: 'Arial Black', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .jug-f1-nav .btn-hdr:hover,
+        .jug-f1-nav .btn-hdr:focus-visible {
+            border-color: rgba(212,175,55,0.35);
+            color: var(--oro);
+            outline: none;
+        }
+
         /* ═══ FASE 1: REGISTRO (responsive, diseño mejorado) ═══ */
         #fase1 {
             min-height: 100vh;
@@ -32,8 +72,57 @@
             align-items: center;
             padding: clamp(12px, 3vw, 24px) clamp(16px, 4vw, 24px) 80px;
             overflow-y: auto;
+            position: relative;
+            z-index: 5;
         }
         #fase1.oculta { display: none !important; }
+        /* Encima del fondo de estrellas (ux-shell) */
+        #fase2 { position: relative; z-index: 5; }
+        .f1-movil-hint {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto 14px;
+            padding: 12px 14px;
+            background: rgba(46, 255, 112, 0.07);
+            border: 1px solid rgba(46, 255, 112, 0.28);
+            border-radius: 14px;
+            color: #7a9;
+            font-size: clamp(0.52rem, 2.2vw, 0.62rem);
+            line-height: 1.45;
+            text-align: center;
+            letter-spacing: 0.04em;
+        }
+        .f1-movil-hint strong { color: #9c9; }
+        /* Menú: en móvil ya no ocupa toda la pantalla */
+        .duelo-nav-fold {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto 8px;
+            border-radius: 14px;
+            border: 1px solid #222;
+            background: #080808;
+            overflow: hidden;
+        }
+        .duelo-nav-fold > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 12px 14px;
+            font-size: 0.58rem;
+            letter-spacing: 0.1em;
+            color: var(--oro);
+            text-align: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .duelo-nav-fold > summary::-webkit-details-marker { display: none; }
+        .duelo-nav-fold > summary::marker { content: ''; }
+        .duelo-nav-fold[open] > summary {
+            border-bottom: 1px solid #1a1a1a;
+            color: #ccc;
+        }
+        .duelo-nav-fold .header-actions {
+            padding: 10px 12px 12px;
+        }
         .f1-titulo {
             color: var(--oro);
             font-size: clamp(1rem, 4vw, 1.35rem);
@@ -48,6 +137,35 @@
             text-align: center;
             margin-bottom: clamp(16px, 4vw, 24px);
         }
+        .f1-cfg-status {
+            width: 100%;
+            max-width: 420px;
+            margin: -8px auto 14px;
+            padding: 10px 14px;
+            background: rgba(212,175,55,0.06);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 12px;
+            color: #888;
+            font-size: clamp(0.45rem, 1.8vw, 0.52rem);
+            letter-spacing: 0.08em;
+            line-height: 1.5;
+            text-align: center;
+        }
+        .f1-politica-p1 {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto 12px;
+            padding: 10px 12px;
+            background: rgba(52,152,219,0.07);
+            border: 1px solid rgba(52,152,219,0.22);
+            border-radius: 12px;
+            color: #777;
+            font-size: clamp(0.42rem, 1.6vw, 0.5rem);
+            letter-spacing: 0.06em;
+            line-height: 1.45;
+            text-align: left;
+        }
+        .f1-politica-p1 strong { color: #9fb7c9; }
         .f1-card {
             width: 100%;
             max-width: 420px;
@@ -126,6 +244,36 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+        .watermark-tv {
+            position:absolute;
+            right:14px;
+            top:74px;
+            z-index:15;
+            pointer-events:none;
+            opacity:0.16;
+            display:flex;
+            align-items:center;
+            gap:8px;
+            filter:grayscale(0.15);
+        }
+        .watermark-tv img {
+            width:44px;
+            height:44px;
+            border-radius:50%;
+            object-fit:contain;
+            background:#000;
+            border:1px solid rgba(255,255,255,0.25);
+            padding:2px;
+        }
+        .watermark-tv .wm-text {
+            color:#fff;
+            font-size:0.62rem;
+            letter-spacing:2px;
+            text-transform:uppercase;
+            text-shadow:0 0 6px rgba(0,0,0,0.5);
+            white-space:nowrap;
         }
 
         /* ── CABEZOTE SUPERIOR ── */
@@ -195,30 +343,6 @@
             border-color:#666;
         }
 
-        /* Botón pantalla completa (oculta barra de URL en la TV) */
-        .btn-fullscreen {
-            position:fixed;
-            right:12px;
-            bottom:10px;
-            z-index:100;
-            background:rgba(0,0,0,0.6);
-            border:1px solid #333;
-            color:#777;
-            padding:5px 9px;
-            border-radius:999px;
-            font-size:0.55rem;
-            letter-spacing:1px;
-            cursor:pointer;
-            font-family:'Arial Black',sans-serif;
-        }
-        .btn-fullscreen span {
-            margin-right:4px;
-            font-size:0.7rem;
-        }
-        .btn-fullscreen:hover {
-            color:#ddd;
-            border-color:#666;
-        }
         .btn-pausa {
             background:rgba(255,255,255,0.06);
             border:1px solid #333;
@@ -246,6 +370,10 @@
             transition:0.2s;
         }
         .btn-fin:active { background:rgba(231,76,60,0.25);color:#fff; }
+        @keyframes btnSetPulse {
+            0%, 100% { box-shadow: 0 0 0 rgba(46,255,112,0); border-color: rgba(46,255,112,0.35); }
+            50% { box-shadow: 0 0 16px rgba(46,255,112,0.45); border-color: rgba(46,255,112,0.65); }
+        }
         .btn-siguiente-set {
             background:rgba(46,255,112,0.1);
             border:1px solid rgba(46,255,112,0.35);
@@ -257,8 +385,23 @@
             letter-spacing:1px;
             cursor:pointer;
             font-family:'Arial Black',sans-serif;
+            animation: btnSetPulse 2.2s ease-in-out infinite;
         }
         .btn-siguiente-set:active { background:rgba(46,255,112,0.2); }
+        .btn-siguiente-entrada-top {
+            background:linear-gradient(135deg,var(--azul),#1460a0);
+            border:1px solid rgba(52,152,219,0.45);
+            color:#fff;
+            padding:8px 12px;
+            border-radius:12px;
+            font-size:0.64rem;
+            font-weight:900;
+            letter-spacing:1px;
+            cursor:pointer;
+            font-family:'Arial Black',sans-serif;
+            white-space:nowrap;
+        }
+        .btn-siguiente-entrada-top:active { opacity:0.85; transform:scale(0.98); }
         .btn-bolas-tv {
             background:rgba(255,255,255,0.05);
             border:1px solid #444;
@@ -271,6 +414,39 @@
         }
         .btn-bolas-tv:active { background:rgba(255,255,255,0.15); }
         .btn-bolas-tv.desactivado { opacity:0.4; pointer-events:none; cursor:not-allowed; }
+
+        .btn-salir-config {
+            background:rgba(212,175,55,0.08);
+            border:1px solid rgba(212,175,55,0.35);
+            color:var(--oro);
+            padding:8px 12px;
+            border-radius:12px;
+            font-size:0.58rem;
+            font-weight:900;
+            letter-spacing:1px;
+            cursor:pointer;
+            font-family:'Arial Black',sans-serif;
+            flex-shrink:0;
+            white-space:nowrap;
+        }
+        .btn-salir-config:active { opacity:0.85; transform:scale(0.98); }
+
+        .tv-exit-links {
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:center;
+            gap:10px 14px;
+            padding:6px 8px 4px;
+            border-top:1px solid #151515;
+        }
+        .tv-exit-links a {
+            color:#666;
+            font-size:0.48rem;
+            letter-spacing:1px;
+            text-decoration:none;
+            font-family:'Arial Black',sans-serif;
+        }
+        .tv-exit-links a:hover, .tv-exit-links a:focus-visible { color:var(--oro); outline:none; }
 
         .barra-indicadores {
             display:flex;
@@ -290,15 +466,20 @@
             font-size:1.05rem;
         }
 
-        /* ── CUERPO: 3 COLUMNAS (J1 | VIDEO | J2) ── */
+        /* ── CUERPO: VERTICAL (Premium TV) — J1 arriba, J2 abajo; sin panel de cámara/stream ── */
         .tv-main {
             flex:1;
-            display:grid;
-            grid-template-columns:1fr 1fr 1fr;
-            gap:0;
-            padding:8px 10px 12px;
+            display:flex;
+            flex-direction:column;
+            align-items:stretch;
+            gap:12px;
+            padding:8px 12px 12px;
             padding-bottom:170px;
             min-height:0;
+            max-width:520px;
+            margin:0 auto;
+            width:100%;
+            box-sizing:border-box;
         }
         .panel-jugador {
             background:#0a0a0a;
@@ -432,7 +613,32 @@
             transition:width 0.3s ease;
         }
 
-        /* Columna central: video */
+        /* Stream/cámara: oculto en TV/móvil (Premium). Visible solo con ?modo=produccion */
+        .duelo-tv-stream-host {
+            display:none !important;
+            visibility:hidden;
+            position:absolute;
+            left:-9999px;
+            width:1px;
+            height:1px;
+            overflow:hidden;
+            pointer-events:none;
+        }
+        body.duelo-modo-produccion .duelo-tv-stream-host {
+            display:flex !important;
+            flex-direction:column;
+            visibility:visible !important;
+            position:relative !important;
+            left:auto !important;
+            width:100% !important;
+            max-width:520px;
+            margin:8px auto 0;
+            min-height:160px;
+            height:auto !important;
+            overflow:visible !important;
+            pointer-events:auto !important;
+        }
+
         .panel-video {
             background:#050505;
             border:1px solid #1a1a1a;
@@ -463,6 +669,13 @@
             height:100%;
             border:none;
         }
+        .video-frame video {
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            border:none;
+            background:#000;
+        }
         .video-placeholder {
             width:100%;
             height:100%;
@@ -473,6 +686,36 @@
             font-size:0.7rem;
             letter-spacing:1px;
         }
+        .video-tools {
+            width:100%;
+            display:flex;
+            gap:6px;
+            margin-top:8px;
+            flex-wrap:wrap;
+            justify-content:center;
+        }
+        .btn-video-tool {
+            background:#111;
+            border:1px solid #2a2a2a;
+            color:#ddd;
+            padding:6px 10px;
+            border-radius:10px;
+            font-size:0.55rem;
+            letter-spacing:1px;
+            cursor:pointer;
+            font-family:'Arial Black',sans-serif;
+        }
+        .btn-video-tool:active { transform:scale(0.98); }
+        .btn-video-tool.rec {
+            background:rgba(231,76,60,0.15);
+            border-color:rgba(231,76,60,0.45);
+            color:#ffb3a8;
+        }
+        .btn-video-tool.stop {
+            background:rgba(52,152,219,0.15);
+            border-color:rgba(52,152,219,0.45);
+            color:#9fd7ff;
+        }
 
         /* Teclado inferior (igual que duelo) */
         .teclado-wrap {
@@ -481,8 +724,8 @@
             z-index:50;
             background:#000;
             border-top:1px solid #1a1a1a;
-            padding:8px 10px 14px;
-            height:155px;
+            padding:8px 10px calc(14px + env(safe-area-inset-bottom, 0px));
+            min-height:155px;
             display:flex;
             flex-direction:column;
             gap:6px;
@@ -591,14 +834,53 @@
             font-family:'Arial Black',sans-serif;
         }
         .btn-sig:active { transform:scale(0.97);opacity:0.85; }
+
+        @media (max-width: 980px) {
+            body.tv-activo { height:auto; min-height:100vh; overflow-y:auto; }
+            .watermark-tv { top:96px; right:10px; opacity:0.12; }
+            .watermark-tv img { width:34px;height:34px; }
+            .watermark-tv .wm-text { font-size:0.5rem; letter-spacing:1px; }
+            .barra-top-inner {
+                height:auto;
+                flex-wrap:wrap;
+                gap:8px;
+                padding:10px 10px;
+            }
+            .tv-main {
+                padding:8px 10px 190px;
+                max-width:100%;
+            }
+            .panel-jugador { min-height:0; }
+            .stats-grid { max-width:100%; }
+            .teclado-wrap { z-index:90; }
+        }
     </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <!-- FASE 1: Registro de jugadores y configuración -->
 <section id="fase1">
-    <h1 class="f1-titulo">DUELO TV</h1>
-    <p class="f1-sub">Configura la partida y pulsa Iniciar</p>
+    <nav class="jug-f1-nav" aria-label="Menú">
+        <details class="duelo-nav-fold">
+            <summary>☰ Otras pantallas (jugador, perfil, club…)</summary>
+            <div class="header-actions">
+                <a href="/jugador/" class="btn-hdr">Hub jugador</a>
+                <a href="/mi_partida.html" class="btn-hdr">Mi partida</a>
+                <a href="/perfil.html" class="btn-hdr">Mi perfil</a>
+                <a href="/ranking.html" class="btn-hdr">Ranking</a>
+                <a href="/Sensei.html" class="btn-hdr">Sensei</a>
+                <a href="/club/" class="btn-hdr">Portal club</a>
+                <a href="/index.html" class="btn-hdr">Inicio app</a>
+            </div>
+        </details>
+    </nav>
+    <p class="f1-movil-hint"><strong>Estás en el lugar correcto.</strong> Abajo configurás los 2 jugadores y tocás <strong>INICIAR PARTIDA</strong> para ver el marcador y el teclado. No es “TV vacía”: primero hay que iniciar.</p>
+    <h1 class="f1-titulo">DUELO MÓVIL / TV</h1>
+    <p class="f1-sub">Dos jugadores · marcador · bajá con el dedo si no ves el botón verde</p>
+    <p class="f1-cfg-status" id="cfg-mesa-status">—</p>
     <div class="f1-card">
         <h3>Jugadores</h3>
         <div class="f1-row">
@@ -609,6 +891,16 @@
             <div class="f1-field">
                 <label for="reg-n2">Jugador 2</label>
                 <input type="text" id="reg-n2" placeholder="Nombre" maxlength="40">
+            </div>
+        </div>
+        <div class="f1-row">
+            <div class="f1-field">
+                <label for="reg-c1">Cédula J1 (opcional)</label>
+                <input type="text" id="reg-c1" placeholder="Documento" maxlength="24" inputmode="numeric">
+            </div>
+            <div class="f1-field">
+                <label for="reg-c2">Cédula J2 (opcional)</label>
+                <input type="text" id="reg-c2" placeholder="Documento" maxlength="24" inputmode="numeric">
             </div>
         </div>
     </div>
@@ -636,7 +928,33 @@
         </div>
         <div class="f1-field">
             <label for="reg-stream">URL del stream (opcional)</label>
-            <input type="text" id="reg-stream" placeholder="Dejar vacío si usas Mesa" maxlength="500">
+            <input type="text" id="reg-stream" placeholder="YouTube: https://www.youtube.com/embed/VIDEO_ID" maxlength="500">
+        </div>
+        <div class="f1-field">
+            <label for="reg-youtube-live">YouTube Live Control Room (opcional)</label>
+            <input type="text" id="reg-youtube-live" placeholder="https://studio.youtube.com/..." maxlength="500">
+        </div>
+        <div class="f1-field" style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="reg-live-assist" style="width:16px;height:16px;">
+            <label for="reg-live-assist" style="margin:0;">Modo transmisión asistida (abrir YouTube al iniciar)</label>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+            <button type="button" class="btn-video-tool" id="btn-guardar-mesa" style="font-size:0.5rem;">💾 Guardar configuración de esta mesa</button>
+            <button type="button" class="btn-video-tool" id="btn-abrir-youtube" style="font-size:0.5rem;">🔴 Abrir YouTube Live</button>
+        </div>
+        <div class="f1-politica-p1" id="f1-politica-p1">
+            <strong>Punto 1 · Operación:</strong> no compartir la clave de transmisión de YouTube. Canal <strong>DeCarambola</strong> solo en eventos oficiales organizados; en cada local, OBS debe usar el <strong>canal de ese club</strong> para el resto de eventos.
+        </div>
+        <div class="f1-field">
+            <label for="reg-wm">Marca de agua</label>
+            <select id="reg-wm">
+                <option value="club">Club afiliado (auto)</option>
+                <option value="deca">Solo DeCarambola.com</option>
+                <option value="off">Sin marca de agua</option>
+            </select>
+        </div>
+        <div style="color:#666;font-size:0.48rem;line-height:1.4;margin-top:6px;">
+            Puedes iniciar sin cédulas y sin stream. Todo es opcional.
         </div>
     </div>
     <button type="button" class="f1-btn-iniciar" id="btn-iniciar-partida">Iniciar partida</button>
@@ -644,10 +962,15 @@
 </section>
 
 <div class="tv-root oculta" id="fase2">
+    <div class="watermark-tv" id="watermark-tv" style="display:none;">
+        <img id="wm-logo" alt="Marca agua">
+        <span class="wm-text" id="wm-text">decarambola.com</span>
+    </div>
 
     <!-- CABEZOTE TV -->
     <div class="barra-top">
         <div class="barra-top-inner">
+            <button type="button" class="btn-salir-config" id="btn-salir-a-config" title="Volver a la pantalla de configuración (marcador se reinicia)">← CONFIG</button>
             <div class="meta-info">
                 <span class="meta-lbl" id="lbl-meta1-top">META J1</span>
                 <span class="meta-val" id="lbl-pts-meta1">— / —</span>
@@ -662,8 +985,9 @@
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
                 <div style="display:flex;gap:6px;align-items:center;">
                     <button class="btn-bolas-tv" id="btn-bolas-tv" title="Intercambiar bolas blanca/dorada">⚪⇄🟡</button>
+                    <button class="btn-siguiente-entrada-top" onclick="cambio()">► SIG. ENTRADA</button>
                     <button class="btn-siguiente-set" id="btn-siguiente-set">▶ SIG. SET</button>
-                    <button class="btn-fin" id="btn-fin">🏁 FINALIZAR</button>
+                    <button class="btn-fin" id="btn-fin" title="Salir al menú de configuración (reinicia marcador)">🏁 SALIR</button>
                 </div>
                 <span class="meta-val" style="font-size:0.75rem;" id="lbl-pts-meta2">— / —</span>
             </div>
@@ -674,7 +998,7 @@
         </div>
     </div>
 
-    <!-- CUERPO TV: J1 | VIDEO | J2 -->
+    <!-- CUERPO TV: vertical (J1 → J2); stream/cámara oculto (Premium TV) -->
     <div class="tv-main">
         <!-- Panel Jugador 1 -->
         <div class="panel-jugador" id="panel-j1">
@@ -708,13 +1032,21 @@
             </div>
         </div>
 
-        <!-- Panel Video -->
+        <!-- Stream/cámara: oculto (mismo layout vertical que Premium TV; OBS usa la página entera o duelo-tv-preview) -->
+        <div class="duelo-tv-stream-host" id="duelo-tv-stream-host" aria-hidden="true">
         <div class="panel-video">
             <h3 id="lbl-video-header">MESA — STREAM EN VIVO</h3>
             <div class="video-frame">
                 <div class="video-placeholder" id="video-placeholder">Conecte la cámara de esta mesa</div>
                 <iframe id="stream-iframe" style="display:none;" title="Transmisión"></iframe>
+                <video id="local-camera" style="display:none;" playsinline autoplay muted></video>
             </div>
+            <div class="video-tools">
+                <button class="btn-video-tool" id="btn-usar-camara" type="button">📷 Usar cámara</button>
+                <button class="btn-video-tool stop" id="btn-quitar-stream" type="button">✖ Quitar stream</button>
+                <button class="btn-video-tool rec" id="btn-grabar-cel" type="button">⏺ Grabar celular</button>
+            </div>
+        </div>
         </div>
 
         <!-- Panel Jugador 2 -->
@@ -781,6 +1113,11 @@
             <button class="btn-num btn-restar" onclick="restar()">−</button>
         </div>
         <button class="btn-sig" onclick="cambio()">► SIGUIENTE ENTRADA</button>
+        <div class="tv-exit-links">
+            <a href="/jugador/">Hub jugador</a>
+            <a href="/club/">Portal club</a>
+            <a href="/index.html">Inicio app</a>
+        </div>
     </div>
     </div>
 </div>
@@ -790,13 +1127,104 @@
     <span>⛶</span>PANTALLA COMPLETA
 </button>
 
-<script src="core.js"></script>
+<script src="/Version.js"></script>
+<script src="/core.js"></script>
+<script src="/whitelabel.js"></script>
 <script>
     // Estado
     let bolasInvertidas = false;
     let d = { p1:0,p2:0,e1:0,e2:0,s1:0,s2:0,ms1:0,ms2:0,t:1 };
-    let cfg = { meta1:3,meta2:3,tiempo:40,mesa:'',streamUrl:'' };
+    let cfg = { meta1:3,meta2:3,tiempo:40,mesa:'',streamUrl:'',ced1:'',ced2:'',wmMode:'club',youtubeLiveUrl:'',liveAssist:false };
     let nomJ1 = 'JUGADOR A', nomJ2 = 'JUGADOR B';
+    let localCameraStream = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+
+    function getMesaCfgKey(mesa) {
+        var club = '';
+        try {
+            club = (window.WL && window.WL.getNombreClub && window.WL.getNombreClub()) || localStorage.getItem('wl_club_nombre') || 'GLOBAL';
+        } catch (e) { club = 'GLOBAL'; }
+        return (club + '|' + (mesa || '-')).toUpperCase();
+    }
+
+    function leerCfgMesas() {
+        try { return JSON.parse(localStorage.getItem('duelo_tv_mesas_cfg') || '{}'); } catch (e) { return {}; }
+    }
+
+    function guardarCfgMesas(all) {
+        try { localStorage.setItem('duelo_tv_mesas_cfg', JSON.stringify(all || {})); } catch (e) {}
+    }
+
+    function getClubNombreDisplay() {
+        try {
+            return (window.WL && window.WL.getNombreClub && window.WL.getNombreClub()) || localStorage.getItem('wl_club_nombre') || 'GLOBAL';
+        } catch (e) { return 'GLOBAL'; }
+    }
+
+    function actualizarEtiquetaConfigMesa() {
+        var el = document.getElementById('cfg-mesa-status');
+        if (!el) return;
+        var mesa = (document.getElementById('reg-mesa') && document.getElementById('reg-mesa').value || '').trim() || '-';
+        var club = getClubNombreDisplay();
+        var k = getMesaCfgKey(mesa);
+        var all = leerCfgMesas();
+        var c = all[k];
+        var line = 'Club: ' + club + ' · Mesa: ' + mesa;
+        if (c) {
+            line += ' · Perfil guardado';
+            line += c.liveAssist ? ' · Asistida ON' : ' · Asistida OFF';
+        } else {
+            line += ' · Sin perfil guardado (usa 💾 si quieres recordar esta mesa)';
+        }
+        el.textContent = line;
+    }
+
+    function aplicarConfigMesa() {
+        var inpM = document.getElementById('reg-mesa');
+        if (!inpM) return;
+        var mesa = (inpM.value || '').trim() || '-';
+        var all = leerCfgMesas();
+        var k = getMesaCfgKey(mesa);
+        var c = all[k];
+        if (!c) {
+            actualizarEtiquetaConfigMesa();
+            return;
+        }
+        if (document.getElementById('reg-stream')) document.getElementById('reg-stream').value = c.streamUrl || '';
+        if (document.getElementById('reg-youtube-live')) document.getElementById('reg-youtube-live').value = c.youtubeLiveUrl || '';
+        if (document.getElementById('reg-live-assist')) document.getElementById('reg-live-assist').checked = !!c.liveAssist;
+        if (document.getElementById('reg-wm') && c.wmMode) document.getElementById('reg-wm').value = c.wmMode;
+        actualizarEtiquetaConfigMesa();
+    }
+
+    function guardarConfigMesa() {
+        var mesa = (document.getElementById('reg-mesa').value || '').trim() || '-';
+        var streamUrl = (document.getElementById('reg-stream').value || '').trim();
+        var youtubeLiveUrl = (document.getElementById('reg-youtube-live').value || '').trim();
+        var liveAssist = !!(document.getElementById('reg-live-assist').checked);
+        var wmMode = (document.getElementById('reg-wm').value || 'club').trim();
+        var all = leerCfgMesas();
+        var k = getMesaCfgKey(mesa);
+        all[k] = {
+            streamUrl: streamUrl,
+            youtubeLiveUrl: youtubeLiveUrl,
+            liveAssist: liveAssist,
+            wmMode: wmMode
+        };
+        guardarCfgMesas(all);
+        actualizarEtiquetaConfigMesa();
+        alert('Configuración guardada para la mesa ' + mesa + '.');
+    }
+
+    function abrirYoutubeLive() {
+        var url = (document.getElementById('reg-youtube-live').value || '').trim();
+        if (!url) {
+            alert('Ingresa la URL de YouTube Live Control Room.');
+            return;
+        }
+        window.open(url, '_blank', 'noopener');
+    }
 
     let tiempoRestante = cfg.tiempo;
     let timer = null;
@@ -805,6 +1233,40 @@
     let partidaTotalPausedMs = 0;
     let pauseStartTime = 0;
     let partidaTerminada = false;
+
+    function initWatermark() {
+        var wm = document.getElementById('watermark-tv');
+        var wmLogo = document.getElementById('wm-logo');
+        var wmText = document.getElementById('wm-text');
+        if (!wm || !wmLogo || !wmText) return;
+
+        var params = new URLSearchParams(window.location.search);
+        var wmMode = (cfg && cfg.wmMode) || params.get('wm') || 'club';
+        if (wmMode === 'off') {
+            wm.style.display = 'none';
+            return;
+        }
+
+        var clubLogo = '';
+        var clubNombre = '';
+        try {
+            clubLogo = (window.WL && window.WL.getLogoUrl && window.WL.getLogoUrl()) || localStorage.getItem('wl_club_logo_url') || '';
+            clubNombre = (window.WL && window.WL.getNombreClub && window.WL.getNombreClub()) || localStorage.getItem('wl_club_nombre') || '';
+        } catch (e) {}
+
+        if (wmMode === 'deca') {
+            wmLogo.style.display = 'none';
+            wmText.textContent = 'DECARAMBOLA.COM';
+        } else if (clubLogo) {
+            wmLogo.src = clubLogo;
+            wmLogo.style.display = 'block';
+            wmText.textContent = (clubNombre || 'DE CARAMBOLA') + ' · DECARAMBOLA.COM';
+        } else {
+            wmLogo.style.display = 'none';
+            wmText.textContent = 'DECARAMBOLA.COM';
+        }
+        wm.style.display = 'flex';
+    }
 
     function actualizarUI() {
         document.getElementById('lbl1-sb').innerText = nomJ1;
@@ -852,8 +1314,6 @@
         var p1 = document.getElementById('panel-j1'), p2 = document.getElementById('panel-j2');
         if (p1) p1.classList.toggle('activo', d.t === 1);
         if (p2) p2.classList.toggle('activo', d.t === 2);
-        var btnBolas = document.getElementById('btn-bolas-tv');
-        if (btnBolas) btnBolas.classList.toggle('desactivado', d.p1 + d.p2 > 0);
     }
 
     function actualizarIndicadoresTiempo() {
@@ -869,6 +1329,17 @@
     function iniciarReloj() {
         clearInterval(timer);
         pausado = false;
+        var rel = document.getElementById('reloj');
+        if (rel) {
+            rel.classList.remove('urgente');
+            rel.style.opacity = '1';
+        }
+        var btnP = document.getElementById('btn-pausa');
+        if (btnP) {
+            btnP.innerText = '⏸';
+            btnP.style.color = '#aaa';
+            btnP.style.borderColor = '#333';
+        }
         document.getElementById('reloj').innerText = tiempoRestante;
         timer = setInterval(()=>{
             if (pausado) return;
@@ -1013,10 +1484,11 @@
         var nom2 = (el2 && el2.innerText) ? el2.innerText.trim() : nomJ2;
         var ganador = d.p1 >= d.p2 ? nom1 : (d.p2 >= d.p1 ? nom2 : (d.ms1 >= d.ms2 ? nom1 : nom2));
         var basePublica = (typeof localStorage !== 'undefined' && localStorage.getItem('wl_cert_base_url')) || 'https://decarambola.com';
-        var base = basePublica.replace(/\/$/, '') + '/certificado_ver.html';
+        var base = basePublica.replace(/\/$/, '') + '/Certificados.html';
         var qs = '?n1=' + encodeURIComponent(nom1) + '&n2=' + encodeURIComponent(nom2) +
             '&p1=' + d.p1 + '&p2=' + d.p2 + '&e1=' + d.e1 + '&e2=' + d.e2 +
-            '&ms1=' + d.ms1 + '&ms2=' + d.ms2 + '&ganador=' + encodeURIComponent(ganador);
+            '&ms1=' + d.ms1 + '&ms2=' + d.ms2 + '&ganador=' + encodeURIComponent(ganador) +
+            '&c1=' + encodeURIComponent(cfg.ced1 || '') + '&c2=' + encodeURIComponent(cfg.ced2 || '');
         var urlCerti = base + qs;
         var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(urlCerti);
         var avisoCel = '<div style="color:#888;font-size:0.55rem;text-align:center;">Partida guardada. El jugador escanea el QR o abre el enlace desde el celular en decarambola.com y ve el certificado: con eso acepta el resultado.</div>';
@@ -1026,11 +1498,17 @@
             '<div style="color:var(--oro);font-size:0.7rem;letter-spacing:3px;">CERTIFICADO EMITIDO</div>' +
             avisoCel +
             '<img src="' + qrSrc + '" alt="QR certificado" style="width:200px;height:200px;border:4px solid var(--oro);border-radius:12px;">' +
-            '<button type="button" id="btn-nueva-despues-qr" style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:14px 28px;border-radius:14px;font-size:0.9rem;font-weight:bold;cursor:pointer;">Nueva partida</button>';
+            '<div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">' +
+            '<button type="button" id="btn-nueva-despues-qr" style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:14px 28px;border-radius:14px;font-size:0.9rem;font-weight:bold;cursor:pointer;">Nueva partida</button>' +
+            '<button type="button" id="btn-menu-despues-qr" style="background:#111;color:#bbb;border:1px solid #333;padding:12px 20px;border-radius:12px;font-size:0.78rem;cursor:pointer;">Finalizar / Volver al menú</button>' +
+            '</div>';
         ov.querySelector('#btn-nueva-despues-qr').onclick = function() {
             document.body.removeChild(ov);
             partidaTerminada = false;
             siguienteSet();
+        };
+        ov.querySelector('#btn-menu-despues-qr').onclick = function() {
+            window.location.href = 'mi_partida.html';
         };
         document.body.appendChild(ov);
     }
@@ -1043,10 +1521,10 @@
         iniciarReloj();
         actualizarUI();
         document.getElementById('lbl-ent-top').innerText = 'ENTRADA ' + (d['e'+d.t]+1);
+        /* TIEMPO total (ind-transcurrido) sigue con partidaStartTime; no se reinicia aquí */
     }
 
     function intercambiarBolasTv() {
-        if (d.p1 + d.p2 > 0) return;
         bolasInvertidas = !bolasInvertidas;
         const b1 = document.getElementById('bola1-sb');
         const b2 = document.getElementById('bola2-sb');
@@ -1064,8 +1542,10 @@
         partidaTerminada = false;
         d = { p1:0,p2:0,e1:0,e2:0,s1:0,s2:0,ms1:0,ms2:0,t:1 };
         tiempoRestante = cfg.tiempo;
+        /* Nuevo set: reloj de entrada se reinicia; TIEMPO total (barra inferior) sigue — partidaStartTime intacto */
         iniciarReloj();
         actualizarUI();
+        document.getElementById('lbl-ent-top').innerText = 'ENTRADA 1';
     }
 
     // Inicializar panel de video: ?stream= en URL o cfg.streamUrl (Fase 1).
@@ -1076,17 +1556,127 @@
         const iframe = document.getElementById('stream-iframe');
         const placeholder = document.getElementById('video-placeholder');
         const header = document.getElementById('lbl-video-header');
+        const localVideo = document.getElementById('local-camera');
 
         if (stream) {
             cfg.streamUrl = stream;
-            iframe.src = stream;
-            iframe.style.display = 'block';
+            if (iframe) {
+                iframe.src = stream;
+                iframe.style.display = 'block';
+            }
+            if (localVideo) localVideo.style.display = 'none';
             if (placeholder) placeholder.style.display = 'none';
-            header.innerText = 'MESA — STREAM EN VIVO';
+            if (header) header.innerText = 'MESA — STREAM EN VIVO';
         } else {
-            iframe.style.display = 'none';
+            if (iframe) {
+                iframe.src = '';
+                iframe.style.display = 'none';
+            }
+            if (localVideo && !localCameraStream) localVideo.style.display = 'none';
             if (placeholder) placeholder.style.display = 'flex';
-            header.innerText = 'MESA — VIDEO / STREAM';
+            if (header) header.innerText = 'MESA — VIDEO / STREAM';
+        }
+    }
+
+    async function usarCamaraCelular() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('Tu navegador no permite cámara en este dispositivo.');
+            return;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: 'environment' } },
+                audio: true
+            });
+            localCameraStream = stream;
+            const localVideo = document.getElementById('local-camera');
+            const iframe = document.getElementById('stream-iframe');
+            const placeholder = document.getElementById('video-placeholder');
+            const header = document.getElementById('lbl-video-header');
+            cfg.streamUrl = '';
+            iframe.src = '';
+            iframe.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'none';
+            if (localVideo) {
+                localVideo.srcObject = stream;
+                localVideo.style.display = 'block';
+                localVideo.play().catch(function(){});
+            }
+            if (header) header.innerText = 'MESA — CÁMARA LOCAL (oculta en pantalla)';
+        } catch (e) {
+            alert('No se pudo activar la cámara. Revisa permisos.');
+        }
+    }
+
+    function quitarStream() {
+        const iframe = document.getElementById('stream-iframe');
+        const placeholder = document.getElementById('video-placeholder');
+        const localVideo = document.getElementById('local-camera');
+        const header = document.getElementById('lbl-video-header');
+        cfg.streamUrl = '';
+        if (iframe) {
+            iframe.src = '';
+            iframe.style.display = 'none';
+        }
+        if (localCameraStream) {
+            localCameraStream.getTracks().forEach(function(t){ t.stop(); });
+            localCameraStream = null;
+        }
+        if (localVideo) {
+            localVideo.srcObject = null;
+            localVideo.style.display = 'none';
+        }
+        if (placeholder) placeholder.style.display = 'flex';
+        if (header) header.innerText = 'MESA — VIDEO / STREAM';
+    }
+
+    function volverPartidaASeleccion() {
+        if (!confirm('¿Volver a la configuración del duelo? El marcador actual se reiniciará.')) return;
+        try { clearInterval(timer); } catch (e) {}
+        try { quitarStream(); } catch (e2) {}
+        partidaTerminada = false;
+        var f1 = document.getElementById('fase1');
+        var f2 = document.getElementById('fase2');
+        if (f2) f2.classList.add('oculta');
+        if (f1) f1.classList.remove('oculta');
+        document.body.classList.remove('tv-activo');
+    }
+
+    function grabarDesdeCelular() {
+        var btn = document.getElementById('btn-grabar-cel');
+        if (!localCameraStream) {
+            alert('Primero activa "Usar cámara".');
+            return;
+        }
+        if (typeof MediaRecorder === 'undefined') {
+            alert('Este navegador no permite grabación local.');
+            return;
+        }
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            return;
+        }
+        try {
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(localCameraStream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = function(ev) {
+                if (ev.data && ev.data.size > 0) recordedChunks.push(ev.data);
+            };
+            mediaRecorder.onstop = function() {
+                if (!recordedChunks.length) return;
+                var blob = new Blob(recordedChunks, { type: 'video/webm' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'duelo-tv-' + Date.now() + '.webm';
+                a.click();
+                URL.revokeObjectURL(url);
+                if (btn) btn.textContent = '⏺ Grabar celular';
+            };
+            mediaRecorder.start();
+            if (btn) btn.textContent = '⏹ Detener grabación';
+        } catch (e) {
+            alert('No fue posible iniciar la grabación.');
         }
     }
 
@@ -1098,13 +1688,19 @@
         var tiempo = parseInt(document.getElementById('reg-tiempo').value, 10) || 40;
         var mesa = (document.getElementById('reg-mesa').value || '').trim() || '-';
         var streamUrl = (document.getElementById('reg-stream').value || '').trim();
+        var youtubeLiveUrl = (document.getElementById('reg-youtube-live').value || '').trim();
+        var liveAssist = !!(document.getElementById('reg-live-assist').checked);
+        var ced1 = (document.getElementById('reg-c1').value || '').trim();
+        var ced2 = (document.getElementById('reg-c2').value || '').trim();
+        var wmMode = (document.getElementById('reg-wm').value || 'club').trim();
+        try { sessionStorage.setItem('duelo_tv_wm_mode', wmMode); } catch (e) {}
 
         if (!streamUrl && mesa && mesa !== '-' && typeof window.MasterVIP !== 'undefined' && window.MasterVIP.getStreamUrlMesa) {
             try { streamUrl = window.MasterVIP.getStreamUrlMesa(mesa) || ''; } catch (e) {}
         }
         nomJ1 = n1;
         nomJ2 = n2;
-        cfg = { meta1: meta1, meta2: meta2, tiempo: tiempo, mesa: mesa, streamUrl: streamUrl };
+        cfg = { meta1: meta1, meta2: meta2, tiempo: tiempo, mesa: mesa, streamUrl: streamUrl, ced1: ced1, ced2: ced2, wmMode: wmMode, youtubeLiveUrl: youtubeLiveUrl, liveAssist: liveAssist };
         d = { p1: 0, p2: 0, e1: 0, e2: 0, s1: 0, s2: 0, ms1: 0, ms2: 0, t: 1 };
         tiempoRestante = cfg.tiempo;
         partidaStartTime = Date.now();
@@ -1118,25 +1714,105 @@
         document.body.classList.add('tv-activo');
 
         actualizarUI();
+        initWatermark();
         initVideoPanel();
         iniciarReloj();
+        if (cfg.liveAssist && cfg.youtubeLiveUrl) {
+            window.open(cfg.youtubeLiveUrl, '_blank', 'noopener');
+        }
     }
 
-    document.getElementById('btn-pausa').onclick = togglePausa;
-    document.getElementById('btn-bolas-tv').onclick = intercambiarBolasTv;
-    document.getElementById('btn-siguiente-set').onclick = siguienteSet;
+    var _bp = document.getElementById('btn-pausa');
+    if (_bp) _bp.onclick = togglePausa;
+    var _bb = document.getElementById('btn-bolas-tv');
+    if (_bb) _bb.onclick = intercambiarBolasTv;
+    var _bs = document.getElementById('btn-siguiente-set');
+    if (_bs) _bs.onclick = siguienteSet;
+    var btnSalirCfg = document.getElementById('btn-salir-a-config');
+    if (btnSalirCfg) btnSalirCfg.onclick = volverPartidaASeleccion;
+    var btnFinTv = document.getElementById('btn-fin');
+    if (btnFinTv) btnFinTv.onclick = volverPartidaASeleccion;
+    var bCam = document.getElementById('btn-usar-camara');
+    if (bCam) bCam.onclick = usarCamaraCelular;
+    var bQs = document.getElementById('btn-quitar-stream');
+    if (bQs) bQs.onclick = quitarStream;
+    var bGr = document.getElementById('btn-grabar-cel');
+    if (bGr) bGr.onclick = grabarDesdeCelular;
 
     (function init() {
+        try {
+            var pInit = new URLSearchParams(window.location.search);
+            var modo = (pInit.get('modo') || 'tv').toLowerCase();
+            if (modo === 'produccion' || modo === 'stream' || pInit.get('camaras') === '1') {
+                document.body.classList.add('duelo-modo-produccion');
+            }
+            if (modo === 'movil') {
+                document.body.classList.add('duelo-modo-movil');
+            }
+            var avisoModo = document.getElementById('duelo-modo-aviso');
+            if (avisoModo) {
+                var t = '';
+                if (modo === 'movil') {
+                    t =
+                        '<strong>Modo móvil</strong> (<code>?modo=movil</code>): mismo marcador que <strong>Premium TV</strong>, <strong>sin columna de cámara</strong> en pantalla.';
+                } else if (modo === 'produccion' || modo === 'stream' || pInit.get('camaras') === '1') {
+                    t =
+                        '<strong>Modo producción</strong> (<code>?modo=produccion</code>): se ve el panel de <strong>cámara / stream / grabar</strong> para quien anota y transmite desde el celular o mesa.';
+                } else {
+                    t =
+                        '<strong>Modo TV / mesa</strong> (por defecto): señal limpia para proyector, sin cámara en pantalla.';
+                }
+                avisoModo.innerHTML = t;
+                avisoModo.style.display = 'block';
+            }
+            if (pInit.get('hidepolicy') === '1') {
+                var pol = document.getElementById('f1-politica-p1');
+                if (pol) pol.style.display = 'none';
+            }
+        } catch (e) {}
+        initWatermark();
+        try {
+            var wmSaved = sessionStorage.getItem('duelo_tv_wm_mode');
+            if (wmSaved && document.getElementById('reg-wm')) {
+                document.getElementById('reg-wm').value = wmSaved;
+            }
+        } catch (e) {}
+        var inpMesa = document.getElementById('reg-mesa');
+        if (inpMesa) {
+            inpMesa.addEventListener('blur', aplicarConfigMesa);
+            inpMesa.addEventListener('input', actualizarEtiquetaConfigMesa);
+        }
+        aplicarConfigMesa();
+        setTimeout(actualizarEtiquetaConfigMesa, 400);
+        var btnGuardarMesa = document.getElementById('btn-guardar-mesa');
+        if (btnGuardarMesa) btnGuardarMesa.onclick = guardarConfigMesa;
+        var btnAbrirYoutube = document.getElementById('btn-abrir-youtube');
+        if (btnAbrirYoutube) btnAbrirYoutube.onclick = abrirYoutubeLive;
         var f1 = document.getElementById('fase1');
         var f2 = document.getElementById('fase2');
         if (f1 && f2) {
             f1.classList.remove('oculta');
             f2.classList.add('oculta');
         }
-        document.getElementById('btn-iniciar-partida').onclick = iniciarDesdeFase1;
+        var btnIni = document.getElementById('btn-iniciar-partida');
+        if (btnIni) btnIni.onclick = iniciarDesdeFase1;
         var btnBack = document.getElementById('btn-f1-back');
-        if (btnBack) btnBack.onclick = function() { if (window.history.length > 1) window.history.back(); else window.location.href = 'index.html'; };
+        if (btnBack) btnBack.onclick = function() { window.location.href = '/jugador/'; };
     })();
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
 </script>
 </body>
 </html>

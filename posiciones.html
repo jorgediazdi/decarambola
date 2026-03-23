@@ -3,17 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Posiciones — DeCarambola</title>
     <style>
 :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; --borde:#1a1a1a; --card:#0a0a0a; }
         * { box-sizing: border-box; }
         body { background: var(--negro); color: #fff; font-family: 'Arial Black', sans-serif; margin: 0; padding: 0; }
-        .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 15px 20px; position: sticky; top: 0; z-index: 50; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 15px 20px; position: sticky; top: 0; z-index: 50; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; width: 100%; }
+        .btn-hdr {
+            background: rgba(10,10,10,0.95); border: 1px solid #1a1a1a; color: #888;
+            padding: 8px 12px; border-radius: 10px; font-size: 0.52rem; cursor: pointer;
+            text-decoration: none; font-family: 'Arial Black', sans-serif; font-weight: 600;
+            letter-spacing: 0.06em; transition: border-color 0.15s, color 0.15s;
+        }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color: rgba(212,175,55,0.35); color: var(--oro); outline: none; }
         .header-titulo { color: var(--oro); font-size: 1.1rem; letter-spacing: 2px; }
         .header-sub { color: #333; font-size: 0.55rem; margin-top: 5px; letter-spacing: 1px; }
         .fase-badge { background: rgba(52,152,219,0.15); border: 1px solid rgba(52,152,219,0.3); color: var(--azul); padding: 6px 12px; border-radius: 15px; font-size: 0.5rem; letter-spacing: 1px; }
-        .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde); position: sticky; top: 64px; z-index: 40; }
+        .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde); position: sticky; top: 118px; z-index: 40; }
         .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: #444; font-size: 0.65rem; font-family: 'Arial Black', sans-serif; letter-spacing: 2px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
         .tab-btn.activa { color: var(--oro); border-bottom-color: var(--oro); }
         .contenido { padding: 15px; max-width: 600px; margin: 0 auto; padding-bottom: 120px; }
@@ -79,8 +88,11 @@
         .btn-nav { flex: 1; padding: 13px 8px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; color: #777; font-size: 0.65rem; cursor: pointer; text-align: center; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
         .btn-nav:active { border-color: var(--oro); color: var(--oro); }
     </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
     <div class="header">
         <div class="header-top">
             <div style="display:flex;align-items:center;gap:10px;">
@@ -91,6 +103,15 @@
                 </div>
             </div>
             <div class="fase-badge" id="lbl-fase">GRUPOS</div>
+        </div>
+        <div class="header-actions">
+            <a href="organizador.html" class="btn-hdr">Panel organizador</a>
+            <a href="torneos.html" class="btn-hdr">Torneos</a>
+            <a href="torneo_crear.html" class="btn-hdr">Nuevo torneo</a>
+            <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
+            <a href="control_torneo.html" class="btn-hdr">Control torneo</a>
+            <a href="club/index.html" class="btn-hdr">Portal club</a>
+            <a href="index.html" class="btn-hdr">Inicio app</a>
         </div>
     </div>
     <div class="tabs">
@@ -126,18 +147,41 @@ window.onload = async function() {
 };
 function refrescar() { cargar(); }
 
+function escapeHtml(s) {
+    if (s == null || s === undefined) return '';
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function safeRenderVista() {
+    try {
+        renderVista();
+    } catch (e) {
+        console.error('posiciones renderVista:', e);
+        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>⚠️</div><p>Error al mostrar esta pestaña.</p><p style="font-size:0.5rem;color:#666;margin-top:8px;">' + escapeHtml(e && e.message ? e.message : String(e)) + '</p></div>';
+    }
+}
+
 function cambiarVista(v) {
     vistaActual = v;
     var tabs = document.querySelectorAll('.tab-btn');
     for (var i = 0; i < tabs.length; i++) { tabs[i].classList.remove('activa'); }
-    document.getElementById('tab-' + v).classList.add('activa');
-    renderVista();
+    var tabEl = document.getElementById('tab-' + v);
+    if (tabEl) tabEl.classList.add('activa');
+    safeRenderVista();
 }
 
 async function cargar() {
     torneo = MasterVIP.getTorneoActivo();
     if (!torneo) {
-        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.</p></div>';
+        var lista = MasterVIP.getTorneos();
+        var activo = lista.find(function(t) { return t.estado === 'EN_CURSO'; }) || lista.find(function(t) { return t.estado === 'ABIERTO'; }) || lista.find(function(t) { return t.tipo === 'AMIGOS'; }) || lista[0];
+        if (activo) {
+            localStorage.setItem('TORNEO_ACTIVO_ID', activo.id);
+            torneo = activo;
+        }
+    }
+    if (!torneo) {
+        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.</p><p style="font-size:0.6rem;color:#444;margin-top:8px;">Crea un torneo de amigos o inscribe al del club para ver posiciones.</p></div>';
         return;
     }
     // Si no hay inscritos recuperarlos de Supabase
@@ -149,7 +193,7 @@ async function cargar() {
     document.getElementById('lbl-torneo').innerText = torneo.nombre;
     document.getElementById('lbl-sub').innerText = torneo.codigo + ' · ' + (torneo.inscritos || []).length + ' JUGADORES';
     if (!torneo.posiciones || torneo.posiciones.length === 0) inicializarPosiciones();
-    renderVista();
+    safeRenderVista();
 }
 
 function inicializarPosiciones() {
@@ -213,9 +257,24 @@ function renderPartidos() {
 }
 
 function renderReglamento() {
-    var reglamento = torneo.reglamento || 'No se ha definido reglamento.';
-    var html = '<div class="tabla-container"><div class="tabla-titulo"><span class="tabla-titulo-icon">📋</span><span class="tabla-titulo-txt">REGLAMENTO</span></div><div style="padding:16px;font-size:0.55rem;color:#888;line-height:1.8;">' + reglamento + '</div></div>';
-    html += '<div class="tabla-container" style="margin-top:15px;"><div class="tabla-titulo"><span class="tabla-titulo-icon">⚙️</span><span class="tabla-titulo-txt">SISTEMA DE PUNTOS</span></div><div style="padding:16px;display:flex;gap:10px;flex-wrap:wrap;">';
+    var r = torneo.reglas || {};
+    var meta = torneo.entradaObjetivo || r.metaDirecto || 0;
+    var tiempo = torneo.tiempoEntrada || 40;
+    var sistema = torneo.sistema || 'llaves';
+    var sistemaNom = sistema === 'round-robin' ? 'Todos contra todos' : sistema === 'llaves' ? 'Llaves / eliminación' : sistema.toUpperCase();
+    var fmt = torneo.formatoDetalle;
+    if (fmt && fmt.formatoNombre) sistemaNom = fmt.formatoNombre;
+    var modoTxt = r.modo === 'sets' ? 'Al mejor de ' + (r.setsGanar * 2 - 1) + ' sets de ' + (r.metaSet || 0) + ' carambolas' : 'Partido directo a ' + meta + ' carambolas';
+    var reglamento = escapeHtml(torneo.reglamento || 'Sin reglamento adicional.').replace(/\n/g, '<br>');
+    var html = '<div class="tabla-container"><div class="tabla-titulo"><span class="tabla-titulo-icon">📋</span><span class="tabla-titulo-txt">REGLAS DEL TORNEO</span></div><div style="padding:16px;">';
+    html += '<div style="display:grid;gap:12px;font-size:0.55rem;color:#888;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1a1a1a;"><span style="color:#666;">CARAMBOLAS (meta)</span><strong style="color:var(--oro);">' + meta + '</strong></div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1a1a1a;"><span style="color:#666;">TIEMPO POR ENTRADA</span><strong style="color:var(--oro);">' + tiempo + ' s</strong></div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1a1a1a;"><span style="color:#666;">FORMATO</span><strong style="color:var(--neon);">' + sistemaNom + '</strong></div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1a1a1a;"><span style="color:#666;">MODO DE PARTIDA</span><strong style="color:#aaa;">' + modoTxt + '</strong></div>';
+    html += '</div></div></div>';
+    html += '<div class="tabla-container" style="margin-top:15px;"><div class="tabla-titulo"><span class="tabla-titulo-icon">📄</span><span class="tabla-titulo-txt">REGLAMENTO</span></div><div style="padding:16px;font-size:0.55rem;color:#888;line-height:1.8;">' + reglamento + '</div></div>';
+    html += '<div class="tabla-container" style="margin-top:15px;"><div class="tabla-titulo"><span class="tabla-titulo-icon">⚙️</span><span class="tabla-titulo-txt">PUNTOS (fase grupos)</span></div><div style="padding:16px;display:flex;gap:10px;flex-wrap:wrap;">';
     html += '<div style="flex:1;min-width:80px;background:#0f0f0f;border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.5rem;color:var(--neon);">2</div><div style="font-size:0.4rem;color:#555;">VICTORIA</div></div>';
     html += '<div style="flex:1;min-width:80px;background:#0f0f0f;border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.5rem;color:var(--oro);">1</div><div style="font-size:0.4rem;color:#555;">EMPATE</div></div>';
     html += '<div style="flex:1;min-width:80px;background:#0f0f0f;border-radius:12px;padding:14px;text-align:center;"><div style="font-size:1.5rem;color:var(--rojo);">0</div><div style="font-size:0.4rem;color:#555;">DERROTA</div></div>';
@@ -241,5 +300,19 @@ function confirmarYAvanzar() {
 }
 </script>
 <script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

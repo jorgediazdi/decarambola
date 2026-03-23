@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>El Sensei del Billar — DeCarambola</title>
     <style>
         :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; }
@@ -11,15 +12,29 @@
         .stars { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; background: radial-gradient(ellipse at 50% 0%, #0d0800 0%, #000 70%); }
         .star { position:absolute; background:#fff; border-radius:50%; animation: twinkle 3s infinite alternate; }
         @keyframes twinkle { 0%{opacity:0.1} 100%{opacity:0.7} }
-        .header { position:relative; z-index:10; background:linear-gradient(180deg,#0a0800,transparent); padding:20px; display:flex; align-items:center; gap:15px; }
+        .header { position:relative; z-index:10; background:linear-gradient(180deg,#0a0800,transparent); padding:20px; display:flex; flex-direction:column; align-items:stretch; gap:12px; }
+        .sensei-hdr-row { display:flex; align-items:center; gap:15px; width:100%; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
+        .header-actions .btn-hdr {
+            background:rgba(10,10,10,0.95); border:1px solid rgba(212,175,55,0.2); color:#888;
+            padding:10px 14px; border-radius:10px; font-size:clamp(11px, 3.1vw, 14px); cursor:pointer;
+            text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
+            letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+        }
+        .header-actions .btn-hdr:hover, .header-actions .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.45); color:var(--oro); outline:none; }
         .back-btn { color:#888; font-size:0.9rem; text-decoration:none; padding:12px 16px; border:1px solid #333; border-radius:10px; letter-spacing:1px; }
         .back-btn:hover { border-color:var(--oro); color:var(--oro); }
         .header-info { flex:1; }
         .header-titulo { color:var(--oro); font-size:1.4rem; letter-spacing:3px; font-family:Georgia, serif; font-style:italic; }
         .header-sub { color:#555; font-size:0.8rem; letter-spacing:2px; margin-top:3px; }
         .contenido { position:relative; z-index:10; padding:15px 20px 40px; max-width:550px; margin:0 auto; }
-        .modalidad-selector { display:flex; gap:10px; margin-bottom:22px; padding:5px; background:#0a0a0a; border-radius:14px; border:1px solid #1a1a1a; }
-        .mod-btn { flex:1; padding:14px 10px; background:transparent; border:none; border-radius:12px; color:#666; font-size:0.85rem; font-family:'Arial Black',sans-serif; letter-spacing:1px; cursor:pointer; transition:0.2s; }
+        .modalidad-selector { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; padding:8px; background:#0a0a0a; border-radius:14px; border:1px solid #1a1a1a; }
+        .mod-btn {
+            flex:1; min-width:calc(33.33% - 8px); min-height:48px;
+            padding:14px 8px; background:transparent; border:none; border-radius:12px; color:#888;
+            font-size:clamp(13px, 3.6vw, 16px); font-family:'Arial Black',sans-serif;
+            letter-spacing:0.06em; cursor:pointer; transition:0.2s; line-height:1.2;
+        }
         .mod-btn.activo { background:linear-gradient(135deg,#1a1200,#0f0a00); color:var(--oro); box-shadow:0 0 15px rgba(212,175,55,0.1); }
         .mod-btn:hover:not(.activo) { color:#888; }
         .menu-sensei { display:flex; flex-direction:column; gap:14px; }
@@ -226,21 +241,42 @@
         .footer { position:relative; z-index:10; text-align:center; padding:25px; color:#333; font-size:0.8rem; letter-spacing:2px; }
         .footer a { color:#444; text-decoration:none; }
     </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
     <div class="stars" id="stars"></div>
     <div class="header">
-        <a href="index.html" class="back-btn">◂ VOLVER</a>
-        <div class="header-info">
-            <div class="header-titulo">El Sensei del Billar</div>
-            <div class="header-sub">ACADEMIA · TUTORIALES · IA</div>
+        <div class="sensei-hdr-row">
+            <a href="index.html" class="back-btn">◂ VOLVER</a>
+            <div class="header-info">
+                <div class="header-titulo">El Sensei del Billar</div>
+                <div class="header-sub">ACADEMIA · TUTORIALES · IA</div>
+            </div>
         </div>
+        <details class="jug-nav-fold">
+            <summary>☰ Menú</summary>
+            <div class="jug-nav-fold__links">
+                <a href="/jugador/">Hub jugador</a>
+                <a href="/perfil.html">Mi perfil</a>
+                <a href="/ranking.html">Ranking</a>
+                <a href="/historial.html">Historial de partidas</a>
+                <a href="/historial_salon.html">Uso de mesas</a>
+                <a href="/categorias.html">Categorías</a>
+                <a href="/club/">Portal club</a>
+                <a href="/index.html">Inicio app</a>
+            </div>
+        </details>
     </div>
     <div class="contenido">
+        <p style="color:#666;font-size:clamp(12px,3.2vw,14px);letter-spacing:0.04em;margin-bottom:10px;line-height:1.45;font-family:Arial,sans-serif;font-weight:600;">
+            Elige modalidad del Sensei (afina las respuestas). Esto no es una “puerta de seguridad”: cualquiera con el enlace puede entrar a Sensei.
+        </p>
         <div class="modalidad-selector">
-            <button class="mod-btn activo" onclick="cambiarModalidad(this, 'tresbandas')">TRES BANDAS</button>
-            <button class="mod-btn" onclick="cambiarModalidad(this, 'libre')">LIBRE</button>
-            <button class="mod-btn" onclick="cambiarModalidad(this, 'snooker')">SNOOKER</button>
+            <button type="button" class="mod-btn activo" onclick="cambiarModalidad(this, 'tresbandas')">TRES BANDAS</button>
+            <button type="button" class="mod-btn" onclick="cambiarModalidad(this, 'libre')">LIBRE</button>
+            <button type="button" class="mod-btn" onclick="cambiarModalidad(this, 'snooker')">SNOOKER</button>
         </div>
         <div class="menu-sensei" id="menu-principal">
             <div class="menu-item" onclick="mostrarSeccion('chat')">
@@ -276,7 +312,8 @@
             <div class="tarjeta">
                 <div class="tarjeta-header"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="tarjeta-header-texto" id="chat-header-texto">CONSULTAR AL SENSEI</span></div>
                 <div class="mensajes" id="mensajes"><div class="mensaje sensei"><span class="sensei-label">SENSEI</span>Bienvenido, estudiante. Soy tu maestro de billar. Pregúntame sobre sistemas de diamantes, técnicas de los grandes maestros, o cualquier duda sobre el juego.</div></div>
-                <div class="sugerencias"><div class="sug-titulo">PREGUNTAS FRECUENTES</div><div class="sug-btns"><button class="sug-btn" onclick="ask('¿Qué es el sistema de diamantes?')">Sistema diamantes</button><button class="sug-btn" onclick="ask('¿Cómo calculo un tiro de 3 bandas?')">Calcular 3 bandas</button><button class="sug-btn" onclick="ask('¿Qué es el efecto lateral?')">Efecto lateral</button><button class="sug-btn" onclick="iniciarModoContacto()" style="border-color:rgba(52,152,219,0.4);color:#3498db;">Joe — Contacto / PQRS</button></div></div>
+                <div class="sugerencias" id="sugerencias-sensei"><div class="sug-titulo">PREGUNTAS FRECUENTES (BILLAR)</div><div class="sug-btns"><button class="sug-btn" onclick="ask('¿Qué es el sistema de diamantes?')">Sistema diamantes</button><button class="sug-btn" onclick="ask('¿Cómo calculo un tiro de 3 bandas?')">Calcular 3 bandas</button><button class="sug-btn" onclick="ask('¿Qué es el efecto lateral?')">Efecto lateral</button><button class="sug-btn" onclick="iniciarModoContacto()" style="border-color:rgba(52,152,219,0.4);color:#3498db;">Joe — Contacto / PQRS</button></div><div class="sug-titulo" style="margin-top:12px;">PLATAFORMA · TV</div><div class="sug-btns"><button type="button" class="sug-btn" onclick="window.open('docs/OBS_DUELO_TV.html','_blank','noopener')" style="border-color:rgba(212,175,55,0.35);color:var(--oro);">📺 Guía OBS + YouTube</button></div></div>
+                <div class="sugerencias" id="sugerencias-joe" style="display:none;"><div class="sug-titulo">CONTACTO</div><div class="sug-btns"><button class="sug-btn" onclick="volverMenu()" style="border-color:rgba(212,175,55,0.3);color:var(--oro);">◂ Volver al menú</button></div></div>
                 <div class="input-area"><input type="text" id="input" placeholder="Escribe tu pregunta..." onkeypress="if(event.key==='Enter')send()"><button id="send" onclick="send()">ENVIAR</button></div>
             </div>
             <button class="btn-volver" onclick="volverMenu()">◂ VOLVER AL MENÚ</button>
@@ -539,9 +576,19 @@
         contactMode=false;
         var h=document.getElementById('chat-header-texto');
         if(h) h.textContent='CONSULTAR AL SENSEI';
+        var sugJ=document.getElementById('sugerencias-joe'); var sugS=document.getElementById('sugerencias-sensei');
+        if(sugJ) sugJ.style.display='none'; if(sugS) sugS.style.display='block';
         window.scrollTo(0,0);
     }
-    function volverMenu(){document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('visible'));document.getElementById('menu-principal').style.display='flex';contactMode=false;var h=document.getElementById('chat-header-texto');if(h) h.textContent='CONSULTAR AL SENSEI';window.scrollTo(0,0);}
+    function volverMenu(){
+        document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('visible'));
+        document.getElementById('menu-principal').style.display='flex';
+        contactMode=false;
+        var h=document.getElementById('chat-header-texto'); if(h) h.textContent='CONSULTAR AL SENSEI';
+        var sugJ=document.getElementById('sugerencias-joe'); var sugS=document.getElementById('sugerencias-sensei');
+        if(sugJ) sugJ.style.display='none'; if(sugS) sugS.style.display='block';
+        window.scrollTo(0,0);
+    }
     
     function iniciarModoContacto(){
         contactMode=true;
@@ -552,9 +599,13 @@
         document.getElementById('sec-chat').classList.add('visible');
         var h=document.getElementById('chat-header-texto');
         if(h) h.textContent='JOE — CONTACTO Y PQRS';
+        var sug = document.getElementById('sugerencias-joe');
+        var sugSensei = document.getElementById('sugerencias-sensei');
+        if(sug) sug.style.display='block';
+        if(sugSensei) sugSensei.style.display='none';
         var msgs=document.getElementById('mensajes');
         msgs.innerHTML='';
-        addMsg('Soy '+JOE_NAME+', el asistente de la plataforma DeCarambola. Para contacto, PQRS o información sobre nuestros servicios de administración, aquí estoy. Para poder contactarte necesito algunos datos. <strong>¿Cómo te llamas?</strong>','sensei');
+        addMsg('Soy '+JOE_NAME+', tu asistente para conocer la plataforma DeCarambola y resolver dudas. Aquí puedes hacer contacto, enviar PQRS o solicitar información sobre nuestros servicios. Para poder ayudarte necesito algunos datos. ¿Cómo te llamas?','sensei');
         document.getElementById('input').placeholder='Tu nombre...';
         window.scrollTo(0,0);
     }
@@ -625,16 +676,28 @@ const API="https://sensei-billar-api.onrender.com";
         registrarUso('chat', mod, tema, util);
         if (btn && btn.parentElement) btn.parentElement.innerHTML = '✓ Gracias';
     }
+    function stripHtmlForSpeech(html) {
+        if (!html) return '';
+        var d = document.createElement('div');
+        d.innerHTML = html;
+        return (d.textContent || d.innerText || '').replace(/\s+/g, ' ').trim();
+    }
+    function escapeAttr(s) {
+        if (!s) return '';
+        return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
     function addMsg(text,type,opts){
         const msgs=document.getElementById("mensajes");
         const div=document.createElement("div");
         var isJoe=type==="sensei"&&contactMode;
         div.className="mensaje "+(isJoe?"joe ":type);
         if(type==="sensei"){
+            var textPlain = stripHtmlForSpeech(text);
+            var textForBtn = escapeAttr(textPlain);
             var temaParaUso = (opts && opts.temaParaUso) ? opts.temaParaUso.replace(/'/g,"\\'").slice(0,200) : '';
             var teSirvioHtml = (!isJoe && SENSEI_USO_API && temaParaUso) ? '<br><span class="te-sirvio-wrap" style="font-size:0.8rem;color:#666;">¿Te sirvió? <button type="button" class="btn-te-sirvio" style="background:transparent;border:1px solid #333;color:#888;padding:4px 10px;border-radius:8px;cursor:pointer;font-size:0.75rem;margin-left:6px;" onclick="registrarUso(\'chat\',\''+modalidadActual+'\',\''+temaParaUso+'\',true);this.parentElement.innerHTML=\'✓ Gracias\';">Sí</button> <button type="button" class="btn-te-sirvio" style="background:transparent;border:1px solid #333;color:#888;padding:4px 10px;border-radius:8px;cursor:pointer;font-size:0.75rem;" onclick="registrarUso(\'chat\',\''+modalidadActual+'\',\''+temaParaUso+'\',false);this.parentElement.innerHTML=\'✓ Gracias\';">No</button></span>' : '';
             div.innerHTML=(isJoe?'<span class="joe-label">'+JOE_NAME.toUpperCase()+'</span>':'<span class="sensei-label">SENSEI</span>')+text+
-                '<br><button class="btn-hablar" onclick="hablarMensaje(this,'+JSON.stringify(text).replace(/</g,'&lt;')+')" title="Escuchar">🔊 ESCUCHAR</button>'+teSirvioHtml;
+                '<br><button class="btn-hablar" data-text="'+textForBtn+'" onclick="hablarMensaje(this)" title="Escuchar">🔊 ESCUCHAR</button>'+teSirvioHtml;
         }else{
             div.textContent=text;
         }
@@ -653,7 +716,7 @@ const API="https://sensei-billar-api.onrender.com";
             if(contactStep===1){
                 contactData.nombre=text;
                 contactStep=2;
-                addMsg('Gracias, '+text+'. <strong>¿Correo electrónico o teléfono para responderte?</strong>','sensei');
+                addMsg('Gracias, '+text+'. ¿Correo electrónico o teléfono para responderte?','sensei');
                 document.getElementById('input').placeholder='Correo o teléfono...';
             }else if(contactStep===2){
                 contactData.contacto=text;
@@ -680,9 +743,9 @@ const API="https://sensei-billar-api.onrender.com";
                     } catch (e) {}
                 }
                 if (supabaseOk) {
-                    addMsg('Gracias. Tu mensaje ha quedado registrado en la plataforma. Te contactaremos a <strong>'+contactData.contacto+'</strong>. El administrador revisará y te responderá. Si quieres consultar algo del billar, vuelve al menú y habla con el Sensei.','sensei');
+                    addMsg('Gracias. Tu mensaje ha quedado registrado en la plataforma. Te contactaremos a '+contactData.contacto+'. El administrador revisará y te responderá. Si quieres consultar algo del billar, vuelve al menú y habla con el Sensei.','sensei');
                 } else {
-                    addMsg('Tu mensaje se guardó localmente pero no se pudo enviar a la plataforma (error de red). Te contactaremos a <strong>'+contactData.contacto+'</strong> cuando sea posible. Intenta de nuevo más tarde si sigue fallando.','sensei');
+                    addMsg('Tu mensaje se guardó localmente pero no se pudo enviar a la plataforma (error de red). Te contactaremos a '+contactData.contacto+' cuando sea posible. Intenta de nuevo más tarde si sigue fallando.','sensei');
                 }
                 contactStep=0;
                 contactMode=false;
@@ -707,7 +770,7 @@ const API="https://sensei-billar-api.onrender.com";
                 setTimeout(function() {
                     var lastBtn = document.querySelectorAll(".btn-hablar");
                     var ultimo = lastBtn[lastBtn.length-1];
-                    if(ultimo) hablarMensaje(ultimo, data.respuesta);
+                    if(ultimo) hablarMensaje(ultimo);
                 }, 300);
             }
         }catch(e){addMsg("Error de conexión.","sensei");}
@@ -789,8 +852,10 @@ const API="https://sensei-billar-api.onrender.com";
         setTimeout(cargarVoces, 500);
     }
 
-    function hablarMensaje(btn, texto) {
+    function hablarMensaje(btn) {
         if (!window.speechSynthesis) { alert('Tu navegador no soporta voz.'); return; }
+        var texto = (btn && btn.getAttribute('data-text')) || '';
+        if (!texto) return;
 
         // Si ya está hablando, parar
         if (hablando) {
@@ -800,7 +865,7 @@ const API="https://sensei-billar-api.onrender.com";
             return;
         }
 
-        var textoLimpio = texto.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        var textoLimpio = texto.replace(/\s+/g, ' ').trim();
         var utterance = new SpeechSynthesisUtterance(textoLimpio);
         utterance.lang = 'es-CO';
         utterance.rate = 0.88;
@@ -852,5 +917,19 @@ const API="https://sensei-billar-api.onrender.com";
     }
     </script>
 <script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

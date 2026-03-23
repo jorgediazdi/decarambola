@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Panel Organizador — DeCarambola</title>
     <style>
         :root {
@@ -32,10 +33,13 @@
             background: linear-gradient(180deg, #000 0%, #0a0a0a 100%);
             border-bottom: 1px solid var(--gris1);
             padding: 16px 18px 14px;
-            display: flex; align-items: center;
+            display: flex; align-items: flex-start;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
             position: sticky; top: 0; z-index: 50;
         }
+        .header-principal-org { flex: 1; min-width: 200px; }
         .header-marca {
             display: flex; flex-direction: column; gap: 1px;
         }
@@ -50,9 +54,10 @@
             border: 1px solid var(--gris1);
             border-radius: 10px;
             padding: 6px 12px;
+            margin-top: 10px;
             font-size: 0.55rem;
             color: #555;
-            text-align: right;
+            text-align: left;
             letter-spacing: 1px;
         }
         .header-sede b { color: var(--oro); display: block; font-size: 0.75rem; margin-top: 1px; }
@@ -324,6 +329,31 @@
         /* ══ EMPTY STATE ══ */
         .empty { text-align: center; padding: 24px 0; color: #333; font-size: 0.6rem; letter-spacing: 1px; }
 
+        .portal-links {
+            width: 95vw;
+            max-width: 500px;
+            margin: 12px auto 96px;
+            padding: 10px 6px 0;
+            border-top: 1px solid rgba(212,175,55,0.15);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px 14px;
+        }
+        .portal-links a {
+            color: #666;
+            font-size: 0.62rem;
+            letter-spacing: 0.06em;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(212,175,55,0.2);
+            padding-bottom: 2px;
+        }
+        .portal-links a:hover, .portal-links a:focus-visible {
+            color: var(--oro);
+            border-bottom-color: rgba(212,175,55,0.45);
+            outline: none;
+        }
+
         /* ══ NAV BOTTOM ══ */
         .nav-bottom { position:fixed; bottom:0; left:0; right:0; background:linear-gradient(transparent,#000 40%); padding:10px 15px 20px; display:flex; justify-content:center; gap:10px; z-index:50; }
         .btn-nav { flex:1; max-width:160px; padding:12px; background:var(--g3); border:1px solid var(--g1); color:#666; border-radius:14px; font-size:0.55rem; text-align:center; text-decoration:none; font-family:'Arial Black',sans-serif; letter-spacing:1px; display:flex; align-items:center; justify-content:center; gap:6px; transition:0.2s; }
@@ -331,18 +361,23 @@
         .nav-ico { font-size:1rem; line-height:1; }
 
     </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
     <!-- HEADER -->
     <div class="header">
-        <div class="header-marca">
-            <span>DeCarambola</span>
-            <small>PANEL ORGANIZADOR</small>
-        </div>
-        <div class="header-sede">
-            SEDE ACTIVA
-            <b id="lbl-sede">—</b>
+        <div class="header-principal-org">
+            <div class="header-marca">
+                <span>DeCarambola</span>
+                <small>PANEL ORGANIZADOR</small>
+            </div>
+            <div class="header-sede">
+                SEDE ACTIVA
+                <b id="lbl-sede">—</b>
+            </div>
         </div>
     </div>
 
@@ -789,6 +824,16 @@
 
 </script>
 
+<div class="portal-links" aria-label="Enlaces globales">
+    <a href="torneos.html">Torneos</a>
+    <a href="torneo_crear.html">Nuevo torneo</a>
+    <a href="inscripciones.html">Inscripciones</a>
+    <a href="control_torneo.html">Control torneo</a>
+    <a href="mesas.html">Salón en vivo</a>
+    <a href="club/index.html">Portal club</a>
+    <a href="index.html">Inicio app</a>
+</div>
+
 <!-- NAV BOTTOM -->
 <div class="nav-bottom">
     <a href="index.html" class="btn-nav"><span class="nav-ico">&#127968;</span> INICIO</a>
@@ -837,6 +882,20 @@
     var conf = textos[deporte] || textos.billar;
     hMarca.textContent = conf.titulo;
     hSub.textContent   = conf.subt;
+})();
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
 })();
 </script>
 </body>

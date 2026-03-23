@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Torneo entre amigos — DeCarambola</title>
     <style>
         :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
 
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:50; }
+        .header-top-am { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; width:100%; }
         .header-main { display:flex; align-items:center; gap:10px; }
         .header-logo {
             width:52px; height:52px;
@@ -21,7 +23,14 @@
         }
         .header-tit { color:var(--oro); font-size:0.95rem; letter-spacing:3px; }
         .header-sub { color:#333; font-size: 0.6rem; letter-spacing:2px; margin-top:2px; }
-        .btn-hdr { background:none; border:1px solid var(--g1); color:#444; padding:7px 14px; border-radius:10px; font-size:0.5rem; cursor:pointer; letter-spacing:1px; font-family:'Arial Black',sans-serif; text-decoration:none; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
+        .btn-hdr {
+            background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888;
+            padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
+            text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
+            letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+        }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
 
         .wrap { width:95vw; max-width:500px; padding-top:14px; padding-bottom:90px; }
 
@@ -133,18 +142,32 @@
         }
         .btn-nav:active { border-color:var(--oro); color:var(--oro); }
     </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <meta name="theme-color" content="#d4af37">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <div class="header">
-    <div class="header-main">
-        <div class="header-logo" id="hdr-logo-amigos"></div>
-        <div>
-            <div class="header-tit">🏆 TORNEO ENTRE AMIGOS</div>
-            <div class="header-sub" id="hdr-sub-amigos">Todos contra todos · 2 a 6 jugadores</div>
+    <div class="header-top-am">
+        <div class="header-main">
+            <div class="header-logo" id="hdr-logo-amigos"></div>
+            <div>
+                <div class="header-tit">🏆 TORNEO ENTRE AMIGOS</div>
+                <div class="header-sub" id="hdr-sub-amigos">Todos contra todos · 2 a 6 jugadores</div>
+            </div>
         </div>
     </div>
-    <a href="index.html" class="btn-hdr">&#8592; MENÚ</a>
+    <div class="header-actions">
+        <a href="jugador/index.html" class="btn-hdr">Hub jugador</a>
+        <a href="reto_crear.html" class="btn-hdr">Retos</a>
+        <a href="perfil.html" class="btn-hdr">Mi perfil</a>
+        <a href="ranking.html" class="btn-hdr">Ranking</a>
+        <a href="Sensei.html" class="btn-hdr">Sensei</a>
+        <a href="club/index.html" class="btn-hdr">Portal club</a>
+        <a href="index.html" class="btn-hdr">Inicio app</a>
+    </div>
 </div>
 
 <div class="wrap">
@@ -211,12 +234,12 @@
         </div>
 
         <button id="btn-ta-crear" class="btn-primary" onclick="crearTorneoAmigos()">CREAR TORNEO ENTRE AMIGOS</button>
-        <button type="button" class="btn-sec" onclick="location.href='index.html'">CANCELAR</button>
+        <button type="button" class="btn-sec" onclick="location.href='jugador/index.html'">CANCELAR</button>
     </div>
 </div>
 
 <div class="nav-bottom">
-    <a href="index.html" class="btn-nav"><span>🏠</span><span>INICIO</span></a>
+    <a href="jugador/index.html" class="btn-nav"><span>🎮</span><span>HUB JUGADOR</span></a>
     <a href="torneos.html" class="btn-nav"><span>🏆</span><span>TORNEOS</span></a>
     <a href="inscripciones.html" class="btn-nav"><span>🎫</span><span>INSCRIPCIONES</span></a>
 </div>
@@ -320,6 +343,20 @@ function crearTorneoAmigos() {
 }
 </script>
 <script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>
 

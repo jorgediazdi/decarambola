@@ -1,5 +1,7 @@
 # QA — Flujos y soluciones de fotos
 
+**Índice QA:** `docs/README.md` · **Checklist subida:** `docs/QA_CHECKLIST_SUBIDA.md` · **Enlaces index:** `QA_ENLACES_INDEX.md`
+
 ## 1. Textos / pantallas de las fotos (solucionado)
 
 | Foto / pantalla | Problema (texto o comportamiento) | Solución aplicada |
@@ -53,9 +55,9 @@
 - [ ] Audio (TTS): listo para uso.
 - [ ] Mañana: videos con OBS; Fase 1 streaming (ej. video como “Mesa 1”), Fase 2 repetición últimos 2 min / jugadas mejores para resumen.
 
-### Overlay
-- [ ] Overlay de marcador: URL con `?match_id=UUID`; datos cada 3 s desde API; OBS/Streamlabs como fuente Navegador.
-- [ ] Vista overlay funcionando en emisión.
+### Streaming (YouTube + OBS + overlay)
+- [ ] Seguir checklist única: **`docs/QA_STREAMING.md`** (URLs tras deploy, OBS, YouTube, overlay opcional, fotos sugeridas).
+- [ ] Overlay con API: `?match_id=UUID` + intervalo según `STREAMING_QUE_SE_TRANSMITE.md`.
 
 ---
 

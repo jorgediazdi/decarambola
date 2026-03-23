@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Certificado — DeCarambola</title>
         <style>
         :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --rojo:#e74c3c; --azul:#3498db; --g1:#1a1a1a; --g2:#111111; --g3:#0f0f0f; }
@@ -11,9 +12,17 @@
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
 
-        .header { width:100%; background:#000; border-bottom:1px solid #1a1a1a; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; }
-        .header h1 { color:var(--oro); font-size:0.9rem; letter-spacing:3px; }
-        .btn-hdr { background:none; border:1px solid #1a1a1a; color:#444; padding:7px 14px; border-radius:10px; font-size:0.55rem; cursor:pointer; font-family:'Arial Black',sans-serif; text-decoration:none; display:inline-block; }
+        .header { width:100%; background:#000; border-bottom:1px solid #1a1a1a; padding:14px 18px; position:sticky; top:0; z-index:50; display:flex; flex-direction:column; align-items:stretch; gap:10px; }
+        .header-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; width:100%; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
+        .btn-hdr {
+            background:rgba(10,10,10,0.95); border:1px solid #1a1a1a; color:#888;
+            padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
+            text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
+            letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+        }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
+        .header h1 { color:var(--oro); font-size:0.95rem; letter-spacing:3px; }
 
         .wrap { width:95vw; max-width:520px; padding:16px 0 120px; }
 
@@ -40,23 +49,85 @@
         .btn-oro { background:var(--oro); color:#000; }
         .btn-wa  { background:#25D366; color:#fff; }
         .btn-ghost { width:100%; background:#0a0a0a; border:1px solid #1a1a1a; color:#444; padding:12px; border-radius:12px; font-size:0.55rem; font-family:'Arial Black',sans-serif; cursor:pointer; margin-bottom:4px; }
+        .modo-duelo-tools { display:none; margin-bottom:10px; }
+        .brand-social {
+            margin-top:10px;
+            background:#0a0a0a;
+            border:1px solid #1a1a1a;
+            border-radius:14px;
+            padding:12px;
+        }
+        .brand-head {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin-bottom:8px;
+        }
+        .brand-logo {
+            width:34px;
+            height:34px;
+            border-radius:50%;
+            background:#111;
+            border:1px solid #222;
+            object-fit:contain;
+            padding:2px;
+        }
+        .brand-name {
+            color:#bbb;
+            font-size:0.58rem;
+            letter-spacing:1px;
+        }
+        .social-links {
+            display:flex;
+            flex-wrap:wrap;
+            gap:6px;
+        }
+        .social-link {
+            display:inline-block;
+            text-decoration:none;
+            border:1px solid #262626;
+            color:#999;
+            background:#111;
+            border-radius:999px;
+            font-size:0.48rem;
+            padding:6px 10px;
+            letter-spacing:1px;
+        }
 
         .nav-bottom { position:fixed; bottom:0; left:0; right:0; background:linear-gradient(transparent,#000 40%); padding:10px 15px 20px; display:flex; gap:8px; }
         .btn-nav { flex:1; padding:13px 8px; background:#0f0f0f; border:1px solid #1a1a1a; border-radius:14px; color:#777; font-size:0.45rem; cursor:pointer; text-align:center; text-decoration:none; display:block; font-family:'Arial Black',sans-serif; letter-spacing:1px; }
         .btn-nav:active { border-color:var(--oro); color:var(--oro); }
     </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <div class="header">
-    <h1>🏆 CERTIFICADO</h1>
-    <a href="index.html" class="btn-hdr">← INICIO</a>
+    <div class="header-top">
+        <h1>🏆 CERTIFICADO</h1>
+    </div>
+    <div class="header-actions">
+        <a href="organizador.html" class="btn-hdr">Panel organizador</a>
+        <a href="torneos.html" class="btn-hdr">Torneos</a>
+        <a href="torneo_crear.html" class="btn-hdr">Nuevo torneo</a>
+        <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
+        <a href="control_torneo.html" class="btn-hdr">Control torneo</a>
+        <a href="club/index.html" class="btn-hdr">Portal club</a>
+        <a href="index.html" class="btn-hdr">Inicio app</a>
+    </div>
 </div>
 
 <div class="wrap">
 
+    <p style="font-size:0.5rem;color:#555;letter-spacing:1px;margin-bottom:14px;line-height:1.6;">Certificado para el <strong style="color:#888;">campeón</strong> o <strong style="color:#888;">subcampeón</strong> cuando termina el torneo. Se entrega al jugador; puede descargarlo o compartirlo por WhatsApp.</p>
+    <div class="modo-duelo-tools" id="modo-duelo-tools">
+        <button class="btn-ghost" onclick="salirModoDuelo()">← Ver certificados de torneo</button>
+    </div>
+
     <div class="ctrl-card">
-        <div class="ctrl-label">TORNEO</div>
+        <div class="ctrl-label">TORNEO FINALIZADO</div>
         <select class="ctrl-select" id="sel-torneo" onchange="cargarTorneo()">
             <option value="">— Selecciona un torneo —</option>
         </select>
@@ -69,7 +140,7 @@
     </div>
 
     <div class="div-jugador ctrl-card" id="div-jugador">
-        <div class="ctrl-label">JUGADOR</div>
+        <div class="ctrl-label">JUGADOR (solo para certificado de participación)</div>
         <select class="ctrl-select" id="sel-jugador" onchange="dibujar()">
             <option value="">— Selecciona —</option>
         </select>
@@ -81,10 +152,12 @@
     </div>
 
     <div class="btns-wrap">
-        <button class="btn-action btn-oro" onclick="descargar()">⬇ DESCARGAR PNG</button>
+        <button class="btn-action btn-oro" onclick="descargar()">⬇ DESCARGAR</button>
         <button class="btn-action btn-wa"  onclick="compartirWA()">📲 WHATSAPP</button>
     </div>
+    <p style="font-size:0.4rem;color:#333;margin-top:6px;">Descarga la imagen o compártela por WhatsApp para enviarla al jugador.</p>
     <button class="btn-ghost" onclick="dibujar()">🔄 REGENERAR</button>
+    <div class="brand-social" id="brand-social"></div>
 
 </div>
 
@@ -99,6 +172,7 @@
 
 var torneoActual = null;
 var tipoActual   = 'campeon';
+var dueloData = null;
 
 /* ═══════════════════════
    UTILIDADES LOCALES
@@ -127,18 +201,111 @@ function bolsa(t) {
 ═══════════════════════ */
 window.onload = function() {
     if (typeof MasterVIP !== 'undefined') MasterVIP.applyDesign();
+    renderBrandSocial();
+    if (cargarDueloDesdeURL()) return;
     poblarSelector();
     var act = typeof MasterVIP !== 'undefined' ? MasterVIP.getTorneoActivo() : null;
-    if (act) {
-        document.getElementById('sel-torneo').value = act.id;
+    var torneos = typeof MasterVIP !== 'undefined' ? MasterVIP.getTorneos() : [];
+    var finalizado = torneos.find(function(t) { return t.estado === 'FINALIZADO' && t.campeon; });
+    var idSel = (finalizado && finalizado.id) || (act && act.id) || '';
+    if (idSel) {
+        document.getElementById('sel-torneo').value = idSel;
         cargarTorneo();
     }
 };
 
+function socialUrl(kind, raw) {
+    if (!raw) return '';
+    var v = String(raw).trim();
+    if (!v) return '';
+    if (/^https?:\/\//i.test(v)) return v;
+    if (kind === 'instagram') return 'https://instagram.com/' + v.replace(/^@/, '');
+    if (kind === 'facebook') return 'https://facebook.com/' + v;
+    if (kind === 'tiktok') return 'https://tiktok.com/@' + v.replace(/^@/, '');
+    if (kind === 'youtube') return 'https://youtube.com/' + v;
+    if (kind === 'whatsapp') return 'https://wa.me/' + v.replace(/[^\d]/g, '');
+    return '';
+}
+
+function renderBrandSocial() {
+    var box = document.getElementById('brand-social');
+    if (!box) return;
+    var logo = (window.WL && window.WL.getLogoUrl) ? window.WL.getLogoUrl() : (localStorage.getItem('wl_club_logo_url') || '');
+    var club = (window.WL && window.WL.getNombreClub) ? window.WL.getNombreClub() : (localStorage.getItem('wl_club_nombre') || 'DeCarambola');
+
+    var links = [
+        { kind:'instagram', label:'Instagram', value: localStorage.getItem('wl_red_instagram') || '' },
+        { kind:'facebook',  label:'Facebook',  value: localStorage.getItem('wl_red_facebook')  || '' },
+        { kind:'tiktok',    label:'TikTok',    value: localStorage.getItem('wl_red_tiktok')    || '' },
+        { kind:'youtube',   label:'YouTube',   value: localStorage.getItem('wl_red_youtube')   || '' },
+        { kind:'whatsapp',  label:'WhatsApp',  value: localStorage.getItem('wl_red_whatsapp')  || '' }
+    ];
+
+    var html = '<div class="brand-head">';
+    if (logo) html += '<img class="brand-logo" src="' + logo + '" alt="Logo club">';
+    else html += '<div class="brand-logo" style="display:flex;align-items:center;justify-content:center;color:#555;">🎱</div>';
+    html += '<div class="brand-name">' + (club || 'DeCarambola') + ' · Logo y redes</div></div>';
+
+    var chips = links.map(function(r) {
+        var url = socialUrl(r.kind, r.value);
+        if (!url) return '';
+        return '<a class="social-link" href="' + url + '" target="_blank" rel="noopener noreferrer">' + r.label + '</a>';
+    }).filter(Boolean).join('');
+
+    if (!chips) {
+        chips = '<div style="font-size:0.45rem;color:#555;letter-spacing:1px;">Sin redes configuradas. Puedes guardarlas en localStorage como wl_red_instagram, wl_red_facebook, wl_red_tiktok, wl_red_youtube, wl_red_whatsapp.</div>';
+    } else {
+        chips = '<div class="social-links">' + chips + '</div>';
+    }
+    box.innerHTML = html + chips;
+}
+
+function cargarDueloDesdeURL() {
+    var p = new URLSearchParams(window.location.search);
+    if (!p.get('n1') || !p.get('n2')) return false;
+    dueloData = {
+        n1: decodeURIComponent(p.get('n1') || 'JUGADOR A'),
+        n2: decodeURIComponent(p.get('n2') || 'JUGADOR B'),
+        p1: parseInt(p.get('p1') || '0', 10),
+        p2: parseInt(p.get('p2') || '0', 10),
+        e1: parseInt(p.get('e1') || '0', 10),
+        e2: parseInt(p.get('e2') || '0', 10),
+        ms1: parseInt(p.get('ms1') || '0', 10),
+        ms2: parseInt(p.get('ms2') || '0', 10),
+        ganador: decodeURIComponent(p.get('ganador') || ''),
+        c1: decodeURIComponent(p.get('c1') || ''),
+        c2: decodeURIComponent(p.get('c2') || '')
+    };
+    if (!dueloData.ganador) dueloData.ganador = dueloData.p1 >= dueloData.p2 ? dueloData.n1 : dueloData.n2;
+
+    // Unifica flujo: ocultar controles de torneo y usar el mismo canvas de certificados.
+    var selCard = document.querySelector('.ctrl-card');
+    if (selCard) selCard.style.display = 'none';
+    var tabs = document.querySelector('.tabs');
+    if (tabs) tabs.style.display = 'none';
+    var divJug = document.getElementById('div-jugador');
+    if (divJug) divJug.style.display = 'none';
+    var msg = document.querySelector('.wrap p');
+    if (msg) msg.innerHTML = 'Certificado de <strong style="color:#888;">partida / duelo</strong>. Se genera en esta misma página para mantener un solo módulo de certificados.';
+    var btnModo = document.getElementById('modo-duelo-tools');
+    if (btnModo) btnModo.style.display = 'block';
+    dibujarDuelo();
+    return true;
+}
+
+function salirModoDuelo() {
+    window.location.href = 'Certificados.html';
+}
+
 function poblarSelector() {
-    var torneos = typeof MasterVIP !== 'undefined' ? MasterVIP.getTorneos() : [];
+    var torneos = (typeof MasterVIP !== 'undefined' ? MasterVIP.getTorneos() : []).slice();
     var sel = document.getElementById('sel-torneo');
     sel.innerHTML = '<option value="">— Selecciona un torneo —</option>';
+    torneos.sort(function(a, b) {
+        if (a.estado === 'FINALIZADO' && b.estado !== 'FINALIZADO') return -1;
+        if (a.estado !== 'FINALIZADO' && b.estado === 'FINALIZADO') return 1;
+        return 0;
+    });
     for (var i = 0; i < torneos.length; i++) {
         var opt = document.createElement('option');
         opt.value = torneos[i].id;
@@ -190,6 +357,7 @@ function limpiar() {
    DIBUJAR CERTIFICADO
 ═══════════════════════════════════════════════ */
 function dibujar() {
+    if (dueloData) { dibujarDuelo(); return; }
     if (!torneoActual) { limpiar(); return; }
 
     var nombre = getNombre();
@@ -398,6 +566,91 @@ function dibujar() {
     ctx.restore();
 }
 
+function dibujarDuelo() {
+    var canvas = document.getElementById('cert-canvas');
+    var ctx = canvas.getContext('2d');
+    var W = 1000, H = 700;
+    canvas.width = W;
+    canvas.height = H;
+    document.getElementById('cert-empty').style.display  = 'none';
+    document.getElementById('cert-canvas').style.display = 'block';
+
+    var clubNom  = localStorage.getItem('wl_club_nombre') || 'DeCarambola';
+    var colorOro = localStorage.getItem('wl_club_color') || '#d4af37';
+    var fecha = new Date().toLocaleDateString('es-CO');
+
+    var g = ctx.createRadialGradient(W*0.5, H*0.35, 0, W*0.5, H*0.5, W*0.7);
+    g.addColorStop(0, '#1a1200');
+    g.addColorStop(0.5, '#0d0b00');
+    g.addColorStop(1, '#050400');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = colorOro;
+    ctx.lineWidth = 4;
+    rrect(ctx, 18, 18, W-36, H-36, 12);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(212,175,55,0.3)';
+    ctx.lineWidth = 1.5;
+    rrect(ctx, 32, 32, W-64, H-64, 8);
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(212,175,55,0.95)';
+    ctx.font = 'bold 34px Arial Black';
+    ctx.fillText('CERTIFICADO DE DUELO', W/2, 88);
+
+    ctx.font = '16px Arial';
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText('DeCarambola · ' + clubNom, W/2, 116);
+
+    drawBola3D(ctx, W/2, 195, 56, colorOro);
+    ctx.font = '48px Arial';
+    ctx.fillText('🏆', W/2 + 84, 184);
+
+    ctx.font = 'bold 54px Arial Black';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(dueloData.ganador, W/2, 286);
+
+    ctx.font = '16px Arial';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText('GANADOR DEL DUELO', W/2, 320);
+
+    lineGrad(ctx, 140, 350, W-140, 350, colorOro);
+
+    var prom1 = dueloData.e1 > 0 ? (dueloData.p1 / dueloData.e1).toFixed(3) : '0.000';
+    var prom2 = dueloData.e2 > 0 ? (dueloData.p2 / dueloData.e2).toFixed(3) : '0.000';
+
+    ctx.font = 'bold 26px Arial Black';
+    ctx.fillStyle = dueloData.p1 >= dueloData.p2 ? colorOro : '#ddd';
+    ctx.fillText(dueloData.n1 + '  ' + dueloData.p1, W*0.27, 430);
+    ctx.fillStyle = '#555';
+    ctx.font = '22px Arial Black';
+    ctx.fillText('VS', W*0.5, 430);
+    ctx.font = 'bold 26px Arial Black';
+    ctx.fillStyle = dueloData.p2 >= dueloData.p1 ? colorOro : '#ddd';
+    ctx.fillText(dueloData.n2 + '  ' + dueloData.p2, W*0.73, 430);
+
+    ctx.font = '15px Arial';
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.fillText('PROM J1: ' + prom1 + '   ·   PROM J2: ' + prom2, W/2, 480);
+    ctx.fillText('SERIE MAYOR J1: ' + dueloData.ms1 + '   ·   SERIE MAYOR J2: ' + dueloData.ms2, W/2, 510);
+
+    if (dueloData.c1 || dueloData.c2) {
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.font = '13px Arial';
+        ctx.fillText('CÉDULA J1: ' + (dueloData.c1 || '—') + '   ·   CÉDULA J2: ' + (dueloData.c2 || '—'), W/2, 542);
+    }
+
+    lineGrad(ctx, 120, H-106, W-120, H-106, colorOro);
+    ctx.font = 'bold 13px Arial';
+    ctx.fillStyle = 'rgba(212,175,55,0.55)';
+    ctx.fillText(clubNom + ' · DeCarambola', W/2, H-74);
+    ctx.font = '11px Arial';
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillText('Partida validada · ' + fecha, W/2, H-50);
+}
+
 function rrect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x+r, y);
@@ -458,15 +711,17 @@ function drawCornerFlourish(ctx, x, y, color, tipo) {
 }
 
 function getNombre() {
+    if (dueloData) return dueloData.ganador || 'duelo';
     if (!torneoActual) return '';
     if (tipoActual === 'campeon') return torneoActual.campeon || '';
     if (tipoActual === 'segundo') {
-        if (!torneoActual.rondas) return '';
-        var ult = torneoActual.rondas[torneoActual.rondas.length-1];
+        if (torneoActual.subcampeon) return torneoActual.subcampeon;
+        if (!torneoActual.rondas || torneoActual.rondas.length === 0) return '';
+        var ult = torneoActual.rondas[torneoActual.rondas.length - 1];
         if (!ult || !ult.partidas || !ult.partidas[0]) return '';
         var fin = ult.partidas[0];
-        if (fin.estado !== 'TERMINADA') return '';
-        return fin.ganador === fin.j1 ? (fin.j2||'') : (fin.j1||'');
+        if (fin.estado !== 'TERMINADA' || !fin.ganador) return '';
+        return fin.ganador === fin.j1 ? (fin.j2 || '') : (fin.j1 || '');
     }
     return document.getElementById('sel-jugador').value || '';
 }
@@ -481,13 +736,8 @@ function getPromedio(nombre) {
 }
 
 function descargar() {
-    var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
-    if (!jugActivo || !jugActivo.cedula) {
-        alert('⚠️ Para descargar certificados debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
-        return;
-    }
     var canvas = document.getElementById('cert-canvas');
-    if (canvas.style.display === 'none') { alert('Primero genera el certificado'); return; }
+    if (canvas.style.display === 'none') { alert('Primero selecciona un torneo para generar el certificado.'); return; }
     var nombre = getNombre() || 'certificado';
     var link   = document.createElement('a');
     link.download = 'Certificado_' + nombre.replace(/\s+/g,'_') + '.png';
@@ -496,20 +746,58 @@ function descargar() {
 }
 
 function compartirWA() {
-    if (!torneoActual) { alert('Selecciona un torneo'); return; }
+    var canvas = document.getElementById('cert-canvas');
+    if (canvas.style.display === 'none') { alert('Primero genera el certificado.'); return; }
     var nombre  = getNombre() || '—';
     var clubNom = localStorage.getItem('wl_club_nombre') || 'DeCarambola';
     var txt = '🏆 *CERTIFICADO ' + clubNom.toUpperCase() + '*\n\n';
-    if (tipoActual==='campeon') txt += '🥇 CAMPEÓN: *' + nombre + '*\n';
-    if (tipoActual==='segundo') txt += '🥈 SUBCAMPEÓN: *' + nombre + '*\n';
-    if (tipoActual==='part')    txt += '🎱 PARTICIPANTE: *' + nombre + '*\n';
-    txt += '🏆 Torneo: ' + torneoActual.nombre + '\n';
+    if (dueloData) {
+        txt += '🎱 DUELO: *' + dueloData.n1 + ' (' + dueloData.p1 + ')* vs *' + dueloData.n2 + ' (' + dueloData.p2 + ')*\n';
+        txt += '🏆 Ganador: *' + (dueloData.ganador || nombre) + '*\n';
+    } else {
+        if (tipoActual==='campeon') txt += '🥇 CAMPEÓN: *' + nombre + '*\n';
+        if (tipoActual==='segundo') txt += '🥈 SUBCAMPEÓN: *' + nombre + '*\n';
+        if (tipoActual==='part')    txt += '🎱 PARTICIPANTE: *' + nombre + '*\n';
+        txt += '🏆 Torneo: ' + (torneoActual ? torneoActual.nombre : '') + '\n';
+    }
     txt += '🏛 Club: ' + clubNom + '\n';
     txt += '📅 ' + new Date().toLocaleDateString('es-CO');
-    window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+
+    canvas.toBlob(function(blob) {
+        var fileName = 'Certificado_' + (nombre || 'jugador').replace(/\s+/g, '_') + '.png';
+        var file = new File([blob], fileName, { type: 'image/png' });
+        var puedeCompartir = navigator.share && (typeof navigator.canShare !== 'function' || navigator.canShare({ files: [file] }));
+        if (puedeCompartir) {
+            navigator.share({
+                title: 'Certificado ' + clubNom,
+                text: txt,
+                files: [file]
+            }).then(function() { }).catch(function() { abrirWAconTexto(txt); });
+        } else {
+            abrirWAconTexto(txt);
+        }
+    }, 'image/png');
+}
+
+function abrirWAconTexto(txt) {
+    window.open('https://wa.me/?text=' + encodeURIComponent(txt + '\n\n(Descarga la imagen del certificado desde la app y compártela por WhatsApp si quieres enviar el diploma.)'), '_blank');
 }
 
 </script>
 <script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#d4af37">
 <title>Perfil — DeCarambola</title>
 <link rel="stylesheet" href="estilos.css">
 <style>
@@ -21,13 +22,17 @@ body{background:var(--negro);color:#fff;
 
 /* ── HEADER ── */
 .hdr{width:100%;background:#000;border-bottom:1px solid #1a1a1a;
-  padding:12px 18px;display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;display:flex;flex-direction:column;align-items:stretch;gap:10px;
   position:sticky;top:0;z-index:100;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;width:100%;}
 .hdr h1{font-family:'Bebas Neue';font-size:1.2rem;color:var(--oro);letter-spacing:4px;}
 .hdr p{font-size:0.5rem;color:#2a2a2a;letter-spacing:3px;}
-.btn-hdr{background:none;border:1px solid #1e1e1e;color:#333;padding:8px 14px;
-  border-radius:10px;font-size:0.6rem;cursor:pointer;letter-spacing:1px;
-  font-family:'Barlow Condensed';font-weight:600;text-decoration:none;}
+.header-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px;width:100%;}
+.btn-hdr{background:rgba(10,10,10,0.95);border:1px solid #1e1e1e;color:#888;padding:8px 12px;
+  border-radius:10px;font-size:0.52rem;cursor:pointer;letter-spacing:0.06em;
+  font-family:'Barlow Condensed';font-weight:600;text-decoration:none;
+  transition:border-color 0.15s,color 0.15s;}
+.btn-hdr:hover,.btn-hdr:focus-visible{border-color:rgba(212,175,55,0.35);color:var(--oro);outline:none;}
 .btn-hdr:active{border-color:var(--oro);color:var(--oro);}
 
 .wrap{width:95vw;max-width:520px;padding-top:16px;}
@@ -283,6 +288,7 @@ body{background:var(--negro);color:#fff;
   display:flex;align-items:center;gap:8px;
 }
 .sec-tit::after{content:'';flex:1;height:1px;background:#111;}
+.sec-tit.sub{font-size:0.65rem;color:#1e1e1e;margin:12px 0 8px;}
 
 .ins-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
 .ins{background:var(--g2);border:1px solid #1a1a1a;
@@ -294,6 +300,20 @@ body{background:var(--negro);color:#fff;
 .ins-nom{font-size:0.38rem;letter-spacing:1px;color:#222;}
 .ins.ok .ins-nom{color:var(--oro);}
 .ins.ok.v .ins-nom{color:var(--neon);}
+
+/* ── Introducción Perfil (directorio) ── */
+.perfil-intro{
+  background:var(--g1);border:1px solid rgba(212,175,55,0.15);
+  border-radius:16px;padding:18px 20px;margin-bottom:18px;
+}
+.perfil-intro-tit{
+  font-family:'Bebas Neue';font-size:1rem;color:var(--oro);
+  letter-spacing:4px;margin-bottom:8px;
+}
+.perfil-intro-txt{
+  font-size:0.8rem;color:#666;line-height:1.6;letter-spacing:0.3px;
+}
+.perfil-intro-txt strong{color:#999;}
 
 /* ════════════════════════════════════
    HISTORIAL
@@ -357,11 +377,14 @@ body{background:var(--negro);color:#fff;
 @keyframes pulseD{0%,100%{opacity:1}50%{opacity:0.2}}
 .t-dot.vivo{animation:pulseD 1.5s infinite;}
 </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <div class="hdr">
-  <div>
+  <div class="hdr-top">
     <div style="display:flex;align-items:center;gap:8px;">
       <div id="hdr-logo"></div>
       <div>
@@ -370,7 +393,19 @@ body{background:var(--negro);color:#fff;
       </div>
     </div>
   </div>
-  <a href="index.html" class="btn-hdr">← MENÚ</a>
+  <details class="jug-nav-fold">
+    <summary>☰ Menú (hub, categorías, historial…)</summary>
+    <div class="jug-nav-fold__links">
+      <a href="/jugador/">Hub jugador</a>
+      <a href="/categorias.html">Categorías</a>
+      <a href="/ranking.html">Ranking</a>
+      <a href="/historial.html">Historial de partidas</a>
+      <a href="/historial_salon.html">Uso de mesas (salón)</a>
+      <a href="/Sensei.html">Sensei</a>
+      <a href="/club/">Portal club</a>
+      <a href="/index.html">Inicio app</a>
+    </div>
+  </details>
 </div>
 
 <div class="wrap">
@@ -383,7 +418,8 @@ body{background:var(--negro);color:#fff;
   <div id="zona"></div>
 </div>
 
-<script src="core.js"></script>
+<script src="/Version.js"></script>
+<script src="/core.js"></script>
 <script>
 var jugActivo = null;
 
@@ -417,7 +453,14 @@ function mostrarDirectorio(){
   var medals=['🥇','🥈','🥉'];
   var topBg=['rgba(212,175,55,0.07)','rgba(180,180,180,0.04)','rgba(180,100,40,0.04)'];
   var topBd=['rgba(212,175,55,0.25)','rgba(180,180,180,0.1)','rgba(180,100,40,0.1)'];
-  var html='<div style="font-family:Bebas Neue;font-size:0.75rem;color:#1e1e1e;letter-spacing:4px;text-align:center;padding:12px 0 10px;">'+todos.length+' JUGADORES REGISTRADOS</div>';
+  var clubNom=window.WL?window.WL.getNombreClub():'el club';
+  var html=
+    '<div class="perfil-intro">'+
+      '<div class="perfil-intro-tit">PERFIL DEL JUGADOR</div>'+
+      '<div class="perfil-intro-txt">Elige un jugador para ver <strong>quién es</strong>, su <strong>promedio</strong>, <strong>historial en '+clubNom+'</strong> y todas sus <strong>estadísticas</strong>.</div>'+
+    '</div>'+
+    '<div class="sec-tit">JUGADORES DEL CLUB</div>'+
+    '<div style="font-size:0.6rem;color:#222;letter-spacing:2px;margin-bottom:10px;">'+todos.length+' jugadores — toca uno para ver su perfil</div>';
   todos.forEach(function(j,i){
     var cat=MasterVIP.getCategoria(j.promedio||0);
     var esT=i<3;
@@ -564,6 +607,12 @@ function mostrarPerfil(j){
   /* ══ HTML DEL CARNET FIFA ══ */
   zona.innerHTML=
 
+  /* Título de sección: Perfil del jugador */
+  '<div class="perfil-intro" style="margin-top:0;">'+
+    '<div class="perfil-intro-tit">PERFIL DEL JUGADOR</div>'+
+    '<div class="perfil-intro-txt">'+j.nombre+' · '+clubNom+' · Promedio <strong style="color:'+CC+';">'+prom.toFixed(3)+'</strong> — Datos, estadísticas e historial en el club.</div>'+
+  '</div>'+
+
   /* CARNET HORIZONTAL */
   '<div class="carnet-wrap">'+
     '<div class="carnet-bg">'+
@@ -623,7 +672,8 @@ function mostrarPerfil(j){
             '<div style="height:100%;width:'+nivel.pct+'%;background:'+CC+';border-radius:3px;transition:width 1s;"></div>'+
           '</div>'+
 
-          /* STATS 4 columnas */
+          /* STATS 4 columnas — datos estadísticos */
+          '<div class="sec-tit sub" style="margin:0 0 6px;">ESTADÍSTICAS</div>'+
           '<div class="c-stats">'+
             '<div class="c-stat"><div class="c-stat-val">'+nPart+'</div><div class="c-stat-lbl">PARTIDAS</div></div>'+
             '<div class="c-stat"><div class="c-stat-val" style="color:var(--neon);">'+pctV+'%</div><div class="c-stat-lbl">VICTORIAS</div></div>'+
@@ -681,11 +731,11 @@ function mostrarPerfil(j){
   '<button class="btn-share" onclick="compartir()">📤 COMPARTIR CARNET</button>'+
   '<button class="btn-link" onclick="copiarLink()">🔗 COPIAR ENLACE</button>'+
 
-  /* HISTORIAL */
-  '<div class="sec-tit">TORNEOS</div>'+
+  /* HISTORIAL EN EL CLUB */
+  '<div class="sec-tit">HISTORIAL EN EL CLUB</div>'+
+  '<div class="sec-tit sub">TORNEOS</div>'+
   renderTorneos(misTorn,j.nombre)+
-
-  '<div class="sec-tit">ÚLTIMAS PARTIDAS</div>'+
+  '<div class="sec-tit sub">ÚLTIMAS PARTIDAS</div>'+
   renderPartidas(mias);
 }
 
@@ -844,5 +894,19 @@ function copiarLink(){
 }
 </script>
 <script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

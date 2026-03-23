@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gestionar PQRS — DeCarambola</title>
+    <meta name="theme-color" content="#d4af37">
+    <link rel="stylesheet" href="css/ux-shell.css">
     <style>
         :root { --oro:#d4af37; --negro:#0b0b0b; --azul:#3498db; --rojo:#e74c3c; --neon:#2eff70; }
         * { box-sizing: border-box; }
@@ -51,7 +53,9 @@
         .acceso-denegado a { color: var(--azul); }
     </style>
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
     <div class="header">
         <a href="index.html" class="back">◂ VOLVER</a>
         <h1>GESTIONAR PQRS (SUPERADMIN)</h1>
@@ -345,6 +349,20 @@
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
+})();
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
 })();
 </script>
 </body>

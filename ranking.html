@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
     <title>Ranking — DeCarambola</title>
     <style>
         :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
@@ -10,7 +11,8 @@
         body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
 
         /* HEADER */
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; position:sticky; top:0; z-index:50; display:flex; flex-direction:column; align-items:stretch; gap:10px; }
+        .header-top-rk { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; width:100%; }
         .header-main { display:flex; align-items:center; gap:10px; }
         .header-logo {
             width:52px; height:52px;
@@ -106,18 +108,35 @@
         .btn-nav:active { border-color:var(--oro); color:var(--oro); }
         .nav-ico { font-size:1rem; line-height:1; }
     </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
 
 <div class="header">
-    <div class="header-main">
-        <div class="header-logo" id="hdr-logo-ranking"></div>
-        <div>
-            <div class="header-tit">&#128200; RANKING</div>
-            <div class="header-sub" id="lbl-sede">TODOS LOS JUGADORES · PROMEDIO OFICIAL</div>
+    <div class="header-top-rk">
+        <div class="header-main">
+            <div class="header-logo" id="hdr-logo-ranking"></div>
+            <div>
+                <div class="header-tit">&#128200; RANKING</div>
+                <div class="header-sub" id="lbl-sede">TODOS LOS JUGADORES · PROMEDIO OFICIAL</div>
+            </div>
         </div>
     </div>
-    <a href="index.html" class="btn-hdr">&#8592; MENÚ</a>
+    <details class="jug-nav-fold">
+        <summary>☰ Menú</summary>
+        <div class="jug-nav-fold__links">
+            <a href="/jugador/">Hub jugador</a>
+            <a href="/perfil.html">Mi perfil</a>
+            <a href="/historial.html">Historial de partidas</a>
+            <a href="/historial_salon.html">Uso de mesas</a>
+            <a href="/categorias.html">Categorías</a>
+            <a href="/Sensei.html">Sensei</a>
+            <a href="/club/">Portal club</a>
+            <a href="/index.html">Inicio app</a>
+        </div>
+    </details>
 </div>
 
 <div class="wrap">
@@ -165,7 +184,8 @@
     <a href="index.html" class="btn-nav"><span class="nav-ico">&#127968;</span> INICIO</a>
 </div>
 
-<script src="core.js"></script>
+<script src="/Version.js"></script>
+<script src="/core.js"></script>
 <script>
 // Logo del club activo en header ranking
 window.addEventListener('load', function() {
@@ -337,6 +357,20 @@ function irPerfil(nombreEnc) {
     window.location.href = 'perfil.html?jugador=' + nombreEnc;
 }
 </script>
-<script src="whitelabel.js"></script>
+<script src="/whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>

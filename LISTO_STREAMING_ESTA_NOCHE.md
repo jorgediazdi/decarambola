@@ -1,5 +1,7 @@
 # Listo para streaming esta noche (conectar YouTube)
 
+> **QA post-deploy:** checklist única → **`docs/QA_STREAMING.md`**. Este archivo es **guía operativa** de escena OBS; no sustituye esa checklist.
+
 - **TV en la mesa:** no necesita overlay; solo el marcador/cámara que ya tienes.
 - **Streaming (esta noche):** mismo marcador + cámara en OBS, y **sí** quieres tener el overlay listo para cuando conectes YouTube.
 

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Página no encontrada — DeCarambola</title>
+    <meta name="theme-color" content="#d4af37">
+    <link rel="stylesheet" href="css/ux-shell.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -33,9 +35,27 @@
         a:hover { opacity: 0.9; }
     </style>
 </head>
-<body>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+<div class="dc-ux-layer" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:75vh;padding:20px;text-align:center;">
     <h1>Página no encontrada</h1>
     <p>El enlace que seguiste no existe o ha cambiado.</p>
     <a href="index.html">IR AL INICIO</a>
+</div>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
 </body>
 </html>
