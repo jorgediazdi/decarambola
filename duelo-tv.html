@@ -1156,10 +1156,26 @@
         try { localStorage.setItem('duelo_tv_mesas_cfg', JSON.stringify(all || {})); } catch (e) {}
     }
 
+    function esNombrePruebaClub(nombre) {
+        return /MASTER\s*PRUEBA|PRUEBA\s*JH|^PRUEBA$/i.test(String(nombre || '').trim());
+    }
+
     function getClubNombreDisplay() {
         try {
-            return (window.WL && window.WL.getNombreClub && window.WL.getNombreClub()) || localStorage.getItem('wl_club_nombre') || 'GLOBAL';
-        } catch (e) { return 'GLOBAL'; }
+            var wl = (window.WL && window.WL.getNombreClub && window.WL.getNombreClub()) || localStorage.getItem('wl_club_nombre') || '';
+            if (wl && !esNombrePruebaClub(wl)) return String(wl).trim();
+
+            var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+            var nomPerfil = String(perfil.club || '').trim();
+            if (nomPerfil && !esNombrePruebaClub(nomPerfil)) return nomPerfil;
+
+            var cod = String(perfil.club_id || perfil.club_codigo || perfil.codigo_club || perfil.codigo_invitacion || '').trim();
+            if (cod) return cod.toUpperCase();
+
+            return 'GLOBAL';
+        } catch (e) {
+            return 'GLOBAL';
+        }
     }
 
     function actualizarEtiquetaConfigMesa() {
@@ -1251,7 +1267,7 @@
         var clubNombre = '';
         try {
             clubLogo = (window.WL && window.WL.getLogoUrl && window.WL.getLogoUrl()) || localStorage.getItem('wl_club_logo_url') || '';
-            clubNombre = (window.WL && window.WL.getNombreClub && window.WL.getNombreClub()) || localStorage.getItem('wl_club_nombre') || '';
+            clubNombre = getClubNombreDisplay();
         } catch (e) {}
 
         if (wmMode === 'deca') {
@@ -1784,6 +1800,10 @@
         }
         aplicarConfigMesa();
         setTimeout(actualizarEtiquetaConfigMesa, 400);
+        window.addEventListener('decarambola-club-sync', function () {
+            actualizarEtiquetaConfigMesa();
+            initWatermark();
+        });
         var btnGuardarMesa = document.getElementById('btn-guardar-mesa');
         if (btnGuardarMesa) btnGuardarMesa.onclick = guardarConfigMesa;
         var btnAbrirYoutube = document.getElementById('btn-abrir-youtube');
