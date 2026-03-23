@@ -23,75 +23,121 @@
             font-family:'Arial Black',Arial,sans-serif !important;
         }
         .jug-hub-wrap { width:100%; max-width:640px; margin:0 auto; padding:0 18px 28px; }
-        /* Cuadros grandes tipo “menú principal” (tocar con el pulgar) */
-        .jug-principal-label {
-            font-size:0.5rem;
-            letter-spacing:0.22em;
-            color:#555;
-            text-align:center;
-            margin:0 0 12px;
-            font-family:'Arial Black',Arial,sans-serif;
+        /* Un solo recuadro: lo más usado (sin emojis sueltos) */
+        .jug-caja-principal {
+            max-width: 520px;
+            margin: 0 auto 22px;
+            padding: 16px 14px 14px;
+            border-radius: 18px;
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            background: linear-gradient(165deg, rgba(18, 14, 8, 0.96), rgba(8, 6, 4, 0.92));
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.42);
         }
-        .jug-principal-tiles {
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-            margin-bottom:22px;
+        .jug-caja-principal__tit {
+            text-align: center;
+            font-size: 0.52rem;
+            letter-spacing: 0.22em;
+            color: #888;
+            margin-bottom: 6px;
+            font-family: 'Arial Black', Arial, sans-serif;
         }
-        a.jug-tile {
-            display:flex;
-            flex-direction:row;
-            align-items:center;
-            justify-content:flex-start;
-            text-align:left;
-            gap:14px;
-            min-height:0;
-            padding:14px 16px;
-            border-radius:16px;
-            border:1px solid var(--jug-dim);
-            background:linear-gradient(165deg, rgba(28,12,10,0.95), rgba(12,8,7,0.9));
-            box-shadow:0 6px 20px rgba(0,0,0,0.35);
-            text-decoration:none;
-            color:#eaeaea;
-            transition:border-color 0.15s, transform 0.12s, box-shadow 0.15s;
-            -webkit-tap-highlight-color:transparent;
+        .jug-caja-principal__hint {
+            text-align: center;
+            font-size: 0.48rem;
+            color: #555;
+            line-height: 1.45;
+            margin-bottom: 14px;
         }
-        a.jug-tile:active { transform:scale(0.99); }
-        a.jug-tile:focus-visible { outline:2px solid rgba(231,76,60,0.45); outline-offset:2px; }
-        a.jug-tile--cam {
-            border-color:rgba(52,152,219,0.35);
-            background:linear-gradient(165deg, rgba(8,14,22,0.92), rgba(6,8,12,0.88));
+        .jug-caja-principal__grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        a.jug-tile--cam .jug-tile-lab { color:#8ec5e8 !important; }
-        a.jug-tile--portal {
-            border-color:rgba(212,175,55,0.42);
-            background:linear-gradient(165deg, rgba(24,20,12,0.95), rgba(10,9,6,0.9));
+        a.jug-cta {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            min-width: 0;
+            padding: 14px 14px;
+            border-radius: 14px;
+            text-decoration: none;
+            color: #eaeaea;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.38);
+            transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s;
+            -webkit-tap-highlight-color: transparent;
         }
-        a.jug-tile--portal .jug-tile-lab { color:var(--oro) !important; }
-        .jug-tile-ico {
-            font-size:1.45rem;
-            line-height:1;
-            flex-shrink:0;
-            width:2rem;
-            text-align:center;
-            opacity:0.95;
-            filter:drop-shadow(0 0 10px rgba(231,76,60,0.25));
+        a.jug-cta:active { transform: scale(0.99); }
+        a.jug-cta:focus-visible {
+            outline: 2px solid rgba(212, 175, 55, 0.45);
+            outline-offset: 2px;
         }
-        a.jug-tile--cam .jug-tile-ico { filter:drop-shadow(0 0 8px rgba(52,152,219,0.3)); }
-        a.jug-tile--portal .jug-tile-ico { filter:drop-shadow(0 0 8px rgba(212,175,55,0.25)); }
-        .jug-tile-col { display:flex; flex-direction:column; gap:4px; min-width:0; flex:1; }
-        .jug-tile-lab {
-            font-family:'Arial Black',Arial,sans-serif;
-            font-size:0.6rem;
-            letter-spacing:0.1em;
-            color:var(--jug);
+        a.jug-cta--duelo { border-color: rgba(231, 76, 60, 0.38); }
+        a.jug-cta--partida { border-color: rgba(212, 175, 55, 0.32); }
+        a.jug-cta--inscrip { border-color: rgba(52, 152, 219, 0.35); }
+        .jug-cta__badge {
+            flex-shrink: 0;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1rem;
+            font-family: 'Arial Black', Arial, sans-serif;
+            letter-spacing: 0;
         }
-        .jug-tile-sub {
-            font-size:0.52rem;
-            color:#777;
-            letter-spacing:0.02em;
-            line-height:1.35;
-            max-width:none;
+        a.jug-cta--duelo .jug-cta__badge {
+            background: linear-gradient(145deg, #e74c3c, #8a2218);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(231, 76, 60, 0.25);
+        }
+        a.jug-cta--partida .jug-cta__badge {
+            background: linear-gradient(145deg, #d4af37, #7a5a10);
+            color: #0b0b0b;
+        }
+        a.jug-cta--inscrip .jug-cta__badge {
+            background: linear-gradient(145deg, #3498db, #1a4d78);
+            color: #fff;
+        }
+        .jug-cta__body { min-width: 0; flex: 1; text-align: left; }
+        .jug-cta__lab {
+            font-family: 'Arial Black', Arial, sans-serif;
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            color: #f0f0f0;
+            display: block;
+        }
+        .jug-cta__sub {
+            font-size: 0.5rem;
+            color: #777;
+            margin-top: 4px;
+            display: block;
+            letter-spacing: 0.03em;
+            line-height: 1.35;
+        }
+        .jug-caja-principal__links {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+            font-size: 0.48rem;
+            color: #555;
+            line-height: 1.6;
+        }
+        .jug-caja-principal__links a {
+            color: #8ab4c9;
+            text-decoration: none;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+        }
+        .jug-caja-principal__links a:hover,
+        .jug-caja-principal__links a:focus-visible {
+            color: var(--oro);
+            outline: none;
         }
         .hdr-top-nav {
             width:100%;
@@ -208,49 +254,45 @@
         <p>Partida · perfil · torneos · retos</p>
     </div>
 
-    <p class="jug-principal-label">ACCESOS PRINCIPALES</p>
-    <nav class="jug-principal-tiles" aria-label="Accesos principales">
-        <a class="jug-tile" href="/duelo-tv.html?modo=movil">
-            <span class="jug-tile-ico" aria-hidden="true">🎱</span>
-            <span class="jug-tile-col">
-                <span class="jug-tile-lab">DUELO 2 JUG.</span>
-                <span class="jug-tile-sub">Premium sin cámara — Fase 1 = configurar</span>
-            </span>
-        </a>
-        <a class="jug-tile jug-tile--cam" href="/duelo-tv.html?modo=produccion">
-            <span class="jug-tile-ico" aria-hidden="true">📡</span>
-            <span class="jug-tile-col">
-                <span class="jug-tile-lab">DUELO + CÁMARA</span>
-                <span class="jug-tile-sub">Grabar / stream / herramienta propia</span>
-            </span>
-        </a>
-        <a class="jug-tile" href="/perfil.html">
-            <span class="jug-tile-ico" aria-hidden="true">👤</span>
-            <span class="jug-tile-col">
-                <span class="jug-tile-lab">PERFIL</span>
-                <span class="jug-tile-sub">Tu cuenta y club</span>
-            </span>
-        </a>
-        <a class="jug-tile" href="/apps/club/organizador/inscripciones.html">
-            <span class="jug-tile-ico" aria-hidden="true">🏆</span>
-            <span class="jug-tile-col">
-                <span class="jug-tile-lab">TORNEOS</span>
-                <span class="jug-tile-sub">Inscripciones y llaves</span>
-            </span>
-        </a>
-        <a class="jug-tile jug-tile--portal" href="/club/">
-            <span class="jug-tile-ico" aria-hidden="true">🏛️</span>
-            <span class="jug-tile-col">
-                <span class="jug-tile-lab">PORTAL CLUB</span>
-                <span class="jug-tile-sub">Staff: mesas, sede, TV (sesión aparte)</span>
-            </span>
-        </a>
-    </nav>
+    <section class="jug-caja-principal" aria-label="Lo más usado">
+        <div class="jug-caja-principal__tit">LO MÁS USADO</div>
+        <p class="jug-caja-principal__hint">Un solo recuadro con lo principal. Abajo podés desplegar <strong>más opciones</strong>.</p>
+        <div class="jug-caja-principal__grid">
+            <a class="jug-cta jug-cta--duelo" href="/duelo-tv.html?modo=movil">
+                <span class="jug-cta__badge" aria-hidden="true">D</span>
+                <span class="jug-cta__body">
+                    <span class="jug-cta__lab">DUELO</span>
+                    <span class="jug-cta__sub">Marcador · 2 jugadores · sin cámara</span>
+                </span>
+            </a>
+            <a class="jug-cta jug-cta--partida" href="/mi_partida.html">
+                <span class="jug-cta__badge" aria-hidden="true">P</span>
+                <span class="jug-cta__body">
+                    <span class="jug-cta__lab">MI PARTIDA</span>
+                    <span class="jug-cta__sub">Cronómetro · entrenamiento</span>
+                </span>
+            </a>
+            <a class="jug-cta jug-cta--inscrip" href="/apps/club/organizador/inscripciones.html">
+                <span class="jug-cta__badge" aria-hidden="true">I</span>
+                <span class="jug-cta__body">
+                    <span class="jug-cta__lab">INSCRIBIRME</span>
+                    <span class="jug-cta__sub">Torneo · altas e inscripciones</span>
+                </span>
+            </a>
+        </div>
+        <div class="jug-caja-principal__links">
+            <a href="/duelo-tv.html?modo=produccion">Duelo + cámara</a>
+            <span aria-hidden="true"> · </span>
+            <a href="/perfil.html">Perfil</a>
+            <span aria-hidden="true"> · </span>
+            <a href="/club/">Portal club</a>
+        </div>
+    </section>
 
     <div class="dc-hub dc-hub--jugador" id="jugador-hub-main">
-        <p class="dc-hub-lead"><strong>Más opciones.</strong> Despliega cada bloque (mismo estilo que el <a href="/club/" style="color:#c9a227;">portal club</a>).</p>
+        <p class="dc-hub-lead"><strong>Más opciones</strong> (plegables). Mismo criterio que el <a href="/club/" style="color:#c9a227;">portal club</a>.</p>
 
-        <details class="dc-hub-fold" open>
+        <details class="dc-hub-fold">
             <summary class="dc-hub-fold__sum">
                 <span class="dc-hub-fold__kbd">1</span>
                 <span class="dc-hub-fold__text">
