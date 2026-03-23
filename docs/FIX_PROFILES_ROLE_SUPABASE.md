@@ -1,43 +1,96 @@
-# Error: `column profiles.role does not exist`
+# Perfil en Supabase (`profiles`)
 
-El portal (`/club/`) y la sala leen **`profiles.role`** y **`profiles.club_id`**. Si tu tabla `profiles` se creó antes o a mano **sin esas columnas**, PostgREST devuelve ese error.
+## Si ves: **«Falta fila en profiles»** (después de iniciar sesión en `auth.html`)
 
-## Qué hacer (2 minutos)
+Tu correo **sí existe** en **Authentication**, pero en la tabla **`public.profiles`** no hay una fila con tu **`id`**. La app necesita esa fila.
 
-1. **Supabase** → **SQL Editor** → **New query**.
-2. Abrí y pegá el contenido de **`supabase/migrations/006_profiles_add_role_club_id.sql`** (o copialo desde el repo).
-3. **Run**.
+### Solución en 1 paso (recomendada)
 
-4. Asigná tu usuario como admin del club.
+1. **Supabase** → **SQL** → **New query**.
+2. Pegá y ejecutá **todo** el contenido de:
 
-**Si `profiles` tiene columna `email`:**
+   **`supabase/migrations/008_backfill_profiles_desde_auth.sql`**
+
+   (En el repo: crea una fila `jugador` para **cada** usuario de Auth que aún no tenga perfil.)
+
+3. **Run**. Debería decir que insertó al menos **1 fila** (o `INSERT 0 0 N` con N ≥ 1 según el cliente).
+
+4. Cerrá sesión en **`auth.html`**, volvé a entrar con correo y clave, y abrí de nuevo **`/club/`**.
+
+### Si además sos staff del club (`club_admin`)
+
+Cuando ya exista tu fila en `profiles`, ejecutá el **UPDATE** con tu correo (vía `auth.users`) del apartado **Paso B** más abajo, o leé **`docs/CANON_CLUB_ID.md`** para el `club_id` correcto.
+
+---
+
+## Si ves error: `column "email" does not exist`
+
+En muchos proyectos **`public.profiles` no tiene columna `email`**.  
+**No uses** `WHERE email = '...'` sobre `profiles` en el UPDATE; usá el **JOIN con `auth.users`** como en los ejemplos de abajo.
+
+### Paso A — Ver tu usuario y UUID (opcional)
 
 ```sql
-UPDATE public.profiles
-SET role = 'club_admin', club_id = 'MVIP-001'
-WHERE email = 'jorgediazdi@gmail.com';
+SELECT id, email, created_at
+FROM auth.users
+ORDER BY created_at DESC
+LIMIT 15;
 ```
 
-**Si da error “column email does not exist”** (tu `profiles` solo tiene `id`, etc.), usá el correo vía **`auth.users`**:
+Anotá tu **`id`** (UUID) y tu **`email`**.
+
+### Paso B — Asignar staff usando el correo (recomendado)
+
+Sustituí **`TU_CORREO_REAL`** y **`MVIP-001`** (por el `codigo` real de tu tabla `clubs`).
 
 ```sql
-UPDATE public.profiles p
-SET role = 'club_admin', club_id = 'MVIP-001'
-FROM auth.users u
+UPDATE public.profiles AS p
+SET
+  role = 'club_admin',
+  club_id = 'MVIP-001'
+FROM auth.users AS u
 WHERE p.id = u.id
-  AND u.email = 'jorgediazdi@gmail.com';
+  AND u.email = 'TU_CORREO_REAL';
 ```
 
-**O por UUID:** en **Authentication → Users** copiá el **User UID** y:
+- Debe afectar **1 fila**. Si **0 filas**, primero ejecutá **`008_backfill_profiles_desde_auth.sql`**.
+
+### Paso C — Mismo resultado usando solo el UUID
+
+1. **Authentication** → **Users** → copiá **User UID**.
+2. Pegalo en:
 
 ```sql
 UPDATE public.profiles
 SET role = 'club_admin', club_id = 'MVIP-001'
-WHERE id = 'PEGA-AQUI-EL-UUID';
+WHERE id = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
 ```
 
-5. Recargá **`https://decarambola.com/club/`** (con sesión iniciada en `auth.html`).
+### Paso D — Crear fila manual (si el backfill no aplica)
 
-## Auth: ¿está bien la pantalla de sesión activa?
+```sql
+INSERT INTO public.profiles (id, role, club_id)
+SELECT u.id, 'club_admin', 'MVIP-001'
+FROM auth.users u
+WHERE u.email = 'TU_CORREO_REAL'
+ON CONFLICT (id) DO UPDATE
+SET role = EXCLUDED.role, club_id = EXCLUDED.club_id;
+```
 
-Sí. Ver **“Sesión activa”** y tu correo en **`auth.html`** significa que **Supabase Auth** funciona. El fallo del portal era solo la **tabla `profiles`** incompleta.
+---
+
+## Si falta la columna `role` o `club_id`
+
+Ejecutá una vez **`supabase/migrations/006_profiles_add_role_club_id.sql`**.
+
+## Comprobar `club_id`
+
+```sql
+SELECT codigo, nombre FROM public.clubs;
+```
+
+Ver **`docs/CANON_CLUB_ID.md`**.
+
+## Después
+
+Recargá **`/club/`** con sesión en **`auth.html`**.

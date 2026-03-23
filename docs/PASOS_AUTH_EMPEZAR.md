@@ -60,7 +60,7 @@ Si ves tu correo arriba y “Cerrar sesión”, **Auth funciona**.
 
 | Síntoma | Qué revisar |
 |---------|-------------|
-| “Invalid login” | Email mal escrito o cuenta no creada; prueba “Crear cuenta” otra vez. |
+| “Invalid login” / “Invalid login credentials” | **No es un error de la web:** Supabase no encontró esa pareja correo+clave. Revisa mayúsculas/espacios en el correo; si nunca creaste usuario en **este** proyecto, usa **Crear cuenta**; si olvidaste la clave, en **`auth.html`** usa **¿Olvidaste la contraseña?** (o en Supabase → **Authentication** → **Users** → tu usuario → **Send password recovery** / **Reset password**). |
 | “Email not confirmed” | Activa usuario en **Authentication** → **Users** o desactiva confirmación en desarrollo (Paso 1). |
 | Pantalla en blanco / error consola | Abre **F12 → Consola** y copia el mensaje. |
 | SQL error al ejecutar migración | Puede que la tabla ya exista; dime el texto exacto del error. |

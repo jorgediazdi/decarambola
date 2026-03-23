@@ -129,16 +129,55 @@ function esModoDevActivo() {
     return sessionStorage.getItem(DEV_MODE_KEY) === '1';
 }
 
+/** Barra visible: estás viendo el portal sin staff (solo ?dev=1). */
+function insertarBannerModoPrueba() {
+    var main = document.getElementById('club-portal-main');
+    if (!main || document.getElementById('club-dev-banner')) return;
+    var bar = document.createElement('div');
+    bar.id = 'club-dev-banner';
+    bar.setAttribute('role', 'status');
+    bar.style.cssText =
+        'margin:0 auto 16px;max-width:540px;padding:12px 16px;border-radius:14px;' +
+        'border:1px solid rgba(212,175,55,0.4);background:rgba(40,32,12,0.85);' +
+        'font-size:0.72rem;line-height:1.45;color:#cba;text-align:center;';
+    bar.innerHTML =
+        '<strong style="color:#d4af37;">Modo prueba</strong> — Panel visible sin sesión Supabase. ' +
+        'Para uso real: <a href="/auth.html" style="color:#8cf;">iniciar sesión staff</a>. ' +
+        '<a href="#" id="club-dev-salir" style="color:#e88;margin-left:6px;">Salir del modo prueba</a>';
+    main.insertBefore(bar, main.firstChild);
+    var salir = document.getElementById('club-dev-salir');
+    if (salir) {
+        salir.addEventListener('click', function (e) {
+            e.preventDefault();
+            try {
+                sessionStorage.removeItem(DEV_MODE_KEY);
+            } catch (err) {}
+            window.location.href = '/club/';
+        });
+    }
+}
+
 export async function initClubPortalGate() {
     var gate = document.getElementById('club-access-gate');
     var main = document.getElementById('club-portal-main');
     var msg = document.getElementById('club-gate-msg');
 
-    function deny(html, sub) {
+    function deny(html, sub, opts) {
+        opts = opts || {};
         if (msg) {
+            var pruebaBlock = '';
+            if (opts.showDevShortcut) {
+                pruebaBlock =
+                    '<div style="margin-top:20px;padding:14px 16px;border-radius:14px;border:1px solid rgba(212,175,55,0.28);background:rgba(212,175,55,0.06);text-align:left;">' +
+                    '<div style="font-size:0.62rem;letter-spacing:0.14em;color:#a08;font-weight:700;margin-bottom:8px;">MODO PRUEBA (equipo / desarrollo)</div>' +
+                    '<p style="color:#888;font-size:0.78rem;line-height:1.45;margin:0 0 10px;">Para <strong>probar el panel sin login</strong> (solo tests): tocá abajo. Quien llegue sin este enlace debe usar <strong>sesión staff</strong> en producción.</p>' +
+                    '<a href="?dev=1" style="display:inline-block;padding:10px 16px;border-radius:12px;background:rgba(212,175,55,0.2);border:1px solid rgba(212,175,55,0.45);color:#d4af37;font-size:0.72rem;font-weight:700;text-decoration:none;letter-spacing:0.06em;">Entrar en modo prueba (sin sesión)</a>' +
+                    '</div>';
+            }
             msg.innerHTML =
                 html +
                 (sub || '') +
+                pruebaBlock +
                 '<p style="margin-top:18px;font-size:0.75rem;line-height:1.5;"><a href="/jugador/" style="color:#6cf;">App jugador</a> · <a href="/index.html" style="color:#d4af37;">Inicio</a> · <a href="/auth.html" style="color:#aaa;">Iniciar sesión (staff)</a></p>';
         }
         if (main) main.style.display = 'none';
@@ -153,6 +192,7 @@ export async function initClubPortalGate() {
     if (esModoDevActivo()) {
         sessionStorage.setItem(DEV_MODE_KEY, '1');
         allow();
+        insertarBannerModoPrueba();
         return;
     }
 
@@ -163,7 +203,8 @@ export async function initClubPortalGate() {
             deny(
                 '<h1 style="font-size:1rem;letter-spacing:0.06em;margin-bottom:10px;color:#d4af37;">Acceso al portal del club</h1>' +
                     '<p style="color:#aaa;font-size:0.85rem;line-height:1.5;">Entra con tu cuenta de <strong>personal del club</strong> (Supabase). El PIN de la app principal <strong>no</strong> sustituye el inicio de sesión aquí.</p>',
-                '<p style="color:#666;font-size:0.78rem;margin-top:12px;">¿Eres jugador? Usa la <a href="/jugador/" style="color:#6cf;">app jugador</a>.</p>'
+                '<p style="color:#666;font-size:0.78rem;margin-top:12px;">¿Eres jugador? Usa la <a href="/jugador/" style="color:#6cf;">app jugador</a>.</p>',
+                { showDevShortcut: true }
             );
             return;
         }
@@ -181,8 +222,14 @@ export async function initClubPortalGate() {
 
         if (!q.data) {
             deny(
-                '<h1 style="font-size:1rem;margin-bottom:10px;color:#c98;">Falta fila en profiles</h1>' +
-                    '<p style="color:#aaa;font-size:0.85rem;line-height:1.5;">Tu usuario existe en <strong>Authentication</strong> pero no hay fila en <code>profiles</code> (o RLS no deja leerla). Guía: <strong>docs/FIX_PROFILES_ROLE_SUPABASE.md</strong></p>',
+                '<h1 style="font-size:1rem;margin-bottom:10px;color:#c98;">Falta tu perfil en la base de datos</h1>' +
+                    '<p style="color:#aaa;font-size:0.82rem;line-height:1.5;"><strong>No es un problema de la app</strong>: tu correo ya existe en Supabase Auth, pero falta una fila en la tabla <code>public.profiles</code>.</p>' +
+                    '<ol style="color:#888;font-size:0.78rem;line-height:1.55;margin:0.9em 0 0 1.1em;padding:0;text-align:left;">' +
+                    '<li style="margin-bottom:6px;">Entrá a <strong>Supabase</strong> → tu proyecto → <strong>SQL</strong>.</li>' +
+                    '<li style="margin-bottom:6px;">Ejecutá el archivo del repo <code style="font-size:0.7rem;color:#a6a;">supabase/migrations/008_backfill_profiles_desde_auth.sql</code> (copiar/pegar todo → Run).</li>' +
+                    '<li>Cerrá sesión aquí, volvé a entrar en <a href="/auth.html" style="color:#8cf;">auth</a> y probá otra vez <code>/club/</code>.</li>' +
+                    '</ol>' +
+                    '<p style="color:#666;font-size:0.72rem;margin-top:12px;">Guía con capturas de texto: <a href="/docs/FIX_PROFILES_ROLE_SUPABASE.md" style="color:#d4af37;">docs/FIX_PROFILES_ROLE_SUPABASE.md</a></p>',
                 ''
             );
             return;

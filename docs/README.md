@@ -10,6 +10,9 @@
 | **Flujos + fotos** (organizador, club, jugador) | `QA_FLUJOS_Y_FOTOS.md` |
 | **Deploy Netlify** | `QA_NETLIFY.md` |
 | **Roles sesión / club billar / Supabase** | `QA_BILLAR.md` |
+| **Orden jugador → club (staff) → admin** | `docs/FLUJO_JUGADOR_CLUB_ADMIN.md` |
+| **«Falta fila en profiles»** (Auth sí, tabla `profiles` no) | `docs/FIX_PROFILES_ROLE_SUPABASE.md` + SQL `008_backfill_profiles_desde_auth.sql` |
+| **Nombre “MASTER PRUEBA” / caché marca** | `docs/WHITELABEL_NOMBRE_CLUB.md` |
 
 ## Estado — docs streaming (fase 1, limpio duro)
 

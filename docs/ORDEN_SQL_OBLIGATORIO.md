@@ -30,3 +30,7 @@ SELECT * FROM public.profiles LIMIT 1;
 ```
 
 Si falla, falta crear la tabla → vuelve al paso **001**.
+
+## Usuario en Auth pero “Falta fila en profiles”
+
+Si **`001`** ya se ejecutó pero creaste usuarios **antes** del trigger o el trigger falló: ejecutá **`supabase/migrations/008_backfill_profiles_desde_auth.sql`** una vez. Ver **`docs/FIX_PROFILES_ROLE_SUPABASE.md`**.

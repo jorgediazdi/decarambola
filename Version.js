@@ -1,7 +1,7 @@
 /* DeCarambola — Control de versión y caché
    Actualizar APP_VERSION cada vez que se sube a GitHub */
 (function(){
-    var APP_VERSION = '2026.03.12.86';
+    var APP_VERSION = '2026.03.12.91';
     var stored = localStorage.getItem('dc_app_version');
     if (stored !== APP_VERSION) {
         localStorage.setItem('dc_app_version', APP_VERSION);

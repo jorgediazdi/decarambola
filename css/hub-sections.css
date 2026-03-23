@@ -327,42 +327,42 @@ details.dc-hub-nested[open] > summary .dc-hub-nested__chev {
     color: #fff;
 }
 
-/* ── Variante Jugador (neón) ── */
+/* ── Variante Jugador (rojo — acento alineado con tarjeta JUGADOR en index) ── */
 .dc-hub--jugador details.dc-hub-fold {
-    border-color: rgba(46, 255, 112, 0.2);
-    background: linear-gradient(165deg, rgba(0, 18, 10, 0.9), rgba(4, 8, 6, 0.55));
+    border-color: rgba(231, 76, 60, 0.22);
+    background: linear-gradient(165deg, rgba(22, 10, 8, 0.92), rgba(10, 6, 6, 0.55));
 }
 
 .dc-hub--jugador details.dc-hub-fold[open] {
-    border-color: rgba(46, 255, 112, 0.38);
+    border-color: rgba(231, 76, 60, 0.4);
 }
 
 .dc-hub--jugador .dc-hub-fold__kbd {
-    color: rgba(46, 255, 112, 0.95);
-    border-color: rgba(46, 255, 112, 0.35);
+    color: rgba(241, 130, 118, 0.98);
+    border-color: rgba(231, 76, 60, 0.45);
 }
 
 .dc-hub--jugador .dc-hub-lead {
-    border-color: rgba(46, 255, 112, 0.15);
+    border-color: rgba(231, 76, 60, 0.18);
 }
 
 .dc-hub--jugador a.item {
-    border-color: rgba(46, 255, 112, 0.18);
-    background: linear-gradient(145deg, #000a06, #070707);
+    border-color: rgba(231, 76, 60, 0.2);
+    background: linear-gradient(145deg, #0f0808, #070707);
 }
 
 .dc-hub--jugador a.item:hover,
 .dc-hub--jugador a.item:focus-visible {
-    border-color: rgba(46, 255, 112, 0.42);
-    box-shadow: 0 0 18px rgba(46, 255, 112, 0.08);
+    border-color: rgba(231, 76, 60, 0.45);
+    box-shadow: 0 0 18px rgba(231, 76, 60, 0.1);
 }
 
 .dc-hub--jugador a.item span.tag {
-    color: #2eff70;
+    color: #f5a89e;
     font-size: 0.45rem;
     padding: 4px 9px;
-    background: rgba(46, 255, 112, 0.1);
-    border: 1px solid rgba(46, 255, 112, 0.28);
+    background: rgba(231, 76, 60, 0.12);
+    border: 1px solid rgba(231, 76, 60, 0.35);
 }
 
 /* ── Variante Staff / backoffice (rojo) ── */

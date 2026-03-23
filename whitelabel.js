@@ -211,6 +211,73 @@
             set('mi_perfil', JSON.stringify(perfil));
         }
         inyectarHeader(getDatosClub());
+        try {
+            window.dispatchEvent(new CustomEvent('decarambola-club-sync', { detail: { club: club } }));
+        } catch (e) {}
+    }
+
+    /** Payload JWT (campo sub = user id) */
+    function decodeJwtPayload(token) {
+        try {
+            var parts = String(token || '').split('.');
+            if (parts.length < 2) return null;
+            var base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            while (base64.length % 4) base64 += '=';
+            return JSON.parse(atob(base64));
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
+     * Si hay sesión Supabase pero mi_perfil no tenía club_id (típico staff recién asignado en SQL),
+     * lee profiles y rellena club_id para que sincronizarClubDesdeMiPerfilClubId pise "MASTER PRUEBA JH".
+     */
+    function syncStaffProfileFromSupabase(done) {
+        var tok = getSupabaseAccessToken();
+        if (!tok) {
+            if (done) done();
+            return;
+        }
+        var payload = decodeJwtPayload(tok);
+        if (!payload || !payload.sub) {
+            if (done) done();
+            return;
+        }
+        fetch(
+            SUPABASE_URL +
+                '/rest/v1/profiles?select=role,club_id&id=eq.' +
+                encodeURIComponent(payload.sub),
+            { headers: authHeaders() }
+        )
+            .then(function (r) {
+                return r.json();
+            })
+            .then(function (rows) {
+                if (rows && rows[0]) {
+                    var prof = rows[0];
+                    var perfil = getObj('mi_perfil') || {};
+                    if (prof.club_id) perfil.club_id = String(prof.club_id).trim();
+                    if (prof.role) perfil.role = String(prof.role).trim();
+                    set('mi_perfil', JSON.stringify(perfil));
+                }
+                if (done) done();
+            })
+            .catch(function () {
+                if (done) done();
+            });
+    }
+
+    /** Sin sesión: quita nombre de prueba típico del caché para no confundir con producción */
+    function limpiarNombrePruebaSiSinSesion() {
+        if (getSupabaseAccessToken()) return;
+        var n = get('wl_club_nombre');
+        if (!n) return;
+        if (/MASTER\s*PRUEBA|PRUEBA\s*JH|^PRUEBA$/i.test(String(n).trim())) {
+            try {
+                localStorage.removeItem('wl_club_nombre');
+            } catch (e) {}
+        }
     }
 
     /**
@@ -310,26 +377,45 @@
         return get('wl_club_nombre') || null;
     };
 
+    /** Llamar desde consola si sigue viéndose nombre de prueba: WL.resetClubCache() */
+    window.WL.resetClubCache = function() {
+        try {
+            localStorage.removeItem('wl_club_nombre');
+            localStorage.removeItem('wl_club_logo_url');
+            localStorage.removeItem('wl_club_color');
+        } catch (e) {}
+        location.reload();
+    };
+
     /* ── MAIN: ejecutar cuando el DOM esté listo ── */
     function init() {
         if (esPortalClubHub()) {
             return;
         }
-        var datos = getDatosClub();
+        function proceed() {
+            var datos = getDatosClub();
 
-        // Si hay datos en localStorage → inyectar inmediatamente
-        if (datos.club_nombre || datos.club_logo_url) {
-            inyectarHeader(datos);
+            // Si hay datos en localStorage → inyectar inmediatamente
+            if (datos.club_nombre || datos.club_logo_url) {
+                inyectarHeader(datos);
+            }
+
+            // Si hay club_id en perfil (staff o jugador), traer SIEMPRE nombre/logo de Supabase
+            // (evita quedarse con wl_club_nombre viejo tipo "MASTER PRUEBA JH").
+            var perfil = getObj('mi_perfil');
+            if (perfil && perfil.club_id) {
+                sincronizarClubDesdeMiPerfilClubId();
+            } else if (perfil && !get('wl_club_logo_url')) {
+                var cod = perfil.club_codigo || perfil.codigo_club || perfil.codigo_invitacion;
+                if (cod) sincronizarLogoPorCodigo(cod);
+            }
         }
 
-        // Si hay club_id en perfil (staff o jugador), traer SIEMPRE nombre/logo de Supabase
-        // (evita quedarse con wl_club_nombre viejo tipo "MASTER PRUEBA JH").
-        var perfil = getObj('mi_perfil');
-        if (perfil && perfil.club_id) {
-            sincronizarClubDesdeMiPerfilClubId();
-        } else if (perfil && !get('wl_club_logo_url')) {
-            var cod = perfil.club_codigo || perfil.codigo_club || perfil.codigo_invitacion;
-            if (cod) sincronizarLogoPorCodigo(cod);
+        if (getSupabaseAccessToken()) {
+            syncStaffProfileFromSupabase(proceed);
+        } else {
+            limpiarNombrePruebaSiSinSesion();
+            proceed();
         }
     }
 

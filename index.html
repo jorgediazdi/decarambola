@@ -221,21 +221,21 @@
         .portal-org .p-btn { display:none; }
         .portal-org .p-banda { display:none; }
 
-        /* JUGADOR — neón */
+        /* JUGADOR — rojo (misma línea que /jugador/) */
         .portal-jug {
-            background:#000a04;
-            border:1px solid rgba(46,255,112,0.25);
+            background:#0f0606;
+            border:1px solid rgba(231,76,60,0.35);
         }
         .portal-jug.activo {
-            border-color:var(--neon);
-            background:linear-gradient(160deg,#001a08,#000a04);
-            box-shadow:0 0 24px rgba(46,255,112,0.08);
+            border-color:#e74c3c;
+            background:linear-gradient(160deg,#1a0a08,#0f0606);
+            box-shadow:0 0 24px rgba(231,76,60,0.12);
         }
         .portal-jug .p-icon {
             display:block; margin:0 auto 14px;
         }
         .portal-jug .p-titulo {
-            color:var(--neon); font-size:0.62rem;
+            color:#e74c3c; font-size:0.62rem;
             letter-spacing:3px; margin-bottom:8px;
         }
         .portal-jug .p-desc {
@@ -333,11 +333,11 @@
             opacity:0.85;
         }
         .tres-app-card.app-jug {
-            border-color:rgba(46,255,112,0.45);
-            box-shadow:0 0 0 1px rgba(46,255,112,0.08), 0 8px 24px rgba(0,0,0,0.4);
+            border-color:rgba(231,76,60,0.45);
+            box-shadow:0 0 0 1px rgba(231,76,60,0.1), 0 8px 24px rgba(0,0,0,0.4);
         }
-        .tres-app-card.app-jug .tac-tit { color:var(--neon); }
-        .tres-app-card.app-jug .tac-cta { color:var(--neon); }
+        .tres-app-card.app-jug .tac-tit { color:#e74c3c; }
+        .tres-app-card.app-jug .tac-cta { color:#e88; }
         .tres-app-card.app-club {
             border-color:rgba(52,152,219,0.45);
             box-shadow:0 0 0 1px rgba(52,152,219,0.08), 0 8px 24px rgba(0,0,0,0.4);
@@ -850,9 +850,24 @@
         </div>
     </div>
 
-    <!-- SELECTOR DE PORTAL -->
+    <!-- SELECTOR DE PORTAL (orden: jugador → torneos → sede; mismo sitio en cualquier dominio) -->
     <div class="portal-label">SELECCIONA TU PORTAL</div>
+    <p style="text-align:center;color:#555;font-size:0.48rem;letter-spacing:0.06em;max-width:340px;margin:-6px auto 14px;line-height:1.45;">
+        <strong style="color:#777;">Flujo típico:</strong> ① <span style="color:#e74c3c;">Jugador</span> (público) → ② <span style="color:#d4af37;">Organizador / torneos</span> o <span style="color:#3498db;">Mi club</span> → ③ panel <code style="font-size:0.42rem;color:#666;">club/</code> con <strong style="color:#888;">correo staff</strong> (no vale solo el PIN).
+    </p>
     <div class="portales">
+
+        <!-- JUGADOR (primero: entrada principal) -->
+        <div class="portal-wrapper" id="portal-jug-wrapper">
+            <div class="portal-card portal-jug" id="card-jug" onclick="abrirPanel('jug')">
+                <svg class="p-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="1.3" stroke-linecap="round">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+                <div class="p-titulo">JUGADOR</div>
+                <div class="p-desc">Perfil<br>Partidas</div>
+            </div>
+        </div>
 
         <!-- ORGANIZADOR -->
         <div class="portal-wrapper">
@@ -862,18 +877,6 @@
                 </svg>
                 <div class="p-titulo">ORGANIZADOR</div>
                 <div class="p-desc">Clubes · Torneos<br>Fixtures · Control</div>
-            </div>
-        </div>
-
-        <!-- JUGADOR -->
-        <div class="portal-wrapper" id="portal-jug-wrapper">
-            <div class="portal-card portal-jug" id="card-jug" onclick="abrirPanel('jug')">
-                <svg class="p-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2eff70" stroke-width="1.3" stroke-linecap="round">
-                    <circle cx="12" cy="8" r="4"/>
-                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                </svg>
-                <div class="p-titulo">JUGADOR</div>
-                <div class="p-desc">Perfil<br>Partidas</div>
             </div>
         </div>
 
@@ -900,9 +903,9 @@
     </div>
 
     <div class="urls-por-rol">
-        <div style="color:var(--oro);font-size:0.52rem;letter-spacing:3px;margin-bottom:4px;">DOS ENTRADAS PRINCIPALES · MISMA PLATAFORMA</div>
-        <div style="color:#333;font-size:0.45rem;letter-spacing:2px;margin-bottom:8px;"><strong>Jugador</strong> (público) y <strong>panel sala / torneos</strong> (club u organizador: <strong>mismo panel</strong>, dos formas de llamarlo)</div>
-        <p class="urls-por-rol-hint">Las tarjetas de arriba abren menús <strong>dentro de esta página</strong>. Aquí, accesos directos por rol. El <strong>backoffice</strong> es solo equipo DeCarambola (no es otra “app de club”).</p>
+        <div style="color:var(--oro);font-size:0.52rem;letter-spacing:3px;margin-bottom:4px;">TRES ENTRADAS · MISMO SITIO (decarambola.com o tu dominio del club)</div>
+        <div style="color:#333;font-size:0.45rem;letter-spacing:2px;margin-bottom:8px;"><strong>1 · Jugador</strong> sin staff. <strong>2 · Panel club</strong> = mesas/torneos: hace falta <strong>iniciar sesión</strong> con cuenta <code style="font-size:0.4rem;color:#555;">club_admin</code> (Supabase), no sustituye el PIN del código. <strong>3 · Admin</strong> = equipo interno DeCarambola.</div>
+        <p class="urls-por-rol-hint">Las tarjetas de arriba abren menús <strong>dentro de esta página</strong>. Aquí, accesos directos por rol. Si ya usás la URL de <strong>Billares Master VIP</strong>, las mismas rutas aplican (<code style="font-size:0.38rem;">/jugador/</code>, <code style="font-size:0.38rem;">/club/</code>).</p>
         <nav class="tres-apps-wrap" aria-label="Entradas por rol">
             <a class="tres-app-card app-jug" href="jugador/index.html">
                 <div class="tac-tag">ENTRADA 1 · JUGADOR</div>
@@ -934,7 +937,7 @@
         <div class="mesas-admin-hd">
             <div>
                 <div class="mesas-admin-tit">ADMINISTRACIÓN DE MESAS</div>
-                <p class="mesas-admin-sub">Requiere <strong style="color:#666;">iniciar sesión</strong> (rol <code style="color:#555;">club_admin</code> o <code style="color:#555;">superadmin</code>) y migración <code style="color:#555;">004_mesas_rls_paso1.sql</code>. Disponible = <strong style="color:#666;">libre</strong> en BD. Guía: <code style="color:#555;">docs/PASO1_RLS_MESAS.md</code></p>
+                <p class="mesas-admin-sub">Requiere <strong style="color:#666;">iniciar sesión</strong> en <strong style="color:#888;">esta misma web</strong> (rol <code style="color:#555;">club_admin</code> o <code style="color:#555;">superadmin</code>) — <a href="auth.html" style="color:#6cf;">auth.html</a> → volver aquí. Migración <code style="color:#555;">004_mesas_rls_paso1.sql</code>. Guía: <code style="color:#555;">docs/PASO1_RLS_MESAS.md</code></p>
             </div>
             <button type="button" class="mesas-admin-refresh" id="mesas-admin-refresh">ACTUALIZAR</button>
         </div>
@@ -2295,6 +2298,14 @@ function cargarTorneoActivo() {
         }
     } catch(e) {}
 }
+
+// Cuando whitelabel.js trae nombre/logo real desde Supabase (staff con club_id), refresca slider y sede
+window.addEventListener('decarambola-club-sync', function () {
+    try {
+        cargarSede();
+        iniciarSlider();
+    } catch (e) {}
+});
 </script>
 <script type="module" src="js/index-mesas-admin.js"></script>
 <script src="whitelabel.js"></script>
