@@ -9,6 +9,8 @@
 import { supabase } from './supabase-client.js';
 
 const DEV_MODE_KEY = 'dev_mode_activo';
+// Temporal por solicitud de negocio: portal abierto sin login.
+const OPEN_ACCESS_PUBLIC = true;
 
 /**
  * Sustituye "Portal club" por el nombre real y el logo desde tabla clubs (ej. MVIP-001).
@@ -129,6 +131,22 @@ function esModoDevActivo() {
     return sessionStorage.getItem(DEV_MODE_KEY) === '1';
 }
 
+function insertarBannerAccesoAbierto() {
+    var main = document.getElementById('club-portal-main');
+    if (!main || document.getElementById('club-open-banner')) return;
+    var bar = document.createElement('div');
+    bar.id = 'club-open-banner';
+    bar.setAttribute('role', 'status');
+    bar.style.cssText =
+        'margin:0 auto 16px;max-width:540px;padding:12px 16px;border-radius:14px;' +
+        'border:1px solid rgba(212,175,55,0.35);background:rgba(212,175,55,0.08);' +
+        'font-size:0.72rem;line-height:1.45;color:#bba;text-align:center;';
+    bar.innerHTML =
+        '<strong style="color:#d4af37;">Acceso temporal abierto</strong> — sin clave ni login (modo operativo). ' +
+        'Luego se reactivan roles.';
+    main.insertBefore(bar, main.firstChild);
+}
+
 /** Barra visible: estás viendo el portal sin staff (solo ?dev=1). */
 function insertarBannerModoPrueba() {
     var main = document.getElementById('club-portal-main');
@@ -187,6 +205,18 @@ export async function initClubPortalGate() {
     function allow() {
         if (gate) gate.style.display = 'none';
         if (main) main.style.display = 'block';
+    }
+
+    if (OPEN_ACCESS_PUBLIC) {
+        allow();
+        insertarBannerAccesoAbierto();
+        try {
+            var perfilOpen = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+            if (perfilOpen && perfilOpen.club_id) {
+                pintarHeroPortalClub(String(perfilOpen.club_id).trim());
+            }
+        } catch (e) {}
+        return;
     }
 
     if (esModoDevActivo()) {

@@ -11,6 +11,8 @@
 import { supabase } from './supabase-client.js';
 
 const DEV_MODE_KEY = 'dev_mode_activo';
+// Temporal por solicitud de negocio: pantallas de sala abiertas sin login.
+const OPEN_ACCESS_PUBLIC = true;
 
 function esModoDevActivo() {
     try {
@@ -47,6 +49,15 @@ function removeOverlay() {
 }
 
 async function checkStaffAccess() {
+    if (OPEN_ACCESS_PUBLIC) {
+        var openCid = null;
+        try {
+            var openPerfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+            openCid = openPerfil.club_id || null;
+        } catch (e) {}
+        return { ok: true, role: 'open_public', clubId: openCid };
+    }
+
     if (esModoDevActivo()) {
         sessionStorage.setItem(DEV_MODE_KEY, '1');
         var devCid = null;
