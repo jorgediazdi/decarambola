@@ -372,3 +372,23 @@ body.dc-ux-skin .h-titulo {
 body.dc-ux-skin .modal-mesa {
     z-index: 200 !important;
 }
+
+.btn-nav-home {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #ccc;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    font-weight: 600;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-nav-home:hover {
+    border-color: rgba(212, 175, 55, 0.5);
+    color: #d4af37;
+}
