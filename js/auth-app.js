@@ -50,6 +50,8 @@ var elSesion = document.getElementById('sesion');
 var elForm = document.getElementById('formulario');
 var elEmail = document.getElementById('email');
 var elPass = document.getElementById('pass');
+var elSesionActions = document.getElementById('sesion-actions');
+var elSesionLoading = document.getElementById('sesion-loading');
 
 function showMsg(text, ok) {
   elMsg.className = 'msg ' + (ok ? 'ok' : 'err');
@@ -63,12 +65,27 @@ function clearMsg() {
 function uiSesion(user) {
   if (user && user.email) {
     elSesion.classList.add('on');
+    elSesion.classList.remove('loading-state');
     document.getElementById('sesion-email').textContent = user.email;
+    if (elSesionLoading) elSesionLoading.style.display = 'none';
+    if (elSesionActions) elSesionActions.style.display = 'block';
     elForm.style.display = 'none';
   } else {
     elSesion.classList.remove('on');
+    elSesion.classList.remove('loading-state');
+    if (elSesionLoading) elSesionLoading.style.display = 'none';
+    if (elSesionActions) elSesionActions.style.display = 'block';
     elForm.style.display = 'block';
   }
+}
+
+function uiRedirigiendoSesion(user) {
+  elSesion.classList.add('on');
+  elSesion.classList.add('loading-state');
+  document.getElementById('sesion-email').textContent = (user && user.email) ? user.email : '—';
+  if (elSesionActions) elSesionActions.style.display = 'none';
+  if (elSesionLoading) elSesionLoading.style.display = 'block';
+  elForm.style.display = 'none';
 }
 
 (async function initAuth() {
@@ -77,6 +94,7 @@ function uiSesion(user) {
     if (r.error) { uiSesion(null); return; }
     const s = r.data;
     if (s && s.user) {
+      uiRedirigiendoSesion(s.user);
       await redirectAfterLogin();
     } else {
       uiSesion(null);

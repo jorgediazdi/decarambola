@@ -90,7 +90,23 @@
       display: none;
     }
     .sesion.on { display: block; }
+    .sesion.loading-state {
+      background: rgba(212, 175, 55, 0.07);
+      border-color: rgba(212, 175, 55, 0.3);
+    }
     .sesion strong { color: var(--neon); font-size: 0.9rem; word-break: break-all; }
+    .spinner {
+      width: 22px;
+      height: 22px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      border: 2px solid rgba(212, 175, 55, 0.35);
+      border-top-color: var(--oro);
+      animation: spin 0.85s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
     .nav-foot { text-align: center; margin-top: 24px; }
     .nav-foot a { color: var(--oro); font-size: 0.75rem; }
     code { font-size: 0.7rem; color: #666; }
@@ -103,6 +119,11 @@
     <p class="sub">Cuenta con correo (Supabase Auth). Mismo proyecto que <code>core.js</code>.</p>
 
     <div id="sesion" class="sesion" role="status">
+      <div id="sesion-loading" style="display:none;">
+        <div class="spinner" aria-hidden="true"></div>
+        <div style="font-size:0.78rem;color:#d4af37;letter-spacing:0.04em;">Iniciando sesión...</div>
+      </div>
+      <div id="sesion-actions">
       <div style="font-size:0.65rem;color:#666;margin-bottom:8px;">Sesión activa</div>
       <strong id="sesion-email">—</strong>
       <p style="font-size:0.72rem;color:#888;line-height:1.45;margin:14px 0 12px;text-align:left;">
@@ -111,6 +132,7 @@
       <a href="/jugador/" class="btn-link btn-go" style="width:100%;margin-bottom:10px;">Ir a app jugador →</a>
       <a href="/club/" class="btn-link btn-sec" style="width:100%;margin-bottom:10px;">Portal del club (staff) →</a>
       <button type="button" class="btn-out" id="btn-logout">Cerrar sesión</button>
+      </div>
     </div>
 
     <div id="formulario" class="card">
