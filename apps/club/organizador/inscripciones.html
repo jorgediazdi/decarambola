@@ -510,7 +510,7 @@
         </div>
         <div id="lista-inscritos">
             <div class="empty">
-                <div class="empty-icon">🎱</div>
+                <div class="empty-icon">🟡</div>
                 <div class="empty-txt">No hay jugadores inscritos aún.<br>Inscribe al primero arriba.</div>
             </div>
         </div>
@@ -595,7 +595,7 @@ function mostrarBloqueoAfiliacion() {
     var bloqueo = document.createElement('div');
     bloqueo.id = 'bloqueo-afiliacion';
     bloqueo.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;';
-    bloqueo.innerHTML = '<div style="font-size:4rem;margin-bottom:16px;">🎱</div>' +
+    bloqueo.innerHTML = '<div style="font-size:4rem;margin-bottom:16px;">🟡</div>' +
         '<div style="color:#d4af37;font-size:1.1rem;letter-spacing:2px;margin-bottom:8px;">AFILIACIÓN OBLIGATORIA</div>' +
         '<p style="color:#888;font-size:0.8rem;max-width:340px;line-height:1.55;margin-bottom:20px;">' + texto + '</p>' +
         '<a href="/index.html#afiliacion" style="display:inline-block;padding:16px 28px;background:linear-gradient(135deg,#d4af37,#a07800);color:#000;border-radius:16px;font-size:0.85rem;font-weight:bold;text-decoration:none;font-family:Arial Black,sans-serif;letter-spacing:1px;">IR AL MENÚ — CLUB</a>' +
@@ -859,7 +859,7 @@ function renderInscritos() {
     
     if (inscritos.length === 0) {
         contenedor.innerHTML = '<div class="empty">' +
-            '<div class="empty-icon">🎱</div>' +
+            '<div class="empty-icon">🟡</div>' +
             '<div class="empty-txt">No hay jugadores inscritos aún.<br>Inscribe al primero arriba.</div>' +
             '</div>';
         return;

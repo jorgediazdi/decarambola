@@ -258,7 +258,7 @@ body{background:var(--negro);color:#fff;
   position:relative;overflow:hidden;
 }
 .analisis::before{
-  content:'🎱';position:absolute;right:12px;bottom:8px;
+  content:'🟡';position:absolute;right:12px;bottom:8px;
   font-size:3rem;opacity:0.04;
 }
 .analisis-titulo{
@@ -700,7 +700,7 @@ function mostrarPerfil(j){
               '<span class="trofeo-ico">🎯</span><span class="trofeo-num" style="color:var(--neon);">'+caserosG+'/'+caserosT+'</span>'+
               '<span class="trofeo-txt">CASEROS</span></div>':'')+
             (trofeosTitulos===0&&trofeosSubcamp===0&&fueraCategoria===0&&caserosG===0?
-              '<span style="font-size:0.55rem;color:#1e1e1e;letter-spacing:1px;">SIN TROFEOS AÚN — A JUGAR 🎱</span>':'')+
+              '<span style="font-size:0.55rem;color:#1e1e1e;letter-spacing:1px;">SIN TROFEOS AÚN — A JUGAR 🟡</span>':'')+
           '</div>'+
 
         '</div>'+ /* fin carnet-right */
@@ -782,7 +782,7 @@ function generarAnalisis(j,d){
   else if(d.trofeosTitulos>=1) txt+='<strong>Campeón</strong> en '+d.trofeosTitulos+' torneo'+(d.trofeosTitulos>1?'s':'')+' del club. ';
 
   /* Sin historial */
-  if(d.nPart===0) txt='<strong>'+nombre+'</strong> está registrado con promedio <span class="analisis-highlight">'+p.toFixed(3)+'</span>. Aún no tiene partidas registradas en el sistema — una vez juegue, aquí verás su análisis completo como experto. 🎱';
+  if(d.nPart===0) txt='<strong>'+nombre+'</strong> está registrado con promedio <span class="analisis-highlight">'+p.toFixed(3)+'</span>. Aún no tiene partidas registradas en el sistema — una vez juegue, aquí verás su análisis completo como experto. 🟡';
 
   /* Recomendación final */
   if(d.nPart>0){
@@ -823,7 +823,7 @@ function calcInsignias(j,mias,torns,vics,serieM,fueraCat,caseros){
     {ico:'⚡',nom:'MVP×5',     ok:vics>=5,             v:true },
     {ico:'⚔️',nom:'FUERA CAT', ok:fueraCat>=3,         v:false},
     {ico:'👑',nom:'REY 2.0',   ok:p>=2.0,              v:false},
-    {ico:'🎱',nom:'CASERO',    ok:caseros>=3,          v:true },
+    {ico:'🟡',nom:'CASERO',    ok:caseros>=3,          v:true },
     {ico:'⭐',nom:'3 TÍTULOS', ok:torns.filter(function(t){return (t.campeon||'').toUpperCase()===j.nombre.toUpperCase();}).length>=3,v:false}
   ];
 }
@@ -840,7 +840,7 @@ function renderTorneos(torns,nombre){
     var eC=(t.campeon||'').toUpperCase()===nombre.toUpperCase();
     var eS=(t.subcampeon||'').toUpperCase()===nombre.toUpperCase();
     return'<div class="hist-item">'+
-      '<div class="hist-ico">'+(eC?'🥇':eS?'🥈':'🎱')+'</div>'+
+      '<div class="hist-ico">'+(eC?'🥇':eS?'🥈':'🟡')+'</div>'+
       '<div class="hist-info"><div class="hist-nom">'+t.nombre+'</div>'+
       '<div class="hist-det">'+t.codigo+' · '+new Date(t.fechaCreacion).toLocaleDateString('es-CO')+'</div></div>'+
       (eC?'<div style="font-family:Bebas Neue;color:var(--oro);font-size:0.85rem;letter-spacing:1px;">CAMPEÓN</div>':'')+
@@ -877,7 +877,7 @@ function guardarFoto(e){
 function compartir(){
   if(!jugActivo)return;
   var cat=MasterVIP.getCategoria(jugActivo.promedio||0);
-  var txt='🎱 *'+jugActivo.nombre+'*\n'+cat.emoji+' '+cat.nombre+' · Promedio '+(jugActivo.promedio||0).toFixed(3)+
+  var txt='🟡 *'+jugActivo.nombre+'*\n'+cat.emoji+' '+cat.nombre+' · Promedio '+(jugActivo.promedio||0).toFixed(3)+
     '\n🏛 '+(jugActivo.club||'SIN CLUB')+' · '+(jugActivo.ciudad||'')+
     '\n\n📊 Carnet en DeCarambola — decarambola.com';
   if(navigator.share)navigator.share({title:'Carnet DeCarambola',text:txt}).catch(function(){});

@@ -813,7 +813,7 @@ const MasterVIP = {
         if (p >= 0.700) return { nombre: 'PRIMERA',      color: '#c0c0c0', emoji: '🥇' };
         if (p >= 0.500) return { nombre: 'SEGUNDA',      color: '#cd7f32', emoji: '🥈' };
         if (p >= 0.350) return { nombre: 'TERCERA',      color: '#3498db', emoji: '🥉' };
-        return            { nombre: 'INICIACIÓN',        color: '#555',    emoji: '🎱' };
+        return            { nombre: 'INICIACIÓN',        color: '#555',    emoji: '🟡' };
     },
 
     calcularBolsa: function (torneo) {
@@ -964,7 +964,7 @@ const MasterVIP = {
                 'alt="' + (nombre || 'Club') + '">';
         }
         // Sin logo → bola de billar por defecto
-        return '<span style="font-size:' + size + 'px;">🎱</span>';
+        return '<span style="font-size:' + size + 'px;">🟡</span>';
     }
 };
 

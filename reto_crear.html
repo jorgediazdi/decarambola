@@ -277,7 +277,7 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
     <!-- Formato -->
     <div class="sep"><div class="sep-line"></div><span class="sep-txt">FORMATO</span><div class="sep-line"></div></div>
     <div class="fmt-row">
-        <button class="fmt-chip on" onclick="selFmt(1,this)"><span class="ico">🎱</span>ÚNICA</button>
+        <button class="fmt-chip on" onclick="selFmt(1,this)"><span class="ico">🟡</span>ÚNICA</button>
         <button class="fmt-chip" onclick="selFmt(3,this)"><span class="ico">3️⃣</span>BO3</button>
         <button class="fmt-chip" onclick="selFmt(5,this)"><span class="ico">5️⃣</span>BO5</button>
         <button class="fmt-chip" onclick="selFmt(7,this)"><span class="ico">7️⃣</span>BO7</button>
@@ -605,7 +605,7 @@ function compartirWA() {
         : '';
     var rival = r.tipo_reto === 'directo' && r.j2 ? '👊 *'+r.j2+'* — este reto es para ti!' : '👊 Abierto al club — ¿quién acepta?';
     var link  = window.location.origin + window.location.pathname + '?reto=' + r.codigo;
-    var msg = '🎱 *RETO CASERITO · DeCarambola*\n' +
+    var msg = '🟡 *RETO CASERITO · DeCarambola*\n' +
               '━━━━━━━━━━━━━━━━━━\n' +
               '🤜 Retador: *'+r.j1+'*\n' +
               rival + '\n\n' +

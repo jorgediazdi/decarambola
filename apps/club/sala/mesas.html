@@ -795,7 +795,7 @@ function tickCountdown() {
 window.__salaBoot = function() {
     var logoEl = document.getElementById('header-logo');
     if (typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) { if (logoEl) logoEl.innerHTML = MasterVIP.getLogoHTML(40); }
-    else if (logoEl) logoEl.innerHTML = '<span style="font-size:1.5rem;">🎱</span>';
+    else if (logoEl) logoEl.innerHTML = '<span style="font-size:1.5rem;">🟡</span>';
     actualizarReloj();
     setInterval(actualizarReloj, 1000);
 

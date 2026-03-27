@@ -269,8 +269,8 @@ function cargar() {
             torneo = activo;
         }
     }
-    var emptyList = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.<br>Crea uno desde el menú principal.</p></div>';
-    var emptyCuadro = '<div class="empty-state" style="padding:40px 20px;"><div>🎱</div><p>No hay torneo activo.<br>Crea uno desde el menú principal.</p></div>';
+    var emptyList = '<div class="empty-state"><div>🟡</div><p>No hay torneo activo.<br>Crea uno desde el menú principal.</p></div>';
+    var emptyCuadro = '<div class="empty-state" style="padding:40px 20px;"><div>🟡</div><p>No hay torneo activo.<br>Crea uno desde el menú principal.</p></div>';
     var elSub = document.getElementById('lbl-sub');
     var elBolsa = document.getElementById('lbl-bolsa');
     var fmtPesos = typeof MasterVIP !== 'undefined' && MasterVIP.formatearPesos ? MasterVIP.formatearPesos(0) : '$ 0';
@@ -356,9 +356,9 @@ function buildCardLista(p, num, esActual) {
         return html + '</div>';
     }
     var g1 = p.ganador === p.j1, g2 = p.ganador === p.j2, term = p.estado === 'TERMINADA';
-    html += '<div class="jugador-row ' + (term ? (g1 ? 'ganador' : 'perdedor') : '') + '"><span class="j-corona">' + (g1 ? '👑' : (p.estado === 'EN_JUEGO' ? '⚔️' : '🎱')) + '</span><span class="j-nombre">' + p.j1 + '</span>' + (p.estado === 'ESPERANDO' ? '<span class="j-listo">' + (p.listoJ1 ? '✅' : '') + '</span>' : '') + '<span class="j-prom">' + parseFloat(term ? p.promFinalJ1 || p.prom1 : p.prom1 || 0).toFixed(3) + '</span>' + (term ? '<span class="j-pts ' + (g1 ? 'winner' : 'loser') + '">' + p.pts1 + '</span>' : '') + '</div>';
+    html += '<div class="jugador-row ' + (term ? (g1 ? 'ganador' : 'perdedor') : '') + '"><span class="j-corona">' + (g1 ? '👑' : (p.estado === 'EN_JUEGO' ? '⚔️' : '🟡')) + '</span><span class="j-nombre">' + p.j1 + '</span>' + (p.estado === 'ESPERANDO' ? '<span class="j-listo">' + (p.listoJ1 ? '✅' : '') + '</span>' : '') + '<span class="j-prom">' + parseFloat(term ? p.promFinalJ1 || p.prom1 : p.prom1 || 0).toFixed(3) + '</span>' + (term ? '<span class="j-pts ' + (g1 ? 'winner' : 'loser') + '">' + p.pts1 + '</span>' : '') + '</div>';
     html += '<div class="vs-divider">' + (term ? '· · ·' : 'VS') + '</div>';
-    html += '<div class="jugador-row ' + (term ? (g2 ? 'ganador' : 'perdedor') : '') + '"><span class="j-corona">' + (g2 ? '👑' : (p.estado === 'EN_JUEGO' ? '⚔️' : '🎱')) + '</span><span class="j-nombre">' + p.j2 + '</span>' + (p.estado === 'ESPERANDO' ? '<span class="j-listo">' + (p.listoJ2 ? '✅' : '') + '</span>' : '') + '<span class="j-prom">' + parseFloat(term ? p.promFinalJ2 || p.prom2 : p.prom2 || 0).toFixed(3) + '</span>' + (term ? '<span class="j-pts ' + (g2 ? 'winner' : 'loser') + '">' + p.pts2 + '</span>' : '') + '</div>';
+    html += '<div class="jugador-row ' + (term ? (g2 ? 'ganador' : 'perdedor') : '') + '"><span class="j-corona">' + (g2 ? '👑' : (p.estado === 'EN_JUEGO' ? '⚔️' : '🟡')) + '</span><span class="j-nombre">' + p.j2 + '</span>' + (p.estado === 'ESPERANDO' ? '<span class="j-listo">' + (p.listoJ2 ? '✅' : '') + '</span>' : '') + '<span class="j-prom">' + parseFloat(term ? p.promFinalJ2 || p.prom2 : p.prom2 || 0).toFixed(3) + '</span>' + (term ? '<span class="j-pts ' + (g2 ? 'winner' : 'loser') + '">' + p.pts2 + '</span>' : '') + '</div>';
     if (esActual && !term && p.estado !== 'BYE' && p.estado !== 'EN_JUEGO') {
         html += '<div class="card-accion" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
             '<button class="btn-card verde" data-id="' + encodeURIComponent(p.id) + '" data-j1="' + encodeURIComponent(p.j1) + '" data-j2="' + encodeURIComponent(p.j2) + '" onclick="iniciarBtn(this)">▶ DUELO</button>' +

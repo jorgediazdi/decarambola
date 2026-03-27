@@ -182,7 +182,7 @@ async function cargar() {
         }
     }
     if (!torneo) {
-        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🎱</div><p>No hay torneo activo.</p><p style="font-size:0.6rem;color:#444;margin-top:8px;">Crea un torneo de amigos o inscribe al del club para ver posiciones.</p></div>';
+        document.getElementById('contenido').innerHTML = '<div class="empty-state"><div>🟡</div><p>No hay torneo activo.</p><p style="font-size:0.6rem;color:#444;margin-top:8px;">Crea un torneo de amigos o inscribe al del club para ver posiciones.</p></div>';
         return;
     }
     // Si no hay inscritos recuperarlos de Supabase

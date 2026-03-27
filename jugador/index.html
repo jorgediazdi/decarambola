@@ -354,7 +354,7 @@
             id="form-identificacion"
             style="display: none; background: #0a0a0a; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 18px; padding: 20px; margin-bottom: 16px"
         >
-            <div style="color: #d4af37; font-size: 0.5rem; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Arial Black', sans-serif">🎱 IDENTIFICACIÓN DEL JUGADOR</div>
+            <div style="color: #d4af37; font-size: 0.5rem; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Arial Black', sans-serif">🟡 IDENTIFICACIÓN DEL JUGADOR</div>
             <div style="color: #555; font-size: 0.5rem; letter-spacing: 1px; margin-bottom: 6px">CÉDULA O PASAPORTE</div>
             <input
                 id="inp-cedula"
@@ -828,7 +828,7 @@
                     document.getElementById('jug-sub').innerText = cat
                         ? cat.nombre + ' · PROMEDIO ' + (u.promedio || 0).toFixed(3)
                         : 'Promedio: ' + (u.promedio || 0);
-                    document.getElementById('jug-avatar').innerText = cat ? cat.emoji : '🎱';
+                    document.getElementById('jug-avatar').innerText = cat ? cat.emoji : '🟡';
                     document.getElementById('btn-identificar').style.display = 'none';
                     document.getElementById('btn-salir').style.display = 'block';
                 }
