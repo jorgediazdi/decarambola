@@ -22,9 +22,38 @@
 (function() {
     'use strict';
 
-    /* ── Configuración ── */
-    var SUPABASE_URL = 'https://iwvogyloebvieloequzr.supabase.co';
-    var SUPABASE_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
+    /* ── Configuración: mismos literales que js/supabase-client.js (lectura sync) ── */
+    function DC_readSupabaseRestFromClientModuleWL() {
+        if (typeof window !== 'undefined' && window.__DC_SUPABASE_REST_CACHE) {
+            return window.__DC_SUPABASE_REST_CACHE;
+        }
+        try {
+            var x = new XMLHttpRequest();
+            x.open('GET', '/js/supabase-client.js', false);
+            x.send(null);
+            var t = x.responseText || '';
+            var um = t.match(/const supabaseUrl = '([^']*)'/);
+            var km = t.match(/const supabaseAnonKey = '([^']*)'/);
+            var url = um ? um[1] : '';
+            var key = km ? km[1] : '';
+            if (!url || !key) throw new Error('whitelabel: no se pudo parsear supabase-client.js');
+            var o = { url: url, anonKey: key };
+            if (typeof window !== 'undefined') {
+                window.__DC_SUPABASE_REST_CACHE = o;
+                window.DC_SUPABASE_URL = url;
+                window.DC_SUPABASE_ANON_KEY = key;
+            }
+            return o;
+        } catch (e) {
+            console.error('[whitelabel] Supabase config:', e);
+            throw e;
+        }
+    }
+    DC_readSupabaseRestFromClientModuleWL();
+
+    function __wlImportApi(name) {
+        return import('/js/api/' + name + '.js');
+    }
 
     /* ── Helpers ── */
     function get(key) {
@@ -50,14 +79,6 @@
             }
         } catch (e) {}
         return null;
-    }
-
-    function authHeaders() {
-        var tok = getSupabaseAccessToken();
-        return {
-            apikey: SUPABASE_KEY,
-            Authorization: 'Bearer ' + (tok || SUPABASE_KEY)
-        };
     }
 
     /** /club/ o /club/index.html — no pisar el h1 ni el hero con datos viejos de localStorage (wl_club_nombre). */
@@ -244,18 +265,13 @@
             if (done) done();
             return;
         }
-        fetch(
-            SUPABASE_URL +
-                '/rest/v1/profiles?select=role,club_id&id=eq.' +
-                encodeURIComponent(payload.sub),
-            { headers: authHeaders() }
-        )
-            .then(function (r) {
-                return r.json();
+        __wlImportApi('profile-api')
+            .then(function (m) {
+                return m.getProfileRoleClubByUserId(payload.sub);
             })
-            .then(function (rows) {
-                if (rows && rows[0]) {
-                    var prof = rows[0];
+            .then(function (r) {
+                if (r && r.data) {
+                    var prof = r.data;
                     var perfil = getObj('mi_perfil') || {};
                     if (prof.club_id) perfil.club_id = String(prof.club_id).trim();
                     if (prof.role) perfil.role = String(prof.role).trim();
@@ -289,15 +305,12 @@
         if (!perfil || !perfil.club_id) return;
         var raw = String(perfil.club_id).trim();
         if (!raw) return;
-        var isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw);
-        var q = isUuid ? 'id=eq.' + encodeURIComponent(raw) : 'codigo=eq.' + encodeURIComponent(raw);
-        var url = SUPABASE_URL + '/rest/v1/clubs?select=nombre,logo_url,color_primario&' + q + '&limit=1';
-        fetch(url, { headers: authHeaders() })
-            .then(function (r) {
-                return r.json();
+        __wlImportApi('club-api')
+            .then(function (m) {
+                return m.getClubByIdOrCodigo(raw);
             })
-            .then(function (rows) {
-                if (rows && rows[0]) aplicarClubSupabaseEnCache(rows[0]);
+            .then(function (r) {
+                if (r && r.data) aplicarClubSupabaseEnCache(r.data);
             })
             .catch(function () {});
     }
@@ -305,31 +318,24 @@
     /* ── Sincronizar logo desde Supabase si tenemos club_id pero no logo ── */
     function sincronizarLogoDesdeSupabase(club_id) {
         if (!club_id || get('wl_club_logo_url')) return; // ya tenemos logo
-        fetch(SUPABASE_URL + '/rest/v1/clubs?select=id,nombre,logo_url,color_primario&id=eq.' + encodeURIComponent(club_id), {
-            headers: authHeaders()
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(rows) {
-            if (rows && rows.length > 0) {
-                aplicarClubSupabaseEnCache(rows[0]);
-            }
-        })
-        .catch(function() {}); // Silencioso — no bloquea
+        __wlImportApi('club-api')
+            .then(function (m) {
+                return m.getClubByIdOrCodigo(club_id);
+            })
+            .then(function (r) {
+                if (r && r.data) aplicarClubSupabaseEnCache(r.data);
+            })
+            .catch(function () {});
     }
 
     function sincronizarLogoPorCodigo(cod) {
         if (!cod) return;
-        var url =
-            SUPABASE_URL +
-            '/rest/v1/clubs?select=nombre,logo_url,color_primario&codigo=eq.' +
-            encodeURIComponent(String(cod).trim()) +
-            '&limit=1';
-        fetch(url, { headers: authHeaders() })
-            .then(function (r) {
-                return r.json();
+        __wlImportApi('club-api')
+            .then(function (m) {
+                return m.getClubByIdOrCodigo(String(cod).trim());
             })
-            .then(function (rows) {
-                if (rows && rows[0]) aplicarClubSupabaseEnCache(rows[0]);
+            .then(function (r) {
+                if (r && r.data) aplicarClubSupabaseEnCache(r.data);
             })
             .catch(function () {});
     }

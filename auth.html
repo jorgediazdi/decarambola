@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <meta name="theme-color" content="#0b0b0b">
   <title>Entrar — DeCarambola</title>
   <link rel="stylesheet" href="css/ux-shell.css">
@@ -114,16 +115,18 @@
 
     <div id="formulario" class="card">
       <div id="msg" class="msg" aria-live="polite"></div>
-      <label for="email">Correo</label>
-      <input id="email" type="email" autocomplete="email" placeholder="tu@correo.com">
+      <form id="auth-form" action="#" method="post" novalidate>
+        <label for="email">Correo</label>
+        <input id="email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com">
 
-      <label for="pass">Contraseña</label>
-      <input id="pass" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
+        <label for="pass">Contraseña</label>
+        <input id="pass" name="password" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
 
-      <div class="row">
-        <button type="button" class="btn-go" id="btn-in">Iniciar sesión</button>
-        <button type="button" class="btn-sec" id="btn-up">Crear cuenta</button>
-      </div>
+        <div class="row">
+          <button type="submit" class="btn-go" id="btn-in">Iniciar sesión</button>
+          <button type="button" class="btn-sec" id="btn-up">Crear cuenta</button>
+        </div>
+      </form>
       <p style="margin:0 0 8px;font-size:0.68rem;color:#666;text-align:center;">
         <button type="button" id="btn-reset" style="background:none;border:none;color:#6cf;text-decoration:underline;cursor:pointer;font-size:inherit;padding:0;">
           ¿Olvidaste la contraseña?
@@ -146,142 +149,7 @@
     </div>
   </div>
 
-  <!-- Misma URL y clave anónima que core.js (pública, solo para navegador) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
-  <script>
-(function () {
-  var SUPABASE_URL = 'https://iwvogyloebvieloequzr.supabase.co';
-  var SUPABASE_ANON_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
-
-  var elMsg = document.getElementById('msg');
-  var elSesion = document.getElementById('sesion');
-  var elForm = document.getElementById('formulario');
-  var elEmail = document.getElementById('email');
-  var elPass = document.getElementById('pass');
-
-  function showMsg(text, ok) {
-    elMsg.className = 'msg ' + (ok ? 'ok' : 'err');
-    elMsg.textContent = text;
-  }
-  function clearMsg() {
-    elMsg.className = 'msg';
-    elMsg.textContent = '';
-  }
-
-  if (typeof supabase === 'undefined' || !supabase.createClient) {
-    showMsg('No se cargó la librería de Supabase. Revisa la conexión a internet.', false);
-    return;
-  }
-
-  var client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
-  });
-
-  function uiSesion(user) {
-    if (user && user.email) {
-      elSesion.classList.add('on');
-      document.getElementById('sesion-email').textContent = user.email;
-      elForm.style.display = 'none';
-    } else {
-      elSesion.classList.remove('on');
-      elForm.style.display = 'block';
-    }
-  }
-
-  client.auth.getSession().then(function (res) {
-    var s = res.data && res.data.session;
-    uiSesion(s && s.user ? s.user : null);
-  });
-
-  client.auth.onAuthStateChange(function (_event, session) {
-    uiSesion(session && session.user ? session.user : null);
-    clearMsg();
-  });
-
-  document.getElementById('btn-in').onclick = async function () {
-    clearMsg();
-    var email = (elEmail.value || '').trim();
-    var password = elPass.value || '';
-    if (!email || !password) {
-      showMsg('Escribe correo y contraseña.', false);
-      return;
-    }
-    this.disabled = true;
-    var r = await client.auth.signInWithPassword({ email: email, password: password });
-    this.disabled = false;
-    if (r.error) {
-      showMsg(r.error.message || 'Error al iniciar sesión', false);
-      return;
-    }
-    showMsg('Sesión iniciada correctamente.', true);
-  };
-
-  document.getElementById('btn-up').onclick = async function () {
-    clearMsg();
-    var email = (elEmail.value || '').trim();
-    var password = elPass.value || '';
-    if (!email || !password) {
-      showMsg('Escribe correo y contraseña para crear la cuenta.', false);
-      return;
-    }
-    if (password.length < 6) {
-      showMsg('La contraseña debe tener al menos 6 caracteres.', false);
-      return;
-    }
-    this.disabled = true;
-    var r = await client.auth.signUp({ email: email, password: password });
-    this.disabled = false;
-    if (r.error) {
-      showMsg(r.error.message || 'Error al registrarse', false);
-      return;
-    }
-    if (r.data.user && !r.data.session) {
-      showMsg('Revisa tu correo para confirmar la cuenta (o desactiva confirmación en Supabase en desarrollo).', true);
-    } else {
-      showMsg('Cuenta creada e iniciada sesión.', true);
-    }
-  };
-
-  document.getElementById('btn-logout').onclick = async function () {
-    await client.auth.signOut();
-    clearMsg();
-  };
-
-  document.getElementById('btn-reset').onclick = async function () {
-    clearMsg();
-    var email = (elEmail.value || '').trim();
-    if (!email) {
-      showMsg('Escribí tu correo en el campo de arriba y volvé a tocar «¿Olvidaste la contraseña?».', false);
-      return;
-    }
-    this.disabled = true;
-    var r = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/auth.html'
-    });
-    this.disabled = false;
-    if (r.error) {
-      showMsg(r.error.message || 'No se pudo enviar el correo.', false);
-      return;
-    }
-    showMsg('Si ese correo está registrado, Supabase envió un enlace para nueva contraseña. Revisá spam.', true);
-  };
-})();
-
-(function () {
-  var bg = document.getElementById('stars-bg');
-  if (!bg) return;
-  for (var i = 0; i < 50; i++) {
-    var s = document.createElement('div');
-    s.className = 'star';
-    var sz = Math.random() * 2 + 0.5;
-    s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-    bg.appendChild(s);
-  }
-})();
-  </script>
+  <!-- Cliente único: js/supabase-client.js vía js/auth-app.js + js/auth-manager.js -->
+  <script type="module" src="/js/auth-app.js"></script>
 </body>
 </html>

@@ -147,6 +147,25 @@ body.dc-ux-skin #fase2 {
     outline: none;
 }
 
+/* Menú club/sala en cabecera: una sola fila; enlaces dentro del desplegable (evita 7 recuadros verticales) */
+.jug-nav-fold.dc-sala-nav-fold {
+    width: auto;
+    max-width: min(100%, 300px);
+    margin: 0 0 0 auto;
+}
+.jug-nav-fold.dc-sala-nav-fold > summary {
+    text-align: right;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    color: #888;
+    padding: 10px 12px;
+}
+.header .jug-nav-fold.dc-sala-nav-fold,
+body.dc-ux-skin .header .jug-nav-fold.dc-sala-nav-fold {
+    position: relative;
+    z-index: 35;
+}
+
 /* Barra sticky portal club (saltos de sección) */
 body.dc-ux-skin .club-hub-sticky {
     position: sticky;

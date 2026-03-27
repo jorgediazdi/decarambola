@@ -35,6 +35,12 @@
   Pragma: no-cache
   Expires: 0
 
+# Service Worker: si queda cacheado, el sitio “no actualiza” aunque Netlify sí desplegó
+/sw.js
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+  Pragma: no-cache
+  Expires: 0
+
 # Gates y cliente Supabase (si no, queda club-portal-gate.js viejo sin logo/RLS)
 /js/club-portal-gate.js
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0

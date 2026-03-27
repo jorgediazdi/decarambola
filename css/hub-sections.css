@@ -444,3 +444,169 @@ body.dc-ux-skin .dc-hub {
     background: rgba(20, 16, 8, 0.55);
     outline: none;
 }
+
+/* ── Guía “Puesta en marcha” (orden recomendado club → salón → tarifas → TV) ── */
+.dc-setup-guide {
+    max-width: 540px;
+    margin: 0 auto 22px;
+    padding: 16px 16px 18px;
+    border-radius: 16px;
+    border: 1px solid rgba(212, 175, 55, 0.28);
+    background: linear-gradient(165deg, rgba(26, 18, 0, 0.55), rgba(8, 8, 8, 0.75));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.dc-hub--embed .dc-setup-guide {
+    margin-bottom: 14px;
+}
+
+.dc-setup-guide__title {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    color: #d4af37;
+    text-transform: uppercase;
+    margin: 0 0 8px;
+    font-weight: 800;
+}
+
+.dc-setup-guide__lead {
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #7a7a7a;
+    margin: 0 0 14px;
+}
+
+.dc-setup-guide__bar {
+    height: 8px;
+    border-radius: 99px;
+    background: #1a1a1a;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.dc-setup-guide__fill {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #d4af37, #2eff70);
+    transition: width 0.45s ease;
+}
+
+.dc-setup-guide__pct {
+    font-size: 0.58rem;
+    color: #666;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+}
+
+.dc-setup-guide__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: dcsetup;
+}
+
+.dc-setup-guide__list > li {
+    position: relative;
+    padding: 12px 8px 12px 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dc-setup-guide__list > li:last-child {
+    border-bottom: none;
+}
+
+.dc-setup-guide__list > li::before {
+    counter-increment: dcsetup;
+    content: counter(dcsetup);
+    position: absolute;
+    left: 4px;
+    top: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    color: #888;
+    font-size: 0.72rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dc-setup-guide__list > li.dc-setup-guide--done::before {
+    content: "✓";
+    background: rgba(46, 255, 112, 0.12);
+    border-color: rgba(46, 255, 112, 0.45);
+    color: #2eff70;
+    font-size: 0.65rem;
+}
+
+.dc-setup-guide__list a {
+    color: #eaeaea;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+}
+
+.dc-setup-guide__list a:hover,
+.dc-setup-guide__list a:focus-visible {
+    color: #d4af37;
+    outline: none;
+}
+
+.dc-setup-guide__hint {
+    display: block;
+    font-size: 0.65rem;
+    color: #666;
+    line-height: 1.45;
+    margin-top: 4px;
+}
+
+.dc-setup-guide__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.dc-setup-guide__mark {
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    background: rgba(212, 175, 55, 0.08);
+    color: #b9a050;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.dc-setup-guide__mark:hover {
+    border-color: rgba(212, 175, 55, 0.55);
+    color: #d4af37;
+}
+
+/* Guía completada al 100 % — celebración visual */
+.dc-setup-guide.dc-setup-guide--all-done {
+    border-color: rgba(46, 255, 112, 0.38);
+    background: linear-gradient(165deg, rgba(10, 42, 24, 0.72), rgba(6, 14, 10, 0.88));
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(46, 255, 112, 0.14);
+}
+
+.dc-setup-guide.dc-setup-guide--all-done .dc-setup-guide__title {
+    color: #b8ffd0;
+    text-transform: none;
+    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+.dc-setup-guide.dc-setup-guide--all-done .dc-setup-guide__lead {
+    color: #8a9a8e;
+}

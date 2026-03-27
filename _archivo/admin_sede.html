@@ -56,11 +56,16 @@
         <div class="header-sub">Nombre · Ciudad · Color · Logo</div>
     </div>
     <div class="header-actions">
-        <a href="mesas.html" class="btn-hdr">Salón en vivo</a>
-        <a href="reservas_admin.html" class="btn-hdr">Reservas</a>
-        <a href="mesas_config.html" class="btn-hdr">Config. instalaciones</a>
-        <a href="club/index.html" class="btn-hdr">Portal club</a>
-        <a href="index.html" class="btn-hdr">Inicio app</a>
+        <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
+            <summary>Menú del club</summary>
+            <div class="jug-nav-fold__links">
+                <a href="mesas.html">Salón en vivo</a>
+                <a href="reservas_admin.html">Reservas</a>
+                <a href="mesas_config.html">Config. instalaciones</a>
+                <a href="club/index.html">Portal club</a>
+                <a href="index.html">Inicio app</a>
+            </div>
+        </details>
     </div>
 </div>
 
@@ -100,11 +105,28 @@
 
 <script src="whitelabel.js"></script>
 <script>
+(function () {
+    function soloNombreSinDigitos(el) {
+        if (!el || el._dcNm) return;
+        el._dcNm = true;
+        el.addEventListener('input', function () {
+            var v = this.value;
+            var n = v.replace(/[0-9]/g, '');
+            if (v !== n) this.value = n;
+        });
+        el.addEventListener('keydown', function (e) {
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.key && e.key.length === 1 && /[0-9]/.test(e.key)) e.preventDefault();
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        soloNombreSinDigitos(document.getElementById('inp-nombre'));
+        soloNombreSinDigitos(document.getElementById('inp-ciudad'));
+    });
+})();
 (function() {
     'use strict';
 
-    var SUPABASE_URL = 'https://iwvogyloebvieloequzr.supabase.co';
-    var SUPABASE_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
     var COLORES = ['#d4af37','#3498db','#e74c3c','#2ecc71','#9b59b6','#1abc9c','#e67e22','#34495e'];
 
     function get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
@@ -268,35 +290,18 @@
         }
 
         if (id) {
-            fetch(SUPABASE_URL + '/rest/v1/clubs?id=eq.' + encodeURIComponent(id), {
-                method: 'PATCH',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_KEY,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(function(r) {
-                if (r.ok || r.status === 204) onSuccess();
-                else return r.text().then(onError);
-            })
-            .catch(onError);
+            import('./js/api/club-api.js').then(function (api) {
+                return api.patchClub(id, payload);
+            }).then(function (r) {
+                if (r.error) onError(r.error.message || String(r.error));
+                else onSuccess();
+            }).catch(onError);
         } else {
             payload.codigo = codigo || ('CLB-' + Math.floor(Math.random() * 900 + 100));
-            fetch(SUPABASE_URL + '/rest/v1/clubs', {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_KEY,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=representation'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                var fila = Array.isArray(data) ? data[0] : data;
+            import('./js/api/club-api.js').then(function (api) {
+                return api.insertClub(payload);
+            }).then(function (r) {
+                var fila = r.data;
                 if (fila && fila.id) {
                     club.id = fila.id;
                     localStorage.setItem('club_activo', JSON.stringify(club));
@@ -309,10 +314,9 @@
                     }
                     onSuccess();
                 } else {
-                    onError('No se devolvió id del club');
+                    onError(r.error ? (r.error.message || String(r.error)) : 'No se devolvió id del club');
                 }
-            })
-            .catch(onError);
+            }).catch(onError);
         }
     };
 

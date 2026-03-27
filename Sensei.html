@@ -555,7 +555,6 @@
 
     <div class="footer"><a href="index.html">DECARAMBOLA.COM</a></div>
 
-    <script src="core.js"></script>
     <script>
     // Estrellas
     (function(){var c=document.getElementById('stars');for(var i=0;i<50;i++){var s=document.createElement('div');s.className='star';var z=Math.random()*1.5+0.5;s.style.cssText='width:'+z+'px;height:'+z+'px;left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;animation-delay:'+Math.random()*3+'s;';c.appendChild(s);}})();
@@ -622,7 +621,7 @@ const API="https://sensei-billar-api.onrender.com";
     // Registro de uso: si está vacío no se envía nada (Sensei funciona igual). Para activar: 1) En terminal: cd sensei-backend && npm install && npm start  2) Poner aquí la URL, ej: 'http://localhost:3456' (o la URL de tu backend en producción).
     var SENSEI_USO_API = '';
 
-    // Supabase pqrs: usa URL y Anon Key de core.js (script src="core.js" arriba)
+    // PQRS vía js/api/pqrs-api.js (cliente en js/supabase-client.js)
     var PQRS_TIPOS = ['peticion','queja','reclamo','sugerencia'];
     
     function inferirTipoPQRS(mensaje) {
@@ -635,8 +634,7 @@ const API="https://sensei-billar-api.onrender.com";
     }
     
     async function insertarPqrsEnSupabase(payload) {
-        var url = (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : 'https://iwvogyloebvieloequzr.supabase.co');
-        var key = (typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : '');
+        var pqrs = await import('/js/api/pqrs-api.js');
         var body = {
             nombre: payload.nombre,
             contacto: payload.contacto,
@@ -645,21 +643,11 @@ const API="https://sensei-billar-api.onrender.com";
             estado: 'pendiente_revision',
             club_id: payload.club_id || null
         };
-        var res = await fetch(url + '/rest/v1/pqrs', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': key,
-                'Authorization': 'Bearer ' + key,
-                'Prefer': 'return=representation'
-            },
-            body: JSON.stringify(body)
-        });
-        if (!res.ok) {
-            var errText = await res.text();
-            throw new Error(errText || 'Supabase error ' + res.status);
+        var r = await pqrs.insertPqrs(body);
+        if (r.error) {
+            throw new Error((r.error && r.error.message) ? r.error.message : String(r.error));
         }
-        return await res.json();
+        return r.data;
     }
     
     // CHAT

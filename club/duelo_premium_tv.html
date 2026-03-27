@@ -2,75 +2,227 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#3498db">
-    <title>Señal Duelo — Club</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0b0b">
+    <title>TV Salón — DeCarambola</title>
     <style>
-        :root { --oro:#d4af37; --negro:#0b0b0b; --azul:#3498db; --g1:#1a1a1a; --g2:#111; --neon:#2eff70; }
+        :root { --oro:#d4af37; --g1:#1a1a1a; --g2:#111; --neon:#2eff70; }
         * { box-sizing:border-box; margin:0; padding:0; }
-        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding:16px 18px 100px; }
-        .hdr { text-align:center; margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--g1); }
-        .hdr h1 { color:var(--azul); font-size:0.9rem; letter-spacing:2px; }
-        .hdr p { color:#555; font-size:0.52rem; letter-spacing:1px; margin-top:6px; line-height:1.6; }
-        .hdr a { color:var(--oro); font-size:0.52rem; text-decoration:none; }
-        .sec { color:#666; font-size:0.5rem; letter-spacing:0.18em; margin:18px 0 10px; max-width:520px; margin-left:auto; margin-right:auto; }
-        .grid { display:flex; flex-direction:column; gap:10px; max-width:520px; margin:0 auto; }
-        a.item {
-            display:flex; align-items:center; justify-content:space-between;
-            background:var(--g2); border:1px solid var(--g1); border-radius:14px;
-            padding:14px 16px; text-decoration:none; color:#ddd; font-size:0.62rem; letter-spacing:0.06em; line-height:1.35;
+        body { background:#000; color:#e0e0e0; font-family:system-ui,-apple-system,sans-serif; min-height:100vh; padding:16px 14px 32px; }
+        .hdr { text-align:center; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--g1); }
+        .hdr h1 { color:var(--oro); font-size:0.95rem; letter-spacing:0.12em; }
+        .hdr p { color:#666; font-size:0.72rem; margin-top:8px; line-height:1.5; }
+        .hdr a { color:var(--oro); font-size:0.72rem; }
+        .status { text-align:center; font-size:0.7rem; color:#666; margin-bottom:16px; min-height:1.2em; }
+        .status.err { color:#e74c3c; }
+        .status.ok { color:var(--neon); }
+        /* Una sola fila, orden DOM = orden físico de mesas (número ascendente) para encajar con OBS/cámaras */
+        .grid {
+            display:grid;
+            grid-auto-flow:column;
+            grid-auto-columns:minmax(260px,1fr);
+            gap:14px;
+            max-width:100%;
+            margin:0 auto;
+            overflow-x:auto;
+            overflow-y:visible;
+            padding-bottom:4px;
+            align-items:stretch;
         }
-        a.item:hover, a.item:focus-visible { border-color:rgba(52,152,219,0.45); outline:none; }
-        .tag { color:var(--azul); font-size:0.45rem; opacity:0.95; flex-shrink:0; margin-left:8px; }
-        .note {
-            max-width:520px; margin:16px auto 0;
-            padding:14px 16px; border-radius:12px;
-            border:1px solid rgba(212,175,55,0.25); background:rgba(212,175,55,0.06);
-            color:#a98; font-size:0.52rem; line-height:1.55;
-        }
-        .note code { font-size:0.48rem; color:#888; }
+        .card { background:var(--g2); border:1px solid var(--g1); border-radius:14px; padding:14px; }
+        .card h2 { font-size:0.8rem; color:var(--oro); letter-spacing:0.06em; margin-bottom:8px; }
+        .card .meta { font-size:0.68rem; color:#888; line-height:1.45; }
+        .card .crono { font-family:ui-monospace,monospace; font-size:1.1rem; color:#fff; margin:10px 0; }
+        .embed-wrap { position:relative; width:100%; padding-bottom:56.25%; height:0; margin-top:10px; border-radius:10px; overflow:hidden; background:#000; border:1px solid var(--g1); }
+        .embed-wrap iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+        .live-pill { display:inline-block; margin-top:8px; padding:4px 10px; border-radius:999px; font-size:0.62rem; font-weight:700; letter-spacing:0.08em; background:rgba(231,76,60,0.2); color:#e74c3c; border:1px solid rgba(231,76,60,0.45); }
+        .stream-link { display:inline-block; margin-top:10px; font-size:0.72rem; color:var(--oro); word-break:break-all; }
+        .empty { text-align:center; color:#555; font-size:0.75rem; padding:40px 16px; }
+        .grid.grid--empty { display:block; overflow:visible; }
+        .tools { max-width:520px; margin:20px auto 0; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+        .tools a { color:#888; font-size:0.65rem; }
     </style>
 </head>
 <body>
     <div class="hdr">
-        <h1>SEÑAL DUELO (3 MODOS)</h1>
-        <p>Misma base técnica (<code style="color:#666;">duelo-tv.html</code>), distinto uso. Elegí una fila.</p>
-        <p style="margin-top:12px;"><a href="/club/">← Portal club</a></p>
+        <h1>TV · SALÓN EN VIVO</h1>
+        <p>Mesas <strong>ocupadas</strong>, tiempo de sesión y stream (canónico Supabase: <code style="color:#555;">club_id</code>, <code style="color:#555;">url_camara</code>). Actualización vía Realtime.</p>
+        <p><a href="index.html">← Portal club</a> · <a href="/apps/club/sala/mesas.html">Operación salón</a> · <a href="/duelo-tv.html?modo=tv">Duelo TV</a></p>
+    </div>
+    <div class="status" id="dc-tv-status">Conectando…</div>
+    <div class="grid" id="dc-tv-grid"></div>
+    <div class="tools">
+        <a href="?">Quitar ?club= de la URL</a>
+        <span style="color:#333;">|</span>
+        <a href="/duelo-tv.html?modo=produccion">Producción duelo</a>
     </div>
 
-    <div class="sec">1 · TV / MESA (sin cámara en pantalla)</div>
-    <div class="grid">
-        <a class="item" href="/duelo-tv.html?modo=tv">
-            <span>Abrir señal tipo Premium TV (proyector)</span><span class="tag">TV</span>
-        </a>
-    </div>
+    <script type="module">
+        import { supabase } from '../js/supabase-client.js';
 
-    <div class="sec">2 · DUELO MÓVIL (mismo marcador, sin columna cámara)</div>
-    <div class="grid">
-        <a class="item" href="/duelo-tv.html?modo=movil">
-            <span>Operar desde celular: solo marcador, sin panel cámara</span><span class="tag">MÓVIL</span>
-        </a>
-    </div>
+        function getClubIdFromPage() {
+            try {
+                var q = new URLSearchParams(window.location.search).get('club');
+                if (q && String(q).trim()) return String(q).trim();
+            } catch (e) {}
+            try {
+                var p = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+                if (p && p.club_id) return String(p.club_id).trim();
+            } catch (e2) {}
+            return '';
+        }
 
-    <div class="sec">3 · PRODUCCIÓN (cámara / stream / grabar)</div>
-    <div class="grid">
-        <a class="item" href="/duelo-tv.html?modo=produccion">
-            <span>Quien anota y transmite: se muestra cámara, stream y grabar</span><span class="tag">PROD</span>
-        </a>
-        <a class="item" href="/duelo-tv-preview.html">
-            <span>Vista previa alternativa (layout clásico)</span><span class="tag">PREVIEW</span>
-        </a>
-    </div>
+        /** URL de streaming canónica en BD: url_camara (+ urls_camaras[0] como respaldo). */
+        function urlStreamingMesa(m) {
+            if (!m) return '';
+            var u = (m.url_camara || '').trim();
+            if (!u && m.urls_camaras && m.urls_camaras.length) {
+                var first = m.urls_camaras[0];
+                u = (first && typeof first === 'object' && first.url) ? String(first.url).trim() : (typeof first === 'string' ? first.trim() : '');
+            }
+            return u || '';
+        }
 
-    <div class="sec">HERRAMIENTAS</div>
-    <div class="grid">
-        <a class="item" href="/overlay_marcador.html">Overlay marcador OBS <span class="tag">OBS</span></a>
-        <a class="item" href="/docs/DUELO_TRES_MODOS.md">Documentación modos <span class="tag">DOC</span></a>
-    </div>
+        function youtubeEmbedUrl(url) {
+            if (!url) return null;
+            var s = String(url);
+            var m = s.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{6,})/);
+            if (m && m[1]) return 'https://www.youtube.com/embed/' + m[1] + '?rel=0';
+            return null;
+        }
 
-    <p class="note">
-        <strong>Por qué se veía “todo mezclado”:</strong> antes se unificó una sola página sin etiquetar modos. Ahora cada uso tiene su <code>?modo=</code>.
-        <strong>SIG. SET</strong> sigue en la barra del marcador (fase 2), no en la configuración inicial.
-    </p>
+        function isMuxLike(url) {
+            return /mux\.com|stream\.mux/i.test(String(url || ''));
+        }
+
+        var clubId = getClubIdFromPage();
+        var mesasById = {};
+        var sesionesByMesa = {};
+        var tickTimer = null;
+
+        function setStatus(msg, cls) {
+            var el = document.getElementById('dc-tv-status');
+            if (!el) return;
+            el.textContent = msg || '';
+            el.className = 'status' + (cls ? ' ' + cls : '');
+        }
+
+        function normalizarEstado(e) {
+            return String(e || '')
+                .toLowerCase()
+                .replace(/\s+/g, '_');
+        }
+
+        async function cargarSnapshot() {
+            if (!clubId) {
+                setStatus('Falta club: abrí con ?club=TU_CODIGO o iniciá sesión con perfil que tenga club_id.', 'err');
+                return;
+            }
+            var m = await supabase.from('mesas').select('*').eq('club_id', clubId);
+            if (m.error) {
+                setStatus('Error mesas: ' + m.error.message, 'err');
+                return;
+            }
+            mesasById = {};
+            (m.data || []).forEach(function (row) {
+                mesasById[row.id] = row;
+            });
+            var h = await supabase.from('mesas_historial').select('*').eq('club_id', clubId).eq('estado', 'abierta');
+            if (h.error) {
+                setStatus('Error historial: ' + h.error.message, 'err');
+                return;
+            }
+            sesionesByMesa = {};
+            (h.data || []).forEach(function (row) {
+                if (row.mesa_id) sesionesByMesa[row.mesa_id] = row;
+            });
+            setStatus('Realtime activo · club_id=' + clubId, 'ok');
+            render();
+        }
+
+        function fmtCrono(inicioIso) {
+            var t0 = new Date(inicioIso).getTime();
+            if (isNaN(t0)) return '—';
+            var seg = Math.floor((Date.now() - t0) / 1000);
+            var h = Math.floor(seg / 3600),
+                mi = Math.floor((seg % 3600) / 60),
+                s = seg % 60;
+            return (h ? h + ':' : '') + (mi < 10 ? '0' : '') + mi + ':' + (s < 10 ? '0' : '') + s;
+        }
+
+        function render() {
+            var grid = document.getElementById('dc-tv-grid');
+            if (!grid) return;
+            var ocupadas = [];
+            Object.keys(mesasById).forEach(function (id) {
+                var mesa = mesasById[id];
+                if (normalizarEstado(mesa.estado) === 'ocupada') ocupadas.push(mesa);
+            });
+            ocupadas.sort(function (a, b) { return (a.numero || 0) - (b.numero || 0); });
+            if (!ocupadas.length) {
+                grid.classList.add('grid--empty');
+                grid.innerHTML = '<div class="empty">Ninguna mesa ocupada. Cuando la operadora abra una sesión, aparecerá acá al instante.</div>';
+                return;
+            }
+            grid.classList.remove('grid--empty');
+            var html = '';
+            ocupadas.forEach(function (mesa) {
+                var ses = sesionesByMesa[mesa.id];
+                var inicio = ses && ses.inicio_sesion ? ses.inicio_sesion : null;
+                var url = urlStreamingMesa(mesa);
+                var yt = youtubeEmbedUrl(url);
+                var titulo = (mesa.nombre || 'Mesa') + ' · #' + (mesa.numero != null ? mesa.numero : '—');
+                var jug = ses && ses.jugador_nombre ? ses.jugador_nombre : '—';
+                html += '<div class="card" data-mesa-id="' + mesa.id + '">';
+                html += '<h2>' + titulo + '</h2>';
+                html += '<div class="meta">Cliente: ' + jug + '</div>';
+                if (inicio) {
+                    html += '<div class="crono" data-inicio="' + inicio.replace(/"/g, '') + '">' + fmtCrono(inicio) + '</div>';
+                    html += '<span class="live-pill">EN SESIÓN</span>';
+                } else {
+                    html += '<div class="crono">Sin fila abierta en historial (revisá sync)</div>';
+                }
+                if (yt) {
+                    html += '<div class="embed-wrap"><iframe src="' + yt + '" title="Stream" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
+                } else if (url) {
+                    html += '<a class="stream-link" href="' + url.replace(/"/g, '&quot;') + '" target="_blank" rel="noopener">';
+                    html += (isMuxLike(url) ? 'Abrir stream (Mux / HLS)' : 'Abrir señal en nueva pestaña') + '</a>';
+                } else {
+                    html += '<div class="meta" style="margin-top:10px;">Sin URL de stream en esta mesa.</div>';
+                }
+                html += '</div>';
+            });
+            grid.innerHTML = html;
+        }
+
+        function tickCronos() {
+            document.querySelectorAll('.crono[data-inicio]').forEach(function (el) {
+                var iso = el.getAttribute('data-inicio');
+                if (iso) el.textContent = fmtCrono(iso);
+            });
+        }
+
+        if (!clubId) {
+            setStatus('Indicá el club en la URL: ?club=TU_CODIGO o usá el mismo navegador donde ya elegiste club.', 'err');
+        } else {
+            await cargarSnapshot();
+            var cid = encodeURIComponent(clubId.replace(/[^a-zA-Z0-9_-]/g, '_'));
+            var ch = supabase.channel('dc-premium-tv-' + cid);
+            ch.on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'mesas', filter: 'club_id=eq.' + clubId },
+                function () { cargarSnapshot(); }
+            );
+            ch.on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'mesas_historial', filter: 'club_id=eq.' + clubId },
+                function () { cargarSnapshot(); }
+            );
+            ch.subscribe(function (status) {
+                if (status === 'CHANNEL_ERROR') setStatus('Canal Realtime con error. Activá replicación para mesas y mesas_historial en Supabase.', 'err');
+            });
+            tickTimer = setInterval(tickCronos, 1000);
+        }
+    </script>
 </body>
 </html>

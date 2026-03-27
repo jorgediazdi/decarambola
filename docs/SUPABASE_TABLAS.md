@@ -17,9 +17,11 @@ Lista de tablas usadas por DeCarambola en Supabase, con columnas clave y relaci�
 | color_primario | text   | Color del tema                             |
 | logo_url       | text   | URL del logo (p. ej. Storage)              |
 | activo         | bool   | true = visible para unirse                |
+| setup_cameras_ok | bool | Checklist “Puesta en marcha” paso 5 (cámaras / ficha) — `js/club-setup-guide.js` |
+| setup_tv_ok    | bool   | Checklist paso 6 (Duelo TV / OBS) — mismo script |
 | created_at     | timestamptz | (habitual)                |
 
-**App:** index (crear club en local; unirse por código hace SELECT por codigo); whitelabel (SELECT por id para logo/color); admin_sede.html (PATCH si el club tiene id, INSERT si fue creado solo en local).
+**App:** index (crear club en local; unirse por código hace SELECT por codigo); whitelabel (SELECT por id para logo/color); admin_sede.html (PATCH si el club tiene id, INSERT si fue creado solo en local). Migración columnas: `supabase/migrations/009_clubs_setup_flags.sql`.
 
 ---
 

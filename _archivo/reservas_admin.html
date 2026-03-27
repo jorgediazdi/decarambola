@@ -311,13 +311,18 @@
         <div class="header-sub">Confirmá o cancelá solicitudes de instalaciones</div>
     </div>
     <div class="header-actions">
-        <a href="socios.html" class="btn-hdr">Jugadores</a>
-        <a href="mesas.html" class="btn-hdr">Salón en vivo</a>
-        <a href="reportes.html" class="btn-hdr">Reportes</a>
-        <a href="mesas_config.html" class="btn-hdr">Config. salón</a>
-        <a href="apps/club/sala/tarifas_salon.html" class="btn-hdr">Tarifas del salón</a>
-        <a href="club/index.html" class="btn-hdr">Portal club</a>
-        <a href="index.html" class="btn-hdr">Inicio app</a>
+        <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
+            <summary>Menú del club</summary>
+            <div class="jug-nav-fold__links">
+                <a href="socios.html">Jugadores</a>
+                <a href="mesas.html">Salón en vivo</a>
+                <a href="reportes.html">Reportes</a>
+                <a href="mesas_config.html">Config. salón</a>
+                <a href="apps/club/sala/tarifas_salon.html">Tarifas del salón</a>
+                <a href="club/index.html">Portal club</a>
+                <a href="index.html">Inicio app</a>
+            </div>
+        </details>
     </div>
 </div>
 
@@ -460,7 +465,8 @@ function pedirCancelar(id) {
 
 async function actualizarReserva(id, nuevoEstado) {
     try {
-        await DB.update('mesas_reservas', id, { estado: nuevoEstado, updated_at: new Date().toISOString() });
+        var api = await import('./js/api/club-api.js');
+        await api.updateMesasReservaRow(id, { estado: nuevoEstado, updated_at: new Date().toISOString() });
         reservas = reservas.map(function(r){ if (r.id === id) r.estado = nuevoEstado; return r; });
         pintarReservas();
         toast(nuevoEstado === 'confirmada' ? 'Reserva confirmada.' : 'Reserva cancelada.', 'ok');
@@ -516,13 +522,14 @@ async function cargarDatos() {
     setCtxStrip(true, '<strong>' + escapeHtml(nom || 'Club') + '</strong> · Datos en vivo');
 
     try {
-        var filtro = 'club_id=eq.' + clubId;
-        var list = await DB.get('mesas_reservas', filtro);
-        reservas = list || [];
+        var api = await import('./js/api/club-api.js');
+        var listR = await api.listMesasReservas(clubId);
+        reservas = listR.data || [];
         reservas.sort(function(a,b){
             return new Date(b.fecha_reserva || b.created_at) - new Date(a.fecha_reserva || a.created_at);
         });
-        var mesas = await DB.get('mesas', 'club_id=eq.' + clubId);
+        var mesasR = await api.listMesas(clubId, { orderBy: 'numero' });
+        var mesas = mesasR.data;
         mesasIndex = {};
         (mesas || []).forEach(function(m){ mesasIndex[m.id] = m; });
         loadDone = true;

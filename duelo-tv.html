@@ -466,7 +466,7 @@
             font-size:1.05rem;
         }
 
-        /* ── CUERPO: VERTICAL (Premium TV) — J1 arriba, J2 abajo; sin panel de cámara/stream ── */
+        /* ── CUERPO: por defecto vertical (TV/mesa); ?modo=movil → fila J1|J2 (ver body.duelo-modo-movil) ── */
         .tv-main {
             flex:1;
             display:flex;
@@ -637,6 +637,85 @@
             height:auto !important;
             overflow:visible !important;
             pointer-events:auto !important;
+        }
+
+        /* Modo móvil (?modo=movil): dos columnas J1 | J2 como Premium TV, sin fila de cámara */
+        body.duelo-modo-movil .tv-main {
+            flex-direction: row !important;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            justify-content: center;
+            gap: 6px;
+            max-width: 100% !important;
+            padding: 6px 6px 14px;
+            padding-bottom: 170px;
+        }
+        body.duelo-modo-movil .panel-jugador {
+            flex: 1 1 50%;
+            min-width: 0;
+            padding: 8px 4px 10px;
+        }
+        body.duelo-modo-movil .panel-jugador h2 {
+            font-size: clamp(0.5rem, 2.8vw, 0.72rem);
+            word-break: break-word;
+            line-height: 1.2;
+        }
+        body.duelo-modo-movil .bola {
+            width: min(92%, 130px);
+            height: min(92%, 130px);
+        }
+        body.duelo-modo-movil .bola .pts {
+            font-size: clamp(1.25rem, 6vw, 2rem);
+        }
+        body.duelo-modo-movil .stats-grid {
+            max-width: 100%;
+            gap: 4px 4px;
+        }
+        body.duelo-modo-movil .stat-value {
+            font-size: clamp(0.85rem, 3vw, 1.15rem);
+        }
+        /* Fase 1: en móvil jugador no se muestran URLs YouTube (solo staff / producción) */
+        body.duelo-modo-movil .f1-stream-pro-only {
+            display: none !important;
+        }
+        body:not(.duelo-modo-movil) .f1-movil-autoriza {
+            display: none !important;
+        }
+        .f1-movil-autoriza label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: #888;
+            font-size: clamp(0.48rem, 2vw, 0.55rem);
+            letter-spacing: 0.06em;
+            line-height: 1.45;
+            cursor: pointer;
+        }
+        .f1-movil-autoriza input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .dc-transmision-segura-strip {
+            display: none;
+            margin: 0 10px 8px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(46, 255, 112, 0.35);
+            background: rgba(46, 255, 112, 0.08);
+            color: #9fdfb5;
+            font-size: 0.58rem;
+            line-height: 1.45;
+            letter-spacing: 0.04em;
+        }
+        .dc-transmision-segura-strip strong {
+            color: #2eff70;
+            letter-spacing: 0.06em;
+        }
+        body.dc-transmision-segura.tv-activo .dc-transmision-segura-strip {
+            display: block;
         }
 
         .panel-video {
@@ -850,6 +929,9 @@
                 padding:8px 10px 190px;
                 max-width:100%;
             }
+            body.duelo-modo-movil .tv-main {
+                flex-direction: row !important;
+            }
             .panel-jugador { min-height:0; }
             .stats-grid { max-width:100%; }
             .teclado-wrap { z-index:90; }
@@ -886,21 +968,21 @@
         <div class="f1-row">
             <div class="f1-field">
                 <label for="reg-n1">Jugador 1</label>
-                <input type="text" id="reg-n1" placeholder="Nombre" maxlength="40">
+                <input type="text" id="reg-n1" placeholder="Nombre (solo letras)" maxlength="40" autocomplete="name" data-dc-nombre="1">
             </div>
             <div class="f1-field">
                 <label for="reg-n2">Jugador 2</label>
-                <input type="text" id="reg-n2" placeholder="Nombre" maxlength="40">
+                <input type="text" id="reg-n2" placeholder="Nombre (solo letras)" maxlength="40" autocomplete="name" data-dc-nombre="1">
             </div>
         </div>
         <div class="f1-row">
             <div class="f1-field">
                 <label for="reg-c1">Cédula J1 (opcional)</label>
-                <input type="text" id="reg-c1" placeholder="Documento" maxlength="24" inputmode="numeric">
+                <input type="text" id="reg-c1" placeholder="Solo números" maxlength="16" inputmode="numeric" pattern="[0-9]*" data-dc-cedula="1">
             </div>
             <div class="f1-field">
                 <label for="reg-c2">Cédula J2 (opcional)</label>
-                <input type="text" id="reg-c2" placeholder="Documento" maxlength="24" inputmode="numeric">
+                <input type="text" id="reg-c2" placeholder="Solo números" maxlength="16" inputmode="numeric" pattern="[0-9]*" data-dc-cedula="1">
             </div>
         </div>
     </div>
@@ -926,6 +1008,13 @@
                 <input type="text" id="reg-mesa" placeholder="Ej: 1" maxlength="20">
             </div>
         </div>
+        <div class="f1-field f1-movil-autoriza" id="f1-movil-autoriza">
+            <label for="reg-autoriza-stream">
+                <input type="checkbox" id="reg-autoriza-stream" />
+                <span>Autorizo usar la transmisión que el club configuró para esta mesa (opcional). No ves URLs: solo el club/mesa las define.</span>
+            </label>
+        </div>
+        <div class="f1-stream-pro-only">
         <div class="f1-field">
             <label for="reg-stream">URL del stream (opcional)</label>
             <input type="text" id="reg-stream" placeholder="YouTube: https://www.youtube.com/embed/VIDEO_ID" maxlength="500">
@@ -945,6 +1034,7 @@
         <div class="f1-politica-p1" id="f1-politica-p1">
             <strong>Punto 1 · Operación:</strong> no compartir la clave de transmisión de YouTube. Canal <strong>DeCarambola</strong> solo en eventos oficiales organizados; en cada local, OBS debe usar el <strong>canal de ese club</strong> para el resto de eventos.
         </div>
+        </div>
         <div class="f1-field">
             <label for="reg-wm">Marca de agua</label>
             <select id="reg-wm">
@@ -962,6 +1052,9 @@
 </section>
 
 <div class="tv-root oculta" id="fase2">
+    <div class="dc-transmision-segura-strip" id="dc-transmision-segura-strip" role="status">
+        <strong>Modo transmisión segura</strong> · Dirigí la cámara y la grabación solo al flujo autorizado del club (OBS, servidor de streaming o embed acordado). Esta página no incluye accesos a redes sociales y <strong>no puede impedir</strong> que abras otras apps en el dispositivo: el operador debe mantener el teléfono enfocado en la transmisión oficial.
+    </div>
     <div class="watermark-tv" id="watermark-tv" style="display:none;">
         <img id="wm-logo" alt="Marca agua">
         <span class="wm-text" id="wm-text">decarambola.com</span>
@@ -1135,6 +1228,11 @@
     let bolasInvertidas = false;
     let d = { p1:0,p2:0,e1:0,e2:0,s1:0,s2:0,ms1:0,ms2:0,t:1 };
     let cfg = { meta1:3,meta2:3,tiempo:40,mesa:'',streamUrl:'',ced1:'',ced2:'',wmMode:'club',youtubeLiveUrl:'',liveAssist:false };
+    /** Realtime / operario: actualiza iframe de stream sin recargar la TV */
+    window.__dueloSetStreamUrl = function (url) {
+        cfg.streamUrl = (url && String(url).trim()) || '';
+        try { initVideoPanel(); } catch (e) {}
+    };
     let nomJ1 = 'JUGADOR A', nomJ2 = 'JUGADOR B';
     let localCameraStream = null;
     let mediaRecorder = null;
@@ -1594,11 +1692,88 @@
         }
     }
 
+    var DC_TV_TRANSMISION_KEY = 'dc_tv_transmision_segura_v1';
+
+    function dcTransmisionSeguraAplica() {
+        return document.body.classList.contains('duelo-modo-movil') ||
+            document.body.classList.contains('duelo-modo-produccion');
+    }
+
+    function dcTransmisionSeguraOk() {
+        try {
+            return sessionStorage.getItem(DC_TV_TRANSMISION_KEY) === '1';
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function dcMarcarTransmisionSegura() {
+        try {
+            sessionStorage.setItem(DC_TV_TRANSMISION_KEY, '1');
+        } catch (e) {}
+        document.body.classList.add('dc-transmision-segura');
+    }
+
+    /**
+     * Obligatorio antes de cámara / grabación en móvil o modo producción.
+     * La web no puede bloquear otras apps del SO; este flujo es aviso + compromiso de operación.
+     */
+    function dcEnsureTransmisionSegura(onOk) {
+        if (!dcTransmisionSeguraAplica()) {
+            onOk();
+            return;
+        }
+        if (dcTransmisionSeguraOk()) {
+            dcMarcarTransmisionSegura();
+            onOk();
+            return;
+        }
+        var ov = document.createElement('div');
+        ov.setAttribute('role', 'dialog');
+        ov.setAttribute('aria-modal', 'true');
+        ov.style.cssText = 'position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,0.94);display:flex;align-items:center;justify-content:center;padding:20px;';
+        ov.innerHTML =
+            '<div style="max-width:380px;width:100%;background:#111;border:1px solid #333;border-radius:16px;padding:20px;color:#ccc;">' +
+            '<div style="color:var(--oro);font-size:0.68rem;letter-spacing:0.2em;margin-bottom:10px;">TRANSMISIÓN SEGURA</div>' +
+            '<p style="font-size:0.72rem;line-height:1.5;margin-bottom:14px;color:#aaa;">' +
+            'La salida de video debe destinarse <strong style="color:#e0e0e0;">solo</strong> al streaming autorizado (OBS, embed del club o plataforma acordada). ' +
+            'Esta interfaz <strong style="color:#e0e0e0;">no</strong> ofrece enlaces a redes sociales; tampoco puede bloquear que abras otras apps en el teléfono o tablet.' +
+            '</p>' +
+            '<label style="display:flex;align-items:flex-start;gap:10px;font-size:0.68rem;color:#888;cursor:pointer;margin-bottom:18px;">' +
+            '<input type="checkbox" id="dc-ch-transmision-segura" style="width:18px;height:18px;flex-shrink:0;margin-top:2px;">' +
+            '<span>Entiendo y mantendré el dispositivo dedicado a la transmisión oficial del club.</span>' +
+            '</label>' +
+            '<div style="display:flex;flex-direction:column;gap:10px;">' +
+            '<button type="button" id="dc-btn-transmision-ok" style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:12px 20px;border-radius:12px;font-weight:800;cursor:pointer;">Continuar</button>' +
+            '<button type="button" id="dc-btn-transmision-cancel" style="background:#222;color:#888;border:1px solid #333;padding:10px 18px;border-radius:12px;cursor:pointer;">Cancelar</button>' +
+            '</div></div>';
+        document.body.appendChild(ov);
+        function cerrar() {
+            try {
+                document.body.removeChild(ov);
+            } catch (e) {}
+        }
+        ov.querySelector('#dc-btn-transmision-cancel').onclick = cerrar;
+        ov.querySelector('#dc-btn-transmision-ok').onclick = function () {
+            var ch = document.getElementById('dc-ch-transmision-segura');
+            if (!ch || !ch.checked) {
+                alert('Marcá la casilla para confirmar que asumís esta responsabilidad como operador.');
+                return;
+            }
+            dcMarcarTransmisionSegura();
+            cerrar();
+            onOk();
+        };
+    }
+
     async function usarCamaraCelular() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             alert('Tu navegador no permite cámara en este dispositivo.');
             return;
         }
+        await new Promise(function (resolve) {
+            dcEnsureTransmisionSegura(resolve);
+        });
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: { ideal: 'environment' } },
@@ -1650,6 +1825,14 @@
         if (!confirm('¿Volver a la configuración del duelo? El marcador actual se reiniciará.')) return;
         try { clearInterval(timer); } catch (e) {}
         try { quitarStream(); } catch (e2) {}
+        try {
+            if (window._dcDueloTvCh) {
+                import('/js/supabase-client.js').then(function (m) {
+                    try { m.supabase.removeChannel(window._dcDueloTvCh); } catch (e3) {}
+                    window._dcDueloTvCh = null;
+                });
+            }
+        } catch (e4) {}
         partidaTerminada = false;
         var f1 = document.getElementById('fase1');
         var f2 = document.getElementById('fase2');
@@ -1658,7 +1841,7 @@
         document.body.classList.remove('tv-activo');
     }
 
-    function grabarDesdeCelular() {
+    function grabarDesdeCelularCore() {
         var btn = document.getElementById('btn-grabar-cel');
         if (!localCameraStream) {
             alert('Primero activa "Usar cámara".');
@@ -1696,24 +1879,57 @@
         }
     }
 
-    function iniciarDesdeFase1() {
+    function grabarDesdeCelular() {
+        dcEnsureTransmisionSegura(function () {
+            grabarDesdeCelularCore();
+        });
+    }
+
+    function filtrarNombreJugador(ev) {
+        var el = ev.target;
+        if (!el) return;
+        el.value = el.value.replace(/[0-9]/g, '');
+    }
+    function filtrarCedulaJugador(ev) {
+        var el = ev.target;
+        if (!el) return;
+        el.value = el.value.replace(/[^0-9]/g, '');
+    }
+
+    async function iniciarDesdeFase1() {
         var n1 = (document.getElementById('reg-n1').value || '').trim() || 'JUGADOR A';
         var n2 = (document.getElementById('reg-n2').value || '').trim() || 'JUGADOR B';
         var meta1 = parseInt(document.getElementById('reg-meta1').value, 10) || 3;
         var meta2 = parseInt(document.getElementById('reg-meta2').value, 10) || 3;
         var tiempo = parseInt(document.getElementById('reg-tiempo').value, 10) || 40;
         var mesa = (document.getElementById('reg-mesa').value || '').trim() || '-';
-        var streamUrl = (document.getElementById('reg-stream').value || '').trim();
-        var youtubeLiveUrl = (document.getElementById('reg-youtube-live').value || '').trim();
-        var liveAssist = !!(document.getElementById('reg-live-assist').checked);
+        var streamUrl = '';
+        var youtubeLiveUrl = '';
+        var liveAssist = false;
+        var esMovil = document.body.classList.contains('duelo-modo-movil');
+        if (esMovil) {
+            var autoriza = document.getElementById('reg-autoriza-stream') && document.getElementById('reg-autoriza-stream').checked;
+            if (autoriza) {
+                streamUrl = (document.getElementById('reg-stream').value || '').trim();
+                youtubeLiveUrl = (document.getElementById('reg-youtube-live').value || '').trim();
+                liveAssist = !!(document.getElementById('reg-live-assist') && document.getElementById('reg-live-assist').checked);
+            }
+        } else {
+            streamUrl = (document.getElementById('reg-stream').value || '').trim();
+            youtubeLiveUrl = (document.getElementById('reg-youtube-live').value || '').trim();
+            liveAssist = !!(document.getElementById('reg-live-assist').checked);
+        }
+        var clubIdForStream = (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) ? MasterVIP.getClubId() : '';
+        var mesaNum = parseInt(String(mesa).replace(/\D/g, ''), 10);
+        if (!streamUrl && mesa && mesa !== '-' && !isNaN(mesaNum) && typeof MasterVIP !== 'undefined' && MasterVIP.getStreamUrlMesa) {
+            try {
+                streamUrl = (await MasterVIP.getStreamUrlMesa(clubIdForStream, mesaNum)) || '';
+            } catch (e) {}
+        }
         var ced1 = (document.getElementById('reg-c1').value || '').trim();
         var ced2 = (document.getElementById('reg-c2').value || '').trim();
         var wmMode = (document.getElementById('reg-wm').value || 'club').trim();
         try { sessionStorage.setItem('duelo_tv_wm_mode', wmMode); } catch (e) {}
-
-        if (!streamUrl && mesa && mesa !== '-' && typeof window.MasterVIP !== 'undefined' && window.MasterVIP.getStreamUrlMesa) {
-            try { streamUrl = window.MasterVIP.getStreamUrlMesa(mesa) || ''; } catch (e) {}
-        }
         nomJ1 = n1;
         nomJ2 = n2;
         cfg = { meta1: meta1, meta2: meta2, tiempo: tiempo, mesa: mesa, streamUrl: streamUrl, ced1: ced1, ced2: ced2, wmMode: wmMode, youtubeLiveUrl: youtubeLiveUrl, liveAssist: liveAssist };
@@ -1735,6 +1951,14 @@
         iniciarReloj();
         if (cfg.liveAssist && cfg.youtubeLiveUrl) {
             window.open(cfg.youtubeLiveUrl, '_blank', 'noopener');
+        }
+        try {
+            await import('/js/duelo-tv-mesa-realtime.js');
+            if (typeof window.DC_startDueloTvMesaRealtime === 'function') {
+                window.DC_startDueloTvMesaRealtime({ mesa: String(!isNaN(mesaNum) ? mesaNum : mesa) });
+            }
+        } catch (eRt) {
+            if (typeof console !== 'undefined' && console.warn) console.warn('[duelo-tv] realtime mesa:', eRt);
         }
     }
 
@@ -1786,6 +2010,9 @@
                 if (pol) pol.style.display = 'none';
             }
         } catch (e) {}
+        if (dcTransmisionSeguraOk()) {
+            dcMarcarTransmisionSegura();
+        }
         initWatermark();
         try {
             var wmSaved = sessionStorage.getItem('duelo_tv_wm_mode');
@@ -1815,9 +2042,23 @@
             f2.classList.add('oculta');
         }
         var btnIni = document.getElementById('btn-iniciar-partida');
-        if (btnIni) btnIni.onclick = iniciarDesdeFase1;
+        if (btnIni) btnIni.onclick = function () { iniciarDesdeFase1().catch(function (e) { if (typeof console !== 'undefined' && console.error) console.error(e); }); };
         var btnBack = document.getElementById('btn-f1-back');
         if (btnBack) btnBack.onclick = function() { window.location.href = '/jugador/'; };
+        ['reg-n1', 'reg-n2'].forEach(function (rid) {
+            var el = document.getElementById(rid);
+            if (el) {
+                el.addEventListener('input', filtrarNombreJugador);
+                el.addEventListener('blur', filtrarNombreJugador);
+            }
+        });
+        ['reg-c1', 'reg-c2'].forEach(function (rid) {
+            var el = document.getElementById(rid);
+            if (el) {
+                el.addEventListener('input', filtrarCedulaJugador);
+                el.addEventListener('blur', filtrarCedulaJugador);
+            }
+        });
     })();
 </script>
 

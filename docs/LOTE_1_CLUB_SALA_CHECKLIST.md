@@ -42,7 +42,7 @@ Carpeta destino de este lote:
 - [x] Copiar `historial_mesas.html` a `apps/club/sala/historial_mesas.html`.
 - [x] Copiar `reportes.html` a `apps/club/sala/reportes.html`.
 - [x] Copiar `socios.html` a `apps/club/sala/socios.html`.
-- [x] Probar links internos y carga de `core.js`/`session.js` (revisión estática rutas `../../../`).
+- [x] Probar links internos y carga de `core.js`/`session.js` (revisión estática rutas absolutas `/css/`, `/js/`, etc.).
 - [x] Actualizar `club/index.html` para apuntar a `../apps/club/sala/reservas_admin.html` (primer item migrado).
 - [x] Actualizar `club/index.html` para apuntar a `../apps/club/sala/historial_mesas.html` (segundo item migrado).
 - [x] Actualizar `club/index.html` para apuntar a `../apps/club/sala/reportes.html` (tercer item migrado).

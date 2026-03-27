@@ -45,13 +45,18 @@
         <div class="header-sub">Ingresos y uso por instalación</div>
     </div>
     <div class="header-actions">
-        <a href="socios.html" class="btn-hdr">Jugadores</a>
-        <a href="mesas.html" class="btn-hdr">Salón en vivo</a>
-        <a href="reservas_admin.html" class="btn-hdr">Reservas</a>
-        <a href="mesas_config.html" class="btn-hdr">Config. salón</a>
-        <a href="apps/club/sala/tarifas_salon.html" class="btn-hdr">Tarifas del salón</a>
-        <a href="club/index.html" class="btn-hdr">Portal club</a>
-        <a href="index.html" class="btn-hdr">Inicio app</a>
+        <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
+            <summary>Menú del club</summary>
+            <div class="jug-nav-fold__links">
+                <a href="socios.html">Jugadores</a>
+                <a href="mesas.html">Salón en vivo</a>
+                <a href="reservas_admin.html">Reservas</a>
+                <a href="mesas_config.html">Config. salón</a>
+                <a href="apps/club/sala/tarifas_salon.html">Tarifas del salón</a>
+                <a href="club/index.html">Portal club</a>
+                <a href="index.html">Inicio app</a>
+            </div>
+        </details>
     </div>
 </div>
 
@@ -97,14 +102,15 @@ function getClubId() {
 
 async function cargarDatos() {
     var clubId = getClubId();
-    var filtro = clubId ? 'club_id=eq.' + clubId + '&estado=eq.cerrada' : 'estado=eq.cerrada';
-    var data = await DB.get('mesas_historial', filtro);
-    sesiones = data || [];
+    var api = await import('./js/api/club-api.js');
+    var dataR = await api.listMesasHistorialCerradas(clubId || null);
+    sesiones = dataR.data || [];
     sesiones.sort(function(a,b){
         return new Date(b.fin_sesion || b.created_at) - new Date(a.fin_sesion || a.created_at);
     });
 
-    var mesas = await DB.get('mesas', clubId ? 'club_id=eq.' + clubId : 'limit=200');
+    var mesasR = await api.listMesasForReporte(clubId || null);
+    var mesas = mesasR.data;
     mesasIndex = {};
     (mesas || []).forEach(function(m){ mesasIndex[m.id] = m; });
 

@@ -323,12 +323,10 @@ window.onload = async function () {
 };
 
 async function cargarTorneos() {
-    // Intentar usar Supabase directamente para muro público
     try {
-            var rows = await DB._fetch(
-            'torneos?select=id,nombre,codigo,club_id,modalidad,sistema,estado,fecha_inicio,inscripcion,cupo_max,visible_muro,ciudad,lugar_encuentro&order=fecha_inicio.desc',
-            { headers:{ 'Accept':'application/json' } }
-        );
+        var tmod = await import('/js/api/torneo-api.js');
+        var tmr = await tmod.listTorneosMuroPublico();
+        var rows = tmr.data;
         if (rows && rows.length) {
             _torneos = rows.map(function(t) {
                 return {
@@ -395,9 +393,9 @@ async function prepararFiltros() {
     });
 
     try {
-        var rows = typeof DB !== 'undefined' && DB._fetch
-            ? await DB._fetch('clubs?activo=eq.true&select=id,nombre,ciudad&order=nombre', { headers: { 'Accept': 'application/json' } })
-            : null;
+        var cmod = await import('/js/api/club-api.js');
+        var cr = await cmod.listClubsActivos();
+        var rows = cr.data;
         if (rows && rows.length) {
             rows.forEach(function(c) {
                 clubesPorId[c.id] = c.nombre || c.id;

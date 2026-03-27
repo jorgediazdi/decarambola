@@ -7,209 +7,94 @@
     <meta name="description" content="App jugador DeCarambola — partida, perfil, torneos">
     <title>App jugador — DeCarambola</title>
     <link rel="stylesheet" href="/css/ux-shell.css">
-    <link rel="stylesheet" href="/css/hub-sections.css">
     <style>
         :root {
-            --oro:#d4af37;
-            --negro:#0b0b0b;
-            --jug:#e74c3c;
-            --jug-dim:rgba(231,76,60,0.35);
-            --azul:#3498db;
-            --g1:#1a1a1a;
-            --g2:#111;
+            --oro: #d4af37;
+            --negro: #0b0b0b;
+            --neon: #2eff70;
+            --azul: #3498db;
+            --rojo: #e74c3c;
+            --jug: #e74c3c;
         }
-        * { box-sizing:border-box; margin:0; padding:0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body.dc-ux.dc-ux-skin.jugador-hub {
-            font-family:'Arial Black',Arial,sans-serif !important;
+            font-family: 'Arial Black', Arial, sans-serif !important;
         }
-        .jug-hub-wrap { width:100%; max-width:640px; margin:0 auto; padding:0 18px 28px; }
-        /* Un solo recuadro: lo más usado (sin emojis sueltos) */
-        .jug-caja-principal {
-            max-width: 520px;
-            margin: 0 auto 22px;
-            padding: 16px 14px 14px;
-            border-radius: 18px;
-            border: 1px solid rgba(212, 175, 55, 0.35);
-            background: linear-gradient(165deg, rgba(18, 14, 8, 0.96), rgba(8, 6, 4, 0.92));
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.42);
-        }
-        .jug-caja-principal__tit {
-            text-align: center;
-            font-size: 0.52rem;
-            letter-spacing: 0.22em;
-            color: #888;
-            margin-bottom: 6px;
-            font-family: 'Arial Black', Arial, sans-serif;
-        }
-        .jug-caja-principal__hint {
-            text-align: center;
-            font-size: 0.48rem;
-            color: #555;
-            line-height: 1.45;
-            margin-bottom: 14px;
-        }
-        .jug-caja-principal__grid {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        a.jug-cta {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 12px;
+        /* Fondo estrellas (misma base que index) */
+        #stars-bg.stars,
+        .stars#stars-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            min-width: 0;
-            padding: 14px 14px;
-            border-radius: 14px;
-            text-decoration: none;
-            color: #eaeaea;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.38);
-            transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s;
-            -webkit-tap-highlight-color: transparent;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(ellipse at 50% 0%, #0d0800 0%, #000 70%);
         }
-        a.jug-cta:active { transform: scale(0.99); }
-        a.jug-cta:focus-visible {
-            outline: 2px solid rgba(212, 175, 55, 0.45);
-            outline-offset: 2px;
-        }
-        a.jug-cta--duelo { border-color: rgba(231, 76, 60, 0.38); }
-        a.jug-cta--partida { border-color: rgba(212, 175, 55, 0.32); }
-        a.jug-cta--inscrip { border-color: rgba(52, 152, 219, 0.35); }
-        .jug-cta__badge {
-            flex-shrink: 0;
-            width: 42px;
-            height: 42px;
+        body.dc-ux-skin .star {
+            position: absolute;
+            background: #fff;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 1rem;
-            font-family: 'Arial Black', Arial, sans-serif;
-            letter-spacing: 0;
+            animation: twinkle 3s infinite alternate;
         }
-        a.jug-cta--duelo .jug-cta__badge {
-            background: linear-gradient(145deg, #e74c3c, #8a2218);
-            color: #fff;
-            box-shadow: 0 0 14px rgba(231, 76, 60, 0.25);
+        @keyframes twinkle {
+            0% { opacity: 0.1; }
+            100% { opacity: 0.7; }
         }
-        a.jug-cta--partida .jug-cta__badge {
-            background: linear-gradient(145deg, #d4af37, #7a5a10);
-            color: #0b0b0b;
-        }
-        a.jug-cta--inscrip .jug-cta__badge {
-            background: linear-gradient(145deg, #3498db, #1a4d78);
-            color: #fff;
-        }
-        .jug-cta__body { min-width: 0; flex: 1; text-align: left; }
-        .jug-cta__lab {
-            font-family: 'Arial Black', Arial, sans-serif;
-            font-size: 0.68rem;
-            letter-spacing: 0.1em;
-            color: #f0f0f0;
-            display: block;
-        }
-        .jug-cta__sub {
-            font-size: 0.5rem;
-            color: #777;
-            margin-top: 4px;
-            display: block;
-            letter-spacing: 0.03em;
-            line-height: 1.35;
-        }
-        .jug-caja-principal__links {
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            text-align: center;
-            font-size: 0.48rem;
-            color: #555;
-            line-height: 1.6;
-        }
-        .jug-caja-principal__links a {
-            color: #8ab4c9;
-            text-decoration: none;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-        }
-        .jug-caja-principal__links a:hover,
-        .jug-caja-principal__links a:focus-visible {
-            color: var(--oro);
-            outline: none;
+        .jug-hub-wrap {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 18px 40px;
+            position: relative;
+            z-index: 12;
         }
         .hdr-top-nav {
-            width:100%;
-            background:#000;
-            border-bottom:1px solid #1a1a1a;
-            padding:12px 16px;
-            position:sticky;
-            top:0;
-            z-index:50;
-            display:flex;
-            flex-direction:column;
-            align-items:stretch;
-            gap:10px;
-            margin-bottom:18px;
+            width: 100%;
+            background: #000;
+            border-bottom: 1px solid #1a1a1a;
+            padding: 12px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            margin-bottom: 14px;
         }
-        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
-        .btn-hdr {
-            background:rgba(10,10,10,0.95); border:1px solid #1a1a1a; color:#888;
-            padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
-            text-decoration:none; font-family:'Arial Black',Arial,sans-serif; font-weight:600;
-            letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
-        }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
-        .jug-mini-hdr {
-            text-align:center;
-            margin-bottom:16px;
-            padding:16px 12px 14px;
-            border-bottom:1px solid rgba(231,76,60,0.22);
-            border-radius:14px;
-            background:linear-gradient(180deg, rgba(231,76,60,0.06), transparent);
-        }
-        .jug-mini-hdr .jug-marca-line {
-            font-size:0.48rem;
-            letter-spacing:0.28em;
-            color:#666;
-            margin-bottom:8px;
-            font-family:Georgia,serif;
-            font-style:italic;
-        }
-        .jug-mini-hdr h1 {
-            color:var(--jug);
-            font-size:0.95rem;
-            letter-spacing:0.22em;
-            text-shadow:0 0 20px rgba(231,76,60,0.35);
-            font-weight:800;
-        }
-        .jug-mini-hdr p { color:#666; font-size:0.54rem; letter-spacing:0.12em; margin-top:8px; }
         .jug-club-brand {
-            display:none;
-            align-items:center;
-            gap:14px;
-            padding:14px 16px;
-            margin-bottom:16px;
-            border-radius:16px;
-            border:1px solid rgba(212,175,55,0.28);
-            background:rgba(20,16,10,0.55);
-            max-width:520px;
-            margin-left:auto;
-            margin-right:auto;
+            display: none;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            background: rgba(20, 16, 10, 0.55);
         }
         .jug-club-brand img {
-            width:52px;
-            height:52px;
-            border-radius:50%;
-            object-fit:contain;
-            background:#111;
-            border:2px solid rgba(212,175,55,0.35);
-            flex-shrink:0;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: contain;
+            background: #111;
+            border: 2px solid rgba(212, 175, 55, 0.35);
+            flex-shrink: 0;
         }
-        .jug-club-label { font-size:0.42rem; color:#555; letter-spacing:0.18em; display:block; margin-bottom:4px; }
-        .jug-club-nombre { font-size:0.72rem; color:var(--oro); letter-spacing:0.06em; }
-        /* Menú ☰ acorde a jugador (rojo suave, no verde) */
+        .jug-club-label {
+            font-size: 0.42rem;
+            color: #555;
+            letter-spacing: 0.18em;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .jug-club-nombre {
+            font-size: 0.72rem;
+            color: var(--oro);
+            letter-spacing: 0.06em;
+        }
         body.jugador-hub .jug-nav-fold {
             border-color: rgba(231, 76, 60, 0.22);
             background: rgba(12, 6, 6, 0.55);
@@ -218,17 +103,185 @@
             border-bottom-color: rgba(231, 76, 60, 0.15);
             color: #c99;
         }
+        /* ── Mismo panel jugador que index.html ── */
+        .bienvenida {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 16px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+        }
+        .bienvenida-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a1500, #0d0a00);
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .bienvenida-nombre {
+            color: var(--oro);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+        .bienvenida-sub {
+            color: #444;
+            font-size: 0.4rem;
+            margin-top: 3px;
+        }
+        .seccion-label {
+            font-size: 0.6rem;
+            color: #333;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            padding-left: 4px;
+        }
+        .rapidas-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .rapida-btn {
+            border-radius: 16px;
+            padding: 16px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.5rem;
+            letter-spacing: 1px;
+        }
+        .rapida-btn:active {
+            transform: scale(0.95);
+        }
+        .rapida-btn.r-neon {
+            background: rgba(46, 255, 112, 0.05);
+            border: 1px solid rgba(46, 255, 112, 0.25);
+            color: var(--neon);
+        }
+        .rapida-btn.r-neon:active {
+            border-color: var(--neon);
+        }
+        .rapida-btn.r-oro {
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            color: var(--oro);
+        }
+        .rapida-btn.r-oro:active {
+            border-color: var(--oro);
+        }
+        .rapida-btn.r-rojo {
+            background: rgba(231, 76, 60, 0.05);
+            border: 1px solid rgba(231, 76, 60, 0.25);
+            color: var(--rojo);
+        }
+        .rapida-btn.r-rojo:active {
+            border-color: var(--rojo);
+        }
+        .menu-lista-item {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 16px;
+            padding: 15px 18px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .menu-lista-item:active {
+            transform: scale(0.98);
+            border-color: var(--oro);
+        }
+        .mli-icon {
+            flex-shrink: 0;
+        }
+        .mli-info {
+            flex: 1;
+        }
+        .mli-titulo {
+            font-size: 0.6rem;
+            color: #ddd;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+        .mli-desc {
+            font-size: 0.6rem;
+            color: #444;
+        }
+        .mli-arrow {
+            color: #333;
+            font-size: 0.9rem;
+        }
+        .ranking-mini {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 18px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+        }
+        .ranking-mini-titulo {
+            color: var(--oro);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+        .ranking-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid #111;
+        }
+        .ranking-row:last-child {
+            border: none;
+        }
+        .ranking-pos {
+            color: #333;
+            font-size: 0.6rem;
+            width: 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .ranking-nombre {
+            flex: 1;
+            color: #ccc;
+            font-size: 0.55rem;
+        }
+        .ranking-cat {
+            color: #444;
+            font-size: 0.38rem;
+            display: block;
+            margin-top: 2px;
+        }
+        .ranking-prom {
+            color: var(--oro);
+            font-size: 0.6rem;
+        }
     </style>
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy jugador-hub">
+    <div class="stars" id="stars-bg" aria-hidden="true"></div>
 
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-    <div class="hdr-top-nav" style="max-width:640px;margin:0 auto;padding:0 18px;">
+    <div class="hdr-top-nav" style="max-width: 640px; margin: 0 auto; padding: 0 18px;">
         <details class="jug-nav-fold">
             <summary>☰ Más enlaces (inicio, perfil, ranking…)</summary>
             <div class="jug-nav-fold__links">
-                <a href="/index.html">Inicio app (pestañas)</a>
+                <a href="/index.html">Dashboard DeCarambola</a>
                 <a href="/perfil.html">Mi perfil</a>
                 <a href="/categorias.html">Categorías</a>
                 <a href="/ranking.html">Ranking</a>
@@ -241,194 +294,638 @@
     </div>
 
     <div class="jug-hub-wrap">
-    <div class="jug-club-brand" id="jugador-club-brand" style="display:none">
-        <img id="wl-jugador-logo" alt="" />
-        <div>
-            <span class="jug-club-label">TU CLUB (AFILIACIÓN)</span>
-            <span id="wl-jugador-nombre" class="jug-club-nombre"></span>
+        <div class="jug-club-brand" id="jugador-club-brand" style="display: none">
+            <img id="wl-jugador-logo" alt="" />
+            <div>
+                <span class="jug-club-label">TU CLUB (AFILIACIÓN)</span>
+                <span id="wl-jugador-nombre" class="jug-club-nombre"></span>
+            </div>
+        </div>
+
+        <!-- Mismo panel jugador que index.html (vista completa) -->
+        <div class="bienvenida" id="bienvenida-box">
+            <div class="bienvenida-avatar" id="jug-avatar">&#128100;</div>
+            <div style="flex: 1">
+                <div class="bienvenida-nombre" id="jug-nombre">INVITADO</div>
+                <div class="bienvenida-sub" id="jug-sub">Identifícate para acceder a tu perfil</div>
+            </div>
+            <button
+                id="btn-identificar"
+                type="button"
+                onclick="mostrarFormIdentificacion()"
+                style="
+                    background: rgba(212, 175, 55, 0.1);
+                    border: 1px solid rgba(212, 175, 55, 0.3);
+                    color: #d4af37;
+                    border-radius: 12px;
+                    padding: 8px 14px;
+                    font-size: 0.45rem;
+                    font-family: 'Arial Black', sans-serif;
+                    letter-spacing: 1px;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                "
+            >
+                ENTRAR
+            </button>
+            <button
+                id="btn-salir"
+                type="button"
+                onclick="cerrarSesionJugador()"
+                style="
+                    display: none;
+                    background: rgba(231, 76, 60, 0.08);
+                    border: 1px solid rgba(231, 76, 60, 0.2);
+                    color: #e74c3c;
+                    border-radius: 12px;
+                    padding: 8px 14px;
+                    font-size: 0.45rem;
+                    font-family: 'Arial Black', sans-serif;
+                    letter-spacing: 1px;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                "
+            >
+                SALIR
+            </button>
+        </div>
+
+        <div
+            id="form-identificacion"
+            style="display: none; background: #0a0a0a; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 18px; padding: 20px; margin-bottom: 16px"
+        >
+            <div style="color: #d4af37; font-size: 0.5rem; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Arial Black', sans-serif">🎱 IDENTIFICACIÓN DEL JUGADOR</div>
+            <div style="color: #555; font-size: 0.5rem; letter-spacing: 1px; margin-bottom: 6px">CÉDULA O PASAPORTE</div>
+            <input
+                id="inp-cedula"
+                type="text"
+                placeholder="Ej: 1234567890"
+                style="
+                    width: 100%;
+                    background: transparent;
+                    border: none;
+                    border-bottom: 1px solid #333;
+                    color: #fff;
+                    font-family: 'Courier New', monospace;
+                    font-size: 1.2rem;
+                    padding: 8px 0;
+                    outline: none;
+                    letter-spacing: 3px;
+                    text-align: center;
+                    box-sizing: border-box;
+                "
+                oninput="this.value=this.value.replace(/[^0-9A-Za-z]/g,'')"
+                onkeydown="if(event.key==='Enter') buscarJugadorPorCedula()"
+            />
+            <div style="color: #333; font-size: 0.4rem; margin-top: 6px; text-align: center">Extranjeros ingresan número de pasaporte</div>
+            <div style="display: flex; gap: 10px; margin-top: 14px">
+                <button
+                    type="button"
+                    onclick="buscarJugadorPorCedula()"
+                    style="
+                        flex: 1;
+                        padding: 12px;
+                        background: rgba(212, 175, 55, 0.15);
+                        border: 1px solid rgba(212, 175, 55, 0.4);
+                        color: #d4af37;
+                        border-radius: 14px;
+                        font-size: 0.5rem;
+                        font-family: 'Arial Black', sans-serif;
+                        letter-spacing: 2px;
+                        cursor: pointer;
+                    "
+                >
+                    ENTRAR &#8594;
+                </button>
+                <button
+                    type="button"
+                    onclick="document.getElementById('form-identificacion').style.display='none'"
+                    style="padding: 12px 16px; background: #111; border: 1px solid #222; color: #555; border-radius: 14px; font-size: 0.5rem; cursor: pointer; letter-spacing: 1px"
+                >
+                    CANCELAR
+                </button>
+            </div>
+            <div id="msg-cedula" style="margin-top: 10px; font-size: 0.48rem; text-align: center; letter-spacing: 1px; display: none"></div>
+            <button
+                id="btn-registrar-nuevo"
+                type="button"
+                onclick="registrarNuevoJugador()"
+                style="
+                    display: none;
+                    width: 100%;
+                    margin-top: 10px;
+                    padding: 12px;
+                    background: rgba(52, 152, 219, 0.15);
+                    border: 1px solid rgba(52, 152, 219, 0.4);
+                    color: #3498db;
+                    border-radius: 14px;
+                    font-size: 0.5rem;
+                    font-family: 'Arial Black', sans-serif;
+                    letter-spacing: 2px;
+                    cursor: pointer;
+                "
+            >
+                ✚ REGISTRARME COMO NUEVO JUGADOR
+            </button>
+        </div>
+
+        <div class="seccion-label">&#9889; ACCIONES RÁPIDAS</div>
+        <div class="rapidas-grid">
+            <a href="/duelo-tv.html?modo=movil" class="rapida-btn r-neon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <circle cx="7" cy="7" r="3" />
+                    <circle cx="17" cy="17" r="3" />
+                    <line x1="7" y1="10" x2="17" y2="14" />
+                </svg>
+                PARTIDA
+            </a>
+            <a href="/mi_partida.html" class="rapida-btn r-neon" title="Entrenamiento: Mi partida">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8v4l3 3" />
+                </svg>
+                ENTRENAR
+            </a>
+            <a href="/apps/club/organizador/inscripciones.html" class="rapida-btn r-oro">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <circle cx="10" cy="7" r="4" />
+                    <path d="M2 21v-2a6 6 0 0 1 10.5-4" />
+                    <line x1="17" y1="11" x2="17" y2="19" />
+                    <line x1="13" y1="15" x2="21" y2="15" />
+                </svg>
+                INSCRIBIR
+            </a>
+            <a href="/reto_crear.html" class="rapida-btn r-rojo">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z" />
+                    <path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+                    <path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z" />
+                    <path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z" />
+                    <path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z" />
+                    <path d="M15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z" />
+                    <path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z" />
+                    <path d="M8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z" />
+                </svg>
+                RETOS
+            </a>
+        </div>
+
+        <div class="seccion-label" style="margin-top: 18px">&#128203; MIS HERRAMIENTAS</div>
+
+        <a href="/perfil.html" class="menu-lista-item">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5" stroke-linecap="round">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color: #ccc">MI PERFIL</div>
+                <div class="mli-desc">Carnet digital · Estadísticas · Historial</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
+        <a href="/apps/club/organizador/posiciones.html" class="menu-lista-item" id="menu-posiciones">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color: #3498db">POSICIONES</div>
+                <div class="mli-desc">Tabla del torneo · Torneos de amigos</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
+        <a href="/ranking.html" class="menu-lista-item">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round">
+                    <rect x="3" y="12" width="4" height="9" rx="1" />
+                    <rect x="10" y="7" width="4" height="14" rx="1" />
+                    <rect x="17" y="3" width="4" height="18" rx="1" />
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color: #d4af37">RANKING</div>
+                <div class="mli-desc">Tabla oficial del club · Posiciones</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
+        <a href="/categorias.html" class="menu-lista-item">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="1.5" stroke-linecap="round">
+                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color: #e74c3c">CATEGORÍAS</div>
+                <div class="mli-desc">Élite · Maestro · Primera · Segunda · Tercera</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
+        <a href="/apps/club/organizador/Brackets.html" class="menu-lista-item">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
+                    <rect x="2" y="9" width="4" height="6" rx="1" />
+                    <rect x="10" y="5" width="4" height="6" rx="1" />
+                    <rect x="10" y="13" width="4" height="6" rx="1" />
+                    <rect x="18" y="9" width="4" height="6" rx="1" />
+                    <line x1="6" y1="12" x2="10" y2="8" />
+                    <line x1="6" y1="12" x2="10" y2="16" />
+                    <line x1="14" y1="8" x2="18" y2="12" />
+                    <line x1="14" y1="16" x2="18" y2="12" />
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color: #3498db">VER LLAVES</div>
+                <div class="mli-desc">Brackets del torneo activo</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
+        <a href="/apps/club/organizador/posiciones.html" class="menu-lista-item">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color: #3498db">POSICIONES</div>
+                <div class="mli-desc">Tabla de grupos y clasificación</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
+        <a href="/apps/club/organizador/Certificados.html" class="menu-lista-item">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2eff70" stroke-width="1.5" stroke-linecap="round">
+                    <circle cx="12" cy="8" r="5" />
+                    <path d="M9 13v8l3-2 3 2v-8" />
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color: #2eff70">CERTIFICADOS</div>
+                <div class="mli-desc">Diplomas y reconocimientos</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
+        <a href="/Sensei.html?contacto=1" class="menu-lista-item">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color: #3498db">CONTACTO — JOE</div>
+                <div class="mli-desc">Tu asistente para conocer la plataforma y resolver dudas. PQRS.</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
+        <a href="/reto_crear.html" class="menu-lista-item">
+            <span class="mli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z" />
+                    <path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+                    <path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z" />
+                    <path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z" />
+                    <path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z" />
+                    <path d="M15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z" />
+                    <path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z" />
+                    <path d="M8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z" />
+                </svg>
+            </span>
+            <div class="mli-info">
+                <div class="mli-titulo" style="color: #e74c3c">RETOS</div>
+                <div class="mli-desc">Desafía a otro jugador · Apuestas · Duelos</div>
+            </div>
+            <span class="mli-arrow">›</span>
+        </a>
+
+        <div
+            style="
+                margin-top: 16px;
+                background: linear-gradient(135deg, #1a0000, #2a0808);
+                border: 1px solid rgba(231, 76, 60, 0.35);
+                border-radius: 20px;
+                padding: 16px 18px;
+                cursor: pointer;
+            "
+            onclick="location.href='/reto_crear.html'"
+        >
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px">
+                <div style="display: flex; align-items: center; gap: 10px">
+                    <span style="font-size: 1.6rem">⚔️</span>
+                    <div>
+                        <div style="color: #e74c3c; font-family: 'Arial Black', sans-serif; font-size: 0.75rem; letter-spacing: 2px">RETOS</div>
+                        <div style="color: #555; font-size: 0.65rem; letter-spacing: 1px; margin-top: 2px">DESAFÍOS · APUESTAS · DUELOS</div>
+                    </div>
+                </div>
+                <div id="badge-retos-pendientes" style="display: none; background: rgba(231, 76, 60, 0.2); border: 1px solid rgba(231, 76, 60, 0.4); color: #e74c3c; font-size: 0.65rem; padding: 4px 10px; border-radius: 8px; letter-spacing: 1px">0 PENDIENTES</div>
+            </div>
+            <div id="retos-preview" style="color: #333; font-size: 0.5rem; letter-spacing: 1px">Sin retos activos · Sé el primero en desafiar</div>
+            <div style="display: flex; gap: 8px; margin-top: 12px">
+                <a
+                    href="/reto_crear.html"
+                    onclick="event.stopPropagation()"
+                    style="
+                        flex: 1;
+                        background: rgba(231, 76, 60, 0.15);
+                        border: 1px solid rgba(231, 76, 60, 0.3);
+                        color: #e74c3c;
+                        text-align: center;
+                        padding: 10px;
+                        border-radius: 12px;
+                        font-size: 0.5rem;
+                        letter-spacing: 2px;
+                        text-decoration: none;
+                    "
+                    >⚔️ CREAR RETO</a
+                >
+                <a
+                    href="/reto_crear.html"
+                    onclick="event.stopPropagation()"
+                    style="
+                        flex: 1;
+                        background: rgba(212, 175, 55, 0.08);
+                        border: 1px solid rgba(212, 175, 55, 0.2);
+                        color: #d4af37;
+                        text-align: center;
+                        padding: 10px;
+                        border-radius: 12px;
+                        font-size: 0.5rem;
+                        letter-spacing: 2px;
+                        text-decoration: none;
+                    "
+                    >🔍 VER RETOS</a
+                >
+            </div>
+        </div>
+
+        <div class="ranking-mini" style="margin-top: 16px">
+            <div class="ranking-mini-titulo">&#127942; TOP RANKING DEL CLUB</div>
+            <div id="ranking-mini-lista">
+                <div style="color: #333; font-size: 0.65rem; text-align: center; padding: 10px">Sin datos aún</div>
+            </div>
         </div>
     </div>
-    <div class="jug-mini-hdr">
-        <div class="jug-marca-line">DeCarambola</div>
-        <h1>APP JUGADOR</h1>
-        <p>Partida · perfil · torneos · retos</p>
-    </div>
 
-    <section class="jug-caja-principal" aria-label="Lo más usado">
-        <div class="jug-caja-principal__tit">LO MÁS USADO</div>
-        <p class="jug-caja-principal__hint">Un solo recuadro con lo principal. Abajo podés desplegar <strong>más opciones</strong>.</p>
-        <div class="jug-caja-principal__grid">
-            <a class="jug-cta jug-cta--duelo" href="/duelo-tv.html?modo=movil">
-                <span class="jug-cta__badge" aria-hidden="true">D</span>
-                <span class="jug-cta__body">
-                    <span class="jug-cta__lab">DUELO</span>
-                    <span class="jug-cta__sub">Marcador · 2 jugadores · sin cámara</span>
-                </span>
-            </a>
-            <a class="jug-cta jug-cta--partida" href="/mi_partida.html">
-                <span class="jug-cta__badge" aria-hidden="true">P</span>
-                <span class="jug-cta__body">
-                    <span class="jug-cta__lab">MI PARTIDA</span>
-                    <span class="jug-cta__sub">Cronómetro · entrenamiento</span>
-                </span>
-            </a>
-            <a class="jug-cta jug-cta--inscrip" href="/apps/club/organizador/inscripciones.html">
-                <span class="jug-cta__badge" aria-hidden="true">I</span>
-                <span class="jug-cta__body">
-                    <span class="jug-cta__lab">INSCRIBIRME</span>
-                    <span class="jug-cta__sub">Torneo · altas e inscripciones</span>
-                </span>
-            </a>
-        </div>
-        <div class="jug-caja-principal__links">
-            <a href="/duelo-tv.html?modo=produccion">Duelo + cámara</a>
-            <span aria-hidden="true"> · </span>
-            <a href="/perfil.html">Perfil</a>
-            <span aria-hidden="true"> · </span>
-            <a href="/club/">Portal club</a>
-        </div>
-    </section>
+    <script src="/Version.js"></script>
+    <script src="/core.js"></script>
+    <script src="/session.js"></script>
+    <script src="/whitelabel.js"></script>
+    <script>
+        (function () {
+            var bg = document.getElementById('stars-bg');
+            if (!bg) return;
+            for (var i = 0; i < 80; i++) {
+                var s = document.createElement('div');
+                s.className = 'star';
+                var sz = Math.random() * 2 + 0.5;
+                s.style.cssText =
+                    'width:' +
+                    sz +
+                    'px;height:' +
+                    sz +
+                    'px;top:' +
+                    Math.random() * 100 +
+                    '%;left:' +
+                    Math.random() * 100 +
+                    '%;animation-delay:' +
+                    Math.random() * 3 +
+                    's;animation-duration:' +
+                    (2 + Math.random() * 3) +
+                    's;';
+                bg.appendChild(s);
+            }
+        })();
 
-    <div class="dc-hub dc-hub--jugador" id="jugador-hub-main">
-        <p class="dc-hub-lead"><strong>Más opciones</strong> (plegables). Mismo criterio que el <a href="/club/" style="color:#c9a227;">portal club</a>.</p>
+        async function buscarJugadorPorCedula() {
+            var cedula = (document.getElementById('inp-cedula').value || '').trim();
+            if (!cedula || cedula.length < 5) {
+                mostrarMsgCedula('Ingresa una cédula válida', '#e74c3c');
+                return;
+            }
+            mostrarMsgCedula('Buscando...', '#d4af37');
+            try {
+                var jm = await import('/js/api/jugador-api.js');
+                var r = await jm.getJugadorByCedula(cedula);
+                if (r.error) throw r.error;
+                var jug = r.data;
+                if (jug) {
+                    localStorage.setItem('jugador_activo', JSON.stringify(jug));
+                    localStorage.setItem(
+                        'mi_perfil',
+                        JSON.stringify({
+                            nombre: jug.nombre,
+                            cedula: jug.cedula,
+                            promedio: jug.promedio || 0,
+                            club: jug.club_id,
+                            carambolas: jug.carambolas || 0,
+                            entradas: jug.entradas || 0
+                        })
+                    );
+                    document.getElementById('form-identificacion').style.display = 'none';
+                    cargarDatosJugador();
+                    mostrarMsgCedula('', '#d4af37');
+                } else {
+                    mostrarMsgCedula('No encontrado. ¿Nuevo jugador?', '#3498db');
+                    document.getElementById('btn-registrar-nuevo').style.display = 'block';
+                }
+            } catch (e) {
+                var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+                if (perfil.cedula === cedula) {
+                    localStorage.setItem('jugador_activo', JSON.stringify(perfil));
+                    document.getElementById('form-identificacion').style.display = 'none';
+                    cargarDatosJugador();
+                } else {
+                    mostrarMsgCedula('Sin conexión. Cédula no reconocida offline.', '#e74c3c');
+                }
+            }
+        }
 
-        <details class="dc-hub-fold">
-            <summary class="dc-hub-fold__sum">
-                <span class="dc-hub-fold__kbd">1</span>
-                <span class="dc-hub-fold__text">
-                    <span class="dc-hub-fold__title">Partida y entrenamiento</span>
-                    <span class="dc-hub-fold__sub">Duelo en vivo, cronómetro y entradas de práctica</span>
-                </span>
-                <span class="dc-hub-fold__count">3</span>
-                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
-            </summary>
-            <div class="dc-hub-fold__body">
-                <div class="grid">
-                    <a class="item" href="/duelo-tv.html?modo=movil">
-                        <span class="item-main"><span class="item-title">Duelo móvil (sin cámara)</span><span class="item-desc">Fase 1 = config · mismo Premium TV · <code style="font-size:0.45rem;color:#666;">?modo=movil</code></span></span>
-                        <span class="tag">2 JUG.</span>
-                    </a>
-                    <a class="item" href="/duelo-tv.html?modo=produccion">
-                        <span class="item-main"><span class="item-title">Duelo + cámara / grabar</span><span class="item-desc">Panel stream para quien transmite desde el celular</span></span>
-                        <span class="tag">PROD</span>
-                    </a>
-                    <a class="item" href="/mi_partida.html">
-                        <span class="item-main"><span class="item-title">Mi partida</span><span class="item-desc">Entrenar con cronómetro</span></span>
-                        <span class="tag">CRONO</span>
-                    </a>
-                    <a class="item" href="/entrenamiento.html">
-                        <span class="item-main"><span class="item-title">Entrenamiento</span><span class="item-desc">Acceso rápido (redirect)</span></span>
-                    </a>
-                </div>
-            </div>
-        </details>
+        function mostrarMsgCedula(txt, color) {
+            var el = document.getElementById('msg-cedula');
+            if (!el) return;
+            el.style.display = txt ? 'block' : 'none';
+            el.style.color = color || '#d4af37';
+            el.innerText = txt;
+        }
 
-        <details class="dc-hub-fold">
-            <summary class="dc-hub-fold__sum">
-                <span class="dc-hub-fold__kbd">2</span>
-                <span class="dc-hub-fold__text">
-                    <span class="dc-hub-fold__title">Perfil y club</span>
-                    <span class="dc-hub-fold__sub">Historial, ranking y categorías</span>
-                </span>
-                <span class="dc-hub-fold__count">4</span>
-                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
-            </summary>
-            <div class="dc-hub-fold__body">
-                <div class="grid">
-                    <a class="item" href="/perfil.html">
-                        <span class="item-main"><span class="item-title">Mi perfil</span><span class="item-desc">Datos y preferencias</span></span>
-                    </a>
-                    <a class="item" href="/historial.html">
-                        <span class="item-main"><span class="item-title">Historial de partidas</span><span class="item-desc">Promedio, rivales, entrenos guardados</span></span>
-                    </a>
-                    <a class="item" href="/historial_salon.html">
-                        <span class="item-main"><span class="item-title">Horas en mesa (salón)</span><span class="item-desc">Si el club registra sesiones en mesa</span></span>
-                    </a>
-                    <a class="item" href="/ranking.html">
-                        <span class="item-main"><span class="item-title">Ranking del club</span><span class="item-desc">Posición y evolución</span></span>
-                    </a>
-                    <a class="item" href="/categorias.html">
-                        <span class="item-main"><span class="item-title">Categorías</span><span class="item-desc">Modalidades y niveles</span></span>
-                    </a>
-                </div>
-            </div>
-        </details>
+        async function registrarNuevoJugador() {
+            var cedula = (document.getElementById('inp-cedula').value || '').trim();
+            var nombre = (prompt('Tu nombre completo:') || '').trim().toUpperCase();
+            if (!nombre) return;
+            var clubId = localStorage.getItem('wl_club_id') || null;
+            var nac = cedula.match(/^[0-9]+$/) ? 'CO' : 'EXT';
+            try {
+                var jm = await import('/js/api/jugador-api.js');
+                var r = await jm.insertJugador({
+                    nombre: nombre,
+                    cedula: cedula,
+                    club_id: clubId,
+                    nacionalidad: nac,
+                    promedio: 0,
+                    carambolas: 0,
+                    entradas: 0
+                });
+                if (r.error) throw r.error;
+                var jug = r.data;
+                if (!jug) throw new Error('Sin fila insertada');
+                localStorage.setItem('jugador_activo', JSON.stringify(jug));
+                localStorage.setItem('mi_perfil', JSON.stringify({ nombre: jug.nombre, cedula: jug.cedula, promedio: 0, club: clubId }));
+                document.getElementById('form-identificacion').style.display = 'none';
+                document.getElementById('btn-registrar-nuevo').style.display = 'none';
+                cargarDatosJugador();
+            } catch (e) {
+                mostrarMsgCedula('Error al registrar. Intenta de nuevo.', '#e74c3c');
+            }
+        }
 
-        <details class="dc-hub-fold">
-            <summary class="dc-hub-fold__sum">
-                <span class="dc-hub-fold__kbd">3</span>
-                <span class="dc-hub-fold__text">
-                    <span class="dc-hub-fold__title">Torneos y retos</span>
-                    <span class="dc-hub-fold__sub">Oficial (inscripciones) · Torneo amigos (informal) · Reto caserito</span>
-                </span>
-                <span class="dc-hub-fold__count">7</span>
-                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
-            </summary>
-            <div class="dc-hub-fold__body">
-                <div class="grid">
-                    <a class="item" href="/apps/club/organizador/inscripciones.html">
-                        <span class="item-main"><span class="item-title">Inscripciones</span><span class="item-desc">Altas al torneo</span></span>
-                    </a>
-                    <a class="item" href="/apps/club/organizador/Brackets.html">
-                        <span class="item-main"><span class="item-title">Brackets / llaves</span><span class="item-desc">Cuadros del evento</span></span>
-                    </a>
-                    <a class="item" href="/apps/club/organizador/posiciones.html">
-                        <span class="item-main"><span class="item-title">Posiciones</span><span class="item-desc">Tabla del torneo</span></span>
-                    </a>
-                    <a class="item" href="/apps/club/organizador/Certificados.html">
-                        <span class="item-main"><span class="item-title">Certificados</span><span class="item-desc">Descarga o impresión</span></span>
-                    </a>
-                    <a class="item" href="/apps/club/organizador/torneos.html">
-                        <span class="item-main"><span class="item-title">Listado de torneos</span><span class="item-desc">Estados e historial</span></span>
-                    </a>
-                    <a class="item" href="/torneo_amigos.html">
-                        <span class="item-main"><span class="item-title">Torneo entre amigos</span><span class="item-desc">Evento informal (el que llamabas “amigos”)</span></span>
-                    </a>
-                    <a class="item" href="/reto_crear.html">
-                        <span class="item-main"><span class="item-title">Reto caserito</span><span class="item-desc">Desafío rápido entre jugadores</span></span>
-                    </a>
-                </div>
-            </div>
-        </details>
+        function cerrarSesionJugador() {
+            localStorage.removeItem('jugador_activo');
+            document.getElementById('jug-nombre').innerText = 'INVITADO';
+            document.getElementById('jug-sub').innerText = 'Identifícate para acceder a tu perfil';
+            document.getElementById('jug-avatar').innerText = '👤';
+            document.getElementById('btn-identificar').style.display = 'block';
+            document.getElementById('btn-salir').style.display = 'none';
+        }
 
-        <details class="dc-hub-fold">
-            <summary class="dc-hub-fold__sum">
-                <span class="dc-hub-fold__kbd">4</span>
-                <span class="dc-hub-fold__text">
-                    <span class="dc-hub-fold__title">Ayuda</span>
-                    <span class="dc-hub-fold__sub">Sensei y contacto con la plataforma</span>
-                </span>
-                <span class="dc-hub-fold__count">2</span>
-                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
-            </summary>
-            <div class="dc-hub-fold__body">
-                <div class="grid">
-                    <a class="item" href="/Sensei.html">
-                        <span class="item-main"><span class="item-title">Sensei</span><span class="item-desc">Aprende billar con IA</span></span>
-                    </a>
-                    <a class="item" href="/Sensei.html?contacto=1">
-                        <span class="item-main"><span class="item-title">Contacto / PQRS</span><span class="item-desc">Mensajes al equipo (Joe)</span></span>
-                    </a>
-                </div>
-            </div>
-        </details>
-    </div>
-    </div>
+        function mostrarFormIdentificacion() {
+            var u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+            if (u && u.cedula) {
+                cerrarSesionJugador();
+                return;
+            }
+            document.getElementById('form-identificacion').style.display = 'block';
+            setTimeout(function () {
+                document.getElementById('inp-cedula').focus();
+            }, 100);
+        }
 
-<script src="/Version.js"></script>
-<script src="/whitelabel.js"></script>
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
+        function cargarDatosJugador() {
+            try {
+                var u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+                if (u && u.nombre) {
+                    document.getElementById('jug-nombre').innerText = u.nombre;
+                    var cat = typeof MasterVIP !== 'undefined' ? MasterVIP.getCategoria(u.promedio || 0) : null;
+                    document.getElementById('jug-sub').innerText = cat
+                        ? cat.nombre + ' · PROMEDIO ' + (u.promedio || 0).toFixed(3)
+                        : 'Promedio: ' + (u.promedio || 0);
+                    document.getElementById('jug-avatar').innerText = cat ? cat.emoji : '🎱';
+                    document.getElementById('btn-identificar').style.display = 'none';
+                    document.getElementById('btn-salir').style.display = 'block';
+                }
+            } catch (e) {}
+            cargarRankingMini();
+            cargarRetosPreview();
+        }
+
+        function cargarRetosPreview() {
+            var retos = {};
+            try {
+                retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES') || '{}');
+            } catch (e) {}
+            var lista = Object.values(retos);
+            var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+            var miNombre = (perfil.nombre || '').toUpperCase();
+            var pendientes = lista.filter(function (r) {
+                return r.estado === 'PENDIENTE' && (r.j2 === miNombre || r.tipo_reto === 'abierto');
+            });
+            var badge = document.getElementById('badge-retos-pendientes');
+            var preview = document.getElementById('retos-preview');
+            if (badge && pendientes.length > 0) {
+                badge.style.display = 'block';
+                badge.textContent = pendientes.length + ' PENDIENTE' + (pendientes.length > 1 ? 'S' : '');
+            }
+            if (preview) {
+                if (lista.length === 0) {
+                    preview.textContent = 'Sin retos activos · Sé el primero en desafiar';
+                } else {
+                    var ultimo = lista[lista.length - 1];
+                    preview.textContent =
+                        '⚔️ ' +
+                        (ultimo.j1 || '?') +
+                        ' vs ' +
+                        (ultimo.j2 || 'ABIERTO') +
+                        ' · ' +
+                        (ultimo.modalidad || '3 Bandas') +
+                        ' · ' +
+                        (ultimo.meta1 || '?') +
+                        ' pts';
+                }
+            }
+        }
+
+        function cargarRankingMini() {
+            try {
+                var h = JSON.parse(localStorage.getItem('ranking_historico_club') || '[]');
+                if (!h.length) return;
+
+                var map = {};
+                h.forEach(function (r) {
+                    var n = r.nombre;
+                    if (!map[n]) map[n] = [];
+                    map[n].push(parseFloat(r.promedio) || 0);
+                });
+                var lista = Object.entries(map)
+                    .map(function (entry) {
+                        var n = entry[0];
+                        var ps = entry[1];
+                        return { nombre: n, promedio: ps.reduce(function (a, b) { return a + b; }, 0) / ps.length };
+                    })
+                    .sort(function (a, b) {
+                        return b.promedio - a.promedio;
+                    })
+                    .slice(0, 5);
+
+                var medallas = ['🥇', '🥈', '🥉', '4', '5'];
+                var cat_fn =
+                    typeof MasterVIP !== 'undefined' ? MasterVIP.getCategoria.bind(MasterVIP) : function (p) { return { nombre: '' }; };
+
+                document.getElementById('ranking-mini-lista').innerHTML = lista
+                    .map(function (j, i) {
+                        return (
+                            '<div class="ranking-row">' +
+                            '<div class="ranking-pos">' +
+                            medallas[i] +
+                            '</div>' +
+                            '<div class="ranking-nombre">' +
+                            j.nombre +
+                            '<span class="ranking-cat">' +
+                            cat_fn(j.promedio).nombre +
+                            '</span></div>' +
+                            '<div class="ranking-prom">' +
+                            j.promedio.toFixed(3) +
+                            '</div></div>'
+                        );
+                    })
+                    .join('');
+            } catch (e) {}
+        }
+
+        window.addEventListener('load', function () {
+            try {
+                if (typeof MasterVIP !== 'undefined') MasterVIP.applyDesign?.();
+            } catch (e) {}
+            cargarDatosJugador();
+        });
+    </script>
 </body>
 </html>

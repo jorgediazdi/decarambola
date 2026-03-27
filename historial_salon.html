@@ -113,18 +113,21 @@ async function cargarDatos() {
     var nombre = getJugadorNombre();
     if (nombre) document.getElementById('hdr_nombre').textContent = nombre;
     var clubId = getClubId();
-    var filtros = [];
-    filtros.push('estado=eq.cerrada');
-    if (clubId) filtros.push('club_id=eq.' + clubId);
-    if (nombre) filtros.push('jugador_nombre=eq.' + encodeURIComponent(nombre));
-    var filtro = filtros.join('&');
-    var data = await DB.get('mesas_historial', filtro);
-    sesiones = data || [];
+    var api = await import('./js/api/club-api.js');
+    var dataR = await api.listMesasHistorialCerradas(clubId || null);
+    var data = dataR.data || [];
+    if (nombre) {
+        data = data.filter(function (s) {
+            return String(s.jugador_nombre || '').trim().toUpperCase() === String(nombre).trim().toUpperCase();
+        });
+    }
+    sesiones = data;
     sesiones.sort(function (a, b) {
         return new Date(b.fin_sesion || b.created_at) - new Date(a.fin_sesion || a.created_at);
     });
 
-    var mesas = await DB.get('mesas', clubId ? 'club_id=eq.' + clubId : 'limit=200');
+    var mesasR = await api.listMesasForReporte(clubId || null);
+    var mesas = mesasR.data;
     mesasIndex = {};
     (mesas || []).forEach(function (m) {
         mesasIndex[m.id] = m;

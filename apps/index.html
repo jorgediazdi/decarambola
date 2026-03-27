@@ -3,119 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex">
-    <meta name="theme-color" content="#d4af37">
-    <title>Apps — DeCarambola (mapa técnico)</title>
-    <link rel="stylesheet" href="../css/ux-shell.css">
-    <link rel="stylesheet" href="../css/hub-sections.css">
+    <meta name="theme-color" content="#0A0A0A">
+    <title>Hub apps — DeCarambola</title>
     <style>
-        :root { --oro:#d4af37; }
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body.apps-map {
-            font-family: system-ui, -apple-system, sans-serif !important;
+        :root {
+            --bg: #0A0A0A;
+            --oro: #C9A84C;
+            --neon: #39FF14;
+            --text: #e8e8e8;
+            --muted: #7a7a7a;
+            --card: #121212;
+            --border: rgba(201, 168, 76, 0.28);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
-            padding: calc(22px + env(safe-area-inset-top, 0px)) 18px calc(80px + env(safe-area-inset-bottom, 0px));
+            background: var(--bg);
+            color: var(--text);
+            padding: calc(28px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom));
         }
-        .apps-map-h1 {
+        .shell { max-width: 720px; margin: 0 auto; }
+        h1 {
+            font-size: 1.05rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
             color: var(--oro);
-            font-size: 1rem;
-            letter-spacing: 0.12em;
-            margin: 0 auto 10px;
-            max-width: 540px;
             text-align: center;
-            text-shadow: 0 0 20px rgba(212,175,55,0.35);
+            margin-bottom: 8px;
+            font-weight: 800;
         }
-        .apps-map-note {
+        .sub {
+            text-align: center;
+            color: var(--muted);
             font-size: 0.78rem;
-            color: #777;
-            line-height: 1.55;
-            max-width: 560px;
-            margin: 0 auto 8px;
-            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 28px;
         }
-        .back { margin-top: 22px; font-size: 0.8rem; max-width: 540px; margin-left: auto; margin-right: auto; text-align: center; }
-        .back a { color: #888; text-decoration: none; }
-        .back a:hover { color: var(--oro); }
+        .grid {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 560px) {
+            .grid { grid-template-columns: 1fr 1fr; }
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .card:hover {
+            border-color: rgba(57, 255, 20, 0.45);
+            box-shadow: 0 0 0 1px rgba(57, 255, 20, 0.12);
+        }
+        .card-k {
+            font-size: 0.62rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--neon);
+        }
+        .card-t {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--oro);
+        }
+        .card-d {
+            font-size: 0.76rem;
+            color: var(--muted);
+            line-height: 1.45;
+            flex: 1;
+        }
+        .card-go {
+            display: inline-block;
+            margin-top: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: var(--neon);
+        }
+        .foot {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 0.72rem;
+        }
+        .foot a { color: var(--muted); text-decoration: none; }
+        .foot a:hover { color: var(--oro); }
     </style>
+    <script type="module">
+        import { getSession } from '/js/auth-manager.js';
+        const { data, error } = await getSession();
+        if (error || !data) {
+            window.location.replace('/auth.html');
+        }
+    </script>
 </head>
-<body class="dc-ux dc-ux-skin apps-map">
+<body>
+    <div class="shell">
+        <h1>DeCarambola — Hub</h1>
+        <p class="sub">Elegí módulo. Las rutas canónicas de club están bajo <strong style="color:#999;">/apps/club/</strong>.</p>
 
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
+        <div class="grid" id="hub-grid">
+            <a class="card" href="/apps/club/sala/mesas.html">
+                <span class="card-k">Club</span>
+                <span class="card-t">Sala · operación</span>
+                <span class="card-d">Mesas en vivo, config, tarifas y reportes (canónico).</span>
+                <span class="card-go">ABRIR →</span>
+            </a>
+            <a class="card" href="/apps/club/organizador/organizador.html">
+                <span class="card-k">Club</span>
+                <span class="card-t">Organizador</span>
+                <span class="card-d">Torneos, inscripciones, control y certificados.</span>
+                <span class="card-go">ABRIR →</span>
+            </a>
+            <a class="card" href="/jugador/">
+                <span class="card-k">Jugador</span>
+                <span class="card-t">App jugador</span>
+                <span class="card-d">Hub jugador, perfil y accesos rápidos.</span>
+                <span class="card-go">ABRIR →</span>
+            </a>
+            <a class="card" href="/admin/">
+                <span class="card-k">Plataforma</span>
+                <span class="card-t">Backoffice</span>
+                <span class="card-d">PQRS, QA y herramientas de plataforma.</span>
+                <span class="card-go">ABRIR →</span>
+            </a>
+        </div>
 
-    <h1 class="apps-map-h1">Mapas de apps (desarrollo)</h1>
-    <p class="apps-map-note">El producto principal sigue siendo <strong style="color:#999;">index.html</strong> en la raíz. Despliega cada bloque para ver rutas. Ver <code style="color:#888;">docs/ROADMAP_APPS.md</code>.</p>
-
-    <div class="dc-hub dc-hub--club" style="margin-top:18px">
-        <p class="dc-hub-lead"><strong>2 bloques.</strong> Entradas públicas vs. rutas técnicas / migradas.</p>
-
-        <details class="dc-hub-fold" open>
-            <summary class="dc-hub-fold__sum">
-                <span class="dc-hub-fold__kbd">A</span>
-                <span class="dc-hub-fold__text">
-                    <span class="dc-hub-fold__title">Hubs y app principal</span>
-                    <span class="dc-hub-fold__sub">Punto de entrada para jugador, club y backoffice</span>
-                </span>
-                <span class="dc-hub-fold__count">4</span>
-                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
-            </summary>
-            <div class="dc-hub-fold__body">
-                <div class="grid">
-                    <a class="item" href="../index.html">
-                        <span class="item-main"><span class="item-title">App principal</span><span class="item-desc">Hub con pestañas — billar, jugador, club, organizador</span></span>
-                    </a>
-                    <a class="item" href="../jugador/index.html">
-                        <span class="item-main"><span class="item-title">Entrada jugador</span><span class="item-desc">jugador/index.html</span></span>
-                    </a>
-                    <a class="item" href="../club/index.html">
-                        <span class="item-main"><span class="item-title">Portal club</span><span class="item-desc">6 bloques plegables — sala, torneos, TV…</span></span>
-                    </a>
-                    <a class="item" href="../admin/index.html">
-                        <span class="item-main"><span class="item-title">Backoffice</span><span class="item-desc">admin/index.html — PQRS y QA</span></span>
-                    </a>
-                </div>
-            </div>
-        </details>
-
-        <details class="dc-hub-fold">
-            <summary class="dc-hub-fold__sum">
-                <span class="dc-hub-fold__kbd">B</span>
-                <span class="dc-hub-fold__text">
-                    <span class="dc-hub-fold__title">Copias migradas y PQRS</span>
-                    <span class="dc-hub-fold__sub">Rutas bajo apps/ para desarrollo</span>
-                </span>
-                <span class="dc-hub-fold__count">3</span>
-                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
-            </summary>
-            <div class="dc-hub-fold__body">
-                <div class="grid">
-                    <a class="item" href="club/sala/mesas.html">
-                        <span class="item-main"><span class="item-title">Salón en vivo</span><span class="item-desc">apps/club/sala/mesas.html</span></span>
-                    </a>
-                    <a class="item" href="club/organizador/organizador.html">
-                        <span class="item-main"><span class="item-title">Organizador / torneos</span><span class="item-desc">apps/club/organizador/ — panel, crear, control…</span></span>
-                    </a>
-                    <a class="item" href="../pqrs_admin.html">
-                        <span class="item-main"><span class="item-title">PQRS (provisional en raíz)</span><span class="item-desc">Hasta apps/superadmin completo</span></span>
-                    </a>
-                </div>
-            </div>
-        </details>
+        <p class="foot"><a href="/index.html">← Inicio público</a> · <a href="/auth.html">Cuenta / sesión</a></p>
     </div>
-
-    <p class="back"><a href="../index.html">← Volver al inicio</a></p>
-
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 </body>
 </html>

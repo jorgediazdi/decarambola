@@ -4,14 +4,18 @@
  *
  * Uso (al final del body, después de definir window.__salaBoot):
  *   <script type="module">
- *   import { guardSalaPage } from '../../../js/sala-supabase-gate.js';
+ *   import { guardSalaPage } from '/js/sala-supabase-gate.js';
  *   await guardSalaPage({ pageTitle: 'Salón en vivo' });
  *   </script>
  */
 import { supabase } from './supabase-client.js';
 
 const DEV_MODE_KEY = 'dev_mode_activo';
-// Temporal por solicitud de negocio: pantallas de sala abiertas sin login.
+/**
+ * Por ahora: acceso libre a pantallas de sala (sin email / sesión obligatoria).
+ * Roadmap: pasar a `false` y exigir Supabase Auth + email verificado + rol en `profiles`
+ * (club_admin / superadmin). Ver docs/ACCESO_SALA_ROADMAP.md
+ */
 const OPEN_ACCESS_PUBLIC = true;
 
 function esModoDevActivo() {
@@ -103,7 +107,7 @@ async function checkStaffAccess() {
     return { ok: true, role: role, clubId: clubIdOut };
 }
 
-/** Para que DB.insert/get con RLS encuentre club_id aunque el staff no pasó por la app jugador. */
+/** Para que lecturas/escrituras con cliente Supabase (RLS) encuentren club_id aunque el staff no pasó por la app jugador. */
 function syncClubIdToLocalStorage(clubId) {
     if (!clubId || !String(clubId).trim()) return;
     try {
@@ -121,6 +125,30 @@ function syncClubIdToLocalStorage(clubId) {
 export async function guardSalaPage(opts) {
     opts = opts || {};
     var title = opts.pageTitle || 'Área del club';
+
+    /**
+     * Acceso abierto: no cubrir la UI con overlay (bloqueaba taps hasta resolver el módulo;
+     * en móvil parecía que «SIGUIENTE» no hacía nada).
+     */
+    if (OPEN_ACCESS_PUBLIC) {
+        try {
+            var rOpen = await checkStaffAccess();
+            removeOverlay();
+            syncClubIdToLocalStorage(rOpen.clubId);
+            if (typeof window.__salaBoot === 'function') {
+                try {
+                    window.__salaBoot();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            return true;
+        } catch (e) {
+            ensureOverlay();
+            setGateMessage('<strong style="color:#e88">Error de red</strong><p style="margin-top:12px">No se pudo contactar Supabase.</p>');
+            return false;
+        }
+    }
 
     ensureOverlay();
 

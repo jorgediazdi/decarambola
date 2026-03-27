@@ -1,3 +1,29 @@
 # Netlify — DeCarambola (sitio estático)
-# Sin reglas que afecten rutas; cada .html y .js se sirve por su nombre.
 # Para página no encontrada, Netlify usa 404.html si existe.
+
+# Enlaces legacy / copiados sin prefijo apps/ (evita 404 en Salón en vivo y resto de sala)
+/club/sala/*  /apps/club/sala/:splat  301
+
+# Post-login: directorio sala y operacion sin HTML dedicado → mesas (rewrite)
+/apps/club/sala/  /apps/club/sala/mesas.html  200
+/apps/club/sala/operacion.html  /apps/club/sala/mesas.html  200
+
+# CONSOLIDACION FASE 1 - 2026-03-26 — duplicados raíz → apps/club (301)
+/admin_sede.html  /apps/club/sala/admin_sede.html  301
+/historial_mesas.html  /apps/club/sala/historial_mesas.html  301
+/instalacion_ficha.html  /apps/club/sala/instalacion_ficha.html  301
+/mesas.html  /apps/club/sala/mesas.html  301
+/mesas_config.html  /apps/club/sala/mesas_config.html  301
+/reportes.html  /apps/club/sala/reportes.html  301
+/reservas_admin.html  /apps/club/sala/reservas_admin.html  301
+/socios.html  /apps/club/sala/socios.html  301
+/Configurador formato.html  /apps/club/sala/configurador_formato.html  301
+/Configurador%20formato.html  /apps/club/sala/configurador_formato.html  301
+/Brackets.html  /apps/club/organizador/Brackets.html  301
+/Certificados.html  /apps/club/organizador/Certificados.html  301
+/control_torneo.html  /apps/club/organizador/control_torneo.html  301
+/inscripciones.html  /apps/club/organizador/inscripciones.html  301
+/organizador.html  /apps/club/organizador/organizador.html  301
+/posiciones.html  /apps/club/organizador/posiciones.html  301
+/torneo_crear.html  /apps/club/organizador/torneo_crear.html  301
+/torneos.html  /apps/club/organizador/torneos.html  301

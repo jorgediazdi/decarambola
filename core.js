@@ -5,67 +5,45 @@
    ============================================================ */
 
 // ─────────────────────────────────────────
-// CONFIGURACIÓN SUPABASE
+// CONFIGURACIÓN SUPABASE (literales solo en js/supabase-client.js; lectura sync mismo origen)
+// No usamos import aquí: este archivo se carga como script clásico en la mayoría de páginas.
 // ─────────────────────────────────────────
-const SUPABASE_URL = 'https://iwvogyloebvieloequzr.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
-
-const DB = {
-    // Método base para llamadas a Supabase
-    _fetch: async function(endpoint, options = {}) {
-        try {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
-                ...options,
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`,
-                    'Content-Type': 'application/json',
-                    'Prefer': options.prefer || 'return=representation',
-                    ...options.headers
-                }
-            });
-            if (!res.ok) {
-                const err = await res.text();
-                console.warn('[DB] Error:', err);
-                return null;
-            }
-            const text = await res.text();
-            return text ? JSON.parse(text) : [];
-        } catch (e) {
-            console.warn('[DB] Sin conexión, usando localStorage:', e.message);
-            return null;
-        }
-    },
-
-    // GET — leer registros
-    get: async function(tabla, filtros = '') {
-        return await this._fetch(`${tabla}?${filtros}&order=created_at.desc`);
-    },
-
-    // INSERT — crear registro
-    insert: async function(tabla, datos) {
-        return await this._fetch(tabla, {
-            method: 'POST',
-            body: JSON.stringify(datos)
-        });
-    },
-
-    // UPDATE — actualizar registro
-    update: async function(tabla, id, datos) {
-        return await this._fetch(`${tabla}?id=eq.${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify(datos),
-            prefer: 'return=representation'
-        });
-    },
-
-    // DELETE — eliminar registro
-    delete: async function(tabla, id) {
-        return await this._fetch(`${tabla}?id=eq.${id}`, {
-            method: 'DELETE'
-        });
+function DC_readSupabaseRestFromClientModule() {
+    if (typeof window !== 'undefined' && window.__DC_SUPABASE_REST_CACHE) {
+        return window.__DC_SUPABASE_REST_CACHE;
     }
-};
+    try {
+        var x = new XMLHttpRequest();
+        x.open('GET', '/js/supabase-client.js', false);
+        x.send(null);
+        var t = x.responseText || '';
+        var um = t.match(/const supabaseUrl = '([^']*)'/);
+        var km = t.match(/const supabaseAnonKey = '([^']*)'/);
+        var url = um ? um[1] : '';
+        var key = km ? km[1] : '';
+        if (!url || !key) {
+            throw new Error('No se pudo parsear supabase-client.js');
+        }
+        var o = { url: url, anonKey: key };
+        if (typeof window !== 'undefined') {
+            window.__DC_SUPABASE_REST_CACHE = o;
+            window.DC_SUPABASE_URL = url;
+            window.DC_SUPABASE_ANON_KEY = key;
+        }
+        return o;
+    } catch (e) {
+        console.error('[core] Supabase config:', e);
+        throw e;
+    }
+}
+var __dcRest = DC_readSupabaseRestFromClientModule();
+const SUPABASE_URL = __dcRest.url;
+const SUPABASE_KEY = __dcRest.anonKey;
+
+/** Carga perezosa de módulos en /js/api/ (cliente Supabase centralizado). */
+function __dcImportApi(name) {
+    return import('/js/api/' + name + '.js');
+}
 
 const MasterVIP = {
 
@@ -94,16 +72,9 @@ const MasterVIP = {
         if (!clubId || (numeroMesa !== 0 && !numeroMesa)) return Promise.resolve(null);
         var num = typeof numeroMesa === 'string' ? parseInt(numeroMesa, 10) : numeroMesa;
         if (isNaN(num)) return Promise.resolve(null);
-        return DB.get('mesas', 'club_id=eq.' + encodeURIComponent(clubId) + '&numero=eq.' + num + '&limit=1')
-            .then(function (rows) {
-                var m = rows && rows[0];
-                if (!m) return null;
-                if (m.urls_camaras && Array.isArray(m.urls_camaras) && m.urls_camaras.length > 0) {
-                    var first = m.urls_camaras[0];
-                    return (first && typeof first === 'object' && first.url) ? first.url : (typeof first === 'string' ? first : null);
-                }
-                return (m.url_camara && m.url_camara.trim()) ? m.url_camara.trim() : null;
-            })
+        return __dcImportApi('club-api')
+            .then(function (m) { return m.getStreamUrlMesa(clubId, num); })
+            .then(function (r) { return (r && r.data) ? r.data : null; })
             .catch(function () { return null; });
     },
     // Todas las URLs de cámaras de una mesa (para selector multi-cámara).
@@ -111,19 +82,9 @@ const MasterVIP = {
         if (!clubId || (numeroMesa !== 0 && !numeroMesa)) return Promise.resolve([]);
         var num = typeof numeroMesa === 'string' ? parseInt(numeroMesa, 10) : numeroMesa;
         if (isNaN(num)) return Promise.resolve([]);
-        return DB.get('mesas', 'club_id=eq.' + encodeURIComponent(clubId) + '&numero=eq.' + num + '&limit=1')
-            .then(function (rows) {
-                var m = rows && rows[0];
-                if (!m) return [];
-                if (m.urls_camaras && Array.isArray(m.urls_camaras) && m.urls_camaras.length > 0) {
-                    return m.urls_camaras.map(function (c) {
-                        if (typeof c === 'string') return { nombre: 'Cámara', url: c };
-                        return { nombre: (c && c.nombre) || 'Cámara', url: (c && c.url) || '' };
-                    }).filter(function (c) { return c.url; });
-                }
-                if (m.url_camara && m.url_camara.trim()) return [{ nombre: 'Cámara 1', url: m.url_camara.trim() }];
-                return [];
-            })
+        return __dcImportApi('club-api')
+            .then(function (m) { return m.getStreamUrlsMesa(clubId, num); })
+            .then(function (r) { return (r && r.data) ? r.data : []; })
             .catch(function () { return []; });
     },
 
@@ -137,8 +98,15 @@ const MasterVIP = {
     // Cargar jugadores desde Supabase y sincronizar localStorage
     cargarJugadoresNube: async function () {
         const clubId = this.getClubId();
-        const filtro = clubId ? `club_id=eq.${clubId}&activo=eq.true` : 'activo=eq.true';
-        const data = await DB.get('jugadores', filtro);
+        let data = null;
+        try {
+            const jm = await __dcImportApi('jugador-api');
+            const r = await jm.listJugadores(clubId, { soloActivos: true });
+            if (r.error) console.warn('[MasterVIP] jugadores nube', r.error);
+            else data = r.data;
+        } catch (e) {
+            console.warn('[MasterVIP] jugadores nube', e.message);
+        }
         if (data && data.length > 0) {
             // Convertir formato Supabase → formato local
             const jugadores = data.map(j => ({
@@ -178,19 +146,23 @@ const MasterVIP = {
 
             // Sincronizar con Supabase si tiene ID de nube
             if (lista[idx].id && lista[idx].id.length > 10) {
-                await DB.update('jugadores', lista[idx].id, {
-                    nombre: jugador.nombre,
-                    promedio: parseFloat(jugador.promedio) || 0,
-                    alias: jugador.alias || null,
-                    nivel: jugador.nivel || 'BRONCE',
-                    puntos: jugador.puntos || 0,
-                    partidas: jugador.partidas || 0,
-                    victorias: jugador.victorias || 0,
-                    mejor_serie: jugador.mejor_serie || 0,
-                    foto_url: jugador.foto_url || null,
-                    whatsapp: jugador.whatsapp || null,
-                    updated_at: new Date().toISOString()
-                });
+                try {
+                    const jm = await __dcImportApi('jugador-api');
+                    const ur = await jm.updateJugador(lista[idx].id, {
+                        nombre: jugador.nombre,
+                        promedio: parseFloat(jugador.promedio) || 0,
+                        alias: jugador.alias || null,
+                        nivel: jugador.nivel || 'BRONCE',
+                        puntos: jugador.puntos || 0,
+                        partidas: jugador.partidas || 0,
+                        victorias: jugador.victorias || 0,
+                        mejor_serie: jugador.mejor_serie || 0,
+                        foto_url: jugador.foto_url || null,
+                        whatsapp: jugador.whatsapp || null,
+                        updated_at: new Date().toISOString()
+                    });
+                    if (ur.error) console.warn('[MasterVIP] update jugador', ur.error);
+                } catch (e) { console.warn(e); }
             }
             return lista[idx];
         } else {
@@ -219,12 +191,17 @@ const MasterVIP = {
                 foto_url: jugador.foto_url || null,
                 activo: true
             };
-            const resultado = await DB.insert('jugadores', datosNube);
-            if (resultado && resultado[0]) {
-                // Reemplazar ID local por ID real de Supabase
-                jugador.id = resultado[0].id;
+            let rowIns = null;
+            try {
+                const jm = await __dcImportApi('jugador-api');
+                const ir = await jm.insertJugador(datosNube);
+                if (ir.error) console.warn('[MasterVIP] insert jugador', ir.error);
+                else rowIns = ir.data;
+            } catch (e) { console.warn(e); }
+            if (rowIns && rowIns.id) {
+                jugador.id = rowIns.id;
                 const idx2 = lista.findIndex(j => j.nombre === jugador.nombre);
-                if (idx2 >= 0) lista[idx2].id = resultado[0].id;
+                if (idx2 >= 0) lista[idx2].id = rowIns.id;
                 localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(lista));
             }
             return jugador;
@@ -251,8 +228,13 @@ const MasterVIP = {
     // Cargar torneos desde Supabase
     cargarTorneosNube: async function () {
         const clubId = this.getClubId();
-        const filtro = clubId ? 'club_id=eq.' + clubId + '&order=created_at.desc' : 'order=created_at.desc';
-        const data = await DB.get('torneos', filtro);
+        let data = null;
+        try {
+            const tm = await __dcImportApi('torneo-api');
+            const r = await tm.listTorneos(clubId);
+            if (r.error) console.warn('[MasterVIP] torneos nube', r.error);
+            else data = r.data;
+        } catch (e) { console.warn(e); }
         if (data && data.length > 0) {
             const locales = this.getTorneos();
             const torneos = data.map(t => {
@@ -314,12 +296,10 @@ const MasterVIP = {
     _recuperarInscritos: async function (torneoId) {
         try {
             // Traer inscripciones activas con datos del jugador
-            const rows = await DB._fetch(
-                'inscripciones?torneo_id=eq.' + torneoId +
-                '&estado=eq.ACTIVO&select=numero_orden,jugador_id,jugadores(nombre,promedio,categoria)',
-                { headers: { 'Accept': 'application/json' } }
-            );
-            if (!rows || rows.length === 0) return;
+            const tm = await __dcImportApi('torneo-api');
+            const ir = await tm.fetchInscripcionesActivasTorneo(torneoId);
+            const rows = ir.data;
+            if (ir.error || !rows || rows.length === 0) return;
 
             const inscritos = rows
                 .sort(function(a, b) { return (a.numero_orden || 0) - (b.numero_orden || 0); })
@@ -400,11 +380,17 @@ const MasterVIP = {
             estado: 'ABIERTO',
             fecha_inicio: torneo.fechaInicio || null
         };
-        const resultado = await DB.insert('torneos', datosNube);
-        if (resultado && resultado[0]) {
-            torneo.id = resultado[0].id;
+        let rowT = null;
+        try {
+            const tm = await __dcImportApi('torneo-api');
+            const ir = await tm.insertTorneo(datosNube);
+            if (!ir.error) rowT = ir.data;
+            else console.warn(ir.error);
+        } catch (e) { console.warn(e); }
+        if (rowT && rowT.id) {
+            torneo.id = rowT.id;
             const idx = torneos.findIndex(t => t.codigo === torneo.codigo);
-            if (idx >= 0) torneos[idx].id = resultado[0].id;
+            if (idx >= 0) torneos[idx].id = rowT.id;
             localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
             localStorage.setItem('TORNEO_ACTIVO_ID', torneo.id);
         }
@@ -419,10 +405,14 @@ const MasterVIP = {
 
         // Sincronizar estado con Supabase si tiene ID real
         if (torneo.id && torneo.id.length > 10) {
-            await DB.update('torneos', torneo.id, {
-                estado: torneo.estado,
-                updated_at: new Date().toISOString()
-            });
+            try {
+                const tm = await __dcImportApi('torneo-api');
+                const ur = await tm.updateTorneo(torneo.id, {
+                    estado: torneo.estado,
+                    updated_at: new Date().toISOString()
+                });
+                if (ur.error) console.warn(ur.error);
+            } catch (e) { console.warn(e); }
         }
     },
 
@@ -454,15 +444,19 @@ const MasterVIP = {
         const jugadorLocal = this.buscarJugador(jugador.nombre);
         if (jugadorLocal && jugadorLocal.id && jugadorLocal.id.length > 10 &&
             torneoId && torneoId.length > 10) {
-            await DB.insert('inscripciones', {
-                torneo_id: torneoId,
-                jugador_id: jugadorLocal.id,
-                club_id: this.getClubId() || null,
-                numero_orden: t.inscritos.length,
-                estado: 'ACTIVO',
-                pagado: false,
-                handicap: parseFloat(jugador.promedio) || 0
-            });
+            try {
+                const tm = await __dcImportApi('torneo-api');
+                const ir = await tm.insertInscripcion({
+                    torneo_id: torneoId,
+                    jugador_id: jugadorLocal.id,
+                    club_id: this.getClubId() || null,
+                    numero_orden: t.inscritos.length,
+                    estado: 'ACTIVO',
+                    pagado: false,
+                    handicap: parseFloat(jugador.promedio) || 0
+                });
+                if (ir.error) console.warn(ir.error);
+            } catch (e) { console.warn(e); }
         }
 
         return { ok: true, msg: 'Inscrito correctamente', total: t.inscritos.length };
@@ -502,7 +496,9 @@ const MasterVIP = {
 
         // Actualizar estado en Supabase
         if (t.id && t.id.length > 10) {
-            DB.update('torneos', t.id, { estado: 'EN_CURSO', updated_at: new Date().toISOString() });
+            __dcImportApi('torneo-api').then(function (tm) {
+                return tm.updateTorneo(t.id, { estado: 'EN_CURSO', updated_at: new Date().toISOString() });
+            }).catch(function () {});
         }
 
         return { ok: true, torneo: t };
@@ -594,22 +590,26 @@ const MasterVIP = {
         const j1 = this.buscarJugador(resultado.j1);
         const j2 = this.buscarJugador(resultado.j2);
         const ganador = this.buscarJugador(resultado.ganador);
-        await DB.insert('partidas', {
-            club_id: this.getClubId() || null,
-            torneo_id: (torneoId && torneoId.length > 10) ? torneoId : null,
-            jugador1_id: (j1 && j1.id && j1.id.length > 10) ? j1.id : null,
-            jugador2_id: (j2 && j2.id && j2.id.length > 10) ? j2.id : null,
-            entrada_objetivo: torneo.entradaObjetivo || 0,
-            carambolas_j1: resultado.pts1 || 0,
-            carambolas_j2: resultado.pts2 || 0,
-            entradas_j1: resultado.entradas1 || 0,
-            entradas_j2: resultado.entradas2 || 0,
-            promedio_j1: resultado.promFinalJ1 || 0,
-            promedio_j2: resultado.promFinalJ2 || 0,
-            ganador_id: (ganador && ganador.id && ganador.id.length > 10) ? ganador.id : null,
-            tipo: 'TORNEO',
-            ronda: resultado.ronda || null
-        });
+        try {
+            const jm = await __dcImportApi('jugador-api');
+            const pr = await jm.insertPartidaTorneo({
+                club_id: this.getClubId() || null,
+                torneo_id: (torneoId && torneoId.length > 10) ? torneoId : null,
+                jugador1_id: (j1 && j1.id && j1.id.length > 10) ? j1.id : null,
+                jugador2_id: (j2 && j2.id && j2.id.length > 10) ? j2.id : null,
+                entrada_objetivo: torneo.entradaObjetivo || 0,
+                carambolas_j1: resultado.pts1 || 0,
+                carambolas_j2: resultado.pts2 || 0,
+                entradas_j1: resultado.entradas1 || 0,
+                entradas_j2: resultado.entradas2 || 0,
+                promedio_j1: resultado.promFinalJ1 || 0,
+                promedio_j2: resultado.promFinalJ2 || 0,
+                ganador_id: (ganador && ganador.id && ganador.id.length > 10) ? ganador.id : null,
+                tipo: 'TORNEO',
+                ronda: resultado.ronda || null
+            });
+            if (pr.error) console.warn(pr.error);
+        } catch (e) { console.warn(e); }
 
         const rondaActual = torneo.rondas[torneo.rondas.length - 1];
         const todasTerminadas = rondaActual.partidas.every(p => p.estado === 'TERMINADA' || p.estado === 'BYE');
@@ -623,11 +623,15 @@ const MasterVIP = {
                 // Actualizar torneo finalizado en Supabase
                 if (torneo.id && torneo.id.length > 10) {
                     const campeonJugador = this.buscarJugador(torneo.campeon);
-                    await DB.update('torneos', torneo.id, {
-                        estado: 'FINALIZADO',
-                        ganador_id: (campeonJugador && campeonJugador.id && campeonJugador.id.length > 10) ? campeonJugador.id : null,
-                        updated_at: new Date().toISOString()
-                    });
+                    try {
+                        const tm = await __dcImportApi('torneo-api');
+                        const ur = await tm.updateTorneo(torneo.id, {
+                            estado: 'FINALIZADO',
+                            ganador_id: (campeonJugador && campeonJugador.id && campeonJugador.id.length > 10) ? campeonJugador.id : null,
+                            updated_at: new Date().toISOString()
+                        });
+                        if (ur.error) console.warn(ur.error);
+                    } catch (e) { console.warn(e); }
                 }
             } else if (siguiente) {
                 torneo.rondas.push(siguiente);
@@ -732,26 +736,31 @@ const MasterVIP = {
         const j1 = this.buscarJugador(resultado.j1);
         const j2 = this.buscarJugador(resultado.j2);
 
-        if (j1 && j1.id && j1.id.length > 10) {
-            await DB.insert('ranking_historico', {
-                club_id: clubId || null,
-                jugador_id: j1.id,
-                promedio: promJ1,
-                puntos: resultado.pts1 || 0,
-                entradas: resultado.entradas1 || 0,
-                fecha: new Date().toISOString().split('T')[0]
-            });
-        }
-        if (j2 && j2.id && j2.id.length > 10) {
-            await DB.insert('ranking_historico', {
-                club_id: clubId || null,
-                jugador_id: j2.id,
-                promedio: promJ2,
-                puntos: resultado.pts2 || 0,
-                entradas: resultado.entradas2 || 0,
-                fecha: new Date().toISOString().split('T')[0]
-            });
-        }
+        try {
+            const jm = await __dcImportApi('jugador-api');
+            if (j1 && j1.id && j1.id.length > 10) {
+                const r1 = await jm.insertRankingHistorico({
+                    club_id: clubId || null,
+                    jugador_id: j1.id,
+                    promedio: promJ1,
+                    puntos: resultado.pts1 || 0,
+                    entradas: resultado.entradas1 || 0,
+                    fecha: new Date().toISOString().split('T')[0]
+                });
+                if (r1.error) console.warn(r1.error);
+            }
+            if (j2 && j2.id && j2.id.length > 10) {
+                const r2 = await jm.insertRankingHistorico({
+                    club_id: clubId || null,
+                    jugador_id: j2.id,
+                    promedio: promJ2,
+                    puntos: resultado.pts2 || 0,
+                    entradas: resultado.entradas2 || 0,
+                    fecha: new Date().toISOString().split('T')[0]
+                });
+                if (r2.error) console.warn(r2.error);
+            }
+        } catch (e) { console.warn(e); }
     },
 
     _recalcularPromedio: function (nombre) {
@@ -775,11 +784,15 @@ const MasterVIP = {
 
             // Actualizar promedio en Supabase
             if (jugadores[idx].id && jugadores[idx].id.length > 10) {
-                DB.update('jugadores', jugadores[idx].id, {
+                const jid = jugadores[idx].id;
+                const payload = {
                     promedio: jugadores[idx].promedio,
                     partidas: jugadores[idx].partidas || partidas.length,
                     updated_at: new Date().toISOString()
-                });
+                };
+                __dcImportApi('jugador-api').then(function (jm) {
+                    return jm.updateJugador(jid, payload);
+                }).catch(function () {});
             }
         }
     },
@@ -1267,18 +1280,11 @@ const HISTORIAL = {
             fecha:             datos.fecha              || new Date().toISOString()
         };
 
-        // 1. Guardar en Supabase tabla partidas
-        await DB.insert('partidas', {
-            jugador_id:     registro.jugador_id,
-            rival_nombre:   registro.rival_nombre,
-            promedio:       registro.promedio_partida,
-            entradas:       registro.entradas,
-            carambolas:     registro.carambolas,
-            gano:           registro.gano,
-            tipo:           registro.tipo,
-            serie_mayor:    registro.serie_mayor,
-            created_at:     registro.fecha
-        });
+        try {
+            const jm = await __dcImportApi('jugador-api');
+            const pr = await jm.insertPartidaHistorialJugador(datos);
+            if (pr.error) console.warn(pr.error);
+        } catch (e) { console.warn(e); }
 
         // 2. Mantener en localStorage las últimas 50
         const clave = 'historial_' + (datos.jugador_id || datos.jugador_nombre);
@@ -1308,10 +1314,11 @@ const HISTORIAL = {
 
         let datos = null;
         if (jugador_id) {
-            datos = await DB.get(
-                'partidas',
-                'jugador_id=eq.' + encodeURIComponent(String(jugador_id)) + '&order=created_at.desc&limit=50'
-            );
+            try {
+                const jm = await __dcImportApi('jugador-api');
+                const r = await jm.listPartidasPorJugador(jugador_id, 50);
+                if (!r.error) datos = r.data;
+            } catch (e) { console.warn(e); }
         }
 
         if (datos && datos.length > 0) {
@@ -1452,20 +1459,19 @@ const LIMPIEZA = {
     _marcarJugadoresInactivos: async function() {
         const hace30dias = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
         // Actualizar en Supabase: activo=false donde updated_at < hace30dias
-        await DB._fetch('jugadores?updated_at=lt.' + hace30dias + '&activo=eq.true', {
-            method: 'PATCH',
-            body: JSON.stringify({ activo: false }),
-            headers: { 'Prefer': 'return=minimal' }
-        });
+        try {
+            const jm = await __dcImportApi('jugador-api');
+            await jm.patchJugadoresInactivosAntes(hace30dias);
+        } catch (e) { console.warn('[LIMPIEZA] jugadores', e); }
     },
 
     // Eliminar torneos en BORRADOR con más de 7 días sin tocar
     _limpiarTorneosBorrador: async function() {
         const hace7dias = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-        await DB._fetch('torneos?estado=eq.BORRADOR&updated_at=lt.' + hace7dias, {
-            method: 'DELETE',
-            headers: { 'Prefer': 'return=minimal' }
-        });
+        try {
+            const tm = await __dcImportApi('torneo-api');
+            await tm.deleteTorneosBorradorAntes(hace7dias);
+        } catch (e) { console.warn('[LIMPIEZA] torneos', e); }
     },
 
     // Limpiar localStorage de claves viejas de sesión

@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#d4af37">
     <meta name="description" content="Portal club DeCarambola — administración de sala, torneos y TV">
     <title>Portal club — DeCarambola</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <!-- Rutas desde la raíz del sitio (/css/...) para que carguen bien en iPhone y al duplicar pantalla -->
     <link rel="stylesheet" href="/css/ux-shell.css">
     <link rel="stylesheet" href="/css/hub-sections.css">
@@ -141,8 +142,49 @@
         <p>Un solo lugar para administrar tu sede, torneos y señal en pantalla. <strong style="color:#777;font-weight:600;">Club y organizador comparten este mismo panel</strong> — solo cambia cómo entras al flujo.</p>
     </header>
 
+    <section class="dc-setup-guide" aria-label="Puesta en marcha">
+        <h2 class="dc-setup-guide__title">Puesta en marcha</h2>
+        <p class="dc-setup-guide__lead">Orden recomendado: cuenta y club → marca → salón → tarifas → cámaras → TV. Los pasos 1–4 usan <strong>este navegador</strong>; si ya guardaste el salón en el servidor, al entrar al portal se <strong>sincroniza</strong> lo guardado en Supabase. Los pasos 5–6 se marcan con el botón o desde datos del club.</p>
+        <div class="dc-setup-guide__bar" role="progressbar" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" aria-label="Pasos completados">
+            <span class="dc-setup-guide__fill"></span>
+        </div>
+        <p class="dc-setup-guide__pct">0 de 6 pasos listos en este dispositivo</p>
+        <ol class="dc-setup-guide__list">
+            <li data-step="1">
+                <a href="/index.html">Inicio — club activo</a>
+                <span class="dc-setup-guide__hint">Unirte con código o elegir club en Mis clubes; así queda <code>club_id</code> en tu perfil.</span>
+            </li>
+            <li data-step="2">
+                <a href="/apps/club/sala/admin_sede.html">Configurar sede (marca)</a>
+                <span class="dc-setup-guide__hint">Nombre y logo del club en el sistema (no “GLOBAL”).</span>
+            </li>
+            <li data-step="3">
+                <a href="/apps/club/sala/mesas_config.html">Configurar instalaciones (salón)</a>
+                <span class="dc-setup-guide__hint">Plano, mesas y guardar al final.</span>
+            </li>
+            <li data-step="4">
+                <a href="/apps/club/sala/tarifas_salon.html">Tarifas del salón</a>
+                <span class="dc-setup-guide__hint">Hora o media hora &gt; 0 (o desde el asistente de mesas).</span>
+            </li>
+            <li data-step="5">
+                <a href="/apps/club/sala/instalacion_ficha.html">Ficha de instalación / cámaras</a>
+                <span class="dc-setup-guide__hint">URL HTTPS por mesa si usás imagen en Duelo o stream.</span>
+                <span class="dc-setup-guide__row">
+                    <button type="button" class="dc-setup-guide__mark" data-mark-step="5">Marcar hecho</button>
+                </span>
+            </li>
+            <li data-step="6">
+                <a href="/club/duelo_premium_tv.html">TV salón (Realtime) + Duelo / OBS</a>
+                <span class="dc-setup-guide__hint">Dashboard de mesas ocupadas y stream; también enlaces a duelo-tv y producción.</span>
+                <span class="dc-setup-guide__row">
+                    <button type="button" class="dc-setup-guide__mark" data-mark-step="6">Marcar hecho</button>
+                </span>
+            </li>
+        </ol>
+    </section>
+
     <div class="dc-hub dc-hub--club club-hub-main" id="club-hub-main">
-        <p class="dc-hub-lead"><strong>6 áreas.</strong> Toca cada bloque para desplegar las pantallas. Con <strong>cuenta y permisos</strong> podrás ocultar las que no uses.</p>
+        <p class="dc-hub-lead"><strong>Abajo:</strong> 6 áreas del portal. Arriba tenés el checklist en orden. Toca cada bloque para desplegar. Con <strong>cuenta y permisos</strong> podrás ocultar las que no uses.</p>
 
         <!-- 1 · Operación diaria -->
         <details class="dc-hub-fold" open>
@@ -384,5 +426,6 @@
 import { initClubPortalGate } from '/js/club-portal-gate.js';
 initClubPortalGate();
 </script>
+<script src="/js/club-setup-guide.js" defer></script>
 </body>
 </html>

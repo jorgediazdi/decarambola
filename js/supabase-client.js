@@ -11,6 +11,8 @@ const supabaseAnonKey = 'sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J';
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
+    storageKey: 'decarambola-auth',
+    storage: window.localStorage,
     autoRefreshToken: true,
     detectSessionInUrl: true
   }

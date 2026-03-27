@@ -5,6 +5,8 @@
 | Tema | Documento principal |
 |------|---------------------|
 | **Antes / después de subir versión** | `docs/QA_CHECKLIST_SUBIDA.md` |
+| **Arranque salón + Supabase + streaming (orden)** | `docs/ARRANQUE_OPERACION_SALON.md` |
+| **SQL: comprobar columnas / RLS / corregir mesas** | `docs/SQL_VERIFICAR_Y_CORREGIR_MESAS.md` |
 | **Streaming** (YouTube, OBS, overlay) | `docs/QA_STREAMING.md` |
 | **Enlaces en portada** (`index.html`) | `QA_ENLACES_INDEX.md` |
 | **Flujos + fotos** (organizador, club, jugador) | `QA_FLUJOS_Y_FOTOS.md` |

@@ -25,7 +25,7 @@
 1. **No borrar** HTML de la raíz mientras exista un enlace o un deploy que lo use.
 2. **Copiar → ajustar rutas → enlazar hub → probar →** luego deprecar enlaces viejos si se desea.
 3. Un **`Version.js`** por despliegue; bump al subir cambios relevantes.
-4. Rutas a `core.js`: desde `apps/...` usar `../../../core.js` (o contar niveles reales).
+4. Rutas a `core.js`: usar `/core.js` (u otras rutas absolutas desde la raíz del sitio).
 
 ---
 

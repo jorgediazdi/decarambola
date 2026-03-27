@@ -375,7 +375,7 @@ body {
 .btn-nav:active { border-color:var(--oro); color:var(--oro); }
 </style>
     <meta name="theme-color" content="#d4af37">
-    <link rel="stylesheet" href="../../../css/ux-shell.css">
+    <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
 <body class="dc-ux dc-ux-skin">
 
@@ -383,7 +383,7 @@ body {
 
 
 <div class="header">
-    <a href="../../../club/index.html" class="back-btn">&#8592;</a>
+    <a href="/club/index.html" class="back-btn">&#8592;</a>
     <div>
         <div class="h-titulo">CONFIGURAR FORMATO</div>
         <div class="h-sub">DISEÑADOR DE TORNEO · DECARAMBOLA</div>
@@ -635,14 +635,14 @@ body {
 <div class="toast" id="toast"></div>
 
 <div class="nav-bottom">
-    <a href="../../../index.html" class="btn-nav">
+    <a href="/index.html" class="btn-nav">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
         </svg>
         INICIO
     </a>
-    <a href="../organizador/torneo_crear.html" class="btn-nav">
+    <a href="/apps/club/organizador/torneo_crear.html" class="btn-nav">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
@@ -1306,7 +1306,7 @@ function aplicar(){
     }));}catch(e){}
 
     showToast('✓ Configuración guardada');
-    setTimeout(function(){window.location.href='../organizador/torneo_crear.html';},1400);
+    setTimeout(function(){window.location.href='/apps/club/organizador/torneo_crear.html';},1400);
 }
 
 function showToast(msg){
@@ -1317,7 +1317,7 @@ function showToast(msg){
 
 window.__salaBoot = function() { setJug(48); };
 </script>
-<script src="../../../core.js"></script>
+<script src="/core.js"></script>
 <script>
 (function(){
     if (typeof SESSION !== 'undefined') {
@@ -1325,7 +1325,7 @@ window.__salaBoot = function() { setJug(48); };
     }
 })();
 </script>
-<script src="../../../whitelabel.js"></script>
+<script src="/whitelabel.js"></script>
 
 <script>
 (function () {
@@ -1341,7 +1341,7 @@ window.__salaBoot = function() { setJug(48); };
 })();
 </script>
 <script type="module">
-import { guardSalaPage } from '../../../js/sala-supabase-gate.js';
+import { guardSalaPage } from '/js/sala-supabase-gate.js';
 await guardSalaPage({ pageTitle: 'Configurador de formato' });
 </script>
 

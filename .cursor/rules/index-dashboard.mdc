@@ -1,0 +1,74 @@
+---
+description: UX del dashboard de élite en index.html raíz
+globs: index.html
+alwaysApply: false
+---
+
+# Dashboard raíz DeCarambola (index.html)
+
+Esta regla define cómo debe mantenerse el `index.html` **en la raíz** como _Dashboard de Élite_ sin romper las apps internas.
+
+## Propósito
+
+- Mantener `index.html` como **dashboard** (no como mapa técnico, ni landing recargada).
+- Conservar rutas clave:
+  - `jugador/index.html` (Jugador)
+  - `apps/club/organizador/organizador.html` (Organizador)
+  - `club/index.html` (Portal Club)
+  - `admin/index.html` (Backoffice / Admin)
+- Respetar el rol del botón **NUEVO DUELO** como CTA principal.
+
+## Lineamientos de diseño
+
+- **Branding fijo:**
+  - Logo minimalista `DC` en la esquina superior izquierda (no mover a derecha ni centrar).
+  - Texto `decarambola.com` + tagline corto bajo el logo.
+- **Perfil y admin:**
+  - Chip de perfil `Maestro JH` con **estrella dorada** visible.
+  - Acceso admin como ícono compacto (escudo/engranaje) en platino, junto al perfil, sin título grande.
+- **CTA principal:**
+  - Botón `NUEVO DUELO` es el elemento visual dominante.
+  - Debe permanecer en el panel principal, no degradarse a enlace secundario.
+- **Accesos secundarios:**
+  - Jugador / Organizador / Club se muestran como enlaces discretos (texto, no cards grandes).
+  - No repetirlos en más de dos secciones para evitar ruido.
+
+## Composición UI
+
+- **Layout:**
+  - Barra superior (`logo + perfil + admin`).
+  - Grid principal de dos columnas: 
+    - Izquierda: Slider de eventos + CTA `NUEVO DUELO`.
+    - Derecha: `DIARIO DEL MAESTRO`.
+- **Slider de eventos:**
+  - Transiciones suaves en opacidad (fade), sin animaciones agresivas.
+  - Contenido: `Próximos torneos`, `Clínicas de billar`, `Duelo destacado`.
+- **DIARIO DEL MAESTRO:**
+  - Tarjetas con borde de 1px dorado sutil.
+  - Tipografía técnica para títulos (`Arial Black` + mayúsculas + letter-spacing).
+  - Valores numéricos (promedios, calibraciones) en **verde neón**.
+
+## Paleta y estilo
+
+- Fondo: `#0b0b0b` con gradientes radiales suaves para profundidad.
+- Acentos:
+  - Oro: `#d4af37` para branding y contornos clave.
+  - Neón: `#2eff70` solo para datos numéricos o estados (“EN VIVO”, promedios).
+- Efectos:
+  - Sombra suave y relieve sutil en el CTA principal.
+  - Evitar bordes gruesos o recuadros pesados en accesos secundarios.
+
+## CSS y JS
+
+- Mantener **CSS interno** (en el `<head>`) para que `index.html` sea auto-contenido.
+- JS:
+  - Slider sencillo, sin dependencias externas.
+  - No introducir frameworks (React, Vue, etc.) en este archivo.
+
+## No hacer
+
+- No mover ni eliminar las rutas a `jugador/`, `club/`, `admin/`, `apps/`.
+- No convertir `index.html` en lista de todas las apps o mapa técnico.
+- No añadir formularios de login aquí (cada app gestiona su login).
+- No degradar `NUEVO DUELO` a un enlace más; siempre CTA visual Nº1.
+

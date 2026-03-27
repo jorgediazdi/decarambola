@@ -1,7 +1,6 @@
 /**
  * DeCarambola — UX compartido (portal club / organizador)
- * Incluir: <script src="../../../js/ux-club.js" defer></script>
- * Desde la raíz del repo: <script src="js/ux-club.js" defer></script>
+ * Incluir: <script src="/js/ux-club.js" defer></script>
  */
 (function (global) {
     'use strict';

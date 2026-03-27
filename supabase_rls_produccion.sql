@@ -14,6 +14,12 @@ returns uuid language sql stable set search_path = public as $$
   select (auth.jwt() -> 'app_metadata' ->> 'club_id')::uuid;
 $$;
 
+-- Activar RLS en tablas de sala (requerido antes de sus políticas)
+alter table if exists mesas_config enable row level security;
+alter table if exists mesas enable row level security;
+alter table if exists mesas_reservas enable row level security;
+alter table if exists mesas_historial enable row level security;
+
 -- ═══════════════════════════════════════════════════════════════
 -- CLUBS: SELECT abierto (unirse por código); INSERT/UPDATE/DELETE solo propio club
 -- ═══════════════════════════════════════════════════════════════
@@ -33,8 +39,8 @@ alter table if exists jugadores enable row level security;
 drop policy if exists "allow all jugadores" on jugadores;
 drop policy if exists "jugadores_club" on jugadores;
 create policy "jugadores_club" on jugadores for all
-  using (club_id = auth.current_club_id_uuid())
-  with check (club_id = auth.current_club_id_uuid());
+  using (club_id = public.current_club_id_uuid())
+  with check (club_id = public.current_club_id_uuid());
 
 -- ═══════════════════════════════════════════════════════════════
 -- TORNEOS: solo filas del club del JWT
@@ -76,8 +82,8 @@ alter table if exists ranking_historico enable row level security;
 drop policy if exists "allow all ranking_historico" on ranking_historico;
 drop policy if exists "ranking_historico_club" on ranking_historico;
 create policy "ranking_historico_club" on ranking_historico for all
-  using (club_id::text = auth.current_club_id_text() or club_id = auth.current_club_id_uuid())
-  with check (club_id::text = auth.current_club_id_text() or club_id = auth.current_club_id_uuid());
+  using (club_id::text = public.current_club_id_text() or club_id = public.current_club_id_uuid())
+  with check (club_id::text = public.current_club_id_text() or club_id = public.current_club_id_uuid());
 
 -- ═══════════════════════════════════════════════════════════════
 -- MESAS_* (club_id text)
@@ -106,6 +112,9 @@ create policy "mesas_historial_club" on mesas_historial for all
   using (club_id = public.current_club_id_text())
   with check (club_id = public.current_club_id_text());
 
+alter table if exists instalaciones_componentes enable row level security;
+alter table if exists instalaciones_mantenimiento enable row level security;
+
 drop policy if exists "allow all instalaciones_componentes" on instalaciones_componentes;
 drop policy if exists "instalaciones_componentes_club" on instalaciones_componentes;
 create policy "instalaciones_componentes_club" on instalaciones_componentes for all
@@ -119,10 +128,55 @@ create policy "instalaciones_mantenimiento_club" on instalaciones_mantenimiento 
   with check (club_id = public.current_club_id_text());
 
 -- ═══════════════════════════════════════════════════════════════
--- PQRS: solo filas del club del JWT (o sin club_id = ver todos para superadmin si se implementa)
+-- PQRS: club vía JWT; inserción pública (Sensei / anon); superadmin vía profiles
 -- ═══════════════════════════════════════════════════════════════
+alter table if exists pqrs enable row level security;
 drop policy if exists "allow all pqrs" on pqrs;
 drop policy if exists "pqrs_club" on pqrs;
+drop policy if exists "pqrs_insert_public" on pqrs;
+drop policy if exists "pqrs_superadmin_all" on pqrs;
+
 create policy "pqrs_club" on pqrs for all
   using (club_id is null or club_id = public.current_club_id_text())
   with check (club_id is null or club_id = public.current_club_id_text());
+
+-- Formulario público / Sensei sin sesión (combinada en modo PERMISSIVE con pqrs_club)
+create policy "pqrs_insert_public" on pqrs
+  for insert
+  to anon, authenticated
+  with check (true);
+
+-- Panel PQRS: usuario autenticado con profiles.role = 'superadmin'
+create policy "pqrs_superadmin_all" on pqrs
+  for all
+  to authenticated
+  using (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.role = 'superadmin'
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.profiles p
+      where p.id = auth.uid() and p.role = 'superadmin'
+    )
+  );
+
+-- ═══════════════════════════════════════════════════════════════
+-- PROFILES: lectura y actualización de la propia fila
+-- ═══════════════════════════════════════════════════════════════
+alter table if exists public.profiles enable row level security;
+
+drop policy if exists "profiles_select_own" on public.profiles;
+create policy "profiles_select_own" on public.profiles
+  for select to authenticated using (auth.uid() = id);
+
+drop policy if exists "profiles_update_own" on public.profiles;
+create policy "profiles_update_own" on public.profiles
+  for update to authenticated
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
+
+-- Verificación post-ejecución
+select tablename, policyname, cmd from pg_policies order by tablename, policyname;

@@ -71,7 +71,7 @@
         }
         .mant-tag { font-size:0.55rem; color:var(--neon); letter-spacing:2px; margin-bottom:4px; display:block; }
     </style>
-    <link rel="stylesheet" href="../../../css/ux-shell.css">
+    <link rel="stylesheet" href="/css/ux-shell.css">
     <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"Arial Black",Arial,sans-serif!important;}</style>
 </head>
 <body class="dc-ux dc-ux-skin m-root-salon">
@@ -85,14 +85,19 @@
         <div class="header-sub" id="hdr_sede">Club</div>
     </div>
     <div class="header-actions">
-        <a href="socios.html" class="btn-hdr">Jugadores</a>
-        <a href="mesas.html" class="btn-hdr">Salón en vivo</a>
-        <a href="reservas_admin.html" class="btn-hdr">Reservas</a>
-        <a href="reportes.html" class="btn-hdr">Reportes</a>
-        <a href="mesas_config.html" class="btn-hdr">Config. salón</a>
-        <a href="tarifas_salon.html" class="btn-hdr">Tarifas del salón</a>
-        <a href="../../../club/index.html" class="btn-hdr">Portal club</a>
-        <a href="../../../index.html" class="btn-hdr">Inicio app</a>
+        <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
+            <summary>Menú del club</summary>
+            <div class="jug-nav-fold__links">
+                <a href="socios.html">Jugadores</a>
+                <a href="mesas.html">Salón en vivo</a>
+                <a href="reservas_admin.html">Reservas</a>
+                <a href="reportes.html">Reportes</a>
+                <a href="mesas_config.html">Config. salón</a>
+                <a href="tarifas_salon.html">Tarifas del salón</a>
+                <a href="/club/index.html">Portal club</a>
+                <a href="/index.html">Inicio app</a>
+            </div>
+        </details>
     </div>
 </div>
 
@@ -134,7 +139,7 @@
     </div>
 </div>
 
-<script src="../../../core.js"></script>
+<script src="/core.js"></script>
 <script>
 var sesiones = [];
 var mesasIndex = {};
@@ -158,15 +163,12 @@ async function cargarDatos() {
     var sedeNombre = localStorage.getItem('wl_club_nombre') || 'MI CLUB';
     document.getElementById('hdr_sede').innerText = sedeNombre.toUpperCase();
 
-    var filtros = [];
-    filtros.push('estado=eq.cerrada');
-    if (clubId) filtros.push('club_id=eq.' + clubId);
-    var filtro = filtros.join('&');
-    var data = await DB.get('mesas_historial', filtro);
-    sesiones = data || [];
+    var api = await import('/js/api/club-api.js');
+    var dataR = await api.listMesasHistorialCerradas(clubId || null);
+    sesiones = dataR.data || [];
 
-    // Mesas
-    var mesas = await DB.get('mesas', clubId ? 'club_id=eq.' + clubId : 'limit=200');
+    var mesasR = await api.listMesasForReporte(clubId || null);
+    var mesas = mesasR.data;
     mesasIndex = {};
     (mesas || []).forEach(function(m){ mesasIndex[m.id] = m; });
 
@@ -303,7 +305,7 @@ window.__salaBoot = function() {
 })();
 </script>
 <script type="module">
-import { guardSalaPage } from '../../../js/sala-supabase-gate.js';
+import { guardSalaPage } from '/js/sala-supabase-gate.js';
 await guardSalaPage({ pageTitle: 'Historial de mesas' });
 </script>
 

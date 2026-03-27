@@ -360,7 +360,7 @@
 
     </style>
     <meta name="theme-color" content="#d4af37">
-    <link rel="stylesheet" href="../../../css/ux-shell.css">
+    <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
 <body class="dc-ux dc-ux-skin">
 
@@ -432,12 +432,12 @@
                 <div class="accion-nom">FIXTURE</div>
                 <div class="accion-det">Ver llaves del torneo</div>
             </a>
-            <a href="../../../ranking.html" class="accion-card">
+            <a href="/ranking.html" class="accion-card">
                 <div class="accion-ico">📈</div>
                 <div class="accion-nom">RANKING</div>
                 <div class="accion-det">Tabla oficial del club</div>
             </a>
-            <a href="../../../index.html" class="accion-card" style="border-color:rgba(52,152,219,0.3);">
+            <a href="/index.html" class="accion-card" style="border-color:rgba(52,152,219,0.3);">
                 <div class="accion-ico">🏠</div>
                 <div class="accion-nom">INICIO</div>
                 <div class="accion-det">Mesas e instalaciones del club → MI CLUB</div>
@@ -467,7 +467,7 @@
         <!-- ══ RANKING DEL CLUB ══ -->
         <div class="sec-titulo">
             <h3>Top Ranking del Club</h3>
-            <a href="../../../ranking.html" class="sec-btn">COMPLETO</a>
+            <a href="/ranking.html" class="sec-btn">COMPLETO</a>
         </div>
         <div id="zona-ranking">
             <div class="empty">Sin partidas registradas</div>
@@ -484,7 +484,7 @@
     </div>
 
 <!-- ══ LÓGICA ══ -->
-<script src="../../../core.js"></script>
+<script src="/core.js"></script>
 <script>
 
     // ═══════════════════════════════════════
@@ -575,11 +575,15 @@
         document.getElementById('kpi-torneos-sub').innerText = activos > 0 ? activos + ' en curso' : 'ninguno activo';
         document.getElementById('kpi-jugadores').innerText   = jugadores.length;
 
-        // Contar partidas reales desde Supabase
         const clubId = MasterVIP.getClubId();
-        const filtroPartidas = clubId ? 'club_id=eq.' + clubId + '&select=id' : 'select=id';
-        const partidas = await DB.get('partidas', filtroPartidas);
-        document.getElementById('kpi-partidas').innerText = (partidas && partidas.length) ? partidas.length : '—';
+        try {
+            const jm = await import('/js/api/jugador-api.js');
+            const pc = await jm.countPartidasForClub(clubId || null);
+            document.getElementById('kpi-partidas').innerText =
+                pc.data != null && !pc.error ? String(pc.data) : '—';
+        } catch (e) {
+            document.getElementById('kpi-partidas').innerText = '—';
+        }
 
         if (torneo) {
             const bolsa = MasterVIP.calcularBolsa(torneo);
@@ -689,10 +693,12 @@
         zona.innerHTML = '<div class="empty">Cargando ranking...</div>';
 
         const clubId = MasterVIP.getClubId();
-        const filtro = clubId
-            ? 'club_id=eq.' + clubId + '&activo=eq.true&promedio=gt.0&order=promedio.desc&limit=5'
-            : 'activo=eq.true&promedio=gt.0&order=promedio.desc&limit=5';
-        const data = await DB.get('jugadores', filtro);
+        let data = null;
+        try {
+            const jm = await import('/js/api/jugador-api.js');
+            const jr = await jm.listTopJugadoresByPromedio(clubId || null, 5);
+            if (!jr.error) data = jr.data;
+        } catch (e) {}
 
         // Si Supabase devuelve datos, usarlos; si no, caer en localStorage
         const jugadores = (data && data.length)
@@ -728,9 +734,12 @@
         zona.innerHTML = '<div class="empty">Cargando historial...</div>';
 
         const clubId = MasterVIP.getClubId();
-        const filtro = (clubId ? 'club_id=eq.' + clubId + '&' : '') +
-            'estado=eq.FINALIZADO&order=created_at.desc&limit=5';
-        const data = await DB.get('torneos', filtro);
+        let data = null;
+        try {
+            const tm = await import('/js/api/torneo-api.js');
+            const tr = await tm.listTorneosFinalizados(clubId || null, 5);
+            if (!tr.error) data = tr.data;
+        } catch (e) {}
 
         // Supabase primero, localStorage como fallback
         let torneos = [];
@@ -830,17 +839,17 @@
     <a href="inscripciones.html">Inscripciones</a>
     <a href="control_torneo.html">Control torneo</a>
     <a href="../sala/mesas.html">Salón en vivo</a>
-    <a href="../../../club/index.html">Portal club</a>
-    <a href="../../../index.html">Inicio app</a>
+    <a href="/club/index.html">Portal club</a>
+    <a href="/index.html">Inicio app</a>
 </div>
 
 <!-- NAV BOTTOM -->
 <div class="nav-bottom">
-    <a href="../../../index.html" class="btn-nav"><span class="nav-ico">&#127968;</span> INICIO</a>
+    <a href="/index.html" class="btn-nav"><span class="nav-ico">&#127968;</span> INICIO</a>
     <a href="torneo_crear.html" class="btn-nav"><span class="nav-ico">&#127942;</span> CREAR TORNEO</a>
 </div>
 
-<script src="../../../whitelabel.js"></script>
+<script src="/whitelabel.js"></script>
 <script>
 // Ajuste de textos por deporte usando WL.getDeporte()
 (function () {

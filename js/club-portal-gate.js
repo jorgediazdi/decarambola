@@ -1,16 +1,29 @@
 /**
- * Portal club (/club/) — solo Supabase Auth + staff.
- * - Sesión Supabase + profiles.role ∈ { club_admin, superadmin }
- * - club_admin debe tener club_id (mismo criterio que RLS mesas)
- * - O ?dev=1 (pruebas; fija sessionStorage dev_mode_activo)
+ * Portal club (/club/)
  *
- * El PIN del index ya no abre este portal (solo ayuda a ver menús en la app principal).
+ * 1) OPEN_ACCESS_PUBLIC = true → entra sin login ni clave (modo prueba / deploy).
+ * 2) OPEN_ACCESS_PUBLIC = false + CLOSED_ACCESS_MODE = 'pin' → pide la misma clave que en
+ *    index.html (localStorage `club_admin_pin`, flujo "Soy administrador del club").
+ *    sessionStorage `club_portal_pin_ok` evita reescribir la clave en cada visita.
+ * 3) OPEN_ACCESS_PUBLIC = false + CLOSED_ACCESS_MODE = 'staff' → Supabase + staff
+ *    (club_admin / superadmin), o ?dev=1 para pruebas sin sesión.
  */
 import { supabase } from './supabase-client.js';
 
 const DEV_MODE_KEY = 'dev_mode_activo';
-// Temporal por solicitud de negocio: portal abierto sin login.
+/** Misma clave que index.html — CLUB_ADMIN_KEY */
+const CLUB_ADMIN_PIN_KEY = 'club_admin_pin';
+const CLUB_PORTAL_PIN_SESSION = 'club_portal_pin_ok';
+
+// Temporal: portal abierto sin login ni clave (subir y probar). Pasar a false cuando quieras exigir clave o staff.
 const OPEN_ACCESS_PUBLIC = true;
+
+/**
+ * Solo si OPEN_ACCESS_PUBLIC === false:
+ * - 'pin'  → pedir club_admin_pin (misma que creaste en inicio).
+ * - 'staff' → solo Supabase + rol staff (comportamiento anterior al acceso abierto).
+ */
+const CLOSED_ACCESS_MODE = 'pin';
 
 /**
  * Sustituye "Portal club" por el nombre real y el logo desde tabla clubs (ej. MVIP-001).
@@ -142,9 +155,87 @@ function insertarBannerAccesoAbierto() {
         'border:1px solid rgba(212,175,55,0.35);background:rgba(212,175,55,0.08);' +
         'font-size:0.72rem;line-height:1.45;color:#bba;text-align:center;';
     bar.innerHTML =
-        '<strong style="color:#d4af37;">Acceso temporal abierto</strong> — sin clave ni login (modo operativo). ' +
-        'Luego se reactivan roles.';
+        '<strong style="color:#d4af37;">Acceso temporal abierto</strong> — sin clave ni login (para seguir probando). ' +
+        'Cuando cierres este modo, aquí se pedirá la <strong>misma clave de club</strong> que definís en inicio ' +
+        '(<em>Soy administrador del club</em>).';
     main.insertBefore(bar, main.firstChild);
+}
+
+function pintarHeroDesdeMiPerfilLocal() {
+    try {
+        var perfilOpen = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        if (perfilOpen && perfilOpen.club_id) {
+            pintarHeroPortalClub(String(perfilOpen.club_id).trim());
+        }
+    } catch (e) {}
+}
+
+/**
+ * Pantalla de PIN: compara con localStorage club_admin_pin (mismo origen que index.html).
+ */
+function montarGatePinClub(deny, allow, gate, main, msg) {
+    var pinGuardado = '';
+    try {
+        pinGuardado = String(localStorage.getItem(CLUB_ADMIN_PIN_KEY) || '').trim();
+    } catch (e) {}
+
+    if (!pinGuardado) {
+        deny(
+            '<h1 style="font-size:1rem;letter-spacing:0.06em;margin-bottom:10px;color:#d4af37;">Clave de club no definida</h1>' +
+                '<p style="color:#aaa;font-size:0.85rem;line-height:1.5;">Primero definí tu clave en la app principal: <strong>Inicio</strong> → <em>Soy administrador del club</em>. ' +
+                'Esa misma clave se usará aquí cuando el acceso abierto esté desactivado.</p>',
+            '<p style="color:#666;font-size:0.78rem;margin-top:12px;"><a href="/index.html" style="color:#d4af37;">Ir al inicio</a> · <a href="/jugador/" style="color:#6cf;">App jugador</a></p>',
+            { showDevShortcut: true }
+        );
+        return;
+    }
+
+    if (!msg || !gate || !main) return;
+
+    msg.innerHTML =
+        '<h1 style="font-size:1rem;letter-spacing:0.06em;margin-bottom:10px;color:#d4af37;">Portal del club</h1>' +
+        '<p style="color:#888;font-size:0.82rem;line-height:1.45;margin-bottom:14px;">Ingresá la <strong>clave de administrador del club</strong> (la misma que en la pantalla principal).</p>' +
+        '<form id="club-pin-form" style="margin-top:8px;text-align:left;">' +
+        '<label for="club-pin-input" style="display:block;font-size:0.68rem;color:#888;margin-bottom:6px;letter-spacing:0.08em;">CLAVE</label>' +
+        '<input id="club-pin-input" type="password" autocomplete="current-password" ' +
+        'style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(212,175,55,0.35);background:#141414;color:#eaeaea;font-size:1rem;box-sizing:border-box;" />' +
+        '<p id="club-pin-err" style="color:#e88;font-size:0.75rem;margin:8px 0 0;min-height:1.2em;"></p>' +
+        '<button type="submit" style="width:100%;margin-top:12px;padding:12px 16px;border-radius:12px;border:none;background:linear-gradient(180deg,#b8962e,#8a6f22);color:#0b0b0b;font-weight:700;font-size:0.85rem;cursor:pointer;">Entrar</button>' +
+        '</form>' +
+        '<p style="margin-top:16px;font-size:0.72rem;line-height:1.5;color:#666;"><a href="/index.html" style="color:#d4af37;">Inicio</a> · <a href="/jugador/" style="color:#6cf;">App jugador</a></p>' +
+        '<p style="margin-top:12px;font-size:0.65rem;color:#555;">¿Equipo / prueba sin clave? <a href="?dev=1" style="color:#a08;">?dev=1</a></p>';
+
+    main.style.display = 'none';
+    gate.style.display = 'flex';
+
+    var form = document.getElementById('club-pin-form');
+    var input = document.getElementById('club-pin-input');
+    var errEl = document.getElementById('club-pin-err');
+    if (input) {
+        setTimeout(function () {
+            try {
+                input.focus();
+            } catch (e) {}
+        }, 100);
+    }
+
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (errEl) errEl.textContent = '';
+            var v = input ? String(input.value || '').trim() : '';
+            if (v === pinGuardado) {
+                try {
+                    sessionStorage.setItem(CLUB_PORTAL_PIN_SESSION, '1');
+                } catch (err) {}
+                allow();
+                pintarHeroDesdeMiPerfilLocal();
+            } else {
+                if (errEl) errEl.textContent = 'Clave incorrecta.';
+                if (input) input.select();
+            }
+        });
+    }
 }
 
 /** Barra visible: estás viendo el portal sin staff (solo ?dev=1). */
@@ -210,19 +301,30 @@ export async function initClubPortalGate() {
     if (OPEN_ACCESS_PUBLIC) {
         allow();
         insertarBannerAccesoAbierto();
+        pintarHeroDesdeMiPerfilLocal();
+        return;
+    }
+
+    // Acceso cerrado: modo PIN (clave = la del index)
+    if (CLOSED_ACCESS_MODE === 'pin') {
         try {
-            var perfilOpen = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-            if (perfilOpen && perfilOpen.club_id) {
-                pintarHeroPortalClub(String(perfilOpen.club_id).trim());
+            if (sessionStorage.getItem(CLUB_PORTAL_PIN_SESSION) === '1') {
+                allow();
+                pintarHeroDesdeMiPerfilLocal();
+                return;
             }
         } catch (e) {}
-        return;
     }
 
     if (esModoDevActivo()) {
         sessionStorage.setItem(DEV_MODE_KEY, '1');
         allow();
         insertarBannerModoPrueba();
+        return;
+    }
+
+    if (CLOSED_ACCESS_MODE === 'pin') {
+        montarGatePinClub(deny, allow, gate, main, msg);
         return;
     }
 

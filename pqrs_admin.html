@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script type="module">
+      import { getSession, getRole } from '/js/auth-manager.js';
+      const s = await getSession();
+      if (!s?.data) window.location.replace('/auth.html');
+      const r = await getRole();
+      if (r?.data !== 'superadmin') window.location.replace('/auth.html');
+      try { sessionStorage.setItem('plataforma_superadmin_activo', 'true'); } catch (e) {}
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gestionar PQRS — DeCarambola</title>
@@ -86,12 +94,17 @@
             <p style="margin-top:24px;"><a href="index.html">Ir al inicio</a></p>
         </div>
     </div>
-<script src="core.js"></script>
 <script>
 (function() {
     var SUPERADMIN_PIN_KEY = 'plataforma_superadmin_pin';
     var SUPERADMIN_ACTIVO_KEY = 'plataforma_superadmin_activo';
     var DEV_MODE_KEY = 'dev_mode_activo';
+    var _pqrsApiPromise = null;
+    function loadPqrsApi() {
+        if (_pqrsApiPromise) return _pqrsApiPromise;
+        _pqrsApiPromise = import('/js/api/pqrs-api.js');
+        return _pqrsApiPromise;
+    }
 
     function esSuperadmin() {
         if (typeof URLSearchParams !== 'undefined' && new URLSearchParams(window.location.search).get('dev') === '1') return true;
@@ -114,36 +127,17 @@
         return true;
     }
 
-    function getSupabase() {
-        var url = typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '';
-        var key = typeof SUPABASE_KEY !== 'undefined' ? SUPABASE_KEY : '';
-        return { url: url, key: key };
-    }
-
     async function fetchPqrs(estadoFiltro) {
-        var s = getSupabase();
-        if (!s.url || !s.key) throw new Error('Supabase no configurado');
-        var q = s.url + '/rest/v1/pqrs?order=created_at.desc&select=*';
-        if (estadoFiltro) q += '&estado=eq.' + encodeURIComponent(estadoFiltro);
-        var res = await fetch(q, {
-            headers: { 'apikey': s.key, 'Authorization': 'Bearer ' + s.key }
-        });
-        if (!res.ok) throw new Error('Error ' + res.status);
-        return await res.json();
+        var m = await loadPqrsApi();
+        var r = await m.listPqrs({ estado: estadoFiltro || null });
+        if (r.error) throw new Error((r.error && r.error.message) ? r.error.message : String(r.error));
+        return r.data || [];
     }
 
     async function actualizarPqrs(id, datos) {
-        var s = getSupabase();
-        var res = await fetch(s.url + '/rest/v1/pqrs?id=eq.' + encodeURIComponent(id), {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': s.key,
-                'Authorization': 'Bearer ' + s.key
-            },
-            body: JSON.stringify(datos)
-        });
-        if (!res.ok) throw new Error('Error ' + res.status);
+        var m = await loadPqrsApi();
+        var r = await m.updatePqrsById(id, datos);
+        if (r.error) throw new Error((r.error && r.error.message) ? r.error.message : String(r.error));
     }
 
     function formatearFecha(iso) {

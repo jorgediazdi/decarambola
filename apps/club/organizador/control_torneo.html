@@ -113,7 +113,7 @@
         .btn-nav { flex: 1; padding: 13px 8px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; color: #777; font-size: 0.65rem; cursor: pointer; text-align: center; text-decoration: none; display: block; transition: 0.2s; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
         .btn-nav:active { border-color: var(--oro); color: var(--oro); }
     </style>
-    <link rel="stylesheet" href="../../../css/ux-shell.css">
+    <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
 
@@ -138,8 +138,8 @@
             <a href="torneos.html" class="btn-hdr">Torneos</a>
             <a href="torneo_crear.html" class="btn-hdr">Nuevo torneo</a>
             <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
-            <a href="../../../club/index.html" class="btn-hdr">Portal club</a>
-            <a href="../../../index.html" class="btn-hdr">Inicio app</a>
+            <a href="/club/index.html" class="btn-hdr">Portal club</a>
+            <a href="/index.html" class="btn-hdr">Inicio app</a>
         </div>
     </div>
     <div class="tabs">
@@ -213,9 +213,9 @@
     <div class="nav-bottom">
         <button class="btn-nav" onclick="location.href='organizador.html'">🏛 ORGANIZADOR</button>
         <button class="btn-nav" onclick="refrescar()">🔄 ACTUALIZAR</button>
-        <button class="btn-nav" onclick="location.href='../../../index.html'">🏠 INICIO</button>
+        <button class="btn-nav" onclick="location.href='/index.html'">🏠 INICIO</button>
     </div>
-<script src="../../../core.js"></script>
+<script src="/core.js"></script>
 
 <script>
 var torneo = null;
@@ -688,13 +688,13 @@ function iniciar(partidaId, j1, j2) {
         tiempoEntrada: torneo.tiempoEntrada || 40,
         entradaObjetivo: torneo.entradaObjetivo || 0
     }));
-    location.href = '../../../duelo-tv.html';
+    location.href = '/duelo-tv.html';
 }
 
 function copiarLinkArbitro(partidaIdEnc) {
     var partidaId = decodeURIComponent(partidaIdEnc || '');
     if (!torneo || !torneo.id) { alert('No hay torneo activo'); return; }
-    var u = new URL('../../../duelo-tv.html', window.location.href);
+    var u = new URL('/duelo-tv.html', window.location.href);
     u.searchParams.set('torneo', torneo.id);
     u.searchParams.set('partida', partidaId);
     u.searchParams.set('arbitro', '1');
@@ -706,7 +706,7 @@ function copiarLinkArbitro(partidaIdEnc) {
     }
 }
 </script>
-<script src="../../../whitelabel.js"></script>
+<script src="/whitelabel.js"></script>
 
 <script>
 (function () {

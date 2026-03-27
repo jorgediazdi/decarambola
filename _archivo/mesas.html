@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
+    <title>Salón en vivo — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2ecc71; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0b; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:100px; }
+
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; position:sticky; top:0; z-index:50; flex-wrap:wrap; gap:12px; }
+        .header-principal { flex:1; min-width:200px; }
+        .header-marca { display:flex; align-items:center; gap:10px; }
+        .header-titulo { color:var(--oro); font-size:0.95rem; letter-spacing:3px; }
+        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
+        .header-reloj-wrap { margin-top:8px; }
+        .header-reloj { font-family:'Courier New',monospace; font-size:0.85rem; color:#888; }
+        .header-countdown { font-size:0.5rem; color:#666; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+        .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
+
+        .wrap { max-width:500px; margin:0 auto; padding:16px 18px; }
+
+        .leyenda { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px; font-size:0.5rem; color:#666; letter-spacing:2px; }
+        .leyenda span { display:flex; align-items:center; gap:6px; }
+        .leyenda .dot { width:10px; height:10px; border-radius:50%; }
+        .leyenda .dot.libre { background:#2ecc71; }
+        .leyenda .dot.ocupada { background:#e74c3c; }
+        .leyenda .dot.reservada { background:#f39c12; }
+        .leyenda .dot.mantenimiento { background:#3498db; }
+        .leyenda .dot.fuera { background:#555; }
+
+        .plano-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin:10px 0 6px; }
+        .plano-etiqueta { color:var(--oro); font-size:0.55rem; letter-spacing:3px; }
+        .plano-metraje { color:#666; font-size:0.52rem; margin-top:4px; letter-spacing:1px; }
+        .plano-layout-desc { color:#555; font-size:0.48rem; margin-top:3px; letter-spacing:2px; }
+        .btn-plano-cfg { background:none; border:1px solid rgba(212,175,55,0.45); color:var(--oro); padding:8px 12px; border-radius:10px; font-size:0.5rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; white-space:nowrap; align-self:center; }
+        .btn-plano-cfg:active { opacity:0.85; }
+
+        .plano-salón { background:var(--g2); border:2px solid rgba(212,175,55,0.35); border-radius:18px; padding:18px 16px; margin:14px 0; min-height:220px; display:grid; gap:10px; align-content:start; justify-content:center; position:relative; overflow:hidden; box-shadow:0 0 36px rgba(212,175,55,0.07), inset 0 0 100px rgba(0,0,0,0.45); }
+        .plano-salón.plano-mapa-abs { display:block; min-height:min(70vh,520px); padding:12px; }
+        .mesa-mapa-pos { position:absolute; transform:translate(-50%,-50%); cursor:grab; touch-action:none; }
+        .mesa-mapa-pos:active { cursor:grabbing; }
+        .plano-mapa-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px; font-size:0.5rem; color:#888; letter-spacing:1px; }
+        .plano-mapa-toolbar button { background:var(--g3); border:1px solid var(--g1); color:#aaa; padding:6px 10px; border-radius:8px; font-size:0.5rem; cursor:pointer; font-family:inherit; }
+        .plano-mapa-toolbar button.on { border-color:rgba(212,175,55,0.5); color:var(--oro); }
+        .plano-salón::before { content:''; position:absolute; inset:0; border-radius:16px; pointer-events:none; background:radial-gradient(ellipse 85% 55% at 50% -5%, rgba(212,175,55,0.14), transparent 52%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(46,204,113,0.06), transparent 50%); }
+        .plano-fila { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; position:relative; z-index:1; }
+        .mesa-celda { width:64px; height:64px; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:0.5rem; text-align:center; padding:4px; cursor:pointer; border:2px solid transparent; transition:transform 0.2s, box-shadow 0.2s; position:relative; z-index:1; overflow:hidden; }
+        .mesa-celda:active { transform:scale(0.96); }
+        .mesa-celda.estado-libre { background:rgba(46,204,113,0.15); border-color:#2ecc71; color:#2ecc71; }
+        .mesa-celda.estado-ocupada { background:rgba(231,76,60,0.2); border-color:#e74c3c; color:#e74c3c; }
+        .mesa-celda.estado-reservada { background:rgba(243,156,18,0.15); border-color:#f39c12; color:#f39c12; }
+        .mesa-celda.estado-mantenimiento { background:rgba(52,152,219,0.15); border-color:#3498db; color:#3498db; }
+        .mesa-celda.estado-fuera_servicio { background:rgba(51,51,51,0.4); border-color:#555; color:#555; }
+
+        @keyframes luz-libre { 0%, 100% { box-shadow:0 0 5px rgba(46,204,113,0.35), 0 0 12px rgba(46,204,113,0.18), inset 0 0 10px rgba(46,204,113,0.06); } 50% { box-shadow:0 0 14px rgba(46,204,113,0.75), 0 0 26px rgba(46,204,113,0.28), inset 0 0 14px rgba(46,204,113,0.12); } }
+        @keyframes luz-ocupada { 0%, 100% { box-shadow:0 0 6px rgba(231,76,60,0.45), 0 0 14px rgba(231,76,60,0.2); } 50% { box-shadow:0 0 16px rgba(231,76,60,0.85), 0 0 30px rgba(231,76,60,0.35); } }
+        @keyframes luz-reservada { 0%, 100% { box-shadow:0 0 5px rgba(243,156,18,0.35), 0 0 12px rgba(243,156,18,0.15); } 50% { box-shadow:0 0 14px rgba(243,156,18,0.65), 0 0 24px rgba(243,156,18,0.22); } }
+        @keyframes luz-mantenimiento { 0%, 100% { box-shadow:0 0 5px rgba(52,152,219,0.35), 0 0 12px rgba(52,152,219,0.15); } 50% { box-shadow:0 0 14px rgba(52,152,219,0.65), 0 0 22px rgba(52,152,219,0.22); } }
+        @keyframes luz-fuera { 0%, 100% { box-shadow:0 0 3px rgba(120,120,120,0.25); } 50% { box-shadow:0 0 8px rgba(150,150,150,0.35); } }
+
+        .mesa-celda.luz-mesa.estado-libre { animation:luz-libre 2.35s ease-in-out infinite; }
+        .mesa-celda.luz-mesa.estado-ocupada { animation:luz-ocupada 1.15s ease-in-out infinite; }
+        .mesa-celda.luz-mesa.estado-reservada { animation:luz-reservada 1.9s ease-in-out infinite; }
+        .mesa-celda.luz-mesa.estado-mantenimiento { animation:luz-mantenimiento 2s ease-in-out infinite; }
+        .mesa-celda.luz-mesa.estado-fuera_servicio { animation:luz-fuera 2.8s ease-in-out infinite; }
+        .mesa-celda .nom { font-weight:bold; font-size:0.65rem; color:#fff; }
+        .mesa-celda .tipo { font-size:0.45rem; color:#888; }
+        .mesa-celda .crono { font-size:0.55rem; margin-top:2px; font-family:'Courier New',monospace; }
+        .mesa-celda .costo { font-size:0.48rem; color:#888; }
+        .mesa-celda .emoji-estado { position:absolute; top:4px; right:4px; font-size:0.6rem; }
+        .mesa-celda .mesa-cam-icon { position:absolute; top:3px; left:5px; font-size:0.52rem; opacity:0.95; z-index:4; line-height:1; cursor:pointer; }
+        .mesa-celda .mesa-cam-icon.inactiva { opacity:0.22; filter:grayscale(1); cursor:default; pointer-events:none; }
+
+        .actualizar-info { text-align:center; color:#444; font-size:0.48rem; margin-top:8px; }
+
+        .modal-mesa { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:100; align-items:center; justify-content:center; padding:20px; }
+        .modal-mesa.visible { display:flex; }
+        .modal-caja { background:var(--g2); border:2px solid var(--oro); border-radius:20px; padding:20px; max-width:340px; width:100%; }
+        .modal-titulo { color:var(--oro); font-size:0.9rem; margin-bottom:14px; letter-spacing:2px; }
+        .modal-acciones { display:flex; flex-direction:column; gap:10px; }
+        .modal-btn { padding:14px; border-radius:14px; border:none; font-size:0.7rem; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:1px; }
+        .modal-btn.abrir { background:rgba(46,204,113,0.2); color:#2ecc71; border:1px solid #2ecc71; }
+        .modal-btn.cerrar { background:rgba(231,76,60,0.2); color:#e74c3c; border:1px solid #e74c3c; }
+        .modal-btn.mant { background:rgba(52,152,219,0.2); color:#3498db; border:1px solid #3498db; }
+        .modal-btn.reservar { background:rgba(243,156,18,0.2); color:#f39c12; border:1px solid #f39c12; }
+        .modal-btn.fuera { background:rgba(85,85,85,0.4); color:#aaa; border:1px solid #555; }
+        .modal-btn.libre { background:rgba(46,204,113,0.2); color:#2ecc71; border:1px solid #2ecc71; }
+        .modal-btn.ficha { background:rgba(212,175,55,0.2); color:var(--oro); border:1px solid var(--oro); }
+        .modal-btn.cerrar-modal { background:var(--g3); color:#666; border:1px solid var(--g1); }
+        .modal-crono { font-size:1.4rem; font-family:'Courier New',monospace; color:#fff; margin:10px 0; text-align:center; }
+        .modal-costo { font-size:0.65rem; color:#888; text-align:center; margin-bottom:10px; }
+        .modal-ticket-body { font-size:0.55rem; color:#ccc; line-height:1.45; white-space:pre-wrap; max-height:42vh; overflow:auto; text-align:left; margin:12px 0; padding:12px; background:#0a0a0a; border-radius:12px; border:1px solid var(--g1); font-family:'Courier New',monospace; }
+        .vacio { text-align:center; color:#444; font-size:0.6rem; padding:20px; }
+    </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"Arial Black",Arial,sans-serif!important;}</style>
+</head>
+<body class="dc-ux dc-ux-skin m-root-salon">
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+
+<div class="header">
+    <div class="header-principal">
+        <div class="header-marca">
+            <span id="header-logo"></span>
+            <div>
+                <div class="header-titulo">SALÓN EN VIVO</div>
+                <div class="header-sub" id="lbl-salon">Cargando…</div>
+            </div>
+        </div>
+        <div class="header-reloj-wrap">
+            <div class="header-reloj" id="header-reloj">--:--:--</div>
+            <div class="header-countdown" id="header-countdown">Actualizando en 30s</div>
+        </div>
+    </div>
+    <div class="header-actions">
+        <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
+            <summary>Menú del club</summary>
+            <div class="jug-nav-fold__links">
+                <a href="socios.html">Jugadores</a>
+                <a href="reservas_admin.html">Reservas</a>
+                <a href="reportes.html">Reportes</a>
+                <a href="mesas_config.html">Config. salón</a>
+                <a href="club/index.html">Portal club</a>
+                <a href="index.html">Inicio app</a>
+            </div>
+        </details>
+    </div>
+</div>
+
+<div class="wrap">
+    <div class="leyenda">
+        <span><span class="dot libre"></span> LIBRE</span>
+        <span><span class="dot ocupada"></span> OCUPADA</span>
+        <span><span class="dot reservada"></span> RESERVADA</span>
+        <span><span class="dot mantenimiento"></span> MANTENIMIENTO</span>
+        <span><span class="dot fuera"></span> FUERA DE SERVICIO</span>
+    </div>
+    <div class="plano-header">
+        <div>
+            <div class="plano-etiqueta">↳ PLANO DEL SALÓN (como en el paso 3 del configurador)</div>
+            <div class="plano-metraje" id="plano_metraje"></div>
+            <div class="plano-layout-desc" id="plano_layout_desc"></div>
+        </div>
+        <a href="mesas_config.html" class="btn-plano-cfg">⚙ CONFIGURAR SALÓN</a>
+    </div>
+    <div class="plano-mapa-toolbar" id="plano_mapa_toolbar" style="display:none;">
+        <span>Vista:</span>
+        <button type="button" id="btn_vista_grid" class="on">Cuadrícula</button>
+        <button type="button" id="btn_vista_mapa">Mapa (arrastrar mesas)</button>
+        <span style="color:#555;">Posiciones se guardan en Supabase (posicion_x / posicion_y).</span>
+    </div>
+    <div class="plano-salón" id="plano_salon"></div>
+    <div class="actualizar-info" id="actualizar_info">Actualización cada 30 s</div>
+</div>
+
+<div class="modal-mesa" id="modal_mesa">
+    <div class="modal-caja">
+        <div class="modal-titulo" id="modal_titulo">—</div>
+        <div class="modal-crono" id="modal_crono">—</div>
+        <div class="modal-costo" id="modal_costo"></div>
+        <div class="modal-acciones" id="modal_acciones"></div>
+        <button class="modal-btn cerrar-modal" onclick="cerrarModal()">Cerrar</button>
+    </div>
+</div>
+
+<script src="core.js"></script>
+<script src="session.js"></script>
+<script src="js/mesas-operacion-onboarding.js"></script>
+<script>
+try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
+
+var salonConfig = null;
+var mesasLista = [];
+var sesionesAbiertas = {};
+var mesaSeleccionada = null;
+var intervaloRefresh = null;
+var intervaloCrono = null;
+var countdownSegundos = 30;
+/** grid | mapa — mapa usa posicion_x/y en % (Supabase). */
+var vistaPlano = 'grid';
+var mapaDrag = { id: null, ptr: null };
+var _dcClubApiP = null;
+function _clubApi() {
+    if (!_dcClubApiP) _dcClubApiP = import('./js/api/club-api.js');
+    return _dcClubApiP;
+}
+
+var _tarifasReady = import('./js/tarifas-logic.js').then(function (m) {
+    window.__DC_TARIFAS = m;
+});
+
+function getClubId() {
+    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    if (perfil.club_id) return perfil.club_id;
+    var clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null');
+    return (clubActivo && clubActivo.id) ? clubActivo.id : null;
+}
+
+function getStreamUrlLocal(m) {
+    if (!m) return '';
+    var u = (m.url_camara || '').trim();
+    if (!u && m.urls_camaras && m.urls_camaras.length && m.urls_camaras[0]) {
+        var first = m.urls_camaras[0];
+        u = (first && typeof first === 'object' && first.url) ? String(first.url).trim() : (typeof first === 'string' ? String(first).trim() : '');
+    }
+    return u || '';
+}
+function dcAbrirStreamMesaIcon(ev, enc) {
+    if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+    try {
+        var u = decodeURIComponent(enc || '');
+        if (u) window.open(u, '_blank', 'noopener,noreferrer');
+    } catch (e) {}
+}
+
+function actualizarReloj() {
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    var el = document.getElementById('header-reloj');
+    if (el) el.textContent = (h<10?'0':'')+h + ':' + (m<10?'0':'')+m + ':' + (s<10?'0':'')+s;
+}
+
+function getSalonTarifas() {
+    return (salonConfig && salonConfig.tarifas) || {};
+}
+
+function _tl() {
+    return window.__DC_TARIFAS;
+}
+
+function parseHMToMinutes(s) {
+    var L = _tl();
+    return L ? L.parseHMToMinutes(s) : 0;
+}
+
+function tarifaBasePorHora(mesa, when) {
+    var L = _tl();
+    var th = parseFloat(mesa.tarifa_hora) || 0;
+    if (!L) return th;
+    return L.tarifaBasePorHora(th, getSalonTarifas(), when);
+}
+
+function descuentoPctAplicable(when) {
+    var L = _tl();
+    if (!L) return 0;
+    return L.descuentoPctAplicable(getSalonTarifas(), when);
+}
+
+function tarifaEfectivaPorHora(mesa, when) {
+    var L = _tl();
+    var th = parseFloat(mesa.tarifa_hora) || 0;
+    if (!L) return th;
+    return L.tarifaEfectivaPorHora(th, getSalonTarifas(), when);
+}
+
+function costoSesionProporcionalMinutos(mesa, inicioMs, finMs) {
+    var L = _tl();
+    var th = parseFloat(mesa.tarifa_hora) || 0;
+    if (!L) return 0;
+    return L.costoSesionProporcionalMinutos(th, getSalonTarifas(), inicioMs, finMs);
+}
+
+async function cargarDatos() {
+    await _tarifasReady;
+    var api = await _clubApi();
+    var clubId = getClubId();
+    salonConfig = { nombre_salon: 'Salón', filas: 2, columnas: 4, tarifas: {} };
+    var salonId = null;
+    if (clubId) {
+        var cfgR = await api.getFirstMesasConfigByClubId(clubId);
+        var row = cfgR.data;
+        if (row) {
+            salonId = row.id;
+            salonConfig = {
+                nombre_salon: row.nombre_salon || 'Salón',
+                filas: row.filas != null ? row.filas : 2,
+                columnas: row.columnas != null ? row.columnas : 4,
+                apertura: row.apertura,
+                cierre: row.cierre,
+                moneda: row.moneda,
+                tarifas: row.tarifas || {},
+                salon_id: row.id,
+                layout_filas: row.layout_filas,
+                metraje: row.metraje
+            };
+        }
+    }
+    document.getElementById('lbl-salon').textContent = salonConfig.nombre_salon || 'Salón';
+
+    var list;
+    if (salonId) {
+        var lr = await api.listMesasBySalonId(salonId);
+        list = lr.data;
+    } else if (clubId) {
+        var lr2 = await api.listMesas(clubId, { orderBy: 'numero' });
+        list = lr2.data;
+    } else {
+        var lr3 = await api.listMesasLimited(50);
+        list = lr3.data;
+    }
+    mesasLista = (list || []).slice(0, 200);
+    mesasLista.sort(function(a,b){ return (a.numero||0) - (b.numero||0); });
+
+    sesionesAbiertas = {};
+    var idSet = {};
+    mesasLista.forEach(function (mm) { idSet[mm.id] = true; });
+    var histR = await api.listMesasHistorialAbierta(clubId || null);
+    var hist = histR.data;
+    if (hist && hist.length) {
+        hist.forEach(function (h) {
+            if (!idSet[h.mesa_id]) return;
+            sesionesAbiertas[h.mesa_id] = { inicio: h.inicio_sesion, jugador_nombre: h.jugador_nombre || '', id: h.id };
+        });
+    }
+}
+
+function parseLayoutFilasStr(raw) {
+    if (!raw || !String(raw).trim()) return null;
+    var arr = String(raw).split(/[\s,;]+/).map(function(x) { return parseInt(x, 10); }).filter(function(n) { return n > 0; });
+    return arr.length ? arr : null;
+}
+
+function layoutPctDefault(i) {
+    var col = i % 4, row = Math.floor(i / 4);
+    return { x: 14 + col * 20, y: 16 + row * 22 };
+}
+
+function celdaMesaHtml(m, animDelaySec) {
+    var estado = (m.estado || 'libre').toLowerCase().replace(' ', '_');
+    if (estado === 'fuera') estado = 'fuera_servicio';
+    var sesion = sesionesAbiertas[m.id];
+    var crono = '', costo = '', emoji = '🟢';
+    if (estado === 'ocupada' && sesion) {
+        var inicio = new Date(sesion.inicio).getTime();
+        var seg = Math.floor((Date.now() - inicio) / 1000);
+        var h = Math.floor(seg/3600), min = Math.floor((seg%3600)/60), s = seg%60;
+        crono = (h?h+':':'') + (min<10?'0':'')+min + ':' + (s<10?'0':'')+s;
+        costo = '$' + Math.round(costoSesionProporcionalMinutos(m, inicio, Date.now()));
+        emoji = '🔴';
+    }
+    if (estado === 'reservada') emoji = '🟡';
+    if (estado === 'mantenimiento') emoji = '🔵';
+    if (estado === 'fuera_servicio') emoji = '⚫';
+    var delayAttr = (typeof animDelaySec === 'number') ? ' style="animation-delay:' + animDelaySec + 's"' : '';
+    var su = getStreamUrlLocal(m);
+    var camCls = 'mesa-cam-icon' + (su ? '' : ' inactiva');
+    var camOn = su ? ' onclick="dcAbrirStreamMesaIcon(event, \'' + encodeURIComponent(su) + '\')"' : '';
+    var html = '<div class="mesa-celda luz-mesa estado-' + estado + '"' + delayAttr + ' data-id="' + m.id + '" onclick="abrirModal(\'' + m.id + '\')">';
+    html += '<span class="' + camCls + '" title="' + (su ? 'Ver stream' : 'Sin cámara') + '"' + camOn + '>📹</span>';
+    html += '<span class="emoji-estado">' + emoji + '</span>';
+    html += '<span class="nom">' + (m.nombre || m.numero) + '</span>';
+    html += '<span class="tipo">' + (m.tipo_instalacion || '') + '</span>';
+    if (crono) html += '<span class="crono">' + crono + '</span>';
+    if (costo) html += '<span class="costo">' + costo + '</span>';
+    if (sesion && sesion.jugador_nombre) html += '<span class="tipo">' + sesion.jugador_nombre + '</span>';
+    html += '</div>';
+    return html;
+}
+
+function celdaMesaHtmlMapa(m, i) {
+    var px = parseFloat(m.posicion_x);
+    var py = parseFloat(m.posicion_y);
+    if (isNaN(px) || isNaN(py) || (Math.abs(px) < 0.01 && Math.abs(py) < 0.01)) {
+        var d = layoutPctDefault(i);
+        px = d.x;
+        py = d.y;
+    }
+    var estado = (m.estado || 'libre').toLowerCase().replace(' ', '_');
+    if (estado === 'fuera') estado = 'fuera_servicio';
+    var sesion = sesionesAbiertas[m.id];
+    var crono = '', costo = '', emoji = '🟢';
+    if (estado === 'ocupada' && sesion) {
+        var inicio = new Date(sesion.inicio).getTime();
+        var seg = Math.floor((Date.now() - inicio) / 1000);
+        var h = Math.floor(seg/3600), min = Math.floor((seg%3600)/60), s = seg%60;
+        crono = (h?h+':':'') + (min<10?'0':'')+min + ':' + (s<10?'0':'')+s;
+        costo = '$' + Math.round(costoSesionProporcionalMinutos(m, inicio, Date.now()));
+        emoji = '🔴';
+    }
+    if (estado === 'reservada') emoji = '🟡';
+    if (estado === 'mantenimiento') emoji = '🔵';
+    if (estado === 'fuera_servicio') emoji = '⚫';
+    var suM = getStreamUrlLocal(m);
+    var camClsM = 'mesa-cam-icon' + (suM ? '' : ' inactiva');
+    var camOnM = suM ? ' onclick="dcAbrirStreamMesaIcon(event, \'' + encodeURIComponent(suM) + '\')"' : '';
+    var html = '<div class="mesa-celda luz-mesa estado-' + estado + ' mesa-mapa-pos" data-mesa-id="' + m.id + '" style="left:' + px + '%;top:' + py + '%;" onclick="abrirModal(\'' + m.id + '\')">';
+    html += '<span class="mesa-grip" data-mesa-id="' + m.id + '" title="Arrastrar posición" style="position:absolute;left:2px;bottom:2px;font-size:0.42rem;opacity:0.55;cursor:grab;z-index:3;line-height:1;">⠿</span>';
+    html += '<span class="' + camClsM + '" title="' + (suM ? 'Ver stream' : 'Sin cámara') + '"' + camOnM + '>📹</span>';
+    html += '<span class="emoji-estado">' + emoji + '</span>';
+    html += '<span class="nom">' + (m.nombre || m.numero) + '</span>';
+    html += '<span class="tipo">' + (m.tipo_instalacion || '') + '</span>';
+    if (crono) html += '<span class="crono">' + crono + '</span>';
+    if (costo) html += '<span class="costo">' + costo + '</span>';
+    html += '</div>';
+    return html;
+}
+
+function bindMapaArrastre(cont) {
+    if (!cont || !cont.classList.contains('plano-mapa-abs')) return;
+    cont.querySelectorAll('.mesa-grip').forEach(function (grip) {
+        grip.addEventListener('pointerdown', function (ev) {
+            if (ev.button !== 0) return;
+            ev.stopPropagation();
+            ev.preventDefault();
+            mapaDrag.id = grip.getAttribute('data-mesa-id');
+            mapaDrag.ptr = ev.pointerId;
+            var el = cont.querySelector('.mesa-mapa-pos[data-mesa-id="' + mapaDrag.id + '"]');
+            try { if (el) el.setPointerCapture(ev.pointerId); } catch (e) {}
+        });
+    });
+    cont.addEventListener('pointermove', function (ev) {
+        if (!mapaDrag.id || mapaDrag.ptr !== ev.pointerId) return;
+        var rect = cont.getBoundingClientRect();
+        var px = ((ev.clientX - rect.left) / rect.width) * 100;
+        var py = ((ev.clientY - rect.top) / rect.height) * 100;
+        px = Math.max(3, Math.min(97, px));
+        py = Math.max(3, Math.min(97, py));
+        var el = cont.querySelector('.mesa-mapa-pos[data-mesa-id="' + mapaDrag.id + '"]');
+        if (el) {
+            el.style.left = px + '%';
+            el.style.top = py + '%';
+        }
+    });
+    cont.addEventListener('pointerup', function (ev) {
+        if (!mapaDrag.id || mapaDrag.ptr !== ev.pointerId) return;
+        var rect = cont.getBoundingClientRect();
+        var px = ((ev.clientX - rect.left) / rect.width) * 100;
+        var py = ((ev.clientY - rect.top) / rect.height) * 100;
+        px = Math.max(3, Math.min(97, px));
+        py = Math.max(3, Math.min(97, py));
+        var mid = mapaDrag.id;
+        mapaDrag.id = null;
+        mapaDrag.ptr = null;
+        _clubApi().then(function (api) {
+            return api.updateMesa(mid, {
+                posicion_x: Math.round(px * 1000) / 1000,
+                posicion_y: Math.round(py * 1000) / 1000,
+                updated_at: new Date().toISOString()
+            });
+        }).catch(function () {});
+        mesasLista.forEach(function (m) {
+            if (m.id === mid) {
+                m.posicion_x = px;
+                m.posicion_y = py;
+            }
+        });
+    });
+}
+
+function renderPlano() {
+    var cont = document.getElementById('plano_salon');
+    if (!cont) return;
+    if (vistaPlano === 'mapa' && mesasLista.length) {
+        cont.className = 'plano-salón plano-mapa-abs';
+        var mEl = document.getElementById('plano_metraje');
+        if (mEl) {
+            var met = salonConfig.metraje;
+            if (met && (met.ancho > 0 || met.largo > 0))
+                mEl.textContent = 'Metraje aprox.: ' + (met.ancho || 0) + ' m × ' + (met.largo || 0) + ' m';
+            else mEl.textContent = '';
+        }
+        var html = '';
+        for (var mi = 0; mi < mesasLista.length; mi++) {
+            html += celdaMesaHtmlMapa(mesasLista[mi], mi);
+        }
+        cont.innerHTML = html || '<div class="vacio">Sin mesas.</div>';
+        bindMapaArrastre(cont);
+        return;
+    }
+
+    cont.className = 'plano-salón';
+    var filasCfg = salonConfig.filas || 1;
+    var columnasCfg = salonConfig.columnas || 4;
+    var layoutPorFila = parseLayoutFilasStr(salonConfig.layout_filas);
+    var cantidad = mesasLista.length;
+
+    var mEl = document.getElementById('plano_metraje');
+    if (mEl) {
+        var met = salonConfig.metraje;
+        if (met && (met.ancho > 0 || met.largo > 0))
+            mEl.textContent = 'Metraje aprox.: ' + (met.ancho || 0) + ' m (ancho) × ' + (met.largo || 0) + ' m (fondo) — proporción del recuadro';
+        else mEl.textContent = '';
+    }
+    cont.style.aspectRatio = '';
+    cont.style.maxHeight = '';
+    var metPlano = salonConfig.metraje;
+    if (metPlano && metPlano.ancho > 0 && metPlano.largo > 0) {
+        cont.style.aspectRatio = String(metPlano.ancho) + ' / ' + String(metPlano.largo);
+        cont.style.maxHeight = 'min(70vh, 560px)';
+    }
+    var descEl = document.getElementById('plano_layout_desc');
+    if (descEl) {
+        if (layoutPorFila && layoutPorFila.length)
+            descEl.textContent = 'Disposición: ' + layoutPorFila.join(' + ') + ' mesas por fila (igual que al validar el layout).';
+        else
+            descEl.textContent = 'Cuadrícula: ' + filasCfg + ' filas × ' + columnasCfg + ' columnas · Guarda de nuevo en Configurar si usas “Layout por fila”.';
+    }
+
+    var html = '';
+    var idx = 0;
+    var animStagger = 0;
+    if (layoutPorFila && layoutPorFila.length && cantidad > 0) {
+        for (var r = 0; r < layoutPorFila.length && idx < cantidad; r++) {
+            html += '<div class="plano-fila">';
+            var cuantas = layoutPorFila[r];
+            for (var c = 0; c < cuantas && idx < cantidad; c++) {
+                var m = mesasLista[idx++];
+                html += celdaMesaHtml(m, animStagger);
+                animStagger += 0.07;
+            }
+            html += '</div>';
+        }
+    } else {
+        for (var f = 0; f < filasCfg && idx < cantidad; f++) {
+            html += '<div class="plano-fila">';
+            for (var c = 0; c < columnasCfg && idx < cantidad; c++) {
+                var m2 = mesasLista[idx++];
+                html += celdaMesaHtml(m2, animStagger);
+                animStagger += 0.07;
+            }
+            html += '</div>';
+        }
+    }
+    var vacioTxt = 'Sin instalaciones. Configura en <strong>Configurar instalaciones</strong>.';
+    try {
+        var sp = new URLSearchParams(window.location.search);
+        if (sp.get('desde') === 'config' && cantidad === 0) {
+            vacioTxt =
+                'No aparecen mesas aún. Si acabas de guardar: recarga la página. Si sigue vacío, el <code>club_id</code> de tu sesión debe coincidir con las mesas en Supabase (revisa RLS). ' +
+                '<a href="mesas_config.html" style="color:#d4af37">Volver a configurar</a>';
+        }
+    } catch (e) {}
+    cont.innerHTML = html || '<div class="vacio">' + vacioTxt + '</div>';
+}
+
+function actualizarCronos() {
+    var needUpdate = false;
+    mesasLista.forEach(function(m){
+        if ((m.estado||'') !== 'ocupada') return;
+        if (sesionesAbiertas[m.id]) needUpdate = true;
+    });
+    if (needUpdate) renderPlano();
+}
+
+function abrirModal(mesaId) {
+    var m = mesasLista.find(function(x){ return x.id === mesaId; });
+    if (!m) return;
+    mesaSeleccionada = m;
+    var estado = (m.estado || 'libre').toLowerCase().replace(' ', '_');
+    if (estado === 'fuera') estado = 'fuera_servicio';
+    document.getElementById('modal_titulo').textContent = (m.nombre || m.numero) + ' · ' + (m.estado || 'libre').toUpperCase();
+    var sesion = sesionesAbiertas[m.id];
+    var acciones = document.getElementById('modal_acciones');
+    acciones.innerHTML = '';
+    if (estado === 'libre') {
+        acciones.innerHTML = '<button class="modal-btn abrir" onclick="accionMesa(\'abrir\')">▶ ABRIR SESIÓN</button>' +
+            '<button class="modal-btn reservar" onclick="accionMesa(\'reservar\')">📅 RESERVAR</button>' +
+            '<button class="modal-btn mant" onclick="accionMesa(\'mantenimiento\')">🔧 MANTENIMIENTO</button>' +
+            '<button class="modal-btn fuera" onclick="accionMesa(\'fuera_servicio\')">⚫ FUERA DE SERVICIO</button>';
+        var suLibre = (m.url_camara || '').trim();
+        if (!suLibre && m.urls_camaras && m.urls_camaras[0] && m.urls_camaras[0].url) suLibre = String(m.urls_camaras[0].url).trim();
+        if (suLibre) {
+            acciones.innerHTML += '<button type="button" class="modal-btn ficha" onclick="previsualizarCamaraMesa()">📹 PREVISUALIZAR CÁMARA</button>';
+        }
+        document.getElementById('modal_crono').textContent = '—';
+        document.getElementById('modal_costo').textContent = '';
+    } else if (estado === 'ocupada' && sesion) {
+        var inicio = new Date(sesion.inicio).getTime();
+        var seg = Math.floor((Date.now() - inicio) / 1000);
+        var h = Math.floor(seg/3600), min = Math.floor((seg%3600)/60), s = seg%60;
+        document.getElementById('modal_crono').textContent = (h?h+':':'') + (min<10?'0':'')+min + ':' + (s<10?'0':'')+s;
+        var cPro = costoSesionProporcionalMinutos(m, inicio, Date.now());
+        var ahora = new Date();
+        var te = tarifaEfectivaPorHora(m, ahora);
+        var dct = descuentoPctAplicable(ahora);
+        var linea = 'Costo (por minuto): $' + Math.round(cPro) + ' · Tarifa efectiva ahora: $' + Math.round(te) + '/h';
+        if (dct > 0) linea += ' (desc. ' + Math.round(dct) + '%)';
+        document.getElementById('modal_costo').textContent = linea;
+        acciones.innerHTML = '<button class="modal-btn cerrar" onclick="accionMesa(\'cerrar\')">⏹ CERRAR SESIÓN</button>';
+        var streamUrl = (m.url_camara || '').trim();
+        if (!streamUrl && m.urls_camaras && m.urls_camaras[0] && m.urls_camaras[0].url) streamUrl = String(m.urls_camaras[0].url).trim();
+        if (streamUrl) {
+            acciones.innerHTML += '<button type="button" class="modal-btn ficha" onclick="previsualizarCamaraMesa()">📹 PREVISUALIZAR CÁMARA</button>';
+        }
+    } else {
+        document.getElementById('modal_crono').textContent = '—';
+        document.getElementById('modal_costo').textContent = '';
+        acciones.innerHTML = '<button class="modal-btn libre" onclick="accionMesa(\'libre\')">✅ MARCAR LIBRE</button>';
+    }
+    acciones.innerHTML += '<button class="modal-btn ficha" onclick="irFicha()">📋 VER FICHA</button>';
+    document.getElementById('modal_mesa').classList.add('visible');
+}
+
+function cerrarModal() { document.getElementById('modal_mesa').classList.remove('visible'); mesaSeleccionada = null; }
+
+function mostrarModalTicketVirtual() {
+    var d = window._dcTicketCierre;
+    if (!d) return;
+    var m = d.m;
+    var mon = (salonConfig && salonConfig.moneda) ? String(salonConfig.moneda) : '$';
+    var body = 'DE CARAMBOLA — TICKET VIRTUAL\n';
+    body += '─────────────────────────\n';
+    body += 'Mesa: ' + (m.nombre || m.numero) + '\n';
+    body += 'Cliente: ' + (d.hist.jugador_nombre || '—') + '\n';
+    body += 'Inicio: ' + new Date(d.hist.inicio).toLocaleString('es') + '\n';
+    body += 'Cierre: ' + new Date().toLocaleString('es') + '\n';
+    body += 'Duración (h): ' + d.horas + '\n';
+    body += '─────────────────────────\n';
+    body += 'TOTAL A COBRAR: ' + mon + (Math.round(d.costo * 100) / 100) + '\n';
+    body += 'Liquidación por minuto (tarifas del salón en Supabase).\n';
+    var el = document.getElementById('modal_ticket_body');
+    if (el) el.textContent = body;
+    var mt = document.getElementById('modal_ticket_mesa');
+    if (mt) mt.classList.add('visible');
+}
+function cerrarModalTicket() {
+    var mt = document.getElementById('modal_ticket_mesa');
+    if (mt) mt.classList.remove('visible');
+    window._dcTicketCierre = null;
+}
+async function confirmarLiquidacionMesa() {
+    var d = window._dcTicketCierre;
+    if (!d) { cerrarModalTicket(); return; }
+    var m = d.m;
+    var hist = d.hist;
+    var inicio = new Date(hist.inicio).getTime();
+    var fin = Date.now();
+    var horas = (fin - inicio) / 3600000;
+    var costo = d.costo;
+    var tarifaSnap = d.tarifaSnap;
+    try {
+        var api = await _clubApi();
+        await api.updateMesasHistorialRow(hist.id, {
+            fin_sesion: new Date().toISOString(),
+            horas_reales: Math.round(horas * 100) / 100,
+            costo_total: costo,
+            tarifa_aplicada: tarifaSnap,
+            estado: 'cerrada'
+        });
+        var compR = await api.listInstalacionesComponentesByMesa(m.id);
+        var comps = compR.data || [];
+        for (var ci = 0; ci < comps.length; ci++) {
+            var c = comps[ci];
+            var actual = parseInt(c.horas_uso_actual, 10) || 0;
+            var nuevo = actual + Math.round(horas);
+            var opt = parseInt(c.horas_uso_optimo, 10) || 500,
+                al = parseInt(c.horas_uso_alerta, 10) || 800;
+            var est = nuevo >= al ? 'urgente' : nuevo >= opt ? 'desgaste' : 'optimo';
+            await api.updateInstalacionComponenteRow(c.id, { horas_uso_actual: nuevo, estado: est, updated_at: new Date().toISOString() });
+        }
+        await api.updateMesa(m.id, { estado: 'libre', updated_at: new Date().toISOString() });
+    } catch (e) { console.warn(e); }
+    delete sesionesAbiertas[m.id];
+    window._dcTicketCierre = null;
+    var mt = document.getElementById('modal_ticket_mesa');
+    if (mt) mt.classList.remove('visible');
+    cerrarModal();
+    refresh();
+}
+function previsualizarCamaraMesa() {
+    if (!mesaSeleccionada) return;
+    var m = mesaSeleccionada;
+    var u = (m.url_camara || '').trim();
+    if (!u && m.urls_camaras && m.urls_camaras[0] && m.urls_camaras[0].url) u = String(m.urls_camaras[0].url).trim();
+    if (!u) return;
+    try { window.open(u, '_blank', 'noopener,noreferrer'); } catch (e) { location.href = u; }
+}
+function irFicha() { if (mesaSeleccionada) location.href = 'instalacion_ficha.html?id=' + encodeURIComponent(mesaSeleccionada.id); cerrarModal(); }
+
+function accionMesa(accion) {
+    if (!mesaSeleccionada) return;
+    var m = mesaSeleccionada;
+    if (accion === 'abrir') {
+        var nombre = (prompt('Nombre del jugador o cliente:') || '').trim() || 'Cliente';
+        var inicio = new Date().toISOString();
+        _clubApi().then(function (api) {
+            return api.insertMesasHistorialRow({ mesa_id: m.id, club_id: getClubId(), jugador_nombre: nombre, inicio_sesion: inicio, estado: 'abierta' });
+        }).then(function (ins) {
+            var row = ins && ins.data;
+            var nuevoId = row && row.id ? row.id : null;
+            if (nuevoId) sesionesAbiertas[m.id] = { inicio: inicio, jugador_nombre: nombre, id: nuevoId };
+            return _clubApi().then(function (api2) {
+                return api2.updateMesa(m.id, { estado: 'ocupada', updated_at: new Date().toISOString() });
+            });
+        }).then(function () { refresh(); cerrarModal(); }).catch(function () {});
+    } else if (accion === 'cerrar') {
+        var hist = sesionesAbiertas[m.id];
+        if (!hist) { cerrarModal(); return; }
+        var inicio = new Date(hist.inicio).getTime();
+        var fin = Date.now();
+        var horas = (fin - inicio) / 3600000;
+        var L = _tl();
+        var costo = L
+            ? L.calcularTotal(hist.inicio, fin, getSalonTarifas(), parseFloat(m.tarifa_hora) || 0).total
+            : costoSesionProporcionalMinutos(m, inicio, fin);
+        var tarifaSnap = L
+            ? L.construirTarifaSnapCierre(hist.inicio, new Date().toISOString(), parseFloat(m.tarifa_hora) || 0, getSalonTarifas())
+            : {
+                  metodo: 'proporcional_minuto',
+                  inicio_iso: hist.inicio,
+                  fin_iso: new Date().toISOString(),
+                  minutos: Math.round((fin - inicio) / 60000 * 100) / 100,
+                  total: Math.round(costo * 100) / 100,
+              };
+        (async function () {
+            try {
+                var api = await _clubApi();
+                await api.updateMesasHistorialRow(hist.id, {
+                    fin_sesion: new Date().toISOString(),
+                    horas_reales: Math.round(horas * 100) / 100,
+                    costo_total: costo,
+                    tarifa_aplicada: tarifaSnap,
+                    estado: 'cerrada'
+                });
+                var compR = await api.listInstalacionesComponentesByMesa(m.id);
+                var comps = compR.data || [];
+                for (var ci = 0; ci < comps.length; ci++) {
+                    var c = comps[ci];
+                    var actual = parseInt(c.horas_uso_actual, 10) || 0;
+                    var nuevo = actual + Math.round(horas);
+                    var opt = parseInt(c.horas_uso_optimo, 10) || 500,
+                        alrt = parseInt(c.horas_uso_alerta, 10) || 800;
+                    var est = nuevo >= alrt ? 'urgente' : (nuevo >= opt ? 'desgaste' : 'optimo');
+                    await api.updateInstalacionComponenteRow(c.id, { horas_uso_actual: nuevo, estado: est, updated_at: new Date().toISOString() });
+                }
+                await api.updateMesa(m.id, { estado: 'libre', updated_at: new Date().toISOString() });
+            } catch (e) { console.warn(e); }
+            refresh(); cerrarModal();
+        })();
+    } else if (['mantenimiento','reservada','fuera_servicio','libre'].indexOf(accion) >= 0) {
+        _clubApi().then(function (api) {
+            return api.updateMesa(m.id, { estado: accion, updated_at: new Date().toISOString() });
+        }).then(function () { refresh(); cerrarModal(); }).catch(function () {});
+    } else if (accion === 'reservar') {
+        var nombreR = (prompt('Nombre para la reserva:') || '').trim() || 'Reserva';
+        var clubId = getClubId();
+        var ahora = new Date();
+        var duracionMin = 60;
+        _clubApi().then(function (api) {
+            return api.insertMesasReservaRow({
+                mesa_id: m.id,
+                club_id: clubId,
+                jugador_nombre: nombreR,
+                fecha_reserva: ahora.toISOString(),
+                duracion_minutos: duracionMin,
+                estado: 'pendiente',
+                notas: 'Reserva creada desde Salón en vivo'
+            });
+        }).then(function () {
+            return _clubApi().then(function (api2) {
+                return api2.updateMesa(m.id, { estado: 'reservada', updated_at: new Date().toISOString() });
+            });
+        }).then(function () { refresh(); cerrarModal(); }).catch(function () {});
+    }
+}
+
+function bindMapaToolbar() {
+    if (window._dcBindMapaTb) return;
+    window._dcBindMapaTb = true;
+    var g = document.getElementById('btn_vista_grid');
+    var map = document.getElementById('btn_vista_mapa');
+    if (!g || !map) return;
+    g.onclick = function () {
+        vistaPlano = 'grid';
+        g.classList.add('on');
+        map.classList.remove('on');
+        renderPlano();
+    };
+    map.onclick = function () {
+        vistaPlano = 'mapa';
+        map.classList.add('on');
+        g.classList.remove('on');
+        renderPlano();
+    };
+}
+
+async function refresh() {
+    await cargarDatos();
+    renderPlano();
+    countdownSegundos = 30;
+    var info = document.getElementById('actualizar_info');
+    if (info) info.textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es');
+}
+
+function tickCountdown() {
+    var el = document.getElementById('header-countdown');
+    if (window._dcSalaRtUnsub) {
+        if (el) el.textContent = 'En vivo · Supabase (mesas + historial)';
+        return;
+    }
+    countdownSegundos--;
+    if (el) el.textContent = 'Respaldo en ' + countdownSegundos + 's';
+    if (countdownSegundos <= 0) {
+        countdownSegundos = 30;
+        refresh();
+    }
+}
+
+window.__salaBoot = function() {
+    var logoEl = document.getElementById('header-logo');
+    if (typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) { if (logoEl) logoEl.innerHTML = MasterVIP.getLogoHTML(40); }
+    else if (logoEl) logoEl.innerHTML = '<span style="font-size:1.5rem;">🎱</span>';
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
+
+    function iniciarOperacionSalon() {
+        var tb = document.getElementById('plano_mapa_toolbar');
+        var cid = getClubId();
+        if (cid) {
+            import('./js/sala-supabase-realtime.js')
+                .then(function (mod) {
+                    if (window._dcSalaRtUnsub) {
+                        try { window._dcSalaRtUnsub(); } catch (eU) {}
+                    }
+                    window._dcSalaRtUnsub = mod.subscribeClubSalonRealtime(cid, function () {
+                        clearTimeout(window._dcSalaRtDebounce);
+                        window._dcSalaRtDebounce = setTimeout(function () { refresh(); }, 450);
+                    });
+                })
+                .catch(function () {});
+        }
+        refresh().then(function () {
+            if (tb) tb.style.display = mesasLista && mesasLista.length ? 'flex' : 'none';
+            bindMapaToolbar();
+        });
+        intervaloCrono = setInterval(actualizarCronos, 1000);
+        intervaloRefresh = setInterval(tickCountdown, 1000);
+    }
+
+    var chk = window.DC_mesasOperacionCheckOnboarding ? window.DC_mesasOperacionCheckOnboarding() : Promise.resolve({ ok: true });
+    chk.then(function (r) {
+        if (!r.ok) {
+            window.DC_mesasOperacionMostrarGate({
+                mensaje: r.mensaje,
+                hrefConfig: 'mesas_config.html',
+                hrefTarifas: 'apps/club/sala/tarifas_salon.html',
+            });
+            return;
+        }
+        iniciarOperacionSalon();
+    }).catch(function () {
+        iniciarOperacionSalon();
+    });
+};
+window.onbeforeunload = function() { if (intervaloRefresh) clearInterval(intervaloRefresh); if (intervaloCrono) clearInterval(intervaloCrono); };
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+<script type="module">
+import { guardSalaPage } from './js/sala-supabase-gate.js';
+await guardSalaPage({ pageTitle: 'Salón en vivo' });
+</script>
+
+</body>
+</html>

@@ -1,6 +1,7 @@
 /* ============================================================
    SESSION — Panel del club y visibilidad admin
    DeCarambola · Requiere core.js (SESSION, DB)
+   Supabase Auth (sesión JWT): ver js/auth-manager.js (requireAuth, getRole, getClubId).
    ============================================================ */
 
 (function() {

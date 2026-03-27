@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script type="module">
+      import { getSession, getRole } from '/js/auth-manager.js';
+      const s = await getSession();
+      if (!s?.data) window.location.replace('/auth.html');
+      const r = await getRole();
+      if (r?.data !== 'superadmin') window.location.replace('/auth.html');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#e74c3c">
@@ -135,6 +142,7 @@
         <p>Herramientas de <strong style="color:#aaa;">plataforma</strong>: atender, reproducir y documentar — no es la lista de deseos del producto.</p>
         <nav class="hero-nav" aria-label="Salir del backoffice">
             <a href="../index.html">← Inicio público (apps)</a>
+            <a href="/auth.html">Cerrar sesión</a>
         </nav>
     </header>
 

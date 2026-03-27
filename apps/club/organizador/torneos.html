@@ -234,7 +234,7 @@
         }
         .btn-nav:active { border-color:var(--oro); color:var(--oro); }
     </style>
-    <link rel="stylesheet" href="../../../css/ux-shell.css">
+    <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
 
@@ -256,8 +256,8 @@
         <a href="torneo_crear.html" class="btn-hdr">Nuevo torneo</a>
         <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
         <a href="control_torneo.html" class="btn-hdr">Control torneo</a>
-        <a href="../../../club/index.html" class="btn-hdr">Portal club</a>
-        <a href="../../../index.html" class="btn-hdr">Inicio app</a>
+        <a href="/club/index.html" class="btn-hdr">Portal club</a>
+        <a href="/index.html" class="btn-hdr">Inicio app</a>
     </div>
 </div>
 
@@ -287,12 +287,12 @@
 </div>
 
 <div class="nav-bottom">
-    <a href="../../../index.html" class="btn-nav"><span>🏠</span><span>INICIO</span></a>
-    <a href="../../../ranking.html" class="btn-nav"><span>📊</span><span>RANKING</span></a>
+    <a href="/index.html" class="btn-nav"><span>🏠</span><span>INICIO</span></a>
+    <a href="/ranking.html" class="btn-nav"><span>📊</span><span>RANKING</span></a>
     <a href="inscripciones.html" class="btn-nav"><span>🎫</span><span>INSCRIPCIONES</span></a>
 </div>
 
-<script src="../../../core.js"></script>
+<script src="/core.js"></script>
 <script>
 var _torneos = [];
 var _torneosFiltrados = [];
@@ -324,12 +324,10 @@ window.onload = async function () {
 };
 
 async function cargarTorneos() {
-    // Intentar usar Supabase directamente para muro público
     try {
-            var rows = await DB._fetch(
-            'torneos?select=id,nombre,codigo,club_id,modalidad,sistema,estado,fecha_inicio,inscripcion,cupo_max,visible_muro,ciudad,lugar_encuentro&order=fecha_inicio.desc',
-            { headers:{ 'Accept':'application/json' } }
-        );
+        var tmod = await import('/js/api/torneo-api.js');
+        var tmr = await tmod.listTorneosMuroPublico();
+        var rows = tmr.data;
         if (rows && rows.length) {
             _torneos = rows.map(function(t) {
                 return {
@@ -396,9 +394,9 @@ async function prepararFiltros() {
     });
 
     try {
-        var rows = typeof DB !== 'undefined' && DB._fetch
-            ? await DB._fetch('clubs?activo=eq.true&select=id,nombre,ciudad&order=nombre', { headers: { 'Accept': 'application/json' } })
-            : null;
+        var cmod = await import('/js/api/club-api.js');
+        var cr = await cmod.listClubsActivos();
+        var rows = cr.data;
         if (rows && rows.length) {
             rows.forEach(function(c) {
                 clubesPorId[c.id] = c.nombre || c.id;
@@ -564,7 +562,7 @@ function irAInscripcion(torneoId) {
     location.href = 'inscripciones.html';
 }
 </script>
-<script src="../../../whitelabel.js"></script>
+<script src="/whitelabel.js"></script>
 
 <script>
 (function () {

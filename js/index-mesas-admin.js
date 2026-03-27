@@ -140,9 +140,10 @@ async function ensureAccess() {
     return false;
   }
 
+  /* Solo columnas que existen en public.profiles (el email vive en auth.users, no duplicar en SELECT). */
   const { data: prof, error: eProf } = await supabase
     .from('profiles')
-    .select('id, email, role, club_id')
+    .select('id, role, club_id')
     .eq('id', session.user.id)
     .maybeSingle();
 
@@ -176,7 +177,7 @@ async function ensureAccess() {
 
   perfilActual = {
     id: prof.id,
-    email: prof.email || session.user.email,
+    email: session.user.email || null,
     role: role,
     club_id: prof.club_id ? String(prof.club_id).trim() : null
   };

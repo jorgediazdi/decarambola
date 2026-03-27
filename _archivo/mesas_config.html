@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
+    <title>Configurar instalaciones — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:120px; }
+
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; position:sticky; top:0; z-index:50; flex-wrap:wrap; }
+        .header-titulo { color:#d4af37; font-size:0.95rem; letter-spacing:3px; }
+        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+        .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
+
+        .wrap { max-width:500px; margin:0 auto; padding:16px 18px; position:relative; z-index:40; }
+
+        .wizard-steps { display:flex; gap:4px; margin-bottom:20px; }
+        .wizard-dot { flex:1; height:6px; border-radius:3px; background:var(--g1); transition:0.3s; cursor:pointer; touch-action:manipulation; }
+        .wizard-dot.activo { background:var(--oro); }
+        .wizard-dot.hecho { background:var(--neon); opacity:0.6; }
+
+        .paso { display:none; }
+        .paso.activo { display:block; }
+
+        .sec-titulo { color:#666; font-size:0.5rem; letter-spacing:3px; margin:16px 0 10px; }
+        .campo { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:12px 14px; margin-bottom:10px; }
+        .campo label { display:block; color:#555; font-size:0.48rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+        .campo input, .campo select { width:100%; background:transparent; border:none; border-bottom:1px solid var(--g1); color:#fff; font-size:1rem; padding:6px 0; outline:none; font-family:'Arial Black',sans-serif; }
+        .campo-ayuda { font-size:0.58rem; color:#666; margin-top:8px; line-height:1.35; letter-spacing:0.5px; }
+        .campo-doble { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+        .chip-sug { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+        .chip-sug span { background:var(--g3); border:1px solid var(--g1); border-radius:10px; padding:6px 12px; font-size:0.55rem; color:#888; cursor:pointer; }
+        .chip-sug span:active { border-color:var(--oro); color:var(--oro); }
+
+        .comp-fila { display:grid; grid-template-columns:1fr 1fr 80px 80px auto; gap:8px; align-items:center; margin-bottom:8px; font-size:0.55rem; }
+        .comp-fila input, .comp-fila select { padding:6px; border-radius:8px; border:1px solid var(--g1); background:var(--g3); color:#fff; }
+        .btn-quitar { background:none; border:none; color:var(--rojo); cursor:pointer; padding:4px; font-size:1rem; }
+
+        .preview-plano { background:var(--g2); border:2px solid var(--oro); border-radius:18px; padding:16px; margin:14px 0; min-height:180px; display:flex; flex-direction:column; gap:8px; align-items:stretch; }
+        .preview-fila { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:100%; }
+        .preview-plano.layout-horizontal .preview-fila { justify-content:flex-start; }
+        .preview-plano.layout-vertical .preview-fila { justify-content:center; }
+        .preview-plano.layout-vertical { align-items:center; }
+        .preview-celda { width:56px; height:56px; border-radius:12px; background:rgba(212,175,55,0.15); border:2px solid var(--oro); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:0.5rem; color:var(--oro); text-align:center; padding:4px; animation:preview-luz 2.5s ease-in-out infinite; }
+        @keyframes preview-luz { 0%, 100% { box-shadow:0 0 6px rgba(212,175,55,0.25); } 50% { box-shadow:0 0 14px rgba(212,175,55,0.5), 0 0 22px rgba(46,204,113,0.12); } }
+        .preview-celda .nom { font-size:0.85rem; font-weight:bold; color:var(--oro); }
+        .preview-celda:hover { background:rgba(212,175,55,0.25); border-color:var(--oro); }
+        .layout-btns { display:flex; flex-wrap:wrap; gap:10px; margin:14px 0 12px; position:relative; z-index:8; }
+        .layout-btns__tit { width:100%; font-size:0.52rem; letter-spacing:0.14em; color:#888; margin-bottom:2px; }
+        .layout-btns button { flex:1 1 140px; min-height:56px; padding:10px 12px; border-radius:12px; border:1px solid var(--g1); background:var(--g3); color:#b0b0b0; font-size:0.52rem; cursor:pointer; font-family:'Arial Black',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(212,175,55,0.25); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center; line-height:1.25; }
+        .layout-btns button .layout-btn-sub { font-size:0.48rem; color:#666; font-weight:normal; letter-spacing:0.06em; text-transform:none; }
+        .layout-btns button.layout-btn--activo { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.14); box-shadow:0 0 0 1px rgba(212,175,55,0.25); }
+        .layout-btns button.layout-btn--activo .layout-btn-sub { color:rgba(212,175,55,0.9); }
+        .paso3-guia { font-size:0.62rem; color:#aaa; line-height:1.5; margin-bottom:12px; padding:14px; background:var(--g3); border-radius:14px; border:1px solid var(--g1); }
+        .paso3-guia strong { color:var(--oro); }
+        .paso3-pasos { margin:10px 0 0 1.1rem; padding:0; }
+        .paso3-pasos li { margin-bottom:8px; }
+        .preview-vacio-msj { margin:auto; padding:24px 16px; text-align:center; color:#666; font-size:0.58rem; line-height:1.45; max-width:280px; }
+
+        .promo-fila { display:grid; grid-template-columns:1fr 80px 1fr auto; gap:8px; align-items:center; margin-bottom:8px; font-size:0.55rem; }
+        .promo-fila input { padding:6px; border-radius:8px; border:1px solid var(--g1); background:var(--g3); color:#fff; }
+        .desc-franja-fila { display:grid; grid-template-columns:1fr 1fr 72px auto; gap:8px; align-items:center; margin-bottom:8px; font-size:0.55rem; }
+        .desc-franja-fila input { padding:6px; border-radius:8px; border:1px solid var(--g1); background:var(--g3); color:#fff; }
+        .desc-dia-fila { background:var(--g3); border:1px solid var(--g1); border-radius:12px; padding:10px; margin-bottom:10px; font-size:0.52rem; }
+        .desc-dia-fila .dias-chk { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
+        .desc-dia-fila .dias-chk label { color:#888; cursor:pointer; }
+        .info-tarifa { font-size:0.58rem; color:#888; line-height:1.45; margin-bottom:12px; padding:10px; background:var(--g3); border-radius:12px; border:1px solid var(--g1); }
+
+        .btn-paso { width:100%; padding:16px; margin-top:16px; background:linear-gradient(135deg,var(--oro),#a07800); color:#000; border:none; border-radius:16px; font-size:0.9rem; font-weight:bold; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:2px; position:relative; z-index:8; touch-action:manipulation; -webkit-tap-highlight-color:rgba(212,175,55,0.35); }
+        .btn-paso.sec { background:var(--g3); color:#b8b8b8; border:1px solid var(--g1); z-index:8; }
+        /* Paso 1 → 2: por encima de cualquier capa residual (gate antiguo, header, iOS) */
+        #btn-paso1-siguiente,
+        #btn-paso2-siguiente,
+        #btn-paso3-siguiente {
+            position: relative;
+            z-index: 9999;
+            pointer-events: auto !important;
+            touch-action: manipulation;
+        }
+        .paso2-info {
+            font-size: 0.58rem;
+            color: #888;
+            line-height: 1.45;
+            margin: 10px 0 14px;
+            padding: 12px 14px;
+            background: var(--g3);
+            border-radius: 12px;
+            border: 1px solid var(--g1);
+            letter-spacing: 0.04em;
+        }
+        .paso2-info strong { color: #c9a227; font-weight: 700; }
+        .paso2-info code { color: #666; font-size: 0.9em; }
+        .vacio { text-align:center; color:#444; font-size:0.6rem; padding:20px; }
+        #err-paso1 { display:none; margin:12px 0; padding:12px 14px; border-radius:12px; border:1px solid rgba(231,76,60,0.45); background:rgba(231,76,60,0.12); color:#e88; font-size:0.62rem; line-height:1.4; letter-spacing:0.04em; }
+        .dc-mesas-atajo { margin-top:14px; padding:12px; border-radius:12px; border:1px dashed rgba(212,175,55,0.35); font-size:0.55rem; color:#666; line-height:1.45; }
+        .dc-mesas-atajo a { color:var(--oro); cursor:pointer; text-decoration:underline; }
+    </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"Arial Black",Arial,sans-serif!important;}</style>
+    <style>
+        body.dc-ux.dc-ux-skin.m-root-salon #contenido-principal.wrap {
+            position: relative;
+            z-index: 100 !important;
+            isolation: isolate;
+        }
+        body.dc-ux.dc-ux-skin.m-root-salon #paso4.paso.activo {
+            position: relative;
+            z-index: 2;
+        }
+        body.dc-ux.dc-ux-skin.m-root-salon #btn_guardar {
+            position: relative !important;
+            z-index: 999 !important;
+            pointer-events: auto !important;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body class="dc-ux dc-ux-skin m-root-salon">
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+
+<div class="header">
+    <div>
+        <div class="header-titulo">CONFIGURAR INSTALACIONES</div>
+        <div class="header-sub" id="lbl-paso">Paso 1 · Datos del salón</div>
+    </div>
+    <div class="header-actions">
+        <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
+            <summary>Menú del club</summary>
+            <div class="jug-nav-fold__links">
+                <a href="socios.html">Jugadores</a>
+                <a href="mesas.html">Salón en vivo</a>
+                <a href="reservas_admin.html">Reservas</a>
+                <a href="reportes.html">Reportes</a>
+                <a href="apps/club/sala/tarifas_salon.html">Tarifas del salón</a>
+                <a href="club/index.html">Portal club</a>
+                <a href="index.html">Inicio app</a>
+            </div>
+        </details>
+    </div>
+</div>
+
+<div class="wrap" id="contenido-principal">
+    <div class="wizard-steps" id="wizard-steps-bar" role="tablist" aria-label="Pasos del asistente">
+        <div class="wizard-dot" id="wd1" role="button" tabindex="0" data-wizard-step="1" title="Paso 1"></div>
+        <div class="wizard-dot" id="wd2" role="button" tabindex="0" data-wizard-step="2" title="Paso 2"></div>
+        <div class="wizard-dot" id="wd3" role="button" tabindex="0" data-wizard-step="3" title="Paso 3"></div>
+        <div class="wizard-dot" id="wd4" role="button" tabindex="0" data-wizard-step="4" title="Paso 4"></div>
+    </div>
+
+    <div class="paso activo" id="paso1">
+        <div class="sec-titulo">DATOS DEL SALÓN</div>
+        <div class="campo">
+            <label>Nombre del salón *</label>
+            <input type="text" id="nombre_salon" value="Salón principal" placeholder="Ej: Salón principal" autocomplete="organization" oninput="actualizarPreview()">
+        </div>
+        <div class="campo-doble">
+            <div class="campo">
+                <label>Número de filas del plano</label>
+                <input type="number" id="filas" min="1" max="10" step="1" inputmode="numeric" value="2" oninput="actualizarPreview()" onblur="sanitizarEnteroPlano('filas',1,10)">
+                <div class="campo-ayuda">Escribe <strong>un solo número</strong> del 1 al 10 (no el rango “1-10”).</div>
+            </div>
+            <div class="campo">
+                <label>Número de columnas del plano</label>
+                <input type="number" id="columnas" min="1" max="12" step="1" inputmode="numeric" value="4" oninput="actualizarPreview()" onblur="sanitizarEnteroPlano('columnas',1,12)">
+                <div class="campo-ayuda">Escribe <strong>un solo número</strong> del 1 al 12 (no “1-12”; solo el número, ej. <strong>4</strong>).</div>
+            </div>
+        </div>
+        <div class="campo-doble">
+            <label style="grid-column:1/-1;color:#555;font-size:0.48rem;letter-spacing:2px;">METRAJE SALA (opcional — para visualizar)</label>
+            <div class="campo">
+                <label>Ancho (m)</label>
+                <input type="number" id="metraje_ancho" min="0" step="0.5" placeholder="Ej: 12" oninput="actualizarPreview()">
+            </div>
+            <div class="campo">
+                <label>Largo (m)</label>
+                <input type="number" id="metraje_largo" min="0" step="0.5" placeholder="Ej: 8" oninput="actualizarPreview()">
+            </div>
+        </div>
+        <div class="campo-doble">
+            <div class="campo">
+                <label>Horario apertura</label>
+                <input type="time" id="apertura" value="08:00">
+            </div>
+            <div class="campo">
+                <label>Horario cierre</label>
+                <input type="time" id="cierre" value="23:00">
+            </div>
+        </div>
+        <div class="campo">
+            <label>Moneda</label>
+            <select id="moneda">
+                <option value="COP">COP</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+            </select>
+        </div>
+        <div id="err-paso1" role="alert"></div>
+        <button type="button" class="btn-paso" id="btn-paso1-siguiente">SIGUIENTE →</button>
+        <div class="dc-mesas-atajo" id="dc-mesas-atajo-p1">
+            ¿No avanza el botón? <a href="#" id="dc-saltar-p2" role="button">Ir al paso 2</a>
+            · <a href="#" id="dc-saltar-p4" role="button">Ir al paso 4 (tarifas y guardar)</a>
+            · <a href="apps/club/sala/tarifas_salon.html">Solo editar tarifas</a>
+        </div>
+    </div>
+
+    <div class="paso" id="paso2">
+        <div class="sec-titulo">¿QUÉ SE JUEGA EN ESTAS MESAS?</div>
+        <div class="paso2-info" role="note">
+            <strong>Qué elegir:</strong>
+            <strong>POOL</strong> = billar con 6 hoyos (bolsillos).
+            <strong>3 BANDAS</strong> o <strong>CARAMBOLA</strong> = mesa sin hoyos; el disco rebota en las bandas (carambola).
+            <strong>SNOOKER</strong> = mesa grande con 6 hoyos estrechos y más bolas rojas.
+            Los demás chips son por si tenés <strong>ping pong, cancha</strong>, etc.
+            <br><br>
+            <strong>«Texto libre»</strong> = podés escribir a mano el nombre (ej. <code>LIBRE</code>) si no usás los botones.
+            <br><br>
+            <strong>Cámaras y TV para YouTube/OBS</strong> no se cargan acá: van en la <strong>ficha de cada mesa</strong> (portal) o «Ficha de instalación / cámaras». Abajo, «componentes» sirve para <strong>llevar cuenta de mantenimiento</strong> (paño, bandas, TV física…); agregamos sugeridos TV y cámara por si querés controlar horas de uso.
+            <br><br>
+            <strong>CRÍTICO / ESTÁNDAR / CONSUMIBLE:</strong> qué tan urgente es cambiar ese repuesto cuando suma horas (CRÍTICO = lo más importante, ej. paño).
+        </div>
+        <div class="campo">
+            <label>Tipo de juego o nombre de la mesa</label>
+            <input type="text" id="tipo_instalacion" placeholder="Tocá POOL, 3 BANDAS… o escribí acá" oninput="actualizarPreview()">
+            <div class="chip-sug" id="chips_tipo">
+                <span data-tipo="POOL" title="Billar 6 hoyos">POOL</span>
+                <span data-tipo="3 BANDAS" title="Carambola tres bandas">3 BANDAS</span>
+                <span data-tipo="CARAMBOLA" title="Igual que carambola / sin hoyos">CARAMBOLA</span>
+                <span data-tipo="SNOOKER" title="Mesa snooker">SNOOKER</span>
+                <span data-tipo="PING PONG" title="Mesa de tenis de mesa">PING PONG</span>
+                <span data-tipo="CANCHA">CANCHA</span>
+                <span data-tipo="PISTA">PISTA</span>
+            </div>
+        </div>
+        <div class="campo">
+            <label>Layout por fila (opcional)</label>
+            <input type="text" id="layout_filas" placeholder="Ej: 6, 3, 3 — una fila de 6 mesas, otra de 3, otra de 3" oninput="actualizarPreview(); actualizarCantidadDesdeLayout();">
+            <div style="font-size:0.65rem;color:#666;margin-top:6px;">Si lo dejas vacío se usa la cuadrícula Filas × Columnas de arriba. Con 6, 3, 3 tendrás 12 mesas numeradas en ese orden.</div>
+        </div>
+        <div class="campo-doble">
+            <div class="campo">
+                <label>Cantidad (1-50)</label>
+                <input type="number" id="cantidad" min="1" max="50" value="8" oninput="actualizarPreview()">
+            </div>
+            <div class="campo">
+                <label>Numeración inicial</label>
+                <input type="number" id="numeracion_inicial" min="1" value="1">
+            </div>
+        </div>
+        <div class="sec-titulo">COMPONENTES DE MANTENIMIENTO</div>
+        <div id="lista_componentes">
+            <div class="comp-fila">
+                <input type="text" placeholder="Nombre" value="Paño">
+                <select><option value="CRITICO">CRÍTICO</option><option value="ESTANDAR">ESTÁNDAR</option><option value="CONSUMIBLE">CONSUMIBLE</option></select>
+                <input type="number" placeholder="Óptimo" value="500">
+                <input type="number" placeholder="Alerta" value="800">
+                <button type="button" class="btn-quitar" onclick="quitarComp(this)">✕</button>
+            </div>
+            <div class="comp-fila">
+                <input type="text" placeholder="Nombre" value="Bandas">
+                <select><option value="CRITICO">CRÍTICO</option><option value="ESTANDAR" selected>ESTÁNDAR</option><option value="CONSUMIBLE">CONSUMIBLE</option></select>
+                <input type="number" placeholder="Óptimo" value="500">
+                <input type="number" placeholder="Alerta" value="800">
+                <button type="button" class="btn-quitar" onclick="quitarComp(this)">✕</button>
+            </div>
+            <div class="comp-fila">
+                <input type="text" placeholder="Nombre" value="Superficie">
+                <select><option value="CRITICO">CRÍTICO</option><option value="ESTANDAR" selected>ESTÁNDAR</option><option value="CONSUMIBLE">CONSUMIBLE</option></select>
+                <input type="number" placeholder="Óptimo" value="500">
+                <input type="number" placeholder="Alerta" value="800">
+                <button type="button" class="btn-quitar" onclick="quitarComp(this)">✕</button>
+            </div>
+            <div class="comp-fila">
+                <input type="text" placeholder="Nombre" value="Redes">
+                <select><option value="CRITICO">CRÍTICO</option><option value="ESTANDAR" selected>ESTÁNDAR</option><option value="CONSUMIBLE">CONSUMIBLE</option></select>
+                <input type="number" placeholder="Óptimo" value="500">
+                <input type="number" placeholder="Alerta" value="800">
+                <button type="button" class="btn-quitar" onclick="quitarComp(this)">✕</button>
+            </div>
+            <div class="comp-fila">
+                <input type="text" placeholder="Nombre" value="TV / pantalla">
+                <select><option value="CRITICO">CRÍTICO</option><option value="ESTANDAR" selected>ESTÁNDAR</option><option value="CONSUMIBLE">CONSUMIBLE</option></select>
+                <input type="number" placeholder="Óptimo" value="2000">
+                <input type="number" placeholder="Alerta" value="4000">
+                <button type="button" class="btn-quitar" onclick="quitarComp(this)">✕</button>
+            </div>
+            <div class="comp-fila">
+                <input type="text" placeholder="Nombre" value="Cámara (streaming)">
+                <select><option value="CRITICO">CRÍTICO</option><option value="ESTANDAR" selected>ESTÁNDAR</option><option value="CONSUMIBLE">CONSUMIBLE</option></select>
+                <input type="number" placeholder="Óptimo" value="2000">
+                <input type="number" placeholder="Alerta" value="4000">
+                <button type="button" class="btn-quitar" onclick="quitarComp(this)">✕</button>
+            </div>
+        </div>
+        <p class="campo-ayuda" style="margin-top:10px;">Bajá hasta el final: <strong style="color:var(--oro);">SIGUIENTE</strong> no exige llenar todo; con tocar un chip (ej. POOL) alcanza.</p>
+        <button type="button" class="btn-paso sec" style="margin-top:8px;" id="btn-agregar-componente">+ Agregar componente</button>
+        <button type="button" class="btn-paso sec" id="btn-paso2-atras">← ATRÁS</button>
+        <button type="button" class="btn-paso" id="btn-paso2-siguiente">SIGUIENTE →</button>
+    </div>
+
+    <div class="paso" id="paso3">
+        <div class="sec-titulo">PASO 3 · VISTA DEL PLANO (SOLO PREVIEW)</div>
+        <div class="paso3-guia">
+            <p style="margin:0 0 8px;"><strong>No se configura nada acá:</strong> es para que veas cómo se verán las mesas en pantalla. <strong>No hay que “crear”</strong> mesas en este recuadro ni arrastrar.</p>
+            <ol class="paso3-pasos">
+                <li>El <strong>número de mesas</strong> y el dibujo salen del <strong>paso 2</strong> (cantidad / layout) y del <strong>paso 1</strong> (filas × columnas del plano). Si el recuadro de abajo está vacío o raro, tocá <strong>← ATRÁS</strong> y revisá «Cantidad» (1–50) y tipo de instalación.</li>
+                <li><strong>Tocá</strong> uno de los tres botones: solo cambian <strong>cómo se ordenan</strong> las mismas cajas — en una fila, en una columna o en grilla. El que está en <strong>oro</strong> es el modo activo.</li>
+                <li>Cuando quieras seguir, tocá <strong>SIGUIENTE →</strong> para <strong>tarifas y guardar</strong> (ahí sí se guarda en el sistema).</li>
+            </ol>
+        </div>
+        <div class="layout-btns" role="group" aria-label="Cómo ordenar la vista del plano">
+            <span class="layout-btns__tit">ELEGÍ CÓMO VER LAS MESAS (TOCÁ UNO)</span>
+            <button type="button" data-layout="horizontal" id="layout-btn-h"><span>HORIZONTAL</span><span class="layout-btn-sub">Todas en una fila →</span></button>
+            <button type="button" data-layout="vertical" id="layout-btn-v"><span>VERTICAL</span><span class="layout-btn-sub">Una debajo de otra ↓</span></button>
+            <button type="button" data-layout="grid" id="layout-btn-g" class="layout-btn--activo"><span>GRID</span><span class="layout-btn-sub">Cuadrícula (como paso 2)</span></button>
+        </div>
+        <div id="metraje_label" style="font-size:0.7rem;color:var(--oro);margin-bottom:8px;display:none;"></div>
+        <div class="preview-plano layout-grid" id="preview_plano"></div>
+        <p class="campo-ayuda" style="margin-top:12px;">¿No ves números en el recuadro dorado? Volvé al <strong>paso 2</strong> con <strong>← ATRÁS</strong> y subí la <strong>cantidad</strong> o tocá un chip de tipo (ej. POOL).</p>
+        <button type="button" class="btn-paso sec" id="btn-paso3-atras">← ATRÁS</button>
+        <button type="button" class="btn-paso" id="btn-paso3-siguiente">SIGUIENTE → (TARIFAS Y GUARDAR)</button>
+    </div>
+
+    <div class="paso" id="paso4">
+        <div class="sec-titulo">TARIFAS Y PROMOCIONES</div>
+        <div class="info-tarifa">
+            <strong style="color:var(--oro);">Liquidación:</strong> el costo de cada sesión es <strong>(tarifa por hora efectiva ÷ 60) × minutos reales</strong>, con redondeo al centavo. Franjas: fin de semana → mañana (&lt;12h) → tarde (12h–20h laborable) → noche (≥20h) → tarifa hora / mesa. Los % de descuento aplican en cada minuto (el <strong>mayor %</strong> que coincida: global, franja u día).
+        </div>
+        <div class="campo">
+            <label>Tarifa por hora</label>
+            <input type="number" id="tarifa_hora" min="0" step="0.01" value="0" oninput="calcularMedia()">
+        </div>
+        <div class="campo">
+            <label>Tarifa media hora (editable)</label>
+            <input type="number" id="tarifa_media" min="0" step="0.01" value="0">
+        </div>
+        <div class="campo-doble">
+            <div class="campo">
+                <label>Tarifa mañana (antes 12h)</label>
+                <input type="number" id="tarifa_manana" min="0" step="0.01" value="0">
+            </div>
+            <div class="campo">
+                <label>Tarifa noche (después 20h)</label>
+                <input type="number" id="tarifa_noche" min="0" step="0.01" value="0">
+            </div>
+        </div>
+        <div class="campo">
+            <label>Tarifa tarde (12h–20h, lun–vie)</label>
+            <input type="number" id="tarifa_tarde" min="0" step="0.01" value="0">
+            <p class="campo-ayuda" style="margin-top:6px;">Si la dejás en 0, en esa franja aplica la tarifa por hora base (o la que corresponda según el orden de franjas arriba).</p>
+        </div>
+        <div class="campo">
+            <label>Tarifa fin de semana</label>
+            <input type="number" id="tarifa_finde" min="0" step="0.01" value="0">
+        </div>
+        <div class="sec-titulo">DESCUENTOS (%)</div>
+        <div class="campo">
+            <label>Descuento global (% sobre la tarifa vigente)</label>
+            <input type="number" id="desc_global_pct" min="0" max="100" step="1" value="0" placeholder="0">
+        </div>
+        <div class="sec-titulo" style="margin-top:8px;">Por franja horaria (mayor % gana si coincide la hora)</div>
+        <div id="lista_desc_franjas"></div>
+        <button type="button" class="btn-paso sec" style="margin-top:4px;" onclick="agregarDescFranja()">+ Franja horaria + % descuento</button>
+        <div class="sec-titulo" style="margin-top:14px;">Por días de la semana</div>
+        <div id="lista_desc_dias"></div>
+        <button type="button" class="btn-paso sec" style="margin-top:4px;" onclick="agregarDescDias()">+ Días de la semana + % descuento</button>
+        <div class="sec-titulo">PROMOCIONES</div>
+        <div id="lista_promos"></div>
+        <button type="button" class="btn-paso sec" style="margin-top:8px;" onclick="agregarPromo()">+ Agregar promoción</button>
+        <button type="button" class="btn-paso sec" id="btn-paso4-atras">← ATRÁS</button>
+        <button type="button" class="btn-paso" id="btn_guardar">💾 GUARDAR CONFIGURACIÓN</button>
+    </div>
+</div>
+
+<div id="aviso-restringido" class="aviso-salon-gate" style="display:none;max-width:500px;margin:0 auto;padding:20px 18px 40px;"></div>
+
+<script src="session.js"></script>
+<script>
+(function () {
+    function noop() {}
+    if (typeof window.actualizarPreview !== 'function') window.actualizarPreview = noop;
+    if (typeof window.sanitizarEnteroPlano !== 'function') window.sanitizarEnteroPlano = noop;
+    if (typeof window.calcularMedia !== 'function') window.calcularMedia = noop;
+    if (typeof window.actualizarCantidadDesdeLayout !== 'function') window.actualizarCantidadDesdeLayout = noop;
+    if (typeof window.quitarComp !== 'function') window.quitarComp = noop;
+    if (typeof window.agregarDescFranja !== 'function') window.agregarDescFranja = noop;
+    if (typeof window.agregarDescDias !== 'function') window.agregarDescDias = noop;
+    if (typeof window.agregarPromo !== 'function') window.agregarPromo = noop;
+
+    window.irPasoDirecto = function (n) {
+        var dest = document.getElementById('paso' + n);
+        if (!dest) return;
+        document.querySelectorAll('.paso').forEach(function (p) {
+            p.classList.remove('activo');
+        });
+        dest.classList.add('activo');
+        window.pasoActual = n;
+        var lbls = [
+            'Paso 1 · Datos del salón',
+            'Paso 2 · Tipo y componentes',
+            'Paso 3 · Plano en pantalla',
+            'Paso 4 · Tarifas',
+        ];
+        var lbl = document.getElementById('lbl-paso');
+        if (lbl) lbl.textContent = lbls[n - 1] || 'Paso ' + n;
+        document.querySelectorAll('.wizard-dot').forEach(function (d, i) {
+            d.classList.remove('activo', 'hecho');
+            if (i + 1 === n) d.classList.add('activo');
+            else if (i + 1 < n) d.classList.add('hecho');
+        });
+        try {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (e) {}
+        try {
+            if (typeof window.actualizarPreview === 'function') window.actualizarPreview();
+        } catch (eP) {}
+    };
+    function bindPaso1Btn() {
+        var btn = document.getElementById('btn-paso1-siguiente');
+        if (!btn || btn._dcP1Bound) return;
+        btn._dcP1Bound = true;
+        btn.addEventListener('click', function () {
+            try {
+                if (typeof window.DC_mesas_paso1_a_2 === 'function') {
+                    window.DC_mesas_paso1_a_2();
+                } else {
+                    window.irPasoDirecto(2);
+                }
+            } catch (e) {
+                console.warn('[mesas_config] paso1→2, uso atajo:', e);
+                window.irPasoDirecto(2);
+            }
+        });
+    }
+    function bindPasoNavBtn(btnId, destino, labelLog) {
+        var b = document.getElementById(btnId);
+        if (!b || b._dcNavBound) return;
+        b._dcNavBound = true;
+        b.addEventListener('click', function () {
+            try {
+                if (typeof window.irPaso === 'function') {
+                    window.irPaso(destino);
+                } else {
+                    window.irPasoDirecto(destino);
+                }
+            } catch (e) {
+                console.warn('[mesas_config] ' + labelLog + ':', e);
+                window.irPasoDirecto(destino);
+            }
+        });
+    }
+    function bindAtajos() {
+        var a2 = document.getElementById('dc-saltar-p2');
+        var a4 = document.getElementById('dc-saltar-p4');
+        if (a2) {
+            a2.addEventListener('click', function (e) {
+                e.preventDefault();
+                window.irPasoDirecto(2);
+            });
+        }
+        if (a4) {
+            a4.addEventListener('click', function (e) {
+                e.preventDefault();
+                window.irPasoDirecto(4);
+            });
+        }
+    }
+    function bindLayoutBtnsWizardBack() {
+        document.querySelectorAll('.layout-btns [data-layout]').forEach(function (b) {
+            if (b._dcLayBound) return;
+            b._dcLayBound = true;
+            b.addEventListener('click', function () {
+                var m = b.getAttribute('data-layout');
+                if (typeof window.setLayout === 'function') window.setLayout(m);
+            });
+        });
+        var ag = document.getElementById('btn-agregar-componente');
+        if (ag && !ag._dcAgBound) {
+            ag._dcAgBound = true;
+            ag.addEventListener('click', function () {
+                if (typeof window.agregarComponente === 'function') window.agregarComponente();
+            });
+        }
+        [['btn-paso2-atras', 1], ['btn-paso3-atras', 2], ['btn-paso4-atras', 3]].forEach(function (pair) {
+            var el = document.getElementById(pair[0]);
+            if (!el || el._dcBackBound) return;
+            el._dcBackBound = true;
+            el.addEventListener('click', function () {
+                var dest = pair[1];
+                if (typeof window.irPasoDirecto === 'function') window.irPasoDirecto(dest);
+                else if (typeof window.irPaso === 'function') window.irPaso(dest);
+            });
+        });
+        document.querySelectorAll('[data-wizard-step]').forEach(function (dot) {
+            if (dot._dcDotBound) return;
+            dot._dcDotBound = true;
+            function goStep() {
+                var n = parseInt(dot.getAttribute('data-wizard-step'), 10);
+                if (isNaN(n) || n < 1 || n > 4) return;
+                if (n === 1) {
+                    if (typeof window.irPasoDirecto === 'function') window.irPasoDirecto(1);
+                    return;
+                }
+                if (typeof window.irPaso === 'function') window.irPaso(n);
+                else if (typeof window.irPasoDirecto === 'function') window.irPasoDirecto(n);
+            }
+            dot.addEventListener('click', goStep);
+            dot.addEventListener('keydown', function (ev) {
+                if (ev.key === 'Enter' || ev.key === ' ') {
+                    ev.preventDefault();
+                    goStep();
+                }
+            });
+        });
+    }
+    function bindMesasConfigNav() {
+        bindPaso1Btn();
+        bindPasoNavBtn('btn-paso2-siguiente', 3, 'paso2→3');
+        bindPasoNavBtn('btn-paso3-siguiente', 4, 'paso3→4');
+        bindAtajos();
+        bindLayoutBtnsWizardBack();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindMesasConfigNav);
+    } else {
+        bindMesasConfigNav();
+    }
+})();
+</script>
+<script>
+(function () {
+    var o = document.getElementById('dc-sala-gate-overlay');
+    if (o) o.remove();
+})();
+var avisoRestringidoActivo = false;
+/**
+ * Por ahora: asistente visible sin exigir admin en localStorage (acceso alineado con sala-supabase-gate).
+ * Después: restricción con email/sesión — poner false y/o leer la misma política que guardSalaPage. Ver docs/ACCESO_SALA_ROADMAP.md
+ */
+var DC_SALA_OPEN_ACCESS = true;
+(function(){
+    var clubAdmin = localStorage.getItem('club_admin') === 'true';
+    var pinAdmin = localStorage.getItem('club_admin_activo') === 'true';
+    /* Admin en MI CLUB / PIN, o acceso abierto alineado con guardSalaPage. */
+    var puedeConfig = clubAdmin || pinAdmin || DC_SALA_OPEN_ACCESS;
+    /* Antes también exigíamos session_ultimo_act “fresco” antes de SESSION.iniciar → el formulario desaparecía. */
+    if (!puedeConfig) {
+        avisoRestringidoActivo = true;
+        var aviso = document.getElementById('aviso-restringido');
+        if (aviso) {
+            aviso.style.display = 'block';
+            aviso.innerHTML =
+                '<div style="background:linear-gradient(160deg,#1a1200,#0c0a06);border:1px solid rgba(212,175,55,0.35);border-radius:16px;padding:20px 16px;text-align:center;">' +
+                '<p style="color:#d4af37;font-size:0.75rem;letter-spacing:0.12em;margin:0 0 12px;">ACCESO A CONFIGURAR SALÓN</p>' +
+                '<p style="color:#aaa;font-size:0.82rem;line-height:1.5;margin:0 0 16px;">Esta pantalla es para quien <strong style="color:#eee;">administra el club</strong> (creaste el club o te dieron permiso de admin).</p>' +
+                '<p style="color:#888;font-size:0.78rem;line-height:1.45;margin:0 0 18px;">En el <strong>inicio</strong> de la app tocá <strong>«Soy administrador del club»</strong>, ingresá el PIN que configuraste, y volvé a abrir <strong>Configurar instalaciones</strong> desde <strong>MI CLUB</strong> o el menú abajo.</p>' +
+                '<a href="index.html" style="display:inline-block;padding:12px 18px;background:linear-gradient(135deg,#d4af37,#a07800);color:#000;text-decoration:none;border-radius:12px;font-size:0.8rem;font-weight:bold;letter-spacing:0.06em;">Ir al inicio de la app</a> ' +
+                '<a href="club/index.html" style="display:inline-block;margin-top:10px;padding:12px 18px;border:1px solid rgba(212,175,55,0.45);color:#d4af37;text-decoration:none;border-radius:12px;font-size:0.8rem;font-weight:bold;letter-spacing:0.06em;">Abrir Portal club</a>' +
+                '</div>';
+        }
+        var contenido = document.getElementById('contenido-principal');
+        if (contenido) contenido.style.display = 'none';
+    }
+})();
+/* Sin SESSION.iniciar aquí: en algunos entornos SESSION no existe o el timer de organizador
+   interfería con la percepción de “no avanza el asistente”. La página no depende de esa sesión. */
+
+var _dcClubApiCfgP = null;
+function _clubApiCfg() {
+    if (!_dcClubApiCfgP) _dcClubApiCfgP = import('./js/api/club-api.js');
+    return _dcClubApiCfgP;
+}
+
+/** Si el usuario escribe “1-12” u otro texto, tomamos el primer número y lo acotamos (evita confusión con el rango en la etiqueta). */
+function sanitizarEnteroPlano(id, min, max) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var m = String(el.value || '').match(/\d+/);
+    var n = m ? parseInt(m[0], 10) : min;
+    if (isNaN(n)) n = min;
+    el.value = Math.max(min, Math.min(max, n));
+    actualizarPreview();
+}
+
+/** Nombres: sin dígitos (salón, componentes, nombre promoción). El tipo de instalación puede llevar “3 BANDAS” → no se filtra. */
+function bindInputNombrePlano(el) {
+    if (!el || el._dcBindNombre) return;
+    el._dcBindNombre = true;
+    el.addEventListener('input', function () {
+        var v = this.value;
+        var n = v.replace(/[0-9\u0660-\u0669\u06F0-\u06F9]/g, '');
+        if (v !== n) this.value = n;
+    });
+    el.addEventListener('keydown', function (e) {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.key && e.key.length === 1 && /[0-9]/.test(e.key)) e.preventDefault();
+    });
+}
+/** Layout “6, 3, 3”: solo números y separadores */
+function bindInputLayoutFilas(el) {
+    if (!el || el._dcBindLay) return;
+    el._dcBindLay = true;
+    el.addEventListener('input', function () {
+        var v = this.value;
+        var n = v.replace(/[^0-9,\s.;]/g, '');
+        if (v !== n) this.value = n;
+    });
+}
+/** Refuerza campos numéricos al pegar texto */
+function bindInputNumeroPlano(el, opts) {
+    opts = opts || {};
+    if (!el || el._dcBindNum) return;
+    el._dcBindNum = true;
+    var allowDecimal = opts.decimal;
+    el.addEventListener('input', function () {
+        var v = String(this.value);
+        var n;
+        if (allowDecimal) {
+            n = v.replace(/[^\d.,\-]/g, '').replace(',', '.');
+            var parts = n.split('.');
+            if (parts.length > 2) n = parts[0] + '.' + parts.slice(1).join('');
+        } else {
+            n = v.replace(/\D/g, '');
+        }
+        if (v !== n) this.value = n;
+    });
+}
+function initValidacionInputsSalon() {
+    /* Nombre del salón: NO usar bindInputNombrePlano (bloquea dígitos y vacía “solo números” → no podía pasar de paso 1). */
+    bindInputLayoutFilas(document.getElementById('layout_filas'));
+    document.querySelectorAll('#lista_componentes .comp-fila').forEach(function (row) {
+        var first = row.querySelector('input');
+        if (first) bindInputNombrePlano(first);
+        row.querySelectorAll('input[type=number]').forEach(function (n) { bindInputNumeroPlano(n, { decimal: false }); });
+    });
+    document.querySelectorAll('#contenido-principal input[type=number]').forEach(function (inp) {
+        var step = inp.getAttribute('step');
+        var dec = step && String(step).indexOf('.') !== -1;
+        bindInputNumeroPlano(inp, { decimal: dec });
+    });
+    document.querySelectorAll('#lista_promos .promo-fila').forEach(function (row) {
+        var ins = row.querySelectorAll('input');
+        if (ins[0]) bindInputNombrePlano(ins[0]);
+        if (ins[1]) bindInputNumeroPlano(ins[1], { decimal: true });
+    });
+}
+
+if (typeof window.pasoActual !== 'number') window.pasoActual = 1;
+var layoutMode = 'grid';
+
+try {
+    document.querySelectorAll('#chips_tipo span').forEach(function (s) {
+        s.addEventListener('click', function () {
+            var ti = document.getElementById('tipo_instalacion');
+            if (ti) ti.value = this.getAttribute('data-tipo');
+            actualizarPreview();
+        });
+    });
+} catch (eChips) {
+    if (typeof console !== 'undefined' && console.warn) console.warn('[mesas_config] chips_tipo:', eChips);
+}
+
+/**
+ * Paso 1 → 2: lógica aislada + window.DC_mesas_paso1_a_2 para el botón SIGUIENTE.
+ * Evita depender de irPaso en atributos HTML (Safari/WebView a veces no resuelven el global).
+ */
+function DC_mesas_paso1_a_2() {
+    var nsEl = document.getElementById('nombre_salon');
+    var nom = (nsEl && nsEl.value || '').trim();
+    if (!nom && nsEl) {
+        nsEl.value = 'Salón principal';
+        nom = 'Salón principal';
+    }
+    if (!nom) {
+        var err = document.getElementById('err-paso1');
+        if (err) {
+            err.style.display = 'block';
+            err.textContent =
+                'Escribí un nombre para el salón (obligatorio), por ejemplo «Salón principal» o «Sala 1». Luego tocá SIGUIENTE otra vez.';
+        }
+        var ns = document.getElementById('nombre_salon');
+        if (ns) {
+            ns.focus();
+            ns.style.borderBottomColor = 'var(--rojo)';
+        }
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+        return;
+    }
+    var err2 = document.getElementById('err-paso1');
+    if (err2) err2.style.display = 'none';
+    if (document.getElementById('nombre_salon')) document.getElementById('nombre_salon').style.borderBottomColor = '';
+    try { sanitizarEnteroPlano('filas', 1, 10); } catch (e1) {}
+    try { sanitizarEnteroPlano('columnas', 1, 12); } catch (e2) {}
+    var dest = document.getElementById('paso2');
+    if (!dest) {
+        console.error('[mesas_config] Paso 2 no encontrado');
+        return;
+    }
+    document.querySelectorAll('.paso').forEach(function (p) { p.classList.remove('activo'); });
+    dest.classList.add('activo');
+    window.pasoActual = 2;
+    document.querySelectorAll('.wizard-dot').forEach(function (d, i) {
+        d.classList.remove('activo', 'hecho');
+        if (i + 1 === 2) d.classList.add('activo');
+        else if (i + 1 < 2) d.classList.add('hecho');
+    });
+    var lbl = document.getElementById('lbl-paso');
+    if (lbl) lbl.textContent = 'Paso 2 · Tipo y componentes';
+    try {
+        actualizarPreview();
+    } catch (e) {
+        console.error('[mesas_config] actualizarPreview:', e);
+    }
+    try {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e3) {}
+}
+window.DC_mesas_paso1_a_2 = DC_mesas_paso1_a_2;
+
+function irPaso(n) {
+    if (n === 2 && window.pasoActual === 1) {
+        DC_mesas_paso1_a_2();
+        return;
+    }
+    try { sanitizarEnteroPlano('filas', 1, 10); } catch (e1) {}
+    try { sanitizarEnteroPlano('columnas', 1, 12); } catch (e2) {}
+    var dest = document.getElementById('paso' + n);
+    if (!dest) {
+        console.error('[mesas_config] Paso no encontrado:', n);
+        return;
+    }
+    document.querySelectorAll('.paso').forEach(function (p) { p.classList.remove('activo'); });
+    dest.classList.add('activo');
+    window.pasoActual = n;
+    document.querySelectorAll('.wizard-dot').forEach(function (d, i) {
+        d.classList.remove('activo', 'hecho');
+        if (i + 1 === n) d.classList.add('activo');
+        else if (i + 1 < n) d.classList.add('hecho');
+    });
+    var lbls = ['Paso 1 · Datos del salón', 'Paso 2 · Tipo y componentes', 'Paso 3 · Plano en pantalla', 'Paso 4 · Tarifas'];
+    var lbl = document.getElementById('lbl-paso');
+    if (lbl) lbl.textContent = lbls[n - 1];
+    try {
+        actualizarPreview();
+    } catch (e) {
+        console.error('[mesas_config] actualizarPreview:', e);
+    }
+    try {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e3) {}
+}
+window.irPaso = irPaso;
+
+function calcularMedia() {
+    var h = parseFloat(document.getElementById('tarifa_hora').value) || 0;
+    document.getElementById('tarifa_media').value = (h * 0.5).toFixed(2);
+}
+
+function agregarComponente() {
+    var div = document.createElement('div');
+    div.className = 'comp-fila';
+    div.innerHTML = '<input type="text" placeholder="Nombre"><select><option value="CRITICO">CRÍTICO</option><option value="ESTANDAR" selected>ESTÁNDAR</option><option value="CONSUMIBLE">CONSUMIBLE</option></select><input type="number" placeholder="Óptimo" value="500"><input type="number" placeholder="Alerta" value="800"><button type="button" class="btn-quitar" onclick="quitarComp(this)">✕</button>';
+    document.getElementById('lista_componentes').appendChild(div);
+    var inp = div.querySelector('input');
+    bindInputNombrePlano(inp);
+    div.querySelectorAll('input[type=number]').forEach(function (n) { bindInputNumeroPlano(n, { decimal: false }); });
+}
+
+function quitarComp(btn) {
+    var list = document.getElementById('lista_componentes');
+    if (list.children.length <= 1) return;
+    btn.closest('.comp-fila').remove();
+}
+
+function agregarPromo() {
+    var div = document.createElement('div');
+    div.className = 'promo-fila';
+    div.innerHTML = '<input type="text" placeholder="Nombre promoción"><input type="number" placeholder="% desc" value="10"><input type="text" placeholder="Horario aplicable"><button type="button" class="btn-quitar" onclick="this.closest(\\'.promo-fila\\').remove()">✕</button>';
+    document.getElementById('lista_promos').appendChild(div);
+    var ins = div.querySelectorAll('input');
+    if (ins[0]) bindInputNombrePlano(ins[0]);
+    if (ins[1]) bindInputNumeroPlano(ins[1], { decimal: true });
+}
+
+function agregarDescFranja() {
+    var div = document.createElement('div');
+    div.className = 'desc-franja-fila';
+    div.innerHTML = '<input type="time" class="df-desde" value="14:00"><input type="time" class="df-hasta" value="18:00"><input type="number" class="df-pct" min="0" max="100" step="1" placeholder="%" value="10"><button type="button" class="btn-quitar" onclick="this.closest(\\'.desc-franja-fila\\').remove()">✕</button>';
+    document.getElementById('lista_desc_franjas').appendChild(div);
+}
+
+function agregarDescDias() {
+    var div = document.createElement('div');
+    div.className = 'desc-dia-fila';
+    var chks = '';
+    var nombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    for (var d = 0; d < 7; d++) {
+        chks += '<label><input type="checkbox" class="dd-dia" value="' + d + '"> ' + nombres[d] + '</label>';
+    }
+    div.innerHTML = '<div class="dias-chk">' + chks + '</div><div style="display:flex;gap:8px;align-items:center;"><span style="color:#666;">% desc.</span><input type="number" class="dd-pct" min="0" max="100" step="1" value="15" style="width:80px;padding:6px;border-radius:8px;border:1px solid var(--g1);background:var(--g3);color:#fff;"><button type="button" class="btn-quitar" onclick="this.closest(\\'.desc-dia-fila\\').remove()">✕</button></div>';
+    document.getElementById('lista_desc_dias').appendChild(div);
+}
+
+function setLayout(mode) {
+    layoutMode = mode === 'horizontal' || mode === 'vertical' ? mode : 'grid';
+    try {
+        document.querySelectorAll('.layout-btns [data-layout]').forEach(function (b) {
+            b.classList.toggle('layout-btn--activo', b.getAttribute('data-layout') === layoutMode);
+        });
+    } catch (e) {}
+    actualizarPreview();
+}
+
+function getLayoutFilas() {
+    var raw = (document.getElementById('layout_filas') && document.getElementById('layout_filas').value || '').trim();
+    if (!raw) return null;
+    var arr = raw.split(/[\\s,;]+/).map(function(x) { return parseInt(x, 10); }).filter(function(n) { return n > 0; });
+    return arr.length ? arr : null;
+}
+
+function actualizarCantidadDesdeLayout() {
+    var arr = getLayoutFilas();
+    if (!arr) return;
+    var sum = arr.reduce(function(a, b) { return a + b; }, 0);
+    var inp = document.getElementById('cantidad');
+    if (inp && sum >= 1 && sum <= 50) inp.value = sum;
+}
+
+function actualizarPreview() {
+    var elFilas = document.getElementById('filas');
+    var elCols = document.getElementById('columnas');
+    if (!elFilas || !elCols) return;
+    var filas = parseInt(elFilas.value, 10) || 1;
+    var columnas = parseInt(elCols.value, 10) || 1;
+    var elTipo = document.getElementById('tipo_instalacion');
+    var elCant = document.getElementById('cantidad');
+    var elNumIni = document.getElementById('numeracion_inicial');
+    var tipo = (elTipo && elTipo.value ? String(elTipo.value) : '').trim() || 'INSTALACIÓN';
+    var cantidad = elCant ? (parseInt(elCant.value, 10) || 1) : 1;
+    var numIni = elNumIni ? (parseInt(elNumIni.value, 10) || 1) : 1;
+    var cont = document.getElementById('preview_plano');
+    var metrajeEl = document.getElementById('metraje_label');
+    if (!cont) return;
+
+    var ancho = parseFloat(document.getElementById('metraje_ancho') && document.getElementById('metraje_ancho').value) || 0;
+    var largo = parseFloat(document.getElementById('metraje_largo') && document.getElementById('metraje_largo').value) || 0;
+    if (metrajeEl) {
+        if (ancho > 0 && largo > 0) {
+            metrajeEl.style.display = 'block';
+            metrajeEl.textContent = 'Sala: ' + ancho + ' m × ' + largo + ' m';
+        } else {
+            metrajeEl.style.display = 'none';
+        }
+    }
+
+    cont.innerHTML = '';
+    cont.className = 'preview-plano layout-' + (layoutMode === 'horizontal' || layoutMode === 'vertical' ? layoutMode : 'grid');
+
+    function celdaPreview(num) {
+        var celda = document.createElement('div');
+        celda.className = 'preview-celda';
+        celda.innerHTML = '<span class="nom">' + num + '</span><span>' + tipo + '</span>';
+        return celda;
+    }
+
+    var idx = 0;
+    var layoutPorFila = getLayoutFilas();
+    var celdasOrden = [];
+
+    if (layoutPorFila && layoutPorFila.length) {
+        for (var r = 0; r < layoutPorFila.length && idx < cantidad; r++) {
+            var cuantas = layoutPorFila[r];
+            for (var c = 0; c < cuantas && idx < cantidad; c++) {
+                idx++;
+                celdasOrden.push(numIni + idx - 1);
+            }
+        }
+    } else {
+        for (var f = 0; f < filas && idx < cantidad; f++) {
+            for (var c2 = 0; c2 < columnas && idx < cantidad; c2++) {
+                idx++;
+                celdasOrden.push(numIni + idx - 1);
+            }
+        }
+    }
+
+    if (!celdasOrden.length) {
+        var cap = Math.max(1, Math.min(50, cantidad));
+        for (var fb = 0; fb < cap; fb++) {
+            celdasOrden.push(numIni + fb);
+        }
+    }
+
+    if (layoutMode === 'horizontal') {
+        var filaH = document.createElement('div');
+        filaH.className = 'preview-fila';
+        for (var i = 0; i < celdasOrden.length; i++) {
+            filaH.appendChild(celdaPreview(celdasOrden[i]));
+        }
+        cont.appendChild(filaH);
+    } else if (layoutMode === 'vertical') {
+        for (var j = 0; j < celdasOrden.length; j++) {
+            var filaV = document.createElement('div');
+            filaV.className = 'preview-fila';
+            filaV.appendChild(celdaPreview(celdasOrden[j]));
+            cont.appendChild(filaV);
+        }
+    } else {
+        idx = 0;
+        if (layoutPorFila && layoutPorFila.length) {
+            for (var r2 = 0; r2 < layoutPorFila.length && idx < cantidad; r2++) {
+                var nEnFila = layoutPorFila[r2];
+                var filaG = document.createElement('div');
+                filaG.className = 'preview-fila';
+                for (var c3 = 0; c3 < nEnFila && idx < cantidad; c3++) {
+                    idx++;
+                    filaG.appendChild(celdaPreview(numIni + idx - 1));
+                }
+                cont.appendChild(filaG);
+            }
+        } else {
+            for (var f2 = 0; f2 < filas && idx < cantidad; f2++) {
+                var filaG2 = document.createElement('div');
+                filaG2.className = 'preview-fila';
+                for (var c4 = 0; c4 < columnas && idx < cantidad; c4++) {
+                    idx++;
+                    filaG2.appendChild(celdaPreview(numIni + idx - 1));
+                }
+                cont.appendChild(filaG2);
+            }
+        }
+    }
+    var nC = cont.querySelectorAll('.preview-celda').length;
+    if (nC === 0) {
+        var vac = document.createElement('div');
+        vac.className = 'preview-vacio-msj';
+        vac.setAttribute('role', 'status');
+        vac.innerHTML =
+            'No se pudo dibujar ninguna mesa. Tocá <strong style="color:var(--oro);">← ATRÁS</strong>, revisá en el paso 2 la <strong>cantidad</strong> (número entre 1 y 50) y volvé a entrar al paso 3.';
+        cont.appendChild(vac);
+    }
+}
+
+function getClubId() {
+    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    if (perfil.club_id) return perfil.club_id;
+    var clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null');
+    return (clubActivo && clubActivo.id) ? clubActivo.id : null;
+}
+
+async function guardarTodo() {
+    var nombreSalon, filas, columnas, apertura, cierre, moneda, tipoInst, cantidad, numIni;
+    var tarifaHora, tarifaMedia, tarifaManana, tarifaTarde, tarifaNoche, tarifaFinde;
+    try {
+        nombreSalon = (document.getElementById('nombre_salon').value || '').trim() || 'Salón';
+        filas = parseInt(document.getElementById('filas').value, 10) || 2;
+        columnas = parseInt(document.getElementById('columnas').value, 10) || 4;
+        apertura = document.getElementById('apertura').value || '08:00';
+        cierre = document.getElementById('cierre').value || '23:00';
+        moneda = document.getElementById('moneda').value || 'COP';
+        tipoInst = (document.getElementById('tipo_instalacion').value || '').trim() || 'INSTALACIÓN';
+        cantidad = parseInt(document.getElementById('cantidad').value, 10) || 1;
+        numIni = parseInt(document.getElementById('numeracion_inicial').value, 10) || 1;
+        tarifaHora = parseFloat(document.getElementById('tarifa_hora').value) || 0;
+        tarifaMedia = parseFloat(document.getElementById('tarifa_media').value) || 0;
+        tarifaManana = parseFloat(document.getElementById('tarifa_manana').value) || 0;
+        var elTarde = document.getElementById('tarifa_tarde');
+        tarifaTarde = elTarde && elTarde.value !== '' ? parseFloat(elTarde.value) || 0 : 0;
+        tarifaNoche = parseFloat(document.getElementById('tarifa_noche').value) || 0;
+        tarifaFinde = parseFloat(document.getElementById('tarifa_finde').value) || 0;
+    } catch (readErr) {
+        console.error('[mesas_config] guardarTodo lectura:', readErr);
+        alert('No se pudo leer el formulario. Actualizá la página (recargar) e intentá de nuevo.');
+        return;
+    }
+
+    var tarifas = { hora: tarifaHora, media: tarifaMedia, manana: tarifaManana, tarde: tarifaTarde, noche: tarifaNoche, finde: tarifaFinde };
+    tarifas.descuento_global_pct = Math.min(100, Math.max(0, parseFloat(document.getElementById('desc_global_pct').value) || 0));
+    tarifas.reglas_descuento = [];
+    document.querySelectorAll('#lista_desc_franjas .desc-franja-fila').forEach(function (row) {
+        var d0 = row.querySelector('.df-desde');
+        var d1 = row.querySelector('.df-hasta');
+        var pc = row.querySelector('.df-pct');
+        var desde = (d0 && d0.value) || '';
+        var hasta = (d1 && d1.value) || '';
+        var pct = Math.min(100, Math.max(0, parseFloat(pc && pc.value) || 0));
+        if (desde && hasta && pct > 0) tarifas.reglas_descuento.push({ tipo: 'rango_hora', desde: desde, hasta: hasta, pct: pct });
+    });
+    document.querySelectorAll('#lista_desc_dias .desc-dia-fila').forEach(function (row) {
+        var dias = [];
+        row.querySelectorAll('.dd-dia:checked').forEach(function (c) { dias.push(parseInt(c.value, 10)); });
+        var pct = Math.min(100, Math.max(0, parseFloat(row.querySelector('.dd-pct').value) || 0));
+        if (dias.length && pct > 0) tarifas.reglas_descuento.push({ tipo: 'dia_semana', dias: dias, pct: pct });
+    });
+    var promos = [];
+    document.querySelectorAll('#lista_promos .promo-fila').forEach(function(r){
+        var inputs = r.querySelectorAll('input');
+        if (inputs[0] && inputs[0].value) promos.push({ nombre: inputs[0].value, descuento: parseFloat(inputs[1].value) || 0, horario: (inputs[2] && inputs[2].value) || '' });
+    });
+    tarifas.promociones = promos;
+
+    var componentes = [];
+    document.querySelectorAll('#lista_componentes .comp-fila').forEach(function(r){
+        var inputs = r.querySelectorAll('input');
+        var select = r.querySelector('select');
+        if (inputs[0] && inputs[0].value)
+            componentes.push({ nombre: inputs[0].value, tipo: (select && select.value) || 'ESTANDAR', horas_optimo: parseInt(inputs[1].value, 10) || 500, horas_alerta: parseInt(inputs[2].value, 10) || 800 });
+    });
+
+    var clubId = getClubId();
+    var btn = document.getElementById('btn_guardar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+    var metrajeAncho = parseFloat(document.getElementById('metraje_ancho') && document.getElementById('metraje_ancho').value) || 0;
+    var metrajeLargo = parseFloat(document.getElementById('metraje_largo') && document.getElementById('metraje_largo').value) || 0;
+    var layoutFilasRaw = (document.getElementById('layout_filas') && document.getElementById('layout_filas').value || '').trim();
+
+    try {
+        if (!clubId) {
+            alert(
+                'Falta el club en tu perfil (club_id). Abrí la app, tocá «MI CLUB» o elegí tu club, y volvé a Configurar instalaciones.'
+            );
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '💾 GUARDAR CONFIGURACIÓN';
+            }
+            return;
+        }
+
+        /** Si ya hay salón en Supabase o en localStorage, solo actualizamos — evita INSERT duplicado y mesas repetidas. */
+        var salonIdExistente = null;
+        try {
+            var cfgLs = JSON.parse(localStorage.getItem('mesas_salon_config') || 'null');
+            if (cfgLs && cfgLs.salon_id) salonIdExistente = cfgLs.salon_id;
+        } catch (eLs) {}
+        if (!salonIdExistente) {
+            var apiPrev = await _clubApiCfg();
+            var prevR = await apiPrev.getFirstMesasConfigByClubId(clubId);
+            if (prevR.data && prevR.data.id) salonIdExistente = prevR.data.id;
+        }
+
+        if (salonIdExistente) {
+            var apiPatch = await _clubApiCfg();
+            var patchRes = await apiPatch.updateMesasConfig(salonIdExistente, {
+                nombre_salon: nombreSalon,
+                filas: filas,
+                columnas: columnas,
+                apertura: apertura,
+                cierre: cierre,
+                moneda: moneda,
+                tarifas: tarifas,
+                updated_at: new Date().toISOString(),
+            });
+            if (patchRes.error) {
+                alert(
+                    'No se pudo actualizar la configuración. Revisá conexión y permisos en Supabase (RLS: UPDATE en mesas_config para tu club).'
+                );
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '💾 GUARDAR CONFIGURACIÓN';
+                }
+                return;
+            }
+            var salonConfigUp = {
+                nombre_salon: nombreSalon,
+                filas: filas,
+                columnas: columnas,
+                apertura: apertura,
+                cierre: cierre,
+                moneda: moneda,
+                tarifas: tarifas,
+                salon_id: salonIdExistente,
+                numeracion_inicial: numIni,
+                tipo_instalacion_default: tipoInst,
+            };
+            if (layoutFilasRaw) salonConfigUp.layout_filas = layoutFilasRaw;
+            if (metrajeAncho > 0 || metrajeLargo > 0) salonConfigUp.metraje = { ancho: metrajeAncho, largo: metrajeLargo };
+            localStorage.setItem('mesas_salon_config', JSON.stringify(salonConfigUp));
+            try {
+                var syncMod = await import('./js/sync-club-operacion-flags.js');
+                if (syncMod && syncMod.syncClubOperacionFlags) await syncMod.syncClubOperacionFlags(clubId, tarifas);
+            } catch (_sync) {}
+            alert('Configuración actualizada. Ya puedes usar el Salón en vivo.');
+            location.href = 'mesas.html?desde=config';
+            return;
+        }
+
+        var apiIns = await _clubApiCfg();
+        var insR = await apiIns.insertMesasConfig({
+            club_id: clubId,
+            nombre_salon: nombreSalon,
+            filas: filas,
+            columnas: columnas,
+            apertura: apertura,
+            cierre: cierre,
+            moneda: moneda,
+            tarifas: tarifas,
+            updated_at: new Date().toISOString()
+        });
+        var salonId = insR.data && insR.data.id ? insR.data.id : null;
+        if (!salonId) {
+            var listR = await apiIns.getMesasConfigByClubAndNombreSalon(clubId || '', nombreSalon);
+            salonId = listR.data && listR.data.id ? listR.data.id : null;
+        }
+        if (!salonId) { alert('No se pudo crear la configuración.'); if (btn) { btn.disabled = false; btn.textContent = '💾 GUARDAR CONFIGURACIÓN'; } return; }
+
+        var apiMesas = await _clubApiCfg();
+        for (var i = 0; i < cantidad; i++) {
+            var numero = numIni + i;
+            await apiMesas.insertMesaRow({
+                club_id: clubId,
+                salon_id: salonId,
+                numero: numero,
+                nombre: 'Instalación ' + numero,
+                tipo_instalacion: tipoInst,
+                estado: 'libre',
+                tarifa_hora: tarifaHora
+            });
+        }
+
+        var mlR = await apiMesas.listMesasBySalonId(salonId);
+        var mesasList = mlR.data;
+        if (mesasList) mesasList.sort(function(a, b) { return (a.numero || 0) - (b.numero || 0); });
+        if (mesasList && mesasList.length && componentes.length) {
+            for (var m = 0; m < mesasList.length; m++) {
+                for (var c = 0; c < componentes.length; c++) {
+                    var comp = componentes[c];
+                    await apiMesas.insertInstalacionComponenteRow({
+                        mesa_id: mesasList[m].id,
+                        club_id: clubId,
+                        nombre: comp.nombre,
+                        tipo: comp.tipo,
+                        horas_uso_optimo: comp.horas_optimo,
+                        horas_uso_alerta: comp.horas_alerta,
+                        horas_uso_actual: 0,
+                        estado: 'optimo'
+                    });
+                }
+            }
+        }
+
+        var salonConfig = { nombre_salon: nombreSalon, filas: filas, columnas: columnas, apertura: apertura, cierre: cierre, moneda: moneda, tarifas: tarifas, salon_id: salonId, numeracion_inicial: numIni, tipo_instalacion_default: tipoInst };
+        if (layoutFilasRaw) salonConfig.layout_filas = layoutFilasRaw;
+        if (metrajeAncho > 0 || metrajeLargo > 0) salonConfig.metraje = { ancho: metrajeAncho, largo: metrajeLargo };
+        localStorage.setItem('mesas_salon_config', JSON.stringify(salonConfig));
+        try {
+            var syncMod2 = await import('./js/sync-club-operacion-flags.js');
+            if (syncMod2 && syncMod2.syncClubOperacionFlags) await syncMod2.syncClubOperacionFlags(clubId, tarifas);
+        } catch (_sync2) {}
+        alert('Configuración guardada. Ya puedes usar el Salón en vivo.');
+        location.href = 'mesas.html?desde=config';
+    } catch (e) {
+        console.error(e);
+        alert('Error al guardar. Comprueba las tablas en Supabase.');
+    }
+    if (btn) { btn.disabled = false; btn.textContent = '💾 GUARDAR CONFIGURACIÓN'; }
+}
+
+(function restaurarNombreSalonDesdeLocal() {
+    try {
+        var cfg = JSON.parse(localStorage.getItem('mesas_salon_config') || 'null');
+        if (!cfg || !cfg.nombre_salon) return;
+        var n = document.getElementById('nombre_salon');
+        if (n && !String(n.value || '').trim()) n.value = cfg.nombre_salon;
+    } catch (e) {}
+})();
+
+try {
+    initValidacionInputsSalon();
+} catch (eInit) {
+    if (typeof console !== 'undefined' && console.warn) console.warn('[mesas_config] initValidacionInputsSalon:', eInit);
+}
+
+window.sanitizarEnteroPlano = sanitizarEnteroPlano;
+window.irPaso = irPaso;
+window.actualizarPreview = actualizarPreview;
+window.calcularMedia = calcularMedia;
+window.agregarComponente = agregarComponente;
+window.quitarComp = quitarComp;
+window.agregarPromo = agregarPromo;
+window.agregarDescFranja = agregarDescFranja;
+window.agregarDescDias = agregarDescDias;
+window.setLayout = setLayout;
+window.actualizarCantidadDesdeLayout = actualizarCantidadDesdeLayout;
+window.guardarTodo = guardarTodo;
+
+(function bindBtnGuardarMesasConfig() {
+    var bg = document.getElementById('btn_guardar');
+    if (!bg || bg._dcGuardarBound) return;
+    bg._dcGuardarBound = true;
+    bg.addEventListener(
+        'click',
+        function (e) {
+            e.preventDefault();
+            if (typeof window.guardarTodo !== 'function') {
+                alert('El formulario aún se está cargando. Esperá un segundo y volvé a tocar Guardar.');
+                return;
+            }
+            window.guardarTodo();
+        },
+        true
+    );
+})();
+
+window.__salaBoot = function() {
+    try {
+        actualizarPreview();
+        var wd = document.getElementById('wd1');
+        if (wd) wd.classList.add('activo');
+    } catch (e) {}
+};
+/* Sin guardSalaPage: esta pantalla es configuración local/DB del salón, no streaming ni gate de personal. */
+if (typeof window.__salaBoot === 'function') window.__salaBoot();
+
+/* Paso 1 → 2: onclick en #btn-paso1-siguiente (mismo patrón que los demás pasos; evita doble handler). */
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+
+</body>
+</html>

@@ -80,7 +80,7 @@ Archivo **`js/supabase-client.js`** exporta `supabase` listo para importar (usa 
 </script>
 ```
 
-Ruta relativa: desde la raíz del sitio `./js/supabase-client.js`; desde `apps/club/sala/` sería `../../../../js/supabase-client.js`.
+Ruta recomendada en HTML: `/js/supabase-client.js` (absoluta desde la raíz del sitio).
 
 Con **Vite** u otro bundler, en `supabase-client.js` cambia la primera línea a  
 `import { createClient } from '@supabase/supabase-js'` y configura URL/key con variables de entorno.

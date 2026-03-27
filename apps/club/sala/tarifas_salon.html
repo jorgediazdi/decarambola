@@ -32,8 +32,27 @@
         .btn-quitar { background:none; border:none; color:#e74c3c; cursor:pointer; padding:4px; }
         .btn-paso { width:100%; padding:14px; margin-top:12px; background:linear-gradient(135deg,var(--oro),#a07800); color:#000; border:none; border-radius:14px; font-size:0.75rem; font-weight:bold; cursor:pointer; font-family:'Arial Black',sans-serif; }
         .btn-paso.sec { background:var(--g3); color:#888; border:1px solid var(--g1); }
+        #tarifas-toast {
+            position: fixed;
+            bottom: max(20px, env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%) translateY(140%);
+            max-width: 92%;
+            padding: 12px 18px;
+            background: #141414;
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            border-radius: 12px;
+            color: #ddd;
+            font-size: 0.72rem;
+            line-height: 1.35;
+            text-align: center;
+            z-index: 9999;
+            transition: transform 0.28s ease;
+            pointer-events: none;
+        }
+        #tarifas-toast.dc-toast--show { transform: translateX(-50%) translateY(0); }
     </style>
-    <link rel="stylesheet" href="../../../css/ux-shell.css">
+    <link rel="stylesheet" href="/css/ux-shell.css">
     <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"Arial Black",Arial,sans-serif!important;}</style>
 </head>
 <body class="dc-ux dc-ux-skin m-root-salon">
@@ -46,18 +65,24 @@
         <div class="header-sub">Edición rápida · sin el asistente completo</div>
     </div>
     <div class="header-actions">
-        <a href="socios.html" class="btn-hdr">Jugadores</a>
-        <a href="mesas.html" class="btn-hdr">Salón en vivo</a>
-        <a href="reservas_admin.html" class="btn-hdr">Reservas</a>
-        <a href="reportes.html" class="btn-hdr">Reportes</a>
-        <a href="mesas_config.html" class="btn-hdr">Config. instalaciones</a>
-        <a href="../../../club/index.html" class="btn-hdr">Portal club</a>
-        <a href="../../../index.html" class="btn-hdr">Inicio app</a>
+        <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
+            <summary>Menú del club</summary>
+            <div class="jug-nav-fold__links">
+                <a href="socios.html">Jugadores</a>
+                <a href="mesas.html">Salón en vivo</a>
+                <a href="reservas_admin.html">Reservas</a>
+                <a href="reportes.html">Reportes</a>
+                <a href="mesas_config.html">Config. instalaciones</a>
+                <a href="/club/index.html">Portal club</a>
+                <a href="/index.html">Inicio app</a>
+            </div>
+        </details>
     </div>
 </div>
 <div class="wrap">
     <div class="info-tarifa">
-        Edita tarifas sin pasar por todo el asistente de instalaciones. El <strong>Salón en vivo</strong> liquida por <strong>minuto</strong> según la tarifa efectiva (mañana/noche/fin de semana + el <strong>mayor %</strong> de descuento que aplique). Se guarda en <code style="color:#666;">mesas_salon_config</code> y en Supabase (<code style="color:#666;">mesas_config.tarifas</code>) si hay <code style="color:#666;">salon_id</code>.
+        Edita tarifas sin pasar por todo el asistente. El <strong>Salón en vivo</strong> liquida por <strong>minuto</strong> según la tarifa en <code style="color:#666;">mesas_config.tarifas</code> (Supabase). Fuente de verdad: la nube; operario y admin ven lo mismo.
+        <span style="display:block;margin-top:8px;color:#777;">El <strong>plano / preview</strong> de la sala está en <a href="mesas_config.html" style="color:var(--oro);">Configurar instalaciones</a>. Para operar el salón hace falta además al menos <strong>una tarifa base &gt; 0</strong> y mesas creadas en Supabase.</span>
     </div>
     <div class="sec">TARIFAS BASE</div>
     <div class="campo">
@@ -70,8 +95,9 @@
     </div>
     <div class="campo-doble">
         <div class="campo"><label>Mañana (antes 12h)</label><input type="number" id="tarifa_manana" min="0" step="0.01" value="0"></div>
-        <div class="campo"><label>Noche (después 20h)</label><input type="number" id="tarifa_noche" min="0" step="0.01" value="0"></div>
+        <div class="campo"><label>Tarde (12h–20h, laborable)</label><input type="number" id="tarifa_tarde" min="0" step="0.01" value="0"></div>
     </div>
+    <div class="campo"><label>Noche (después 20h)</label><input type="number" id="tarifa_noche" min="0" step="0.01" value="0"></div>
     <div class="campo"><label>Fin de semana</label><input type="number" id="tarifa_finde" min="0" step="0.01" value="0"></div>
 
     <div class="sec">DESCUENTOS (%)</div>
@@ -93,10 +119,65 @@
     <button type="button" class="btn-paso" id="btn_guardar" onclick="guardarTarifas()">GUARDAR TARIFAS</button>
 </div>
 
-<script src="../../../core.js"></script>
-<script src="../../../session.js"></script>
+<script src="/session.js"></script>
 <script>
 try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
+
+var _dcClubApiTarP = null;
+function _clubApiTar() {
+    if (!_dcClubApiTarP) _dcClubApiTarP = import('/js/api/club-api.js');
+    return _dcClubApiTarP;
+}
+
+/** Mismo criterio que mesas.html / mesas_config — club_id puede ser UUID o clubs.codigo. */
+function getClubIdTarifas() {
+    try {
+        var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        if (perfil.club_id) return String(perfil.club_id).trim();
+    } catch (e) {}
+    try {
+        var clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null');
+        if (clubActivo && clubActivo.id) return String(clubActivo.id).trim();
+    } catch (e2) {}
+    return null;
+}
+
+/** Incluye id + codigo del club para encontrar mesas_config aunque club_id esté guardado como el otro formato. */
+async function getTryClubIdsForMesas() {
+    var raw = getClubIdTarifas();
+    if (!raw) return [];
+    var ids = new Set();
+    ids.add(String(raw).trim());
+    try {
+        var api = await _clubApiTar();
+        var cr = await api.getClubByIdOrCodigo(raw);
+        var club = cr.data;
+        if (club) {
+            if (club.codigo) ids.add(String(club.codigo).trim());
+            if (club.id) ids.add(String(club.id).trim());
+        }
+    } catch (_e) {}
+    return Array.from(ids);
+}
+
+async function findMesasConfigRowTarifas() {
+    var ids = await getTryClubIdsForMesas();
+    var api = await _clubApiTar();
+    for (var i = 0; i < ids.length; i++) {
+        var cr = await api.getFirstMesasConfigByClubId(ids[i]);
+        if (cr.data) return cr.data;
+    }
+    return null;
+}
+
+function tarifasBaseTienenValor(t) {
+    if (!t || typeof t !== 'object') return false;
+    var nums = ['hora', 'media', 'manana', 'tarde', 'noche', 'finde'];
+    for (var j = 0; j < nums.length; j++) {
+        if ((parseFloat(t[nums[j]]) || 0) > 0) return true;
+    }
+    return false;
+}
 
 function calcularMedia() {
     var h = parseFloat(document.getElementById('tarifa_hora').value) || 0;
@@ -132,6 +213,7 @@ function construirObjetoTarifas() {
         hora: tarifaHora,
         media: parseFloat(document.getElementById('tarifa_media').value) || 0,
         manana: parseFloat(document.getElementById('tarifa_manana').value) || 0,
+        tarde: parseFloat(document.getElementById('tarifa_tarde').value) || 0,
         noche: parseFloat(document.getElementById('tarifa_noche').value) || 0,
         finde: parseFloat(document.getElementById('tarifa_finde').value) || 0
     };
@@ -163,6 +245,8 @@ function aplicarTarifasAlForm(t) {
     document.getElementById('tarifa_hora').value = t.hora != null ? t.hora : 0;
     document.getElementById('tarifa_media').value = t.media != null ? t.media : 0;
     document.getElementById('tarifa_manana').value = t.manana != null ? t.manana : 0;
+    var tt = document.getElementById('tarifa_tarde');
+    if (tt) tt.value = t.tarde != null ? t.tarde : 0;
     document.getElementById('tarifa_noche').value = t.noche != null ? t.noche : 0;
     document.getElementById('tarifa_finde').value = t.finde != null ? t.finde : 0;
     document.getElementById('desc_global_pct').value = t.descuento_global_pct != null ? t.descuento_global_pct : 0;
@@ -201,34 +285,74 @@ function aplicarTarifasAlForm(t) {
 }
 
 async function cargarTarifas() {
-    var cfg = null;
-    try { cfg = JSON.parse(localStorage.getItem('mesas_salon_config') || 'null'); } catch (e) {}
-    if (!cfg) cfg = { nombre_salon: 'Salón', tarifas: {} };
-    var t = cfg.tarifas || {};
-    if (cfg.salon_id) {
-        var rows = await DB.get('mesas_config', 'id=eq.' + cfg.salon_id + '&limit=1');
-        if (rows && rows[0] && rows[0].tarifas) t = rows[0].tarifas;
+    var clubId = getClubIdTarifas();
+    var t = {};
+    if (clubId) {
+        var api = await _clubApiTar();
+        var cr = await api.getFirstMesasConfigByClubId(clubId);
+        if (cr.data && cr.data.tarifas) t = cr.data.tarifas;
     }
     aplicarTarifasAlForm(t);
+}
+
+function mostrarToastTarifas(msg) {
+    var el = document.getElementById('tarifas-toast');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'tarifas-toast';
+        el.setAttribute('role', 'status');
+        el.setAttribute('aria-live', 'polite');
+        document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.classList.add('dc-toast--show');
+    clearTimeout(el._dcToastT);
+    el._dcToastT = setTimeout(function () {
+        el.classList.remove('dc-toast--show');
+    }, 2600);
 }
 
 async function guardarTarifas() {
     var btn = document.getElementById('btn_guardar');
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
-    var tarifas = construirObjetoTarifas();
-    var cfg = {};
-    try { cfg = JSON.parse(localStorage.getItem('mesas_salon_config') || '{}'); } catch (e) { cfg = {}; }
-    cfg.tarifas = tarifas;
-    try { localStorage.setItem('mesas_salon_config', JSON.stringify(cfg)); } catch (e) {}
-
-    if (cfg.salon_id) {
-        var r = await DB.update('mesas_config', cfg.salon_id, { tarifas: tarifas, updated_at: new Date().toISOString() });
-        if (r === null) alert('Guardado solo en este dispositivo (no se pudo actualizar Supabase).');
-        else alert('Tarifas guardadas en la nube y en este dispositivo.');
-    } else {
-        alert('Tarifas guardadas localmente. Configura el salón con “Configurar instalaciones” para obtener salon_id y sincronizar con Supabase.');
+    try {
+        var tarifas = construirObjetoTarifas();
+        var clubId = getClubIdTarifas();
+        var cfgRow = await findMesasConfigRowTarifas();
+        var salon_id = cfgRow && cfgRow.id ? cfgRow.id : null;
+        if (salon_id) {
+            var api = await _clubApiTar();
+            var ur = await api.updateMesasConfig(salon_id, { tarifas: tarifas, updated_at: new Date().toISOString() });
+            if (ur.error) {
+                mostrarToastTarifas('No se pudo actualizar Supabase (RLS / red).');
+            } else {
+                var syncOk = true;
+                try {
+                    var syncMod = await import('/js/sync-club-operacion-flags.js');
+                    if (syncMod && syncMod.syncClubOperacionFlags) {
+                        var sr = await syncMod.syncClubOperacionFlags(clubId, tarifas, { onlyTarifas: true });
+                        syncOk = !sr || sr.ok !== false;
+                    }
+                } catch (_s) {
+                    syncOk = false;
+                }
+                if (!syncOk) {
+                    mostrarToastTarifas('Tarifas guardadas. No se pudo actualizar el estado del club en Supabase (migración 011 o permisos en clubs).');
+                } else if (!tarifasBaseTienenValor(tarifas)) {
+                    mostrarToastTarifas('Guardado. Poné al menos una tarifa base > 0 (hora, media, mañana, noche o finde) para desbloquear el salón.');
+                } else {
+                    mostrarToastTarifas('Tarifas guardadas en la nube.');
+                }
+            }
+        } else {
+            mostrarToastTarifas('No hay salón en Supabase para este club. Primero guardá en Configurar instalaciones (mesas_config).');
+        }
+    } catch (err) {
+        console.error('[tarifas_salon]', err);
+        mostrarToastTarifas('Error al guardar. Revisá consola o probá de nuevo.');
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'GUARDAR TARIFAS'; }
     }
-    if (btn) { btn.disabled = false; btn.textContent = 'GUARDAR TARIFAS'; }
 }
 
 window.__salaBoot = cargarTarifas;
@@ -248,7 +372,7 @@ window.__salaBoot = cargarTarifas;
 })();
 </script>
 <script type="module">
-import { guardSalaPage } from '../../../js/sala-supabase-gate.js';
+import { guardSalaPage } from '/js/sala-supabase-gate.js';
 await guardSalaPage({ pageTitle: 'Tarifas del salón' });
 </script>
 
