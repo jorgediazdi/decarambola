@@ -1171,6 +1171,12 @@ window.guardarTodo = async function () {
             tarifas: tarifas,
             updated_at: new Date().toISOString()
         });
+        if (insR.error) {
+            console.error('[guardarTodo] insert error:', insR.error);
+            alert('Error Supabase al crear: ' + (insR.error.message || JSON.stringify(insR.error)));
+            if (btn) { btn.disabled = false; btn.textContent = '💾 GUARDAR CONFIGURACIÓN'; }
+            return;
+        }
         var salonId = insR.data && insR.data.id ? insR.data.id : null;
         if (!salonId) {
             var listR = await apiIns.getMesasConfigByClubAndNombreSalon(clubId || '', nombreSalon);
