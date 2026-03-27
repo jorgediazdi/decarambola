@@ -1159,9 +1159,8 @@ window.guardarTodo = async function () {
             return;
         }
 
-        var { data: { session } } = await (await import('/js/supabase-client.js')).supabase.auth.getSession();
-        console.log('[guardarTodo] club_id a insertar:', clubId);
-        console.log('[guardarTodo] JWT app_metadata:', session && session.user && session.user.app_metadata);
+        var _sess = await (await import('/js/supabase-client.js')).supabase.auth.getSession();
+        alert('club_id: ' + clubId + '\napp_metadata: ' + JSON.stringify(_sess && _sess.data && _sess.data.session && _sess.data.session.user && _sess.data.session.user.app_metadata));
 
         var apiIns = await _clubApiCfg();
         var insR = await apiIns.insertMesasConfig({
