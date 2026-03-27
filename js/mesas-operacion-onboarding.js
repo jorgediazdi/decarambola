@@ -36,16 +36,44 @@
         return res;
     }
 
+    /** Misma lógica que getClubId() en apps/club/sala/mesas.html (mi_perfil → club_activo.id). */
+    function getClubIdFromLocalStorage() {
+        try {
+            var perfil = JSON.parse(localStorage.getItem("mi_perfil") || "{}");
+            if (perfil.club_id) return String(perfil.club_id).trim();
+            var clubActivo = JSON.parse(localStorage.getItem("club_activo") || "null");
+            return clubActivo && clubActivo.id ? String(clubActivo.id).trim() : "";
+        } catch (e) {
+            return "";
+        }
+    }
+
     /**
      * @returns {Promise<{ ok: boolean, faltan: string[], mensaje: string }>}
      */
     window.DC_mesasOperacionCheckOnboarding = async function () {
         var faltan = [];
-        var perfil = {};
-        try {
-            perfil = JSON.parse(localStorage.getItem("mi_perfil") || "{}");
-        } catch (e) {}
-        var cid = perfil.club_id ? String(perfil.club_id).trim() : "";
+        var cid = getClubIdFromLocalStorage();
+        if (!cid) {
+            try {
+                var modFb = await import("./supabase-client.js");
+                var sessWrap = await modFb.supabase.auth.getSession();
+                var session = sessWrap && sessWrap.data && sessWrap.data.session;
+                if (session && session.user) {
+                    var pr = await modFb.supabase
+                        .from("profiles")
+                        .select("club_id")
+                        .eq("id", session.user.id)
+                        .maybeSingle();
+                    if (pr.data && pr.data.club_id != null && String(pr.data.club_id).trim()) {
+                        cid = String(pr.data.club_id).trim();
+                        localStorage.setItem('club_activo', JSON.stringify({ id: cid }));
+                    }
+                }
+            } catch (eFb) {
+                if (typeof console !== "undefined" && console.warn) console.warn("[mesas-operacion-onboarding] club_id profiles:", eFb);
+            }
+        }
         if (!cid) {
             faltan.push("Club en el perfil (elegí tu club en la app o iniciá sesión)");
             return {
