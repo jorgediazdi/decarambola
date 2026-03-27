@@ -6,6 +6,9 @@
     <meta name="theme-color" content="#d4af37">
     <meta name="description" content="Dashboard de élite para billar carambola: duelos, torneos y clínica del Maestro.">
     <title>DeCarambola — Billar carambola en Colombia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --negro: #0b0b0b;
@@ -119,13 +122,226 @@
             height: 16px;
             stroke: #dfe7ff;
         }
-        .grid-main {
-            display: grid;
-            grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        .home-main-stack {
+            display: flex;
+            flex-direction: column;
             gap: 18px;
         }
-        @media (max-width: 840px) {
-            .grid-main { grid-template-columns: minmax(0, 1fr); }
+        /* Hero — conversión entrenamiento */
+        .home-hero {
+            position: relative;
+            text-align: center;
+            padding: 28px 18px 32px;
+            border-radius: 22px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            background:
+                radial-gradient(ellipse 90% 80% at 50% 0%, rgba(212, 175, 55, 0.12), transparent 55%),
+                radial-gradient(circle at 80% 100%, rgba(46, 255, 112, 0.08), transparent 50%),
+                linear-gradient(165deg, rgba(14, 12, 8, 0.98), rgba(4, 4, 4, 0.98));
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
+            overflow: hidden;
+        }
+        .home-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 120%, rgba(212, 175, 55, 0.06), transparent 45%);
+            pointer-events: none;
+        }
+        .home-hero-inner {
+            position: relative;
+            z-index: 1;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .home-hero h1 {
+            font-family: 'Outfit', system-ui, sans-serif;
+            font-weight: 800;
+            font-size: clamp(1.45rem, 5vw, 2.35rem);
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            color: #fafafa;
+            text-wrap: balance;
+        }
+        .home-hero-sub {
+            margin-top: 14px;
+            font-size: clamp(0.88rem, 2.4vw, 1.02rem);
+            line-height: 1.55;
+            color: #9a9a9a;
+            font-weight: 400;
+        }
+        .home-hero-ctas {
+            margin-top: 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            max-width: 420px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (min-width: 520px) {
+            .home-hero-ctas {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                max-width: none;
+            }
+            .home-hero-ctas .btn-cta-primary,
+            .home-hero-ctas .btn-cta-secondary {
+                flex: 1 1 auto;
+                min-width: 200px;
+                max-width: 280px;
+            }
+        }
+        .btn-cta-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 28px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(180deg, #e8c547, #c9a227 45%, #a88620);
+            color: #0b0b0b !important;
+            font-family: "Arial Black", Arial, sans-serif;
+            font-size: 0.78rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            text-decoration: none;
+            font-weight: 900;
+            box-shadow:
+                0 0 0 1px rgba(212, 175, 55, 0.5),
+                0 8px 28px rgba(212, 175, 55, 0.35),
+                0 20px 40px rgba(0, 0, 0, 0.5);
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+        }
+        .btn-cta-primary:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 0 0 1px rgba(212, 175, 55, 0.65),
+                0 12px 36px rgba(212, 175, 55, 0.45),
+                0 24px 48px rgba(0, 0, 0, 0.55);
+        }
+        .btn-cta-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 24px;
+            border-radius: 14px;
+            border: 2px solid rgba(212, 175, 55, 0.55);
+            background: transparent;
+            color: var(--oro) !important;
+            font-family: "Arial Black", Arial, sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            text-decoration: none;
+            font-weight: 800;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .btn-cta-secondary:hover {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: var(--oro);
+            color: #f5e070 !important;
+        }
+        .home-hero-micro {
+            margin-top: 18px;
+            font-size: 0.68rem;
+            letter-spacing: 0.04em;
+            color: #5a5a5a;
+            line-height: 1.6;
+        }
+        @media (max-width: 639px) {
+            .home-hero {
+                min-height: 80vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .home-hero-ctas .btn-cta-primary,
+            .home-hero-ctas .btn-cta-secondary {
+                width: 100%;
+                max-width: none;
+            }
+        }
+        .home-clinica-highlight {
+            padding: 16px 18px 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            background: radial-gradient(circle at 0% 0%, rgba(46, 255, 112, 0.1), transparent 55%);
+        }
+        .home-clinica-highlight p {
+            font-size: 0.82rem;
+            color: #b0b0b0;
+            line-height: 1.55;
+            margin-bottom: 14px;
+        }
+        .home-clinica-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+            font-size: 0.72rem;
+            color: #888;
+        }
+        .home-clinica-meta span {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.4);
+        }
+        .home-clinica-meta .val {
+            color: var(--neon);
+        }
+        .btn-clinica-ghost {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(46, 255, 112, 0.35);
+            color: var(--neon) !important;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-clinica-ghost:hover {
+            background: rgba(46, 255, 112, 0.08);
+        }
+        .home-duelo-section {
+            padding: 0;
+            overflow: hidden;
+        }
+        .home-duelo-card {
+            padding: 20px 18px 18px;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(212, 175, 55, 0.15), transparent 50%),
+                linear-gradient(160deg, rgba(18, 14, 10, 0.98), rgba(6, 6, 6, 0.98));
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .home-duelo-card > .panel-title {
+            margin-bottom: 6px;
+        }
+        .home-duelo-card .panel-sub {
+            margin-bottom: 14px;
+        }
+        .cta-duelo-wrap.home-duelo-inner {
+            border-top: none;
+            padding: 0;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .home-duelo-inner .cta-duelo-main {
+            width: 100%;
+            border-radius: 16px;
+            min-height: 52px;
+        }
+        @media (max-width: 639px) {
+            .home-duelo-inner .cta-secondary-links {
+                text-align: center;
+            }
         }
         .panel {
             border-radius: 20px;
@@ -424,28 +640,67 @@
             </div>
         </header>
 
-        <section class="grid-main" aria-label="Dashboard principal">
-            <article class="panel" aria-label="Próximos torneos y clínicas">
+        <div class="home-main-stack" aria-label="Dashboard principal">
+
+            <section class="home-hero" aria-label="Entrenamiento y mejora">
+                <div class="home-hero-inner">
+                    <h1>Aprende billar como un profesional</h1>
+                    <p class="home-hero-sub">Entrena, compite y mejora tu promedio con metodología real de carambola</p>
+                    <div class="home-hero-ctas">
+                        <a class="btn-cta-primary" href="entrenamiento.html">ENTRENAR AHORA</a>
+                        <a class="btn-cta-secondary" href="#home-torneos">Ver torneos</a>
+                    </div>
+                    <p class="home-hero-micro">✅ Rutinas reales | ✅ Seguimiento de promedio | ✅ Nivel progresivo</p>
+                </div>
+            </section>
+
+            <article class="panel" aria-label="Clínicas y entrenamiento">
                 <div class="panel-head">
                     <div>
-                        <div class="panel-title">Eventos de élite</div>
-                        <div class="panel-sub">Próximos torneos · Clínicas del Maestro</div>
+                        <div class="panel-title">Clínicas · Entrenamiento</div>
+                        <div class="panel-sub">Metodología del Maestro · mesa y lectura</div>
                     </div>
                 </div>
-                <!-- Calendario editorial (solo texto): ajustá fechas aquí cuando confirmes agenda real -->
+                <div class="home-clinica-highlight">
+                    <p>
+                        Tiro, línea y <strong style="color:var(--oro);">control de efecto</strong> — bloques guiados para subir tu promedio con rutina medible, no solo práctica suelta.
+                    </p>
+                    <div class="home-clinica-meta">
+                        <span>Sábado: <span class="val">05 ABR · 09:00–13:00</span></span>
+                        <span>Nivel: <span class="val">INTERMEDIO · AVANZADO</span></span>
+                        <span>Plazas: <span class="val">10</span></span>
+                    </div>
+                    <a class="btn-clinica-ghost" href="entrenamiento.html">Ir a entrenamiento</a>
+                </div>
+            </article>
+
+            <article class="panel" id="home-torneos" aria-label="Torneos y eventos">
+                <div class="panel-head">
+                    <div>
+                        <div class="panel-title">Torneos · Eventos</div>
+                        <div class="panel-sub">Agenda editorial · Copa, clínicas y retos en vivo</div>
+                    </div>
+                </div>
                 <div class="slider-shell">
                     <div class="slider-track" id="slider-track"></div>
                     <div class="slider-dots" id="slider-dots" aria-label="Selector de evento"></div>
                 </div>
-                <div class="cta-duelo-wrap">
-                    <a class="cta-duelo-main" href="/duelo-tv.html?modo=movil" title="Fase 1: registro · Fase 2: marcador (mismo flujo que jugador)">
-                        <span class="plus">+</span>
-                        <span>NUEVO DUELO</span>
-                    </a>
-                    <div class="cta-secondary-links">
-                        <a href="jugador/index.html">Entrar como jugador</a>
-                        <a href="apps/club/organizador/organizador.html">Organizador · Torneos</a>
-                        <a href="club/index.html">Portal club</a>
+            </article>
+
+            <article class="panel home-duelo-section" aria-label="Comunidad y duelos">
+                <div class="home-duelo-card">
+                    <div class="panel-title">Comunidad · Duelo</div>
+                    <div class="panel-sub">Marcador en vivo · mismo flujo que la app jugador</div>
+                    <div class="cta-duelo-wrap home-duelo-inner">
+                        <a class="cta-duelo-main" href="/duelo-tv.html?modo=movil" title="Fase 1: registro · Fase 2: marcador (mismo flujo que jugador)">
+                            <span class="plus">+</span>
+                            <span>NUEVO DUELO</span>
+                        </a>
+                        <div class="cta-secondary-links">
+                            <a href="jugador/index.html">Entrar como jugador</a>
+                            <a href="apps/club/organizador/organizador.html">Organizador · Torneos</a>
+                            <a href="club/index.html">Portal club</a>
+                        </div>
                     </div>
                 </div>
             </article>
@@ -456,50 +711,11 @@
                         <div class="blog-title">DIARIO DEL MAESTRO</div>
                         <div class="blog-sub">Notas técnicas y rutina de alto rendimiento</div>
                     </div>
-                    <div class="blog-grid">
-                        <article class="blog-card">
-                            <div class="blog-k">Pre-torneo</div>
-                            <div class="blog-h">Semana Copa DeCarambola</div>
-                            <p class="blog-body">
-                                Calentamiento 20 min a banda + 2 bloques de 15 entradas con foco en
-                                apertura y segunda bola. Objetivo de sesión: mantener promedio
-                                <span class="val">≥ 1.15</span> sin forzar velocidad.
-                            </p>
-                            <div class="blog-meta">
-                                <span>Cierre inscripciones</span>
-                                <span class="val">30 MAR</span>
-                            </div>
-                        </article>
-                        <article class="blog-card">
-                            <div class="blog-k">Clínica 05 ABR</div>
-                            <div class="blog-h">Línea de bola y lectura de mesa</div>
-                            <p class="blog-body">
-                                En la clínica del sábado trabajamos lectura de línea en diagonal,
-                                ajuste fino de efecto y rutina de 5 minutos antes de cada bloque
-                                de competencia.
-                            </p>
-                            <div class="blog-meta">
-                                <span>Plazas</span>
-                                <span class="val">10</span>
-                            </div>
-                        </article>
-                        <article class="blog-card">
-                            <div class="blog-k">Mesa TV</div>
-                            <div class="blog-h">Checklist antes del duelo</div>
-                            <p class="blog-body">
-                                Cámara, iluminación y marcador verificados. Paño y tiza al estándar
-                                del club; temperatura ambiente estable para que la bola no “salte”
-                                en el último tercio de mesa.
-                            </p>
-                            <div class="blog-meta">
-                                <span>Próximo duelo TV</span>
-                                <span class="val">06 ABR · 20:00</span>
-                            </div>
-                        </article>
-                    </div>
+                    <div id="blog-grid" class="blog-grid"></div>
                 </div>
             </aside>
-        </section>
+
+        </div>
 
         <footer class="foot">
             decarambola.com · 2026 · <a href="jugador/index.html">Jugador</a> · <a href="club/index.html">Club</a>
