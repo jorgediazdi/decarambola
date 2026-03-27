@@ -131,13 +131,11 @@
             position: relative;
             z-index: 2;
         }
-        /* DEBUG auditoría: borde rojo = estás viendo ESTE HTML. Quitar cuando cierre el ticket. */
         body.dc-ux.dc-ux-skin.m-root-salon #btn_guardar {
             position: relative !important;
             z-index: 999 !important;
             pointer-events: auto !important;
             touch-action: manipulation;
-            border: 5px solid red !important;
         }
     </style>
 </head>
@@ -345,30 +343,30 @@
         </div>
         <div class="campo">
             <label>Tarifa por hora</label>
-            <input type="number" id="tarifa_hora" min="0" step="0.01" value="0" oninput="calcularMedia()">
+            <input type="number" id="tarifa_hora" min="0" step="any" inputmode="decimal" value="0" oninput="calcularMedia()">
         </div>
         <div class="campo">
             <label>Tarifa media hora (editable)</label>
-            <input type="number" id="tarifa_media" min="0" step="0.01" value="0">
+            <input type="number" id="tarifa_media" min="0" step="any" inputmode="decimal" value="0">
         </div>
         <div class="campo-doble">
             <div class="campo">
                 <label>Tarifa mañana (antes 12h)</label>
-                <input type="number" id="tarifa_manana" min="0" step="0.01" value="0">
+                <input type="number" id="tarifa_manana" min="0" step="any" inputmode="decimal" value="0">
             </div>
             <div class="campo">
                 <label>Tarifa noche (después 20h)</label>
-                <input type="number" id="tarifa_noche" min="0" step="0.01" value="0">
+                <input type="number" id="tarifa_noche" min="0" step="any" inputmode="decimal" value="0">
             </div>
         </div>
         <div class="campo">
             <label>Tarifa tarde (12h–20h, lun–vie)</label>
-            <input type="number" id="tarifa_tarde" min="0" step="0.01" value="0">
+            <input type="number" id="tarifa_tarde" min="0" step="any" inputmode="decimal" value="0">
             <p class="campo-ayuda" style="margin-top:6px;">Si la dejás en 0, en esa franja aplica la tarifa por hora base (o la que corresponda según el orden de franjas arriba).</p>
         </div>
         <div class="campo">
             <label>Tarifa fin de semana</label>
-            <input type="number" id="tarifa_finde" min="0" step="0.01" value="0">
+            <input type="number" id="tarifa_finde" min="0" step="any" inputmode="decimal" value="0">
         </div>
         <div class="sec-titulo">DESCUENTOS (%)</div>
         <div class="campo">
@@ -664,7 +662,7 @@ function initValidacionInputsSalon() {
     });
     document.querySelectorAll('#contenido-principal input[type=number]').forEach(function (inp) {
         var step = inp.getAttribute('step');
-        var dec = step && String(step).indexOf('.') !== -1;
+        var dec = step === 'any' || (step && String(step).indexOf('.') !== -1);
         bindInputNumeroPlano(inp, { decimal: dec });
     });
     document.querySelectorAll('#lista_promos .promo-fila').forEach(function (row) {
@@ -831,7 +829,8 @@ function agregarDescDias() {
 }
 
 function setLayout(mode) {
-    layoutMode = mode === 'horizontal' || mode === 'vertical' ? mode : 'grid';
+    if (mode === 'horizontal' || mode === 'vertical') layoutMode = mode;
+    else layoutMode = 'grid';
     try {
         document.querySelectorAll('.layout-btns [data-layout]').forEach(function (b) {
             b.classList.toggle('layout-btn--activo', b.getAttribute('data-layout') === layoutMode);
@@ -914,10 +913,18 @@ function actualizarPreview() {
     }
 
     if (!celdasOrden.length) {
-        var cap = Math.max(1, Math.min(50, cantidad));
-        for (var fb = 0; fb < cap; fb++) {
+        var cap0 = Math.max(1, Math.min(50, cantidad));
+        for (var fb = 0; fb < cap0; fb++) {
             celdasOrden.push(numIni + fb);
         }
+    }
+    /** Si layout_filas suma menos que cantidad, o el plano filas×columnas cubre menos celdas, completar numeración hasta cantidad. */
+    var capCant = Math.max(1, Math.min(50, cantidad));
+    while (celdasOrden.length < capCant) {
+        celdasOrden.push(numIni + celdasOrden.length);
+    }
+    if (celdasOrden.length > capCant) {
+        celdasOrden = celdasOrden.slice(0, capCant);
     }
 
     if (layoutMode === 'horizontal') {
@@ -935,25 +942,34 @@ function actualizarPreview() {
             cont.appendChild(filaV);
         }
     } else {
-        idx = 0;
+        var ci = 0;
         if (layoutPorFila && layoutPorFila.length) {
-            for (var r2 = 0; r2 < layoutPorFila.length && idx < cantidad; r2++) {
+            for (var r2 = 0; r2 < layoutPorFila.length && ci < celdasOrden.length; r2++) {
                 var nEnFila = layoutPorFila[r2];
                 var filaG = document.createElement('div');
                 filaG.className = 'preview-fila';
-                for (var c3 = 0; c3 < nEnFila && idx < cantidad; c3++) {
-                    idx++;
-                    filaG.appendChild(celdaPreview(numIni + idx - 1));
+                for (var c3 = 0; c3 < nEnFila && ci < celdasOrden.length; c3++) {
+                    filaG.appendChild(celdaPreview(celdasOrden[ci]));
+                    ci++;
                 }
                 cont.appendChild(filaG);
             }
+            while (ci < celdasOrden.length) {
+                var filaRest = document.createElement('div');
+                filaRest.className = 'preview-fila';
+                for (var cr = 0; cr < columnas && ci < celdasOrden.length; cr++) {
+                    filaRest.appendChild(celdaPreview(celdasOrden[ci]));
+                    ci++;
+                }
+                cont.appendChild(filaRest);
+            }
         } else {
-            for (var f2 = 0; f2 < filas && idx < cantidad; f2++) {
+            while (ci < celdasOrden.length) {
                 var filaG2 = document.createElement('div');
                 filaG2.className = 'preview-fila';
-                for (var c4 = 0; c4 < columnas && idx < cantidad; c4++) {
-                    idx++;
-                    filaG2.appendChild(celdaPreview(numIni + idx - 1));
+                for (var c4 = 0; c4 < columnas && ci < celdasOrden.length; c4++) {
+                    filaG2.appendChild(celdaPreview(celdasOrden[ci]));
+                    ci++;
                 }
                 cont.appendChild(filaG2);
             }
@@ -970,11 +986,28 @@ function actualizarPreview() {
     }
 }
 
-function getClubId() {
-    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-    if (perfil.club_id) return perfil.club_id;
-    var clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null');
-    return (clubActivo && clubActivo.id) ? clubActivo.id : null;
+function getClubIdSync() {
+    try {
+        var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        if (perfil.club_id) return String(perfil.club_id).trim();
+        var clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null');
+        if (clubActivo && clubActivo.id) return String(clubActivo.id).trim();
+        if (clubActivo && clubActivo.codigo) return String(clubActivo.codigo).trim();
+    } catch (e) {}
+    return null;
+}
+
+async function resolveClubIdForGuardar() {
+    var cid = getClubIdSync();
+    if (cid) return cid;
+    try {
+        var am = await import('/js/auth-manager.js');
+        if (am.getClubId) {
+            var r = await am.getClubId();
+            if (r && r.data) return String(r.data).trim();
+        }
+    } catch (e) {}
+    return null;
 }
 
 window.guardarTodo = async function () {
@@ -1036,7 +1069,7 @@ window.guardarTodo = async function () {
             componentes.push({ nombre: inputs[0].value, tipo: (select && select.value) || 'ESTANDAR', horas_optimo: parseInt(inputs[1].value, 10) || 500, horas_alerta: parseInt(inputs[2].value, 10) || 800 });
     });
 
-    var clubId = getClubId();
+    var clubId = await resolveClubIdForGuardar();
     var btn = document.getElementById('btn_guardar');
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
 
@@ -1231,25 +1264,20 @@ window.agregarDescDias = agregarDescDias;
 window.setLayout = setLayout;
 window.actualizarCantidadDesdeLayout = actualizarCantidadDesdeLayout;
 
-/* Auditoría eventos: vincular #btn_guardar al final (sin onclick en HTML). */
-console.log('[mesas_config] Intentando vincular botón #btn_guardar…');
-var botonReal = document.querySelector('#btn_guardar');
-if (botonReal) {
-    botonReal.style.backgroundColor = 'yellow';
-    botonReal.onclick = function (e) {
+(function bindBtnGuardar() {
+    var botonReal = document.getElementById('btn_guardar');
+    if (!botonReal || botonReal._dcGuardarBound) return;
+    botonReal._dcGuardarBound = true;
+    botonReal.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('[mesas_config] ¡CLIC CAPTURADO en #btn_guardar!');
         if (typeof window.guardarTodo === 'function') {
             window.guardarTodo();
         } else {
-            console.error('[mesas_config] window.guardarTodo no es una función');
             alert('Error interno: guardarTodo no está cargado. Recargá la página.');
         }
-    };
-} else {
-    console.error('[mesas_config] No se encontró el botón con id #btn_guardar (¿HTML distinto o ID duplicado?)');
-}
+    });
+})();
 
 window.__salaBoot = function() {
     try {
