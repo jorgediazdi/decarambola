@@ -409,7 +409,7 @@ body{background:var(--negro);color:#fff;
 </div>
 
 <div class="wrap">
-  <div class="buscador">
+  <div class="buscador" style="display:none;">
     <span style="color:#2a2a2a;font-size:1rem;">🔍</span>
     <input type="text" id="busq" placeholder="Busca un jugador…"
       oninput="buscarJugador(this.value)" autocomplete="off">
@@ -427,13 +427,36 @@ window.onload = async function(){
   try{ await MasterVIP.init(); }catch(e){ console.warn(e); }
   SESSION.verificarAlCargar('jugador');
   MasterVIP.applyDesign();
+  var buscadorWrap = document.querySelector('.buscador');
+  var role = '';
   var lw = document.getElementById('hdr-logo');
   if(lw) lw.innerHTML = MasterVIP.getLogoHTML(28);
 
   var mJ = window.location.search.match(/jugador=([^&]+)/);
   if(mJ){ var j=MasterVIP.buscarJugador(decodeURIComponent(mJ[1])); if(j){mostrarPerfil(j);return;} }
   var mp = MasterVIP._get('mi_perfil',null);
-  if(mp&&mp.nombre){ var jm=MasterVIP.buscarJugador(mp.nombre); if(jm){mostrarPerfil(jm);return;} }
+  var jm = null;
+  if (mp) {
+    // Evita condición de carrera: mi_perfil puede llegar sin nombre por unos ms.
+    for (var intento = 0; intento < 5; intento++) {
+      if (mp.nombre) break;
+      await new Promise(function(resolve){ setTimeout(resolve, 120); });
+      mp = MasterVIP._get('mi_perfil', null) || mp;
+    }
+    if (mp.nombre) {
+      jm = MasterVIP.buscarJugador(mp.nombre);
+    }
+    if (!jm && mp.id) {
+      var lista = MasterVIP.getJugadores();
+      jm = lista.find(function(x){ return String(x.id || '') === String(mp.id); }) || null;
+    }
+    if (jm) { mostrarPerfil(jm); return; }
+  }
+  var mpRol = MasterVIP._get('mi_perfil', null);
+  role = (mpRol && (mpRol.role || mpRol.rol || mpRol.tipo_rol || mpRol.tipoRol) || '').toString().toLowerCase();
+  var isAdmin = role === 'club_admin' || role === 'superadmin';
+  if (buscadorWrap) buscadorWrap.style.display = isAdmin ? '' : 'none';
+  if (!isAdmin) { location.href = '/auth.html'; return; }
   mostrarDirectorio();
 };
 
