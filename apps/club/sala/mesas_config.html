@@ -673,7 +673,8 @@ function initValidacionInputsSalon() {
 }
 
 if (typeof window.pasoActual !== 'number') window.pasoActual = 1;
-var layoutMode = 'grid';
+window.layoutMode = 'grid';
+var layoutMode = window.layoutMode;
 
 try {
     document.querySelectorAll('#chips_tipo span').forEach(function (s) {
@@ -767,6 +768,7 @@ function irPaso(n) {
     var lbls = ['Paso 1 · Datos del salón', 'Paso 2 · Tipo y componentes', 'Paso 3 · Plano en pantalla', 'Paso 4 · Tarifas'];
     var lbl = document.getElementById('lbl-paso');
     if (lbl) lbl.textContent = lbls[n - 1];
+    if (!window.layoutMode) window.layoutMode = 'grid';
     try {
         actualizarPreview();
     } catch (e) {
@@ -831,6 +833,12 @@ function agregarDescDias() {
 function setLayout(mode) {
     if (mode === 'horizontal' || mode === 'vertical') layoutMode = mode;
     else layoutMode = 'grid';
+    window.layoutMode = layoutMode;
+    var prevCont = document.getElementById('preview_plano');
+    if (prevCont) {
+        prevCont.className =
+            'preview-plano layout-' + (layoutMode === 'horizontal' || layoutMode === 'vertical' ? layoutMode : 'grid');
+    }
     try {
         document.querySelectorAll('.layout-btns [data-layout]').forEach(function (b) {
             b.classList.toggle('layout-btn--activo', b.getAttribute('data-layout') === layoutMode);
