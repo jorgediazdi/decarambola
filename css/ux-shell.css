@@ -129,22 +129,24 @@ body.dc-ux-skin #fase2 {
 .jug-nav-fold__links a {
     display: block;
     text-align: center;
-    padding: 9px 12px;
+    padding: 11px 12px;
     border-radius: 10px;
-    border: 1px solid #2a2a2a;
-    background: rgba(10, 10, 10, 0.9);
-    color: #888;
-    font-size: 0.52rem;
-    letter-spacing: 0.08em;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #ccc;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
     text-decoration: none;
     font-weight: 600;
-    transition: border-color 0.15s, color 0.15s;
+    text-transform: uppercase;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
+
 .jug-nav-fold__links a:hover,
 .jug-nav-fold__links a:focus-visible {
-    border-color: rgba(212, 175, 55, 0.35);
-    color: var(--dc-oro);
-    outline: none;
+    border-color: rgba(212, 175, 55, 0.5);
+    color: #d4af37;
+    background: rgba(212, 175, 55, 0.06);
 }
 
 /* Menú club/sala en cabecera: una sola fila; enlaces dentro del desplegable (evita 7 recuadros verticales) */
