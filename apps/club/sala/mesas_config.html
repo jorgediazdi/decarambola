@@ -804,7 +804,7 @@ function quitarComp(btn) {
 function agregarPromo() {
     var div = document.createElement('div');
     div.className = 'promo-fila';
-    div.innerHTML = '<input type="text" placeholder="Nombre promoción"><input type="number" placeholder="% desc" value="10"><input type="text" placeholder="Horario aplicable"><button type="button" class="btn-quitar" onclick="this.closest(\'.promo-fila\').remove()">✕</button>';
+    div.innerHTML = "<input type=\"text\" placeholder=\"Nombre promo\"><input type=\"number\" placeholder=\"% desc\" value=\"10\"><input type=\"text\" placeholder=\"Horario\"><button type=\"button\" class=\"btn-quitar\" onclick=\"this.closest('.promo-fila').remove()\">X</button>";
     document.getElementById('lista_promos').appendChild(div);
     var ins = div.querySelectorAll('input');
     if (ins[0]) bindInputNombrePlano(ins[0]);
@@ -814,7 +814,7 @@ function agregarPromo() {
 function agregarDescFranja() {
     var div = document.createElement('div');
     div.className = 'desc-franja-fila';
-    div.innerHTML = '<input type="time" class="df-desde" value="14:00"><input type="time" class="df-hasta" value="18:00"><input type="number" class="df-pct" min="0" max="100" step="1" placeholder="%" value="10"><button type="button" class="btn-quitar" onclick="this.closest(\'.desc-franja-fila\').remove()">✕</button>';
+    div.innerHTML = "<input type=\"time\" class=\"df-desde\" value=\"14:00\"><input type=\"time\" class=\"df-hasta\" value=\"18:00\"><input type=\"number\" class=\"df-pct\" min=\"0\" max=\"100\" step=\"1\" placeholder=\"%\" value=\"10\"><button type=\"button\" class=\"btn-quitar\" onclick=\"this.closest('.desc-franja-fila').remove()\">X</button>";
     document.getElementById('lista_desc_franjas').appendChild(div);
 }
 
@@ -826,7 +826,7 @@ function agregarDescDias() {
     for (var d = 0; d < 7; d++) {
         chks += '<label><input type="checkbox" class="dd-dia" value="' + d + '"> ' + nombres[d] + '</label>';
     }
-    div.innerHTML = '<div class="dias-chk">' + chks + '</div><div style="display:flex;gap:8px;align-items:center;"><span style="color:#666;">% desc.</span><input type="number" class="dd-pct" min="0" max="100" step="1" value="15" style="width:80px;padding:6px;border-radius:8px;border:1px solid var(--g1);background:var(--g3);color:#fff;"><button type="button" class="btn-quitar" onclick="this.closest(\'.desc-dia-fila\').remove()">✕</button></div>';
+    div.innerHTML = "<div class=\"dias-chk\">" + chks + "</div><div style=\"display:flex;gap:8px;align-items:center;\"><span style=\"color:#666;\">% desc.</span><input type=\"number\" class=\"dd-pct\" min=\"0\" max=\"100\" step=\"1\" value=\"15\" style=\"width:80px;padding:6px;border-radius:8px;border:1px solid var(--g1);background:var(--g3);color:#fff;\"><button type=\"button\" class=\"btn-quitar\" onclick=\"this.closest('.desc-dia-fila').remove()\">X</button></div>";
     document.getElementById('lista_desc_dias').appendChild(div);
 }
 
