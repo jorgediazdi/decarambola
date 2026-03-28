@@ -963,8 +963,8 @@ window.onbeforeunload = function() { if (intervaloRefresh) clearInterval(interva
 })();
 </script>
 <script type="module">
-import { guardSalaPage } from '/js/sala-supabase-gate.js';
-await guardSalaPage({ pageTitle: 'Salón en vivo' });
+import { guardSalaPageConPolitica } from '/js/sala-gate-politica-club.js';
+await guardSalaPageConPolitica({ pageTitle: 'Salón en vivo' });
 </script>
 
 </body>

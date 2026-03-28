@@ -51,6 +51,20 @@
             pointer-events: none;
         }
         #tarifas-toast.dc-toast--show { transform: translateX(-50%) translateY(0); }
+        #dc-tarifas-readonly-msg {
+            display: none;
+            margin-top: 14px;
+            padding: 14px 16px;
+            background: var(--g3);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 12px;
+            color: #c8c8c8;
+            font-size: 0.62rem;
+            line-height: 1.5;
+            text-align: center;
+        }
+        #dc-tarifas-readonly-msg strong { color: var(--oro); }
+        #dc-tarifas-readonly-msg .dc-neon { color: #39ff14; font-weight: 700; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
     <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"Arial Black",Arial,sans-serif!important;}</style>
@@ -85,6 +99,10 @@
         Una sola <strong>tarifa por hora</strong> de referencia y, si querés, <strong>descuentos o recargos en %</strong> según el horario. El <strong>Salón en vivo</strong> cobra el <strong>tiempo real jugado</strong>, minuto a minuto (si la sesión cruza franjas, cada tramo usa su %). Todo se guarda en <code style="color:#666;">mesas_config.tarifas</code> (Supabase).
         <span style="display:block;margin-top:8px;color:#777;">El <strong>plano</strong> de la sala está en <a href="mesas_config.html" style="color:var(--oro);">Configurar instalaciones</a>. Necesitás <strong>tarifa base &gt; 0</strong> y mesas en Supabase para operar el salón.</span>
     </div>
+    <div id="dc-tarifas-readonly-msg" aria-live="polite">
+        <span class="dc-neon">Solo lectura</span> · <strong>Solo el administrador del club puede editar tarifas.</strong>
+    </div>
+    <div id="dc-tarifas-editable" style="display:none">
     <div class="sec">TARIFA</div>
     <div class="campo">
         <label>Tarifa por hora ($)</label>
@@ -113,6 +131,7 @@
     <div id="tarifas_ejemplo_vivo" class="info-tarifa" style="font-size:0.62rem;line-height:1.5;"></div>
 
     <button type="button" class="btn-paso" id="btn_guardar" onclick="guardarTarifas()">GUARDAR TARIFAS</button>
+    </div>
 </div>
 
 <script src="/session.js"></script>
@@ -292,6 +311,17 @@ function mostrarToastTarifas(msg) {
 }
 
 async function guardarTarifas() {
+    var auth = await import('/js/auth-manager.js');
+    var sr = await auth.getSession();
+    if (sr.error || !sr.data) {
+        mostrarToastTarifas('Iniciá sesión para guardar tarifas.');
+        return;
+    }
+    var rr = await auth.getRole();
+    if (rr.error || rr.data !== 'club_admin') {
+        mostrarToastTarifas('Solo el administrador del club puede editar tarifas.');
+        return;
+    }
     var btn = document.getElementById('btn_guardar');
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
     try {
@@ -351,8 +381,33 @@ window.__salaBoot = cargarTarifas;
 })();
 </script>
 <script type="module">
-import { guardSalaPage } from '/js/sala-supabase-gate.js';
-await guardSalaPage({ pageTitle: 'Tarifas del salón' });
+import { getSession, getRole } from '/js/auth-manager.js';
+import { guardSalaPageConPolitica } from '/js/sala-gate-politica-club.js';
+
+var editable = document.getElementById('dc-tarifas-editable');
+var msg = document.getElementById('dc-tarifas-readonly-msg');
+try {
+    var results = await Promise.all([getSession(), getRole()]);
+    var sess = results[0];
+    var roleR = results[1];
+    var okAdmin = !sess.error && sess.data && !roleR.error && roleR.data === 'club_admin';
+    if (editable && msg) {
+        if (okAdmin) {
+            editable.style.display = '';
+            msg.style.display = 'none';
+        } else {
+            editable.style.display = 'none';
+            msg.style.display = 'block';
+        }
+    }
+} catch (_e) {
+    if (editable && msg) {
+        editable.style.display = 'none';
+        msg.style.display = 'block';
+    }
+}
+
+await guardSalaPageConPolitica({ pageTitle: 'Tarifas del salón' });
 </script>
 
 </body>
