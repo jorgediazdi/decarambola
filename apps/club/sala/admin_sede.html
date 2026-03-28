@@ -50,10 +50,8 @@
         .dc-ayuda { color:#aaa; font-size:0.54rem; line-height:1.45; margin-top:10px; font-weight:normal; letter-spacing:0.02em; text-transform:none; font-family:system-ui,-apple-system,sans-serif; }
         #dc-superadmin-salon { margin-top:8px; }
         #dc-superadmin-salon .dc-sa-preview-host { margin-top:12px; }
-        #dc-superadmin-salon .dc-sa-preview-plano { position:relative; width:100%; background:var(--g2); border:1px solid rgba(212,175,55,0.35); border-radius:14px; overflow:hidden; box-sizing:border-box; touch-action:none; }
-        #dc-superadmin-salon .dc-sa-mesa { position:absolute; transform:translate(-50%,-50%); cursor:grab; touch-action:none; background:rgba(46,204,113,0.18); border:1px solid #2ecc71; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:0.48rem; color:#2ecc71; font-weight:bold; box-sizing:border-box; z-index:2; }
-        #dc-superadmin-salon .dc-sa-mesa:active { cursor:grabbing; }
-        #dc-superadmin-salon .dc-sa-grip { position:absolute; left:2px; bottom:2px; font-size:0.4rem; opacity:0.55; line-height:1; pointer-events:none; }
+        #dc-superadmin-salon .dc-sa-preview-plano { position:relative; width:100%; background:var(--g2); border:1px solid rgba(212,175,55,0.35); border-radius:14px; overflow:hidden; box-sizing:border-box; }
+        #dc-superadmin-salon .dc-sa-mesa { position:absolute; transform:translate(-50%,-50%); cursor:default; background:rgba(46,204,113,0.18); border:1px solid #2ecc71; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:0.48rem; color:#2ecc71; font-weight:bold; box-sizing:border-box; z-index:2; }
         #dc-superadmin-salon .dc-sa-sin-config { color:#888; font-size:0.55rem; line-height:1.4; padding:10px 0; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
@@ -135,17 +133,23 @@
             <label for="inp-ancho-local">Ancho del local (metros)</label>
             <input type="number" id="inp-ancho-local" min="1" step="0.1" value="15" inputmode="decimal">
         </div>
-        <p class="dc-ayuda" style="margin-top:-4px;">Se guarda en <code style="color:#666;">mesas_config.metraje</code> como JSON <code style="color:#666;">{ largo, ancho }</code>.</p>
+        <div class="campo">
+            <label for="inp-orientacion-mesas">Orientación de las mesas</label>
+            <select id="inp-orientacion-mesas" style="width:100%;max-width:360px;padding:10px 12px;border-radius:10px;border:1px solid rgba(212,175,55,0.35);background:var(--g2);color:var(--txt);font-size:0.85rem;">
+                <option value="horizontal">Horizontal (eje largo del local)</option>
+                <option value="vertical">Vertical (eje corto del local)</option>
+            </select>
+        </div>
+        <p class="dc-ayuda" style="margin-top:-4px;">Se guarda en <code style="color:#666;">mesas_config.metraje</code> como JSON <code style="color:#666;">{ largo, ancho, orientacion }</code> (<code style="color:#666;">horizontal</code> o <code style="color:#666;">vertical</code>).</p>
 
         <div class="sec-titulo">MESAS DEL SALÓN · SUPERADMIN</div>
         <div class="campo">
             <label for="inp-num-mesas">Número de mesas</label>
             <input type="number" id="inp-num-mesas" min="1" max="30" step="1" value="1">
         </div>
-        <p class="dc-ayuda" style="margin-top:-4px;">Vista previa proporcional al local. Arrastrá cada mesa desde ⠿. Al guardar: si aumentás la cantidad se insertan filas en <code style="color:#666;">mesas</code>; si la bajás, las sobrantes pasan a <code style="color:#666;">fuera_servicio</code>.</p>
+        <p class="dc-ayuda" style="margin-top:-4px;">Vista previa proporcional al local; las posiciones se distribuyen automáticamente (margen ~5&nbsp;%). Al guardar: si aumentás la cantidad se insertan filas en <code style="color:#666;">mesas</code>; si la bajás, las sobrantes pasan a <code style="color:#666;">fuera_servicio</code>. Las coordenadas quedan en <code style="color:#666;">posicion_x</code> / <code style="color:#666;">posicion_y</code>.</p>
         <div id="dc-sa-sin-config" class="dc-sa-sin-config" style="display:none;"></div>
         <div class="dc-sa-preview-host" id="dc-sa-preview-host" style="display:none;">
-            <div id="dc-sa-grid-label" class="dc-ayuda" style="margin-top:0;margin-bottom:8px;color:var(--oro);"></div>
             <div class="dc-sa-preview-plano" id="dc-sa-preview-plano"></div>
         </div>
     </div>
@@ -256,21 +260,20 @@ window.__salaBoot = function() {
     var dcSa = {
         salonId: null,
         clubIdKey: null,
-        slots: [],
-        drag: { idx: null, ptr: null, cont: null },
-        winEnd: null,
-        moveBound: false
+        slots: []
     };
 
     function dcSaLeerMetrajeInputs() {
         var elL = document.getElementById('inp-largo-local');
         var elA = document.getElementById('inp-ancho-local');
+        var elO = document.getElementById('inp-orientacion-mesas');
         var L = parseFloat(elL && elL.value) || 20;
         var A = parseFloat(elA && elA.value) || 15;
-        return { largo: Math.max(0.5, L), ancho: Math.max(0.5, A) };
+        var ori = elO && elO.value === 'vertical' ? 'vertical' : 'horizontal';
+        return { largo: Math.max(0.5, L), ancho: Math.max(0.5, A), orientacion: ori };
     }
 
-    /** Grid derivado solo de N: columnas = ceil(sqrt(N)), filas = ceil(N/columnas). */
+    /** Grid solo por N: columnas = ceil(sqrt(N)), filas = ceil(N/columnas). */
     function dcSaGridDims(n) {
         var N = Math.min(30, Math.max(1, parseInt(n, 10) || 1));
         var columnas = Math.ceil(Math.sqrt(N));
@@ -278,100 +281,22 @@ window.__salaBoot = function() {
         return { n: N, columnas: columnas, filas: filas };
     }
 
-    function dcSaActualizarEtiquetaGrid() {
-        var lab = document.getElementById('dc-sa-grid-label');
-        if (!lab) return;
-        var len = dcSa.slots ? dcSa.slots.length : 0;
-        if (len < 1) {
-            lab.textContent = '';
-            return;
+    /** Centros en % del plano con ~5 % de margen exterior. */
+    function dcSaDistribuirSlots() {
+        var n = dcSa.slots ? dcSa.slots.length : 0;
+        if (n < 1) return;
+        var gd = dcSaGridDims(n);
+        var cols = gd.columnas;
+        var rows = gd.filas;
+        var inset = 5;
+        var ux = 100 - 2 * inset;
+        var uy = 100 - 2 * inset;
+        for (var i = 0; i < n; i++) {
+            var col = i % cols;
+            var row = Math.floor(i / cols);
+            dcSa.slots[i].x = inset + ((col + 0.5) / cols) * ux;
+            dcSa.slots[i].y = inset + ((row + 0.5) / rows) * uy;
         }
-        var gd = dcSaGridDims(len);
-        lab.textContent = gd.filas + ' filas × ' + gd.columnas + ' columnas';
-    }
-
-    function dcSaGridPct(i, n, cols) {
-        if (n <= 0) return { x: 50, y: 50 };
-        var c = cols != null ? cols : dcSaGridDims(n).columnas;
-        var rows = Math.max(1, Math.ceil(n / c));
-        var row = Math.floor(i / c);
-        var col = i % c;
-        var x = ((col + 0.5) / c) * 100;
-        var y = ((row + 0.5) / rows) * 100;
-        return { x: Math.max(4, Math.min(96, x)), y: Math.max(4, Math.min(96, y)) };
-    }
-
-    function dcSaPctEnPlano(cont, clientX, clientY) {
-        var rect = cont.getBoundingClientRect();
-        if (rect.width < 1 || rect.height < 1) return { x: 50, y: 50 };
-        var x = ((clientX - rect.left) / rect.width) * 100;
-        var y = ((clientY - rect.top) / rect.height) * 100;
-        return { x: Math.max(3, Math.min(97, x)), y: Math.max(3, Math.min(97, y)) };
-    }
-
-    function dcSaOnPreviewMove(ev) {
-        if (dcSa.drag.idx == null || dcSa.drag.ptr !== ev.pointerId) return;
-        var cont = dcSa.drag.cont;
-        if (!cont) return;
-        var coords = dcSaPctEnPlano(cont, ev.clientX, ev.clientY);
-        var idx = dcSa.drag.idx;
-        if (dcSa.slots[idx]) {
-            dcSa.slots[idx].x = coords.x;
-            dcSa.slots[idx].y = coords.y;
-        }
-        var el = cont.querySelector('.dc-sa-mesa[data-dc-sa-idx="' + idx + '"]');
-        if (el) {
-            el.style.left = coords.x + '%';
-            el.style.top = coords.y + '%';
-        }
-    }
-
-    function dcSaBindPreviewDrag(cont) {
-        if (!cont) return;
-        if (!dcSa.moveBound) {
-            dcSa.moveBound = true;
-            cont.addEventListener('pointermove', dcSaOnPreviewMove);
-        }
-        cont.querySelectorAll('.dc-sa-mesa').forEach(function (node) {
-            if (node._dcSaDown) return;
-            node._dcSaDown = true;
-            node.addEventListener('pointerdown', function (ev) {
-                if (ev.button !== 0) return;
-                ev.stopPropagation();
-                ev.preventDefault();
-                var idx = parseInt(node.getAttribute('data-dc-sa-idx'), 10);
-                if (isNaN(idx)) return;
-                if (dcSa.winEnd) {
-                    try {
-                        window.removeEventListener('pointerup', dcSa.winEnd, true);
-                        window.removeEventListener('pointercancel', dcSa.winEnd, true);
-                    } catch (e1) {}
-                    dcSa.winEnd = null;
-                }
-                dcSa.drag.idx = idx;
-                dcSa.drag.ptr = ev.pointerId;
-                dcSa.drag.cont = cont;
-                try {
-                    node.setPointerCapture(ev.pointerId);
-                } catch (e2) {}
-                dcSa.winEnd = function (ev2) {
-                    if (dcSa.drag.idx == null || dcSa.drag.ptr !== ev2.pointerId) return;
-                    dcSa.drag.idx = null;
-                    dcSa.drag.ptr = null;
-                    dcSa.drag.cont = null;
-                    try {
-                        window.removeEventListener('pointerup', dcSa.winEnd, true);
-                        window.removeEventListener('pointercancel', dcSa.winEnd, true);
-                    } catch (e3) {}
-                    dcSa.winEnd = null;
-                    try {
-                        node.releasePointerCapture(ev2.pointerId);
-                    } catch (e4) {}
-                };
-                window.addEventListener('pointerup', dcSa.winEnd, true);
-                window.addEventListener('pointercancel', dcSa.winEnd, true);
-            });
-        });
     }
 
     function dcSaRenderPreview() {
@@ -381,8 +306,15 @@ window.__salaBoot = function() {
         cont.style.aspectRatio = ma.largo + ' / ' + ma.ancho;
         var L = ma.largo;
         var A = ma.ancho;
-        var wPct = (2.84 / L) * 100;
-        var hPct = (1.42 / A) * 100;
+        var wPct;
+        var hPct;
+        if (ma.orientacion === 'vertical') {
+            wPct = (1.42 / L) * 100;
+            hPct = (2.84 / A) * 100;
+        } else {
+            wPct = (2.84 / L) * 100;
+            hPct = (1.42 / A) * 100;
+        }
         var html = '';
         for (var i = 0; i < dcSa.slots.length; i++) {
             var s = dcSa.slots[i];
@@ -398,12 +330,11 @@ window.__salaBoot = function() {
                 wPct +
                 '%;height:' +
                 hPct +
-                '%">';
-            html += '<span class="dc-sa-grip">⠿</span><span style="position:relative;z-index:1;pointer-events:none;">' + label + '</span></div>';
+                '%"><span style="pointer-events:none;">' +
+                label +
+                '</span></div>';
         }
         cont.innerHTML = html;
-        dcSaBindPreviewDrag(cont);
-        dcSaActualizarEtiquetaGrid();
     }
 
     function dcSaRebuildSlotsFromNumInput() {
@@ -411,21 +342,19 @@ window.__salaBoot = function() {
         var newN = Math.min(30, Math.max(1, parseInt(inp && inp.value, 10) || 1));
         if (inp) inp.value = String(newN);
         var prev = dcSa.slots || [];
-        var gd = dcSaGridDims(newN);
-        var cols = gd.columnas;
         var nex = [];
         for (var i = 0; i < newN; i++) {
             var p = prev[i];
-            var g = dcSaGridPct(i, newN, cols);
             nex.push({
                 key: p && p.key != null ? p.key : 't' + i,
                 id: p && p.id ? p.id : null,
                 numero: p && p.numero != null ? p.numero : null,
-                x: p && typeof p.x === 'number' && !isNaN(p.x) ? p.x : g.x,
-                y: p && typeof p.y === 'number' && !isNaN(p.y) ? p.y : g.y
+                x: 50,
+                y: 50
             });
         }
         dcSa.slots = nex;
+        dcSaDistribuirSlots();
         dcSaRenderPreview();
     }
 
@@ -435,9 +364,16 @@ window.__salaBoot = function() {
         _dcSaInputsOnce = true;
         var l = document.getElementById('inp-largo-local');
         var a = document.getElementById('inp-ancho-local');
+        var o = document.getElementById('inp-orientacion-mesas');
         var n = document.getElementById('inp-num-mesas');
         if (l) l.addEventListener('input', function () { dcSaRenderPreview(); });
         if (a) a.addEventListener('input', function () { dcSaRenderPreview(); });
+        if (o) {
+            o.addEventListener('change', function () {
+                dcSaDistribuirSlots();
+                dcSaRenderPreview();
+            });
+        }
         if (n) {
             n.addEventListener('change', function () { dcSaRebuildSlotsFromNumInput(); });
             n.addEventListener('input', function () { dcSaRebuildSlotsFromNumInput(); });
@@ -479,12 +415,8 @@ window.__salaBoot = function() {
         dcSa.clubIdKey = club.codigo ? String(club.codigo).trim() : String(club.id);
         dcSaBindInputsOnce();
         var api = await import('/js/api/club-api.js');
-        var codigoClub = dcSa.clubIdKey;
-        console.log('[debug] buscando mesas_config con club_id:', codigoClub);
         var cfgR = await dcSaResolveConfigRow(api, club);
-        console.log('[debug] resultado:', cfgR.data, cfgR.error);
         var row = cfgR.data;
-        console.log('[debug] row:', row, 'typeof:', typeof row, 'keys:', row ? Object.keys(row) : 'null');
         if (!row || !row.id) {
             dcSa.salonId = null;
             dcSa.slots = [];
@@ -507,14 +439,18 @@ window.__salaBoot = function() {
         var met = row.metraje;
         var L = 20;
         var A = 15;
+        var oriVal = 'horizontal';
         if (met && typeof met === 'object') {
             if (met.largo != null) L = parseFloat(met.largo) || 20;
             if (met.ancho != null) A = parseFloat(met.ancho) || 15;
+            if (met.orientacion === 'vertical') oriVal = 'vertical';
         }
         var elL = document.getElementById('inp-largo-local');
         var elA = document.getElementById('inp-ancho-local');
+        var elO = document.getElementById('inp-orientacion-mesas');
         if (elL) elL.value = String(L);
         if (elA) elA.value = String(A);
+        if (elO) elO.value = oriVal;
         var lr = await api.listMesasBySalonId(dcSa.salonId);
         var todos = (lr.data || []).slice().sort(function (a, b) {
             return (a.numero || 0) - (b.numero || 0);
@@ -522,26 +458,25 @@ window.__salaBoot = function() {
         var nDef = Math.min(30, Math.max(1, todos.length || 1));
         var elN = document.getElementById('inp-num-mesas');
         if (elN) elN.value = String(nDef);
-        var gdLoad = dcSaGridDims(nDef);
-        var cols = gdLoad.columnas;
         dcSa.slots = [];
         for (var i = 0; i < nDef; i++) {
             var m = todos[i];
-            var g = dcSaGridPct(i, nDef, cols);
-            var px = g.x;
-            var py = g.y;
-            if (m && m.posicion_x != null && m.posicion_y != null) {
-                var pxx = parseFloat(m.posicion_x);
-                var pyy = parseFloat(m.posicion_y);
-                if (!isNaN(pxx) && !isNaN(pyy)) {
-                    px = pxx;
-                    py = pyy;
-                }
-            }
             if (m) {
-                dcSa.slots.push({ key: m.id, id: m.id, numero: m.numero, x: px, y: py });
+                dcSa.slots.push({ key: m.id, id: m.id, numero: m.numero, x: 50, y: 50 });
             } else {
-                dcSa.slots.push({ key: 't' + i, id: null, numero: null, x: px, y: py });
+                dcSa.slots.push({ key: 't' + i, id: null, numero: null, x: 50, y: 50 });
+            }
+        }
+        dcSaDistribuirSlots();
+        for (var j = 0; j < nDef; j++) {
+            var mj = todos[j];
+            if (mj && mj.posicion_x != null && mj.posicion_y != null) {
+                var pxx = parseFloat(mj.posicion_x);
+                var pyy = parseFloat(mj.posicion_y);
+                if (!isNaN(pxx) && !isNaN(pyy) && dcSa.slots[j]) {
+                    dcSa.slots[j].x = pxx;
+                    dcSa.slots[j].y = pyy;
+                }
             }
         }
         dcSaRenderPreview();
@@ -580,16 +515,12 @@ window.__salaBoot = function() {
         var cfg = cfgR.data;
         if (!cfg || !cfg.id) return { ok: false, err: cfgR.error || 'Sin mesas_config' };
         var targetN = Math.min(30, Math.max(1, parseInt(document.getElementById('inp-num-mesas').value, 10) || 1));
-        var gd = dcSaGridDims(targetN);
         var met = cfg.metraje && typeof cfg.metraje === 'object' ? Object.assign({}, cfg.metraje) : {};
         met.largo = ma.largo;
         met.ancho = ma.ancho;
-        var codigoClub = club.codigo;
-        console.log('[debug] guardando con club_id:', codigoClub, 'filas:', gd.filas, 'columnas:', gd.columnas);
+        met.orientacion = ma.orientacion;
         var ur = await apiMod.updateMesasConfig(cfg.id, {
             metraje: met,
-            filas: gd.filas,
-            columnas: gd.columnas,
             updated_at: new Date().toISOString()
         });
         if (ur.error) return { ok: false, err: ur.error };
