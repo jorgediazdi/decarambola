@@ -145,6 +145,7 @@
         <p class="dc-ayuda" style="margin-top:-4px;">Vista previa proporcional al local. Arrastrá cada mesa desde ⠿. Al guardar: si aumentás la cantidad se insertan filas en <code style="color:#666;">mesas</code>; si la bajás, las sobrantes pasan a <code style="color:#666;">fuera_servicio</code>.</p>
         <div id="dc-sa-sin-config" class="dc-sa-sin-config" style="display:none;"></div>
         <div class="dc-sa-preview-host" id="dc-sa-preview-host" style="display:none;">
+            <div id="dc-sa-grid-label" class="dc-ayuda" style="margin-top:0;margin-bottom:8px;color:var(--oro);"></div>
             <div class="dc-sa-preview-plano" id="dc-sa-preview-plano"></div>
         </div>
     </div>
@@ -269,9 +270,29 @@ window.__salaBoot = function() {
         return { largo: Math.max(0.5, L), ancho: Math.max(0.5, A) };
     }
 
+    /** Grid derivado solo de N: columnas = ceil(sqrt(N)), filas = ceil(N/columnas). */
+    function dcSaGridDims(n) {
+        var N = Math.min(30, Math.max(1, parseInt(n, 10) || 1));
+        var columnas = Math.ceil(Math.sqrt(N));
+        var filas = Math.ceil(N / columnas);
+        return { n: N, columnas: columnas, filas: filas };
+    }
+
+    function dcSaActualizarEtiquetaGrid() {
+        var lab = document.getElementById('dc-sa-grid-label');
+        if (!lab) return;
+        var len = dcSa.slots ? dcSa.slots.length : 0;
+        if (len < 1) {
+            lab.textContent = '';
+            return;
+        }
+        var gd = dcSaGridDims(len);
+        lab.textContent = gd.filas + ' filas × ' + gd.columnas + ' columnas';
+    }
+
     function dcSaGridPct(i, n, cols) {
         if (n <= 0) return { x: 50, y: 50 };
-        var c = cols != null ? cols : Math.max(1, Math.ceil(Math.sqrt(n)));
+        var c = cols != null ? cols : dcSaGridDims(n).columnas;
         var rows = Math.max(1, Math.ceil(n / c));
         var row = Math.floor(i / c);
         var col = i % c;
@@ -382,6 +403,7 @@ window.__salaBoot = function() {
         }
         cont.innerHTML = html;
         dcSaBindPreviewDrag(cont);
+        dcSaActualizarEtiquetaGrid();
     }
 
     function dcSaRebuildSlotsFromNumInput() {
@@ -389,7 +411,8 @@ window.__salaBoot = function() {
         var newN = Math.min(30, Math.max(1, parseInt(inp && inp.value, 10) || 1));
         if (inp) inp.value = String(newN);
         var prev = dcSa.slots || [];
-        var cols = Math.max(1, Math.ceil(Math.sqrt(newN)));
+        var gd = dcSaGridDims(newN);
+        var cols = gd.columnas;
         var nex = [];
         for (var i = 0; i < newN; i++) {
             var p = prev[i];
@@ -415,7 +438,10 @@ window.__salaBoot = function() {
         var n = document.getElementById('inp-num-mesas');
         if (l) l.addEventListener('input', function () { dcSaRenderPreview(); });
         if (a) a.addEventListener('input', function () { dcSaRenderPreview(); });
-        if (n) n.addEventListener('change', function () { dcSaRebuildSlotsFromNumInput(); });
+        if (n) {
+            n.addEventListener('change', function () { dcSaRebuildSlotsFromNumInput(); });
+            n.addEventListener('input', function () { dcSaRebuildSlotsFromNumInput(); });
+        }
     }
 
     async function dcSaCargarDesdeSupabase() {
@@ -435,6 +461,7 @@ window.__salaBoot = function() {
         dcSa.clubIdKey = club.codigo;
         dcSaBindInputsOnce();
         var api = await import('/js/api/club-api.js');
+        /* mesas_config: siempre por club_id (código del club), vía getFirstMesasConfigByClubId — no filtrar por salon_id. */
         var cfgR = await api.getFirstMesasConfigByClubId(dcSa.clubIdKey);
         var row = cfgR.data;
         if (!row || !row.id) {
@@ -469,7 +496,8 @@ window.__salaBoot = function() {
         var nDef = Math.min(30, Math.max(1, todos.length || 1));
         var elN = document.getElementById('inp-num-mesas');
         if (elN) elN.value = String(nDef);
-        var cols = Math.max(1, Math.ceil(Math.sqrt(nDef)));
+        var gdLoad = dcSaGridDims(nDef);
+        var cols = gdLoad.columnas;
         dcSa.slots = [];
         for (var i = 0; i < nDef; i++) {
             var m = todos[i];
@@ -525,12 +553,18 @@ window.__salaBoot = function() {
         var cfgR = await apiMod.getFirstMesasConfigByClubId(club.codigo);
         var cfg = cfgR.data;
         if (!cfg || !cfg.id) return { ok: false, err: 'Sin mesas_config' };
+        var targetN = Math.min(30, Math.max(1, parseInt(document.getElementById('inp-num-mesas').value, 10) || 1));
+        var gd = dcSaGridDims(targetN);
         var met = cfg.metraje && typeof cfg.metraje === 'object' ? Object.assign({}, cfg.metraje) : {};
         met.largo = ma.largo;
         met.ancho = ma.ancho;
-        var ur = await apiMod.updateMesasConfig(cfg.id, { metraje: met, updated_at: new Date().toISOString() });
+        var ur = await apiMod.updateMesasConfig(cfg.id, {
+            metraje: met,
+            filas: gd.filas,
+            columnas: gd.columnas,
+            updated_at: new Date().toISOString()
+        });
         if (ur.error) return { ok: false, err: ur.error };
-        var targetN = Math.min(30, Math.max(1, parseInt(document.getElementById('inp-num-mesas').value, 10) || 1));
         while (true) {
             var listR = await apiMod.listMesasBySalonId(dcSa.salonId);
             var todos = (listR.data || []).slice().sort(function (a, b) {
