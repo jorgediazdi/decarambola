@@ -49,11 +49,12 @@
         .dc-campo input[type="checkbox"] { width:22px; height:22px; margin-top:6px; accent-color:var(--oro); cursor:pointer; flex-shrink:0; }
         .dc-ayuda { color:#aaa; font-size:0.54rem; line-height:1.45; margin-top:10px; font-weight:normal; letter-spacing:0.02em; text-transform:none; font-family:system-ui,-apple-system,sans-serif; }
         #dc-superadmin-salon { margin-top:8px; }
-        #dc-superadmin-salon .dc-sa-preview-host { margin-top:12px; }
+        #dc-superadmin-salon .dc-sa-preview-host { margin-top:12px; touch-action:none; }
         #dc-superadmin-salon .dc-sa-preview-plano { position:relative; width:100%; background:var(--g2); border:1px solid rgba(212,175,55,0.35); border-radius:14px; overflow:hidden; box-sizing:border-box; touch-action:none; }
-        #dc-superadmin-salon .dc-sa-mesa { position:absolute; transform:translate(-50%,-50%); cursor:grab; touch-action:none; background:rgba(46,204,113,0.18); border:1px solid #2ecc71; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:0.48rem; color:#2ecc71; font-weight:bold; box-sizing:border-box; z-index:2; }
+        #dc-superadmin-salon .dc-sa-mesa { position:absolute; transform:translate(-50%,-50%) rotate(0deg); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; background:rgba(46,204,113,0.18); border:1px solid #2ecc71; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:0.48rem; color:#2ecc71; font-weight:bold; box-sizing:border-box; z-index:2; }
+        #dc-superadmin-salon .dc-sa-mesa.dc-sa-mesa--rotada { transform:translate(-50%,-50%) rotate(90deg); }
         #dc-superadmin-salon .dc-sa-mesa.dc-sa-mesa--dragging { cursor:grabbing; }
-        #dc-superadmin-salon .dc-sa-rotate { position:absolute; top:2px; right:2px; width:22px; height:22px; padding:0; margin:0; border:none; border-radius:6px; background:rgba(0,0,0,0.5); color:#fff; font-size:0.75rem; line-height:1; cursor:pointer; z-index:4; display:flex; align-items:center; justify-content:center; touch-action:manipulation; }
+        #dc-superadmin-salon .dc-sa-rotate { position:absolute; top:2px; right:2px; width:22px; height:22px; padding:0; margin:0; border:none; border-radius:6px; background:rgba(0,0,0,0.5); color:#fff; font-size:0.75rem; line-height:1; cursor:pointer; z-index:4; display:flex; align-items:center; justify-content:center; touch-action:none; }
         #dc-superadmin-salon .dc-sa-rotate:hover { background:rgba(0,0,0,0.72); }
         #dc-superadmin-salon .dc-sa-mesa-label { pointer-events:none; position:relative; z-index:1; }
         #dc-superadmin-salon .dc-sa-sin-config { color:#888; font-size:0.55rem; line-height:1.4; padding:10px 0; }
@@ -271,16 +272,23 @@ window.__salaBoot = function() {
         return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
     }
 
+    var dcSaDragMoveOpts = { capture: true, passive: false };
+
     function dcSaUnbindWindowDragListeners() {
         if (dcSa._winMove) {
-            window.removeEventListener('pointermove', dcSa._winMove, { capture: true });
+            document.removeEventListener('pointermove', dcSa._winMove, dcSaDragMoveOpts);
             dcSa._winMove = null;
         }
         if (dcSa._winUp) {
-            window.removeEventListener('pointerup', dcSa._winUp, { capture: true });
-            window.removeEventListener('pointercancel', dcSa._winUp, { capture: true });
+            document.removeEventListener('pointerup', dcSa._winUp, true);
+            document.removeEventListener('pointercancel', dcSa._winUp, true);
             dcSa._winUp = null;
         }
+    }
+
+    function dcSaPointerEventTargetEl(t) {
+        if (!t) return null;
+        return t.nodeType === 3 ? t.parentElement : t;
     }
 
     function dcSaTeardownDrag() {
@@ -325,26 +333,31 @@ window.__salaBoot = function() {
     function dcSaBindPreviewDrag(cont) {
         if (!cont) return;
         cont.querySelectorAll('.dc-sa-mesa').forEach(function (node) {
-            node.addEventListener('pointerdown', function (ev) {
-                if (ev.button !== 0) return;
-                if (ev.target && ev.target.closest && ev.target.closest('.dc-sa-rotate')) return;
-                ev.preventDefault();
-                dcSaTeardownDrag();
-                var idx = parseInt(node.getAttribute('data-dc-sa-idx'), 10);
-                if (isNaN(idx)) return;
-                dcSa.drag.idx = idx;
-                dcSa.drag.ptr = ev.pointerId;
-                dcSa.drag.cont = cont;
-                dcSa.drag.el = node;
-                try {
-                    node.classList.add('dc-sa-mesa--dragging');
-                } catch (e1) {}
-                dcSa._winMove = dcSaOnWindowPointerMove;
-                dcSa._winUp = dcSaOnWindowPointerUp;
-                window.addEventListener('pointermove', dcSa._winMove, { capture: true, passive: false });
-                window.addEventListener('pointerup', dcSa._winUp, { capture: true });
-                window.addEventListener('pointercancel', dcSa._winUp, { capture: true });
-            });
+            node.addEventListener(
+                'pointerdown',
+                function (ev) {
+                    if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+                    var te = dcSaPointerEventTargetEl(ev.target);
+                    if (te && typeof te.closest === 'function' && te.closest('.dc-sa-rotate')) return;
+                    ev.preventDefault();
+                    dcSaTeardownDrag();
+                    var idx = parseInt(node.getAttribute('data-dc-sa-idx'), 10);
+                    if (isNaN(idx)) return;
+                    dcSa.drag.idx = idx;
+                    dcSa.drag.ptr = ev.pointerId;
+                    dcSa.drag.cont = cont;
+                    dcSa.drag.el = node;
+                    try {
+                        node.classList.add('dc-sa-mesa--dragging');
+                    } catch (e1) {}
+                    dcSa._winMove = dcSaOnWindowPointerMove;
+                    dcSa._winUp = dcSaOnWindowPointerUp;
+                    document.addEventListener('pointermove', dcSa._winMove, dcSaDragMoveOpts);
+                    document.addEventListener('pointerup', dcSa._winUp, true);
+                    document.addEventListener('pointercancel', dcSa._winUp, true);
+                },
+                true
+            );
         });
     }
 
@@ -356,20 +369,21 @@ window.__salaBoot = function() {
         return { largo: Math.max(0.5, L), ancho: Math.max(0.5, A) };
     }
 
-    /** rotada=true: mesa vertical en el plano (1,42 m en eje X del local, 2,84 en Y). */
-    function dcSaMesaDimsPct(L, A, rotada) {
-        if (rotada) {
-            return { w: (1.42 / L) * 100, h: (2.84 / A) * 100 };
-        }
+    /** Tamaño base fijo (2,84 × 1,42 m); la rotación 90° es solo CSS transform. */
+    function dcSaMesaBaseDimsPct(L, A) {
         return { w: (2.84 / L) * 100, h: (1.42 / A) * 100 };
     }
 
-    function dcSaApplySlotDimensionsToEl(el, idx) {
+    function dcSaApplySlotVisualToEl(el, idx) {
         if (!el || dcSa.slots[idx] == null) return;
         var ma = dcSaLeerMetrajeInputs();
-        var d = dcSaMesaDimsPct(ma.largo, ma.ancho, !!dcSa.slots[idx].rotada);
+        var d = dcSaMesaBaseDimsPct(ma.largo, ma.ancho);
         el.style.width = d.w + '%';
         el.style.height = d.h + '%';
+        try {
+            if (dcSa.slots[idx].rotada) el.classList.add('dc-sa-mesa--rotada');
+            else el.classList.remove('dc-sa-mesa--rotada');
+        } catch (eV) {}
     }
 
     function dcSaBindRotateButtons(cont) {
@@ -385,7 +399,7 @@ window.__salaBoot = function() {
                 if (isNaN(idx) || !dcSa.slots[idx]) return;
                 dcSa.slots[idx].rotada = !dcSa.slots[idx].rotada;
                 var mesaEl = cont.querySelector('.dc-sa-mesa[data-dc-sa-idx="' + idx + '"]');
-                if (mesaEl) dcSaApplySlotDimensionsToEl(mesaEl, idx);
+                if (mesaEl) dcSaApplySlotVisualToEl(mesaEl, idx);
             });
         });
     }
@@ -427,10 +441,13 @@ window.__salaBoot = function() {
         var html = '';
         for (var i = 0; i < dcSa.slots.length; i++) {
             var s = dcSa.slots[i];
-            var d = dcSaMesaDimsPct(L, A, !!s.rotada);
+            var d = dcSaMesaBaseDimsPct(L, A);
             var label = s.numero != null ? 'Mesa ' + s.numero : 'Mesa ' + (i + 1);
+            var rotCls = s.rotada ? ' dc-sa-mesa--rotada' : '';
             html +=
-                '<div class="dc-sa-mesa" data-dc-sa-idx="' +
+                '<div class="dc-sa-mesa' +
+                rotCls +
+                '" data-dc-sa-idx="' +
                 i +
                 '" style="left:' +
                 s.x +
