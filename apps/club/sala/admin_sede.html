@@ -50,8 +50,9 @@
         .dc-ayuda { color:#aaa; font-size:0.54rem; line-height:1.45; margin-top:10px; font-weight:normal; letter-spacing:0.02em; text-transform:none; font-family:system-ui,-apple-system,sans-serif; }
         #dc-superadmin-salon { margin-top:8px; }
         #dc-superadmin-salon .dc-sa-preview-host { margin-top:12px; }
-        #dc-superadmin-salon .dc-sa-preview-plano { position:relative; width:100%; background:var(--g2); border:1px solid rgba(212,175,55,0.35); border-radius:14px; overflow:hidden; box-sizing:border-box; }
-        #dc-superadmin-salon .dc-sa-mesa { position:absolute; transform:translate(-50%,-50%); cursor:default; background:rgba(46,204,113,0.18); border:1px solid #2ecc71; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:0.48rem; color:#2ecc71; font-weight:bold; box-sizing:border-box; z-index:2; }
+        #dc-superadmin-salon .dc-sa-preview-plano { position:relative; width:100%; background:var(--g2); border:1px solid rgba(212,175,55,0.35); border-radius:14px; overflow:hidden; box-sizing:border-box; touch-action:none; }
+        #dc-superadmin-salon .dc-sa-mesa { position:absolute; transform:translate(-50%,-50%); cursor:grab; touch-action:none; background:rgba(46,204,113,0.18); border:1px solid #2ecc71; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:0.48rem; color:#2ecc71; font-weight:bold; box-sizing:border-box; z-index:2; }
+        #dc-superadmin-salon .dc-sa-mesa.dc-sa-mesa--dragging { cursor:grabbing; }
         #dc-superadmin-salon .dc-sa-sin-config { color:#888; font-size:0.55rem; line-height:1.4; padding:10px 0; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
@@ -147,7 +148,7 @@
             <label for="inp-num-mesas">Número de mesas</label>
             <input type="number" id="inp-num-mesas" min="1" max="30" step="1" value="1">
         </div>
-        <p class="dc-ayuda" style="margin-top:-4px;">Vista previa proporcional al local; las posiciones se distribuyen automáticamente (margen ~5&nbsp;%). Al guardar: si aumentás la cantidad se insertan filas en <code style="color:#666;">mesas</code>; si la bajás, las sobrantes pasan a <code style="color:#666;">fuera_servicio</code>. Las coordenadas quedan en <code style="color:#666;">posicion_x</code> / <code style="color:#666;">posicion_y</code>.</p>
+        <p class="dc-ayuda" style="margin-top:-4px;">Vista previa proporcional al local; al cambiar orientación o cantidad se redistribuyen (margen ~5&nbsp;%). Podés arrastrar cada mesa desde cualquier punto; al soltar se actualiza la posición (se persiste al guardar). Si aumentás la cantidad se insertan filas en <code style="color:#666;">mesas</code>; si la bajás, las sobrantes pasan a <code style="color:#666;">fuera_servicio</code>.</p>
         <div id="dc-sa-sin-config" class="dc-sa-sin-config" style="display:none;"></div>
         <div class="dc-sa-preview-host" id="dc-sa-preview-host" style="display:none;">
             <div class="dc-sa-preview-plano" id="dc-sa-preview-plano"></div>
@@ -260,8 +261,95 @@ window.__salaBoot = function() {
     var dcSa = {
         salonId: null,
         clubIdKey: null,
-        slots: []
+        slots: [],
+        drag: { idx: null, ptr: null, cont: null, el: null },
+        _winMove: null,
+        _winUp: null
     };
+
+    function dcSaPctEnPlano(cont, clientX, clientY) {
+        var rect = cont.getBoundingClientRect();
+        if (rect.width < 1 || rect.height < 1) return { x: 50, y: 50 };
+        var x = ((clientX - rect.left) / rect.width) * 100;
+        var y = ((clientY - rect.top) / rect.height) * 100;
+        return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
+    }
+
+    function dcSaUnbindWindowDragListeners() {
+        if (dcSa._winMove) {
+            window.removeEventListener('pointermove', dcSa._winMove, { capture: true });
+            dcSa._winMove = null;
+        }
+        if (dcSa._winUp) {
+            window.removeEventListener('pointerup', dcSa._winUp, { capture: true });
+            window.removeEventListener('pointercancel', dcSa._winUp, { capture: true });
+            dcSa._winUp = null;
+        }
+    }
+
+    function dcSaTeardownDrag() {
+        if (dcSa.drag.el) {
+            try {
+                dcSa.drag.el.classList.remove('dc-sa-mesa--dragging');
+            } catch (eT) {}
+        }
+        dcSaUnbindWindowDragListeners();
+        dcSa.drag.idx = null;
+        dcSa.drag.ptr = null;
+        dcSa.drag.cont = null;
+        dcSa.drag.el = null;
+    }
+
+    function dcSaApplyDragToSlot(clientX, clientY) {
+        var cont = dcSa.drag.cont;
+        var idx = dcSa.drag.idx;
+        if (!cont || idx == null || !dcSa.slots[idx]) return;
+        var coords = dcSaPctEnPlano(cont, clientX, clientY);
+        dcSa.slots[idx].x = coords.x;
+        dcSa.slots[idx].y = coords.y;
+        var el = dcSa.drag.el;
+        if (el && el.parentNode === cont) {
+            el.style.left = coords.x + '%';
+            el.style.top = coords.y + '%';
+        }
+    }
+
+    function dcSaOnWindowPointerMove(ev) {
+        if (dcSa.drag.idx == null || dcSa.drag.ptr !== ev.pointerId) return;
+        ev.preventDefault();
+        dcSaApplyDragToSlot(ev.clientX, ev.clientY);
+    }
+
+    function dcSaOnWindowPointerUp(ev) {
+        if (dcSa.drag.idx == null || dcSa.drag.ptr !== ev.pointerId) return;
+        dcSaApplyDragToSlot(ev.clientX, ev.clientY);
+        dcSaTeardownDrag();
+    }
+
+    function dcSaBindPreviewDrag(cont) {
+        if (!cont) return;
+        cont.querySelectorAll('.dc-sa-mesa').forEach(function (node) {
+            node.addEventListener('pointerdown', function (ev) {
+                if (ev.button !== 0) return;
+                ev.preventDefault();
+                dcSaTeardownDrag();
+                var idx = parseInt(node.getAttribute('data-dc-sa-idx'), 10);
+                if (isNaN(idx)) return;
+                dcSa.drag.idx = idx;
+                dcSa.drag.ptr = ev.pointerId;
+                dcSa.drag.cont = cont;
+                dcSa.drag.el = node;
+                try {
+                    node.classList.add('dc-sa-mesa--dragging');
+                } catch (e1) {}
+                dcSa._winMove = dcSaOnWindowPointerMove;
+                dcSa._winUp = dcSaOnWindowPointerUp;
+                window.addEventListener('pointermove', dcSa._winMove, { capture: true, passive: false });
+                window.addEventListener('pointerup', dcSa._winUp, { capture: true });
+                window.addEventListener('pointercancel', dcSa._winUp, { capture: true });
+            });
+        });
+    }
 
     function dcSaLeerMetrajeInputs() {
         var elL = document.getElementById('inp-largo-local');
@@ -302,6 +390,7 @@ window.__salaBoot = function() {
     function dcSaRenderPreview() {
         var cont = document.getElementById('dc-sa-preview-plano');
         if (!cont || !dcSa.salonId) return;
+        dcSaTeardownDrag();
         var ma = dcSaLeerMetrajeInputs();
         cont.style.aspectRatio = ma.largo + ' / ' + ma.ancho;
         var L = ma.largo;
@@ -335,6 +424,7 @@ window.__salaBoot = function() {
                 '</span></div>';
         }
         cont.innerHTML = html;
+        dcSaBindPreviewDrag(cont);
     }
 
     function dcSaRebuildSlotsFromNumInput() {
