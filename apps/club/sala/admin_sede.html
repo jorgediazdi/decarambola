@@ -53,6 +53,9 @@
         #dc-superadmin-salon .dc-sa-preview-plano { position:relative; width:100%; background:var(--g2); border:1px solid rgba(212,175,55,0.35); border-radius:14px; overflow:hidden; box-sizing:border-box; touch-action:none; }
         #dc-superadmin-salon .dc-sa-mesa { position:absolute; transform:translate(-50%,-50%); cursor:grab; touch-action:none; background:rgba(46,204,113,0.18); border:1px solid #2ecc71; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:0.48rem; color:#2ecc71; font-weight:bold; box-sizing:border-box; z-index:2; }
         #dc-superadmin-salon .dc-sa-mesa.dc-sa-mesa--dragging { cursor:grabbing; }
+        #dc-superadmin-salon .dc-sa-rotate { position:absolute; top:2px; right:2px; width:22px; height:22px; padding:0; margin:0; border:none; border-radius:6px; background:rgba(0,0,0,0.5); color:#fff; font-size:0.75rem; line-height:1; cursor:pointer; z-index:4; display:flex; align-items:center; justify-content:center; touch-action:manipulation; }
+        #dc-superadmin-salon .dc-sa-rotate:hover { background:rgba(0,0,0,0.72); }
+        #dc-superadmin-salon .dc-sa-mesa-label { pointer-events:none; position:relative; z-index:1; }
         #dc-superadmin-salon .dc-sa-sin-config { color:#888; font-size:0.55rem; line-height:1.4; padding:10px 0; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
@@ -134,21 +137,14 @@
             <label for="inp-ancho-local">Ancho del local (metros)</label>
             <input type="number" id="inp-ancho-local" min="1" step="0.1" value="15" inputmode="decimal">
         </div>
-        <div class="campo">
-            <label for="inp-orientacion-mesas">Orientación de las mesas</label>
-            <select id="inp-orientacion-mesas" style="width:100%;max-width:360px;padding:10px 12px;border-radius:10px;border:1px solid rgba(212,175,55,0.35);background:var(--g2);color:var(--txt);font-size:0.85rem;">
-                <option value="horizontal">Horizontal (eje largo del local)</option>
-                <option value="vertical">Vertical (eje corto del local)</option>
-            </select>
-        </div>
-        <p class="dc-ayuda" style="margin-top:-4px;">Se guarda en <code style="color:#666;">mesas_config.metraje</code> como JSON <code style="color:#666;">{ largo, ancho, orientacion }</code> (<code style="color:#666;">horizontal</code> o <code style="color:#666;">vertical</code>).</p>
+        <p class="dc-ayuda" style="margin-top:-4px;">Se guarda en <code style="color:#666;">mesas_config.metraje</code> como JSON <code style="color:#666;">{ largo, ancho }</code>.</p>
 
         <div class="sec-titulo">MESAS DEL SALÓN · SUPERADMIN</div>
         <div class="campo">
             <label for="inp-num-mesas">Número de mesas</label>
             <input type="number" id="inp-num-mesas" min="1" max="30" step="1" value="1">
         </div>
-        <p class="dc-ayuda" style="margin-top:-4px;">Vista previa proporcional al local; al cambiar orientación o cantidad se redistribuyen (margen ~5&nbsp;%). Podés arrastrar cada mesa desde cualquier punto; al soltar se actualiza la posición (se persiste al guardar). Si aumentás la cantidad se insertan filas en <code style="color:#666;">mesas</code>; si la bajás, las sobrantes pasan a <code style="color:#666;">fuera_servicio</code>.</p>
+        <p class="dc-ayuda" style="margin-top:-4px;">Vista previa proporcional al local; al cambiar la cantidad se redistribuyen (margen ~5&nbsp;%). ↻ rota cada mesa; arrastrá desde la mesa (no desde ↻). Al guardar: posición y rotación (<code style="color:#666;">meta.rotada</code> en cada fila de <code style="color:#666;">mesas</code>).</p>
         <div id="dc-sa-sin-config" class="dc-sa-sin-config" style="display:none;"></div>
         <div class="dc-sa-preview-host" id="dc-sa-preview-host" style="display:none;">
             <div class="dc-sa-preview-plano" id="dc-sa-preview-plano"></div>
@@ -331,6 +327,7 @@ window.__salaBoot = function() {
         cont.querySelectorAll('.dc-sa-mesa').forEach(function (node) {
             node.addEventListener('pointerdown', function (ev) {
                 if (ev.button !== 0) return;
+                if (ev.target && ev.target.closest && ev.target.closest('.dc-sa-rotate')) return;
                 ev.preventDefault();
                 dcSaTeardownDrag();
                 var idx = parseInt(node.getAttribute('data-dc-sa-idx'), 10);
@@ -354,11 +351,43 @@ window.__salaBoot = function() {
     function dcSaLeerMetrajeInputs() {
         var elL = document.getElementById('inp-largo-local');
         var elA = document.getElementById('inp-ancho-local');
-        var elO = document.getElementById('inp-orientacion-mesas');
         var L = parseFloat(elL && elL.value) || 20;
         var A = parseFloat(elA && elA.value) || 15;
-        var ori = elO && elO.value === 'vertical' ? 'vertical' : 'horizontal';
-        return { largo: Math.max(0.5, L), ancho: Math.max(0.5, A), orientacion: ori };
+        return { largo: Math.max(0.5, L), ancho: Math.max(0.5, A) };
+    }
+
+    /** rotada=true: mesa vertical en el plano (1,42 m en eje X del local, 2,84 en Y). */
+    function dcSaMesaDimsPct(L, A, rotada) {
+        if (rotada) {
+            return { w: (1.42 / L) * 100, h: (2.84 / A) * 100 };
+        }
+        return { w: (2.84 / L) * 100, h: (1.42 / A) * 100 };
+    }
+
+    function dcSaApplySlotDimensionsToEl(el, idx) {
+        if (!el || dcSa.slots[idx] == null) return;
+        var ma = dcSaLeerMetrajeInputs();
+        var d = dcSaMesaDimsPct(ma.largo, ma.ancho, !!dcSa.slots[idx].rotada);
+        el.style.width = d.w + '%';
+        el.style.height = d.h + '%';
+    }
+
+    function dcSaBindRotateButtons(cont) {
+        if (!cont) return;
+        cont.querySelectorAll('.dc-sa-rotate').forEach(function (btn) {
+            btn.addEventListener('pointerdown', function (ev) {
+                ev.stopPropagation();
+            });
+            btn.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                var idx = parseInt(btn.getAttribute('data-dc-sa-idx'), 10);
+                if (isNaN(idx) || !dcSa.slots[idx]) return;
+                dcSa.slots[idx].rotada = !dcSa.slots[idx].rotada;
+                var mesaEl = cont.querySelector('.dc-sa-mesa[data-dc-sa-idx="' + idx + '"]');
+                if (mesaEl) dcSaApplySlotDimensionsToEl(mesaEl, idx);
+            });
+        });
     }
 
     /** Grid solo por N: columnas = ceil(sqrt(N)), filas = ceil(N/columnas). */
@@ -395,18 +424,10 @@ window.__salaBoot = function() {
         cont.style.aspectRatio = ma.largo + ' / ' + ma.ancho;
         var L = ma.largo;
         var A = ma.ancho;
-        var wPct;
-        var hPct;
-        if (ma.orientacion === 'vertical') {
-            wPct = (1.42 / L) * 100;
-            hPct = (2.84 / A) * 100;
-        } else {
-            wPct = (2.84 / L) * 100;
-            hPct = (1.42 / A) * 100;
-        }
         var html = '';
         for (var i = 0; i < dcSa.slots.length; i++) {
             var s = dcSa.slots[i];
+            var d = dcSaMesaDimsPct(L, A, !!s.rotada);
             var label = s.numero != null ? 'Mesa ' + s.numero : 'Mesa ' + (i + 1);
             html +=
                 '<div class="dc-sa-mesa" data-dc-sa-idx="' +
@@ -416,15 +437,18 @@ window.__salaBoot = function() {
                 '%;top:' +
                 s.y +
                 '%;width:' +
-                wPct +
+                d.w +
                 '%;height:' +
-                hPct +
-                '%"><span style="pointer-events:none;">' +
+                d.h +
+                '%"><button type="button" class="dc-sa-rotate" data-dc-sa-idx="' +
+                i +
+                '" aria-label="Rotar mesa" title="Rotar">↻</button><span class="dc-sa-mesa-label">' +
                 label +
                 '</span></div>';
         }
         cont.innerHTML = html;
         dcSaBindPreviewDrag(cont);
+        dcSaBindRotateButtons(cont);
     }
 
     function dcSaRebuildSlotsFromNumInput() {
@@ -439,6 +463,7 @@ window.__salaBoot = function() {
                 key: p && p.key != null ? p.key : 't' + i,
                 id: p && p.id ? p.id : null,
                 numero: p && p.numero != null ? p.numero : null,
+                rotada: !!(p && p.rotada),
                 x: 50,
                 y: 50
             });
@@ -454,16 +479,9 @@ window.__salaBoot = function() {
         _dcSaInputsOnce = true;
         var l = document.getElementById('inp-largo-local');
         var a = document.getElementById('inp-ancho-local');
-        var o = document.getElementById('inp-orientacion-mesas');
         var n = document.getElementById('inp-num-mesas');
         if (l) l.addEventListener('input', function () { dcSaRenderPreview(); });
         if (a) a.addEventListener('input', function () { dcSaRenderPreview(); });
-        if (o) {
-            o.addEventListener('change', function () {
-                dcSaDistribuirSlots();
-                dcSaRenderPreview();
-            });
-        }
         if (n) {
             n.addEventListener('change', function () { dcSaRebuildSlotsFromNumInput(); });
             n.addEventListener('input', function () { dcSaRebuildSlotsFromNumInput(); });
@@ -529,18 +547,14 @@ window.__salaBoot = function() {
         var met = row.metraje;
         var L = 20;
         var A = 15;
-        var oriVal = 'horizontal';
         if (met && typeof met === 'object') {
             if (met.largo != null) L = parseFloat(met.largo) || 20;
             if (met.ancho != null) A = parseFloat(met.ancho) || 15;
-            if (met.orientacion === 'vertical') oriVal = 'vertical';
         }
         var elL = document.getElementById('inp-largo-local');
         var elA = document.getElementById('inp-ancho-local');
-        var elO = document.getElementById('inp-orientacion-mesas');
         if (elL) elL.value = String(L);
         if (elA) elA.value = String(A);
-        if (elO) elO.value = oriVal;
         var lr = await api.listMesasBySalonId(dcSa.salonId);
         var todos = (lr.data || []).slice().sort(function (a, b) {
             return (a.numero || 0) - (b.numero || 0);
@@ -551,10 +565,11 @@ window.__salaBoot = function() {
         dcSa.slots = [];
         for (var i = 0; i < nDef; i++) {
             var m = todos[i];
+            var rotM = !!(m && m.meta && typeof m.meta === 'object' && m.meta.rotada);
             if (m) {
-                dcSa.slots.push({ key: m.id, id: m.id, numero: m.numero, x: 50, y: 50 });
+                dcSa.slots.push({ key: m.id, id: m.id, numero: m.numero, rotada: rotM, x: 50, y: 50 });
             } else {
-                dcSa.slots.push({ key: 't' + i, id: null, numero: null, x: 50, y: 50 });
+                dcSa.slots.push({ key: 't' + i, id: null, numero: null, rotada: false, x: 50, y: 50 });
             }
         }
         dcSaDistribuirSlots();
@@ -608,7 +623,7 @@ window.__salaBoot = function() {
         var met = cfg.metraje && typeof cfg.metraje === 'object' ? Object.assign({}, cfg.metraje) : {};
         met.largo = ma.largo;
         met.ancho = ma.ancho;
-        met.orientacion = ma.orientacion;
+        delete met.orientacion;
         var ur = await apiMod.updateMesasConfig(cfg.id, {
             metraje: met,
             updated_at: new Date().toISOString()
@@ -654,10 +669,17 @@ window.__salaBoot = function() {
             var sl = dcSa.slots[ai];
             if (!sl) continue;
             var est = (active[ai].estado || 'libre').toLowerCase().replace(/ /g, '_');
+            var prevMeta = active[ai].meta;
+            var metaObj =
+                prevMeta && typeof prevMeta === 'object' && !Array.isArray(prevMeta)
+                    ? Object.assign({}, prevMeta)
+                    : {};
+            metaObj.rotada = !!sl.rotada;
             var patch = {
                 posicion_x: Math.round(sl.x * 1000) / 1000,
                 posicion_y: Math.round(sl.y * 1000) / 1000,
                 nombre: 'Mesa ' + (active[ai].numero || ai + 1),
+                meta: metaObj,
                 updated_at: new Date().toISOString()
             };
             if (est === 'fuera_servicio') patch.estado = 'libre';
