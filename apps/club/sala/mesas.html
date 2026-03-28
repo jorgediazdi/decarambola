@@ -41,9 +41,13 @@
         .btn-plano-cfg:active { opacity:0.85; }
 
         .plano-salón { background:var(--g2); border:2px solid rgba(212,175,55,0.35); border-radius:18px; padding:18px 16px; margin:14px 0; min-height:220px; display:grid; gap:10px; align-content:start; justify-content:center; position:relative; overflow:hidden; box-shadow:0 0 36px rgba(212,175,55,0.07), inset 0 0 100px rgba(0,0,0,0.45); }
-        .plano-salón.plano-mapa-abs { display:block; min-height:min(70vh,520px); padding:12px; }
+        /* Mapa: salón 20 m (largo) × 15 m (ancho), proporción 4:3 */
+        .plano-salón.plano-mapa-abs { display:block; width:100%; max-width:min(100%,920px); margin-left:auto; margin-right:auto; aspect-ratio:20 / 15; padding:12px; box-sizing:border-box; }
         .mesa-mapa-pos { position:absolute; transform:translate(-50%,-50%); cursor:grab; touch-action:none; }
         .mesa-mapa-pos:active { cursor:grabbing; }
+        /* Mesa estándar 2,84 m (eje X) × 1,42 m (eje Y) respecto al rectángulo del salón */
+        .plano-mapa-abs .mesa-mapa-pos.mesa-celda { width:calc(2.84 / 20 * 100%); height:calc(1.42 / 15 * 100%); min-width:28px; min-height:22px; box-sizing:border-box; }
+        .plano-mapa-abs .mesa-celda:active { transform:none; }
         .plano-mapa-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px; font-size:0.5rem; color:#888; letter-spacing:1px; }
         .plano-mapa-toolbar button { background:var(--g3); border:1px solid var(--g1); color:#aaa; padding:6px 10px; border-radius:8px; font-size:0.5rem; cursor:pointer; font-family:inherit; }
         .plano-mapa-toolbar button.on { border-color:rgba(212,175,55,0.5); color:var(--oro); }
@@ -197,7 +201,8 @@ var intervaloCrono = null;
 var countdownSegundos = 30;
 /** grid | mapa — mapa usa posicion_x/y en % (Supabase). */
 var vistaPlano = 'grid';
-var mapaDrag = { id: null, ptr: null };
+var mapaDrag = { id: null, ptr: null, cont: null };
+var mapaDragWinEnd = null;
 var _dcClubApiP = null;
 function _clubApi() {
     if (!_dcClubApiP) _dcClubApiP = import('/js/api/club-api.js');
@@ -345,6 +350,41 @@ function layoutPctDefault(i) {
     return { x: 14 + col * 20, y: 16 + row * 22 };
 }
 
+/** Posición % inicial en mapa si posicion_x/y son null: mismo orden que la vista en cuadrícula. */
+function layoutPctInicialGrid(i) {
+    if (!salonConfig) return layoutPctDefault(i);
+    var layoutPorFila = parseLayoutFilasStr(salonConfig.layout_filas);
+    var filasCfg = salonConfig.filas || 1;
+    var columnasCfg = salonConfig.columnas || 4;
+    var cantidad = mesasLista.length;
+    var idx = 0;
+    if (layoutPorFila && layoutPorFila.length && cantidad > 0) {
+        for (var r = 0; r < layoutPorFila.length && idx < cantidad; r++) {
+            var cuantas = layoutPorFila[r];
+            for (var c = 0; c < cuantas && idx < cantidad; c++) {
+                if (idx === i) {
+                    var x = ((c + 0.5) / Math.max(cuantas, 1)) * 100;
+                    var y = ((r + 0.5) / layoutPorFila.length) * 100;
+                    return { x: Math.max(4, Math.min(96, x)), y: Math.max(4, Math.min(96, y)) };
+                }
+                idx++;
+            }
+        }
+        return layoutPctDefault(i);
+    }
+    for (var f = 0; f < filasCfg && idx < cantidad; f++) {
+        for (var c2 = 0; c2 < columnasCfg && idx < cantidad; c2++) {
+            if (idx === i) {
+                var x2 = ((c2 + 0.5) / Math.max(columnasCfg, 1)) * 100;
+                var y2 = ((f + 0.5) / Math.max(filasCfg, 1)) * 100;
+                return { x: Math.max(4, Math.min(96, x2)), y: Math.max(4, Math.min(96, y2)) };
+            }
+            idx++;
+        }
+    }
+    return layoutPctDefault(i);
+}
+
 function celdaMesaHtml(m, animDelaySec) {
     var estado = (m.estado || 'libre').toLowerCase().replace(' ', '_');
     if (estado === 'fuera') estado = 'fuera_servicio';
@@ -378,10 +418,14 @@ function celdaMesaHtml(m, animDelaySec) {
 }
 
 function celdaMesaHtmlMapa(m, i) {
-    var px = parseFloat(m.posicion_x);
-    var py = parseFloat(m.posicion_y);
-    if (isNaN(px) || isNaN(py) || (Math.abs(px) < 0.01 && Math.abs(py) < 0.01)) {
-        var d = layoutPctDefault(i);
+    var px = NaN;
+    var py = NaN;
+    if (m.posicion_x != null && m.posicion_y != null) {
+        px = parseFloat(m.posicion_x);
+        py = parseFloat(m.posicion_y);
+    }
+    if (isNaN(px) || isNaN(py)) {
+        var d = layoutPctInicialGrid(i);
         px = d.x;
         py = d.y;
     }
@@ -415,55 +459,94 @@ function celdaMesaHtmlMapa(m, i) {
     return html;
 }
 
-function bindMapaArrastre(cont) {
-    if (!cont || !cont.classList.contains('plano-mapa-abs')) return;
-    cont.querySelectorAll('.mesa-grip').forEach(function (grip) {
-        grip.addEventListener('pointerdown', function (ev) {
-            if (ev.button !== 0) return;
-            ev.stopPropagation();
-            ev.preventDefault();
-            mapaDrag.id = grip.getAttribute('data-mesa-id');
-            mapaDrag.ptr = ev.pointerId;
-            var el = cont.querySelector('.mesa-mapa-pos[data-mesa-id="' + mapaDrag.id + '"]');
-            try { if (el) el.setPointerCapture(ev.pointerId); } catch (e) {}
-        });
-    });
-    cont.addEventListener('pointermove', function (ev) {
-        if (!mapaDrag.id || mapaDrag.ptr !== ev.pointerId) return;
-        var rect = cont.getBoundingClientRect();
-        var px = ((ev.clientX - rect.left) / rect.width) * 100;
-        var py = ((ev.clientY - rect.top) / rect.height) * 100;
-        px = Math.max(3, Math.min(97, px));
-        py = Math.max(3, Math.min(97, py));
-        var el = cont.querySelector('.mesa-mapa-pos[data-mesa-id="' + mapaDrag.id + '"]');
-        if (el) {
-            el.style.left = px + '%';
-            el.style.top = py + '%';
-        }
-    });
-    cont.addEventListener('pointerup', function (ev) {
-        if (!mapaDrag.id || mapaDrag.ptr !== ev.pointerId) return;
-        var rect = cont.getBoundingClientRect();
-        var px = ((ev.clientX - rect.left) / rect.width) * 100;
-        var py = ((ev.clientY - rect.top) / rect.height) * 100;
-        px = Math.max(3, Math.min(97, px));
-        py = Math.max(3, Math.min(97, py));
-        var mid = mapaDrag.id;
-        mapaDrag.id = null;
-        mapaDrag.ptr = null;
-        _clubApi().then(function (api) {
+function mapaPctDesdeCliente(cont, clientX, clientY) {
+    var rect = cont.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return { px: 50, py: 50 };
+    var px = ((clientX - rect.left) / rect.width) * 100;
+    var py = ((clientY - rect.top) / rect.height) * 100;
+    return { px: Math.max(3, Math.min(97, px)), py: Math.max(3, Math.min(97, py)) };
+}
+
+function guardarPosicionMesaMapa(mid, px, py) {
+    _clubApi()
+        .then(function (api) {
             return api.updateMesa(mid, {
                 posicion_x: Math.round(px * 1000) / 1000,
                 posicion_y: Math.round(py * 1000) / 1000,
                 updated_at: new Date().toISOString()
             });
-        }).catch(function () {});
-        mesasLista.forEach(function (m) {
-            if (m.id === mid) {
-                m.posicion_x = px;
-                m.posicion_y = py;
-            }
+        })
+        .then(function (r) {
+            if (r && r.error) console.error('[mesas mapa] guardar posicion:', r.error);
+        })
+        .catch(function (e) {
+            console.error('[mesas mapa] guardar posicion:', e);
         });
+    mesasLista.forEach(function (m) {
+        if (m.id === mid) {
+            m.posicion_x = px;
+            m.posicion_y = py;
+        }
+    });
+}
+
+function bindMapaArrastre(cont) {
+    if (!cont || !cont.classList.contains('plano-mapa-abs')) return;
+    if (mapaDragWinEnd) {
+        try {
+            window.removeEventListener('pointerup', mapaDragWinEnd, true);
+            window.removeEventListener('pointercancel', mapaDragWinEnd, true);
+        } catch (e0) {}
+        mapaDragWinEnd = null;
+    }
+    cont.querySelectorAll('.mesa-grip').forEach(function (grip) {
+        grip.addEventListener('pointerdown', function (ev) {
+            if (ev.button !== 0) return;
+            ev.stopPropagation();
+            ev.preventDefault();
+            if (mapaDragWinEnd) {
+                try {
+                    window.removeEventListener('pointerup', mapaDragWinEnd, true);
+                    window.removeEventListener('pointercancel', mapaDragWinEnd, true);
+                } catch (ePrev) {}
+                mapaDragWinEnd = null;
+            }
+            mapaDrag.cont = cont;
+            mapaDrag.id = grip.getAttribute('data-mesa-id');
+            mapaDrag.ptr = ev.pointerId;
+            var el = cont.querySelector('.mesa-mapa-pos[data-mesa-id="' + mapaDrag.id + '"]');
+            try { if (el) el.setPointerCapture(ev.pointerId); } catch (e) {}
+            mapaDragWinEnd = function (ev2) {
+                if (!mapaDrag.id || mapaDrag.ptr !== ev2.pointerId) return;
+                var mid = mapaDrag.id;
+                var c = mapaDrag.cont || cont;
+                mapaDrag.id = null;
+                mapaDrag.ptr = null;
+                mapaDrag.cont = null;
+                try {
+                    window.removeEventListener('pointerup', mapaDragWinEnd, true);
+                    window.removeEventListener('pointercancel', mapaDragWinEnd, true);
+                } catch (e3) {}
+                mapaDragWinEnd = null;
+                var coords = mapaPctDesdeCliente(c, ev2.clientX, ev2.clientY);
+                guardarPosicionMesaMapa(mid, coords.px, coords.py);
+                var mesaEl = c.querySelector('.mesa-mapa-pos[data-mesa-id="' + mid + '"]');
+                try {
+                    if (mesaEl) mesaEl.releasePointerCapture(ev2.pointerId);
+                } catch (e4) {}
+            };
+            window.addEventListener('pointerup', mapaDragWinEnd, true);
+            window.addEventListener('pointercancel', mapaDragWinEnd, true);
+        });
+    });
+    cont.addEventListener('pointermove', function (ev) {
+        if (!mapaDrag.id || mapaDrag.ptr !== ev.pointerId) return;
+        var coordsM = mapaPctDesdeCliente(cont, ev.clientX, ev.clientY);
+        var el = cont.querySelector('.mesa-mapa-pos[data-mesa-id="' + mapaDrag.id + '"]');
+        if (el) {
+            el.style.left = coordsM.px + '%';
+            el.style.top = coordsM.py + '%';
+        }
     });
 }
 
@@ -474,10 +557,7 @@ function renderPlano() {
         cont.className = 'plano-salón plano-mapa-abs';
         var mEl = document.getElementById('plano_metraje');
         if (mEl) {
-            var met = salonConfig.metraje;
-            if (met && (met.ancho > 0 || met.largo > 0))
-                mEl.textContent = 'Metraje aprox.: ' + (met.ancho || 0) + ' m × ' + (met.largo || 0) + ' m';
-            else mEl.textContent = '';
+            mEl.textContent = 'Plano a escala: 20 m (largo) × 15 m (ancho) · Mesa 2,84 × 1,42 m';
         }
         var html = '';
         for (var mi = 0; mi < mesasLista.length; mi++) {
