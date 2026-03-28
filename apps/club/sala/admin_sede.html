@@ -444,13 +444,31 @@ window.__salaBoot = function() {
         }
     }
 
+    /** mesas_config.club_id puede estar guardado como código (MVIP-001) o como UUID de clubs.id. */
+    async function dcSaResolveConfigRow(api, club) {
+        if (!club) return { data: null, error: null };
+        var keys = [];
+        if (club.codigo != null && String(club.codigo).trim()) keys.push(String(club.codigo).trim());
+        if (club.id != null) {
+            var idStr = String(club.id).trim();
+            if (keys.indexOf(idStr) < 0) keys.push(idStr);
+        }
+        var lastErr = null;
+        for (var ki = 0; ki < keys.length; ki++) {
+            var r = await api.getFirstMesasConfigByClubId(keys[ki]);
+            if (r.error) lastErr = r.error;
+            if (r.data && r.data.id) return r;
+        }
+        return { data: null, error: lastErr };
+    }
+
     async function dcSaCargarDesdeSupabase() {
         var box = document.getElementById('dc-superadmin-salon');
         if (!box || box.style.display === 'none') return;
         var club = getClubActivo();
         var sinEl = document.getElementById('dc-sa-sin-config');
         var host = document.getElementById('dc-sa-preview-host');
-        if (!club || !club.codigo) {
+        if (!club || (!club.codigo && !club.id)) {
             dcSa.salonId = null;
             dcSa.clubIdKey = null;
             dcSa.slots = [];
@@ -458,19 +476,26 @@ window.__salaBoot = function() {
             if (host) host.style.display = 'none';
             return;
         }
-        dcSa.clubIdKey = club.codigo;
+        dcSa.clubIdKey = club.codigo ? String(club.codigo).trim() : String(club.id);
         dcSaBindInputsOnce();
         var api = await import('/js/api/club-api.js');
-        /* mesas_config: siempre por club_id (código del club), vía getFirstMesasConfigByClubId — no filtrar por salon_id. */
-        var cfgR = await api.getFirstMesasConfigByClubId(dcSa.clubIdKey);
+        var codigoClub = dcSa.clubIdKey;
+        console.log('[debug] buscando mesas_config con club_id:', codigoClub);
+        var cfgR = await dcSaResolveConfigRow(api, club);
+        console.log('[debug] resultado:', cfgR.data, cfgR.error);
         var row = cfgR.data;
         if (!row || !row.id) {
             dcSa.salonId = null;
             dcSa.slots = [];
             if (sinEl) {
                 sinEl.style.display = 'block';
-                sinEl.textContent =
-                    'No hay mesas_config para este club. Creá la configuración en Configurar instalaciones; después podrás ajustar metraje y mesas aquí.';
+                if (cfgR.error) {
+                    sinEl.textContent =
+                        'No se pudo leer mesas_config (red o RLS). Con sesión de superadmin, las políticas en Supabase deben permitir SELECT en mesas_config, o tu perfil debe tener club_id = código del club (ej. MVIP-001) para ver la fila del salón.';
+                } else {
+                    sinEl.textContent =
+                        'No hay mesas_config para este club. Creá la configuración en Configurar instalaciones; después podrás ajustar metraje y mesas aquí.';
+                }
             }
             if (host) host.style.display = 'none';
             return;
@@ -550,14 +575,16 @@ window.__salaBoot = function() {
         var rr = await authMod.getRole();
         if (rr.error || rr.data !== 'superadmin') return { ok: true, skip: true };
         var ma = dcSaLeerMetrajeInputs();
-        var cfgR = await apiMod.getFirstMesasConfigByClubId(club.codigo);
+        var cfgR = await dcSaResolveConfigRow(apiMod, club);
         var cfg = cfgR.data;
-        if (!cfg || !cfg.id) return { ok: false, err: 'Sin mesas_config' };
+        if (!cfg || !cfg.id) return { ok: false, err: cfgR.error || 'Sin mesas_config' };
         var targetN = Math.min(30, Math.max(1, parseInt(document.getElementById('inp-num-mesas').value, 10) || 1));
         var gd = dcSaGridDims(targetN);
         var met = cfg.metraje && typeof cfg.metraje === 'object' ? Object.assign({}, cfg.metraje) : {};
         met.largo = ma.largo;
         met.ancho = ma.ancho;
+        var codigoClub = club.codigo;
+        console.log('[debug] guardando con club_id:', codigoClub, 'filas:', gd.filas, 'columnas:', gd.columnas);
         var ur = await apiMod.updateMesasConfig(cfg.id, {
             metraje: met,
             filas: gd.filas,
