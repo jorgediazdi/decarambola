@@ -484,6 +484,7 @@ window.__salaBoot = function() {
         var cfgR = await dcSaResolveConfigRow(api, club);
         console.log('[debug] resultado:', cfgR.data, cfgR.error);
         var row = cfgR.data;
+        console.log('[debug] row:', row, 'typeof:', typeof row, 'keys:', row ? Object.keys(row) : 'null');
         if (!row || !row.id) {
             dcSa.salonId = null;
             dcSa.slots = [];
