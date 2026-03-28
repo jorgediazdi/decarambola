@@ -207,17 +207,19 @@ export async function getTarifasForClub(clubId) {
   return { data: tar != null ? tar : null, error: null, meta: { mesas_config_id: rows[0].id } };
 }
 
-/** Primera fila mesas_config por club (comportamiento previo limit=1). */
+/** Primera fila mesas_config por club_id (texto: código o uuid según cómo esté guardado en BD). */
 export async function getFirstMesasConfigByClubId(clubId) {
   try {
-    if (!clubId) return { data: null, error: new Error('clubId requerido') };
+    var key = String(clubId || '').trim();
+    if (!key) return { data: null, error: new Error('clubId requerido') };
     const { data, error } = await supabase
       .from('mesas_config')
       .select('*')
-      .eq('club_id', String(clubId))
-      .limit(1)
-      .maybeSingle();
-    return wrap(data, error);
+      .eq('club_id', key)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (error) return wrap(null, error);
+    return wrap(data && data.length ? data[0] : null, null);
   } catch (e) {
     return { data: null, error: e };
   }
