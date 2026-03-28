@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
+    <meta name="description" content="Solicitar reserva de mesa — DeCarambola">
+    <title>Reservar mesa — DeCarambola</title>
+    <style>
+        :root {
+            --oro:#d4af37; --negro:#0b0b0b; --surface:#111;
+            --surface2:#0a0a0a; --border:#222; --text:#eaeaea;
+            --muted:#8a8a8a; --muted2:#555; --ok:#2ecc71;
+            --warn:#f39c12; --danger:#e74c3c; --radius:14px;
+            --neon:#2eff70;
+            --azul:#3498db;
+            --radius-sm:10px;
+            --font-ui: system-ui,-apple-system,'Segoe UI',sans-serif;
+            --font-display: 'Arial Black',Arial,sans-serif;
+        }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body {
+            background: var(--negro);
+            color: var(--text);
+            font-family: var(--font-ui);
+            font-size: 15px;
+            line-height: 1.45;
+            min-height: 100vh;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background: rgba(5,5,5,0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 18px;
+            padding-top: calc(14px + env(safe-area-inset-top, 0px));
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header-titulo {
+            font-family: var(--font-display);
+            color: var(--oro);
+            font-size: 0.72rem;
+            letter-spacing: 0.18em;
+            font-weight: 900;
+            text-shadow: 0 0 22px rgba(212, 175, 55, 0.4);
+        }
+        .header-sub {
+            color: var(--muted2);
+            font-size: 0.68rem;
+            margin-top: 4px;
+            letter-spacing: 0.04em;
+        }
+        .header-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
+        .ctx-strip {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 10px 18px 0;
+            font-size: 0.75rem;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .ctx-strip strong { color: var(--oro); font-weight: 600; }
+        .ctx-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--warn);
+            flex-shrink: 0;
+        }
+        .ctx-dot.ok { background: var(--neon); box-shadow: 0 0 8px rgba(46, 255, 112, 0.45); }
+
+        .wrap { max-width: 520px; margin: 0 auto; padding: 16px 18px; }
+
+        .reserva-card {
+            background: linear-gradient(145deg, #1a1200, #0c0a06);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            margin-bottom: 10px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        }
+        .reserva-card:hover { border-color: rgba(212, 175, 55, 0.45); }
+        .reserva-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .reserva-mesa {
+            font-family: var(--font-display);
+            color: var(--oro);
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            line-height: 1.3;
+        }
+        .badge {
+            font-size: 0.58rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            letter-spacing: 0.06em;
+            flex-shrink: 0;
+        }
+        .badge-pendiente { background: rgba(243,156,18,0.15); color: #f1c40f; border: 1px solid rgba(243,156,18,0.25); }
+        .badge-confirmada { background: rgba(46,204,113,0.12); color: var(--ok); border: 1px solid rgba(46,204,113,0.25); }
+        .badge-cancelada { background: rgba(231,76,60,0.12); color: var(--danger); border: 1px solid rgba(231,76,60,0.25); }
+
+        .reserva-det {
+            color: var(--muted);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .reserva-det b { color: var(--text); font-weight: 600; }
+
+        .panel-msg {
+            text-align: center;
+            padding: 36px 20px;
+            border-radius: var(--radius);
+            border: 1px dashed rgba(212, 175, 55, 0.25);
+            background: linear-gradient(160deg, #12100a, #080705);
+        }
+        .panel-msg--load { border-style: solid; }
+        .panel-msg h3 {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            color: var(--oro);
+            margin-bottom: 10px;
+        }
+        .panel-msg p {
+            color: var(--muted);
+            font-size: 0.85rem;
+            max-width: 280px;
+            margin: 0 auto 16px;
+        }
+        .panel-msg a {
+            color: var(--oro);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .panel-msg a:hover { text-decoration: underline; }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            margin: 0 auto 16px;
+            border: 3px solid var(--border);
+            border-top-color: var(--oro);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast {
+            position: fixed;
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            max-width: min(92vw, 360px);
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+        }
+        .toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.ok { background: #1a2f22; border: 1px solid rgba(46,204,113,0.4); color: #b8f5d0; }
+        .toast.err { background: #2a1818; border: 1px solid rgba(231,76,60,0.4); color: #ffc9c9; }
+
+        .mesa-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+        .mesa-card {
+            background: linear-gradient(145deg, #14120a, #0a0906);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            cursor: pointer;
+            text-align: left;
+            font-family: var(--font-ui);
+            color: var(--text);
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .mesa-card:hover { border-color: rgba(212,175,55,0.35); }
+        .mesa-card.selected {
+            border-color: var(--oro);
+            box-shadow: 0 0 0 1px rgba(212,175,55,0.25), 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .mesa-card-tit {
+            font-family: var(--font-display);
+            color: var(--oro);
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+        }
+        .mesa-card-sub { color: var(--muted); font-size: 0.8rem; margin-top: 4px; }
+
+        .form-block { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .form-block h3 {
+            font-family: var(--font-display);
+            color: var(--oro);
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            margin-bottom: 14px;
+        }
+        .field { margin-bottom: 14px; }
+        .field label {
+            display: block;
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .field input, .field select, .field textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text);
+            font-family: var(--font-ui);
+            font-size: 0.9rem;
+        }
+        .field textarea { min-height: 72px; resize: vertical; }
+        .btn-solicitar {
+            width: 100%;
+            margin-top: 8px;
+            padding: 14px 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--oro);
+            color: #000;
+            font-family: var(--font-display);
+            font-size: 0.72rem;
+            letter-spacing: 0.14em;
+            cursor: pointer;
+            transition: filter 0.15s, transform 0.1s;
+        }
+        .btn-solicitar:hover { filter: brightness(1.08); }
+        .btn-solicitar:active { transform: scale(0.99); }
+        .btn-solicitar:focus-visible { outline: 2px solid var(--oro); outline-offset: 3px; }
+
+        .btn-buscar {
+            margin-top: 10px;
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(212,175,55,0.45);
+            background: rgba(212,175,55,0.12);
+            color: var(--oro);
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            cursor: pointer;
+        }
+
+        .seccion-tit {
+            font-family: var(--font-display);
+            color: var(--oro);
+            font-size: 0.68rem;
+            letter-spacing: 0.14em;
+            margin: 24px 0 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
+    <style>
+        body.dc-ux.dc-ux-skin.reservas-jugador-hub {
+            font-family: var(--font-ui);
+            font-size: 15px;
+            line-height: 1.45;
+        }
+        body.dc-ux-skin.reservas-jugador-hub .header-titulo {
+            text-shadow: 0 0 22px rgba(212, 175, 55, 0.38);
+        }
+    </style>
+</head>
+<body class="dc-ux dc-ux-skin reservas-jugador-hub">
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+<div class="header">
+    <div>
+        <div class="header-titulo">RESERVAR MESA</div>
+        <div class="header-sub">Solicitá tu turno — el admin lo confirma</div>
+    </div>
+    <div class="header-actions">
+        <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
+            <summary>Menú del club</summary>
+            <div class="jug-nav-fold__links">
+                <a href="mesas.html">Salón en vivo</a>
+                <a href="reservas_admin.html">Reservas admin</a>
+                <a href="tarifas_salon.html">Tarifas del salón</a>
+                <a href="/club/index.html">Portal club</a>
+                <a href="/index.html">Inicio app</a>
+            </div>
+        </details>
+    </div>
+</div>
+
+<div class="ctx-strip" id="ctx-strip" style="display:none;">
+    <span class="ctx-dot" id="ctx-dot"></span>
+    <span id="ctx-text"></span>
+</div>
+
+<div class="wrap">
+    <div id="panel-ident">
+        <div id="ident-bienvenida" style="display:none;" class="reserva-card">
+            <div class="reserva-det"><b id="txt-bienvenida-nombre"></b></div>
+            <p class="reserva-det" style="margin-top:8px;">Elegí una mesa y completá el formulario para solicitar tu reserva.</p>
+        </div>
+        <div id="ident-form" style="display:none;">
+            <div class="field">
+                <label for="inp-cedula">Cédula</label>
+                <input type="text" id="inp-cedula" inputmode="numeric" autocomplete="off" placeholder="Tu documento">
+            </div>
+            <button type="button" class="btn-buscar" id="btn-buscar" onclick="buscarJugador(document.getElementById('inp-cedula').value)">BUSCAR</button>
+        </div>
+        <div id="ident-loading" class="panel-msg panel-msg--load" style="display:none;">
+            <div class="spinner" aria-hidden="true"></div>
+            <h3>Cargando</h3>
+            <p>Un momento…</p>
+        </div>
+    </div>
+
+    <div id="bloque-mesas" style="display:none;">
+        <h2 class="seccion-tit">ELEGÍ MESA</h2>
+        <div id="mesa-grid" class="mesa-grid" aria-live="polite"></div>
+    </div>
+
+    <div id="bloque-form" class="form-block" style="display:none;">
+        <h3>SOLICITUD</h3>
+        <div class="field">
+            <label for="inp-fecha">Fecha y hora</label>
+            <input type="datetime-local" id="inp-fecha" required>
+        </div>
+        <div class="field">
+            <label for="sel-duracion">Duración</label>
+            <select id="sel-duracion">
+                <option value="30">30 min</option>
+                <option value="60" selected>60 min</option>
+                <option value="90">90 min</option>
+                <option value="120">120 min</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="txt-notas">Notas (opcional)</label>
+            <textarea id="txt-notas" placeholder="Ej. llego 10 min tarde…"></textarea>
+        </div>
+        <button type="button" class="btn-solicitar" id="btn-solicitar" onclick="solicitarReserva()">SOLICITAR</button>
+    </div>
+
+    <div id="bloque-mis-reservas" style="display:none;">
+        <h2 class="seccion-tit">MIS RESERVAS</h2>
+        <div id="lista-mis-reservas" aria-live="polite"></div>
+    </div>
+
+    <div id="panel-no-club" style="display:none;" class="panel-msg">
+        <h3>Club no vinculado</h3>
+        <p>Para reservar necesitás un club activo: en el <b>menú principal</b> → <b>Club</b> unite con código o activá tu sede.</p>
+        <p><a href="/index.html#afiliacion">Ir a configurar club →</a></p>
+    </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="/core.js"></script>
+<script src="/session.js"></script>
+<script>
+var jugadorActivo = null;
+var mesaSeleccionada = null;
+var mesasLista = [];
+var mesasById = {};
+
+function getClubId() {
+    if (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) return MasterVIP.getClubId();
+    try {
+        var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        return perfil.club_id || null;
+    } catch (e) { return null; }
+}
+
+function getJugadorActivo() {
+    try {
+        var raw = localStorage.getItem('jugador_activo');
+        if (!raw) return null;
+        return JSON.parse(raw);
+    } catch (e) {
+        return null;
+    }
+}
+
+function nombreJugadorDisplay(j) {
+    if (!j) return '';
+    return String(j.nombre_completo || j.nombre || '').trim();
+}
+
+/**
+ * Devuelve true si [inicioMs, finMs) se solapa con otra reserva activa
+ * (pendiente o confirmada) en la misma mesa. cancelada se ignora.
+ */
+function detectarSolapamiento(mesaId, inicioMs, finMs, excludeId, lista) {
+    var arr = lista || [];
+    for (var i = 0; i < arr.length; i++) {
+        var o = arr[i];
+        if (!o || String(o.id) === String(excludeId)) continue;
+        if (String(o.mesa_id) !== String(mesaId)) continue;
+        var est = (o.estado || 'pendiente').toLowerCase();
+        if (est === 'cancelada') continue;
+        if (est !== 'pendiente' && est !== 'confirmada') continue;
+        var ts = o.fecha_reserva ? new Date(o.fecha_reserva).getTime() : NaN;
+        if (isNaN(ts)) continue;
+        var durMin = Math.max(1, parseInt(o.duracion_minutos, 10) || 60);
+        var finO = ts + durMin * 60000;
+        if (inicioMs < finO && finMs > ts) return true;
+    }
+    return false;
+}
+
+function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function toast(msg, tipo) {
+    var el = document.getElementById('toast');
+    if (!el) return;
+    var err = tipo === 'error' || tipo === 'err';
+    el.className = 'toast ' + (err ? 'err' : 'ok');
+    el.textContent = msg;
+    el.classList.add('visible');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { el.classList.remove('visible'); }, 3200);
+}
+
+function setCtxStrip(ok, text) {
+    var strip = document.getElementById('ctx-strip');
+    var dot = document.getElementById('ctx-dot');
+    var tx = document.getElementById('ctx-text');
+    if (!strip || !dot || !tx) return;
+    strip.style.display = 'flex';
+    dot.className = 'ctx-dot' + (ok ? ' ok' : '');
+    tx.innerHTML = text;
+}
+
+function minDatetimeLocal() {
+    var d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+}
+
+function pintarMesas(mesas) {
+    var grid = document.getElementById('mesa-grid');
+    if (!grid) return;
+    mesasLista = mesas || [];
+    mesasById = {};
+    mesasLista.forEach(function (m) { mesasById[m.id] = m; });
+    if (!mesasLista.length) {
+        grid.innerHTML = '<div class="reserva-det">No hay mesas configuradas para este club.</div>';
+        return;
+    }
+    grid.innerHTML = mesasLista.map(function (m) {
+        var nom = escapeHtml(m.nombre || 'Mesa');
+        var num = m.numero != null ? escapeHtml(String(m.numero)) : '—';
+        var sel = mesaSeleccionada && String(mesaSeleccionada.id) === String(m.id) ? ' selected' : '';
+        return '<button type="button" class="mesa-card' + sel + '" data-mesa-id="' + escapeHtml(String(m.id)) + '">' +
+            '<div class="mesa-card-tit">' + nom + '</div>' +
+            '<div class="mesa-card-sub">Número · ' + num + '</div>' +
+            '</button>';
+    }).join('');
+    Array.prototype.forEach.call(grid.querySelectorAll('.mesa-card'), function (btn) {
+        btn.onclick = function () {
+            var id = btn.getAttribute('data-mesa-id');
+            mesaSeleccionada = mesasById[id] || null;
+            pintarMesas(mesasLista);
+            var bf = document.getElementById('bloque-form');
+            if (bf) bf.style.display = mesaSeleccionada ? 'block' : 'none';
+        };
+    });
+}
+
+function pintarMisReservas(reservas, jugadorNombre) {
+    var cont = document.getElementById('lista-mis-reservas');
+    if (!cont) return;
+    var target = String(jugadorNombre || '').trim().toUpperCase();
+    var mine = (reservas || []).filter(function (r) {
+        return String(r.jugador_nombre || '').trim().toUpperCase() === target;
+    });
+    var activas = mine.filter(function (r) {
+        var e = (r.estado || 'pendiente').toLowerCase();
+        return e === 'pendiente' || e === 'confirmada';
+    });
+    var mostrar = activas.length ? activas : mine;
+
+    if (!mostrar.length) {
+        cont.innerHTML = '<div class="reserva-det">Aún no tenés reservas en este club.</div>';
+        return;
+    }
+
+    cont.innerHTML = mostrar.map(function (r) {
+        var m = mesasById[r.mesa_id];
+        var nombreMesa = m ? (m.nombre || 'Mesa') : 'Mesa';
+        var fecha = r.fecha_reserva ? new Date(r.fecha_reserva) : null;
+        var fechaStr = fecha && !isNaN(fecha.getTime())
+            ? fecha.toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })
+            : '—';
+        var dur = parseInt(r.duracion_minutos, 10) || 60;
+        var est = (r.estado || 'pendiente').toLowerCase();
+        var badgeClass = est === 'confirmada' ? 'badge-confirmada' : est === 'cancelada' ? 'badge-cancelada' : 'badge-pendiente';
+        var badgeTxt = est === 'confirmada' ? 'CONFIRMADA' : est === 'cancelada' ? 'CANCELADA' : 'PENDIENTE';
+        return '<div class="reserva-card">' +
+            '<div class="reserva-top">' +
+            '<div class="reserva-mesa">' + escapeHtml(nombreMesa) + '</div>' +
+            '<span class="badge ' + badgeClass + '">' + badgeTxt + '</span>' +
+            '</div>' +
+            '<div class="reserva-det"><b>Fecha</b> · ' + escapeHtml(fechaStr) + '<br>' +
+            '<b>Duración</b> · ' + dur + ' min</div>' +
+            '</div>';
+    }).join('');
+}
+
+async function cargarMesas() {
+    var clubId = getClubId();
+    if (!clubId) return;
+    var api = await import('/js/api/club-api.js');
+    var r = await api.listMesas(clubId, { orderBy: 'numero' });
+    if (r.error) throw r.error;
+    pintarMesas(r.data || []);
+}
+
+async function buscarJugador(cedula) {
+    var clubId = getClubId();
+    if (!clubId) {
+        toast('Club no vinculado.', 'error');
+        return;
+    }
+    var c = String(cedula || '').trim();
+    if (!c || c.length < 5) {
+        toast('Ingresá una cédula válida.', 'error');
+        return;
+    }
+    var jm = await import('/js/api/jugador-api.js');
+    var r = await jm.getJugadorByCedula(c);
+    if (r.error) {
+        console.error(r.error);
+        toast('No se pudo buscar. Reintentá.', 'error');
+        return;
+    }
+    var jug = r.data;
+    if (!jug) {
+        toast('Cédula no registrada en este club', 'error');
+        return;
+    }
+    if (String(jug.club_id || '') !== String(clubId)) {
+        toast('Cédula no registrada en este club', 'error');
+        return;
+    }
+    jugadorActivo = jug;
+    document.getElementById('ident-form').style.display = 'none';
+    document.getElementById('ident-bienvenida').style.display = 'block';
+    document.getElementById('txt-bienvenida-nombre').textContent = nombreJugadorDisplay(jug);
+    document.getElementById('bloque-mesas').style.display = 'block';
+    document.getElementById('bloque-mis-reservas').style.display = 'block';
+    try {
+        await cargarMesas();
+        await cargarMisReservas();
+    } catch (e) {
+        console.error(e);
+        toast('Error al cargar mesas.', 'error');
+    }
+}
+
+async function solicitarReserva() {
+    var clubId = getClubId();
+    if (!clubId) {
+        toast('Club no vinculado.', 'error');
+        return;
+    }
+    if (!jugadorActivo || !nombreJugadorDisplay(jugadorActivo)) {
+        toast('Identificate con tu cédula primero.', 'error');
+        return;
+    }
+    if (!mesaSeleccionada) {
+        toast('Elegí una mesa.', 'error');
+        return;
+    }
+    var inpF = document.getElementById('inp-fecha');
+    var val = inpF && inpF.value;
+    if (!val) {
+        toast('Elegí fecha y hora.', 'error');
+        return;
+    }
+    var inicioMs = new Date(val).getTime();
+    if (isNaN(inicioMs)) {
+        toast('Fecha u hora no válida.', 'error');
+        return;
+    }
+    if (inicioMs < Date.now() - 60000) {
+        toast('La fecha debe ser a partir de ahora.', 'error');
+        return;
+    }
+    var duracion = parseInt(document.getElementById('sel-duracion').value, 10) || 60;
+    var finMs = inicioMs + duracion * 60000;
+    var notas = (document.getElementById('txt-notas').value || '').trim();
+
+    var api = await import('/js/api/club-api.js');
+    var listR = await api.listMesasReservasByMesaId(mesaSeleccionada.id);
+    if (listR.error) {
+        console.error(listR.error);
+        toast('No se pudieron verificar reservas.', 'error');
+        return;
+    }
+    var lista = listR.data || [];
+    if (detectarSolapamiento(mesaSeleccionada.id, inicioMs, finMs, null, lista)) {
+        toast('Ese horario se cruza con otra reserva. Elegí otro.', 'error');
+        return;
+    }
+
+    var fechaISO = new Date(val).toISOString();
+    var row = {
+        mesa_id: mesaSeleccionada.id,
+        club_id: clubId,
+        jugador_nombre: nombreJugadorDisplay(jugadorActivo),
+        fecha_reserva: fechaISO,
+        duracion_minutos: Number(duracion),
+        estado: 'pendiente',
+        notas: notas || null,
+        created_at: new Date().toISOString()
+    };
+
+    try {
+        var ins = await api.insertMesasReservaRow(row);
+        if (ins.error) throw ins.error;
+        toast('Reserva solicitada. El admin la confirmará pronto.', 'ok');
+        await cargarMisReservas();
+    } catch (e) {
+        console.error(e);
+        toast('No se pudo registrar la reserva.', 'error');
+    }
+}
+
+async function cargarMisReservas() {
+    var clubId = getClubId();
+    var cont = document.getElementById('lista-mis-reservas');
+    if (!clubId || !jugadorActivo || !cont) return;
+    var api = await import('/js/api/club-api.js');
+    var listR = await api.listMesasReservas(clubId);
+    if (listR.error) {
+        console.error(listR.error);
+        cont.innerHTML = '<div class="reserva-det">No se pudieron cargar tus reservas.</div>';
+        return;
+    }
+    pintarMisReservas(listR.data || [], nombreJugadorDisplay(jugadorActivo));
+}
+
+function aplicarMinFecha() {
+    var inp = document.getElementById('inp-fecha');
+    if (inp) {
+        inp.min = minDatetimeLocal();
+    }
+}
+
+function initReservasJugador() {
+    aplicarMinFecha();
+    var clubId = getClubId();
+    var panelNoClub = document.getElementById('panel-no-club');
+    var panelIdent = document.getElementById('panel-ident');
+    var identForm = document.getElementById('ident-form');
+    var identBien = document.getElementById('ident-bienvenida');
+    var identLoad = document.getElementById('ident-loading');
+
+    if (!clubId) {
+        if (panelNoClub) panelNoClub.style.display = 'block';
+        if (panelIdent) panelIdent.style.display = 'none';
+        setCtxStrip(false, '<strong>Sin sede</strong> · Configurá tu club en el inicio');
+        return;
+    }
+
+    if (panelNoClub) panelNoClub.style.display = 'none';
+    if (panelIdent) panelIdent.style.display = 'block';
+    setCtxStrip(true, '<strong>Reservas</strong> · Solicitud de jugador');
+
+    var stored = getJugadorActivo();
+    var nombreOk = stored && (stored.nombre_completo || stored.nombre);
+    if (stored && stored.club_id != null && String(stored.club_id) !== String(clubId)) {
+        nombreOk = false;
+    }
+    if (nombreOk) {
+        jugadorActivo = stored;
+        if (identLoad) identLoad.style.display = 'none';
+        if (identForm) identForm.style.display = 'none';
+        if (identBien) {
+            identBien.style.display = 'block';
+            document.getElementById('txt-bienvenida-nombre').textContent = nombreJugadorDisplay(stored);
+        }
+        document.getElementById('bloque-mesas').style.display = 'block';
+        document.getElementById('bloque-mis-reservas').style.display = 'block';
+        cargarMesas().then(cargarMisReservas).catch(function (e) {
+            console.error(e);
+            toast('Error al cargar datos.', 'error');
+        });
+    } else {
+        if (identLoad) identLoad.style.display = 'none';
+        if (identForm) identForm.style.display = 'block';
+        if (identBien) identBien.style.display = 'none';
+        document.getElementById('bloque-mesas').style.display = 'none';
+        document.getElementById('bloque-form').style.display = 'none';
+        document.getElementById('bloque-mis-reservas').style.display = 'none';
+    }
+}
+
+window.__salaBoot = function () {
+    try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch (e) {}
+    initReservasJugador();
+};
+</script>
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+<script type="module">
+import { guardSalaPage } from '/js/sala-supabase-gate.js';
+await guardSalaPage({ pageTitle: 'Reservar mesa' });
+</script>
+
+</body>
+</html>

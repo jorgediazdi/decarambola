@@ -392,3 +392,48 @@ body.dc-ux-skin .modal-mesa {
     border-color: rgba(212, 175, 55, 0.5);
     color: #d4af37;
 }
+
+/* Volver al dashboard (alineado con home premium) */
+.dc-dash-back-row {
+    max-width: 640px;
+    margin: 0 auto 10px;
+    padding: 0 18px;
+}
+a.btn-dash-dashboard {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: rgba(200, 200, 210, 0.75);
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+}
+a.btn-dash-dashboard:hover,
+a.btn-dash-dashboard:focus-visible {
+    color: #d4af37;
+    border-bottom-color: rgba(212, 175, 55, 0.45);
+    outline: none;
+}
+a.btn-dash-dashboard .dc-dash-ico {
+    font-size: 1.1em;
+    opacity: 0.85;
+    transform: translateX(0);
+    transition: transform 0.2s ease;
+}
+a.btn-dash-dashboard:hover .dc-dash-ico {
+    transform: translateX(-3px);
+}
+
+/* Chasis contenedor premium (home / entrenamiento / categorías…) */
+.dc-premium-chassis {
+    border-radius: 40px;
+    background: #050505;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.55);
+}

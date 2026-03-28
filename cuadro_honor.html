@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
+    <title>Cuadro de honor — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/ux-shell.css">
+    <style>
+        :root { --oro: #d4af37; --neon: #2eff70; --negro: #0b0b0b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Outfit', system-ui, sans-serif;
+            background: var(--negro);
+            color: #e8e8e8;
+            min-height: 100vh;
+            padding: calc(14px + env(safe-area-inset-top)) 18px calc(32px + env(safe-area-inset-bottom));
+        }
+        .shell { max-width: 520px; margin: 0 auto; }
+        .hdr {
+            margin-bottom: 14px;
+        }
+        .hdr h1 {
+            font-weight: 800;
+            font-size: clamp(1.05rem, 3.5vw, 1.2rem);
+            letter-spacing: 0.1em;
+            color: var(--oro);
+            text-transform: uppercase;
+        }
+        .hdr p {
+            margin-top: 8px;
+            font-size: 0.72rem;
+            color: #5a5a5a;
+            line-height: 1.5;
+            letter-spacing: 0.04em;
+        }
+        .lista-honor {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .honor-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 18px;
+            border-radius: 28px;
+            background: #050505;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .honor-card .pos {
+            font-weight: 800;
+            font-size: 1.1rem;
+            min-width: 36px;
+            text-align: center;
+            color: #555;
+        }
+        .honor-card .nom {
+            flex: 1;
+            font-weight: 700;
+            font-size: 0.78rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .honor-card .prom {
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--neon);
+            text-shadow: 0 0 14px rgba(46, 255, 112, 0.25);
+            font-variant-numeric: tabular-nums;
+        }
+        /* TOP 3 — brillo dorado */
+        .honor-card.top1 {
+            border-color: rgba(212, 175, 55, 0.55);
+            box-shadow:
+                0 0 0 1px rgba(212, 175, 55, 0.2),
+                0 0 32px rgba(212, 175, 55, 0.18),
+                0 12px 40px rgba(0, 0, 0, 0.45);
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), #050505 55%);
+        }
+        .honor-card.top1 .pos { color: var(--oro); font-size: 1.35rem; }
+        .honor-card.top2 {
+            border-color: rgba(212, 175, 55, 0.35);
+            box-shadow: 0 0 22px rgba(212, 175, 55, 0.1);
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.06), #050505 60%);
+        }
+        .honor-card.top2 .pos { color: #c0a030; }
+        .honor-card.top3 {
+            border-color: rgba(212, 175, 55, 0.28);
+            box-shadow: 0 0 18px rgba(212, 175, 55, 0.08);
+            background: linear-gradient(135deg, rgba(184, 148, 60, 0.07), #050505 65%);
+        }
+        .honor-card.top3 .pos { color: #a88c3a; }
+        .pie {
+            margin-top: 22px;
+            padding: 16px;
+            border-radius: 24px;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            background: rgba(5, 5, 5, 0.9);
+            font-size: 0.68rem;
+            color: #5c5c5c;
+            line-height: 1.5;
+            text-align: center;
+        }
+        .pie a {
+            color: var(--oro);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .pie a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+<div class="shell">
+    <div class="dc-dash-back-row">
+        <a href="/index.html" class="btn-dash-dashboard"><span class="dc-dash-ico">←</span> Volver al dashboard</a>
+    </div>
+
+    <div class="dc-premium-chassis" style="padding:22px 20px 26px;">
+        <header class="hdr">
+            <h1>Cuadro de honor</h1>
+            <p>Ejemplo editorial de podio — el ranking dinámico y actualizado está en la app.</p>
+        </header>
+
+        <div class="lista-honor" role="list">
+            <article class="honor-card top1" role="listitem">
+                <span class="pos">1</span>
+                <span class="nom">Maestro referencia</span>
+                <span class="prom">1.248</span>
+            </article>
+            <article class="honor-card top2" role="listitem">
+                <span class="pos">2</span>
+                <span class="nom">Jugador élite</span>
+                <span class="prom">1.182</span>
+            </article>
+            <article class="honor-card top3" role="listitem">
+                <span class="pos">3</span>
+                <span class="nom">Primera tabla</span>
+                <span class="prom">1.095</span>
+            </article>
+            <article class="honor-card" role="listitem">
+                <span class="pos">4</span>
+                <span class="nom">Competidor club</span>
+                <span class="prom">0.987</span>
+            </article>
+            <article class="honor-card" role="listitem">
+                <span class="pos">5</span>
+                <span class="nom">En ascenso</span>
+                <span class="prom">0.912</span>
+            </article>
+        </div>
+
+        <p class="pie">
+            Ranking oficial con todos los jugadores del club:<br>
+            <a href="/ranking.html">Abrir ranking DeCarambola</a>
+        </p>
+    </div>
+</div>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 70; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+</body>
+</html>

@@ -316,6 +316,7 @@
             <div class="jug-nav-fold__links">
                 <a href="socios.html">Jugadores</a>
                 <a href="mesas.html">Salón en vivo</a>
+                <a href="reservas_jugador.html">Reservar mesa</a>
                 <a href="reportes.html">Reportes</a>
                 <a href="mesas_config.html">Config. salón</a>
                 <a href="tarifas_salon.html">Tarifas del salón</a>
@@ -458,6 +459,27 @@ function pintarReservas() {
     }).join('');
 }
 
+/**
+ * Devuelve true si [inicioMs, finMs) se solapa con otra reserva activa
+ * (pendiente o confirmada) en la misma mesa. cancelada se ignora.
+ */
+function detectarSolapamiento(mesaId, inicioMs, finMs, excludeId, lista) {
+    var arr = lista || [];
+    for (var i = 0; i < arr.length; i++) {
+        var o = arr[i];
+        if (!o || String(o.id) === String(excludeId)) continue;
+        if (String(o.mesa_id) !== String(mesaId)) continue;
+        var est = (o.estado || 'pendiente').toLowerCase();
+        if (est === 'cancelada') continue;
+        var ts = o.fecha_reserva ? new Date(o.fecha_reserva).getTime() : NaN;
+        if (isNaN(ts)) continue;
+        var durMin = Math.max(1, parseInt(o.duracion_minutos, 10) || 60);
+        var finO = ts + durMin * 60000;
+        if (inicioMs < finO && ts < finMs) return true;
+    }
+    return false;
+}
+
 function pedirCancelar(id) {
     if (!confirm('¿Cancelar esta reserva? El jugador verá el estado actualizado.')) return;
     actualizarReserva(id, 'cancelada');
@@ -465,6 +487,18 @@ function pedirCancelar(id) {
 
 async function actualizarReserva(id, nuevoEstado) {
     try {
+        if (nuevoEstado === 'confirmada') {
+            var r = reservas.filter(function (x) { return String(x.id) === String(id); })[0];
+            if (r && r.mesa_id && r.fecha_reserva) {
+                var ini = new Date(r.fecha_reserva).getTime();
+                var dur = Math.max(1, parseInt(r.duracion_minutos, 10) || 60);
+                var fin = ini + dur * 60000;
+                if (detectarSolapamiento(r.mesa_id, ini, fin, id, reservas)) {
+                    toast('Ya hay otra reserva en esa mesa que se cruza con este horario.', 'error');
+                    return;
+                }
+            }
+        }
         var api = await import('/js/api/club-api.js');
         await api.updateMesasReservaRow(id, { estado: nuevoEstado, updated_at: new Date().toISOString() });
         reservas = reservas.map(function(r){ if (r.id === id) r.estado = nuevoEstado; return r; });

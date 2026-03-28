@@ -125,6 +125,7 @@
             <div class="jug-nav-fold__links">
                 <a href="socios.html">Jugadores</a>
                 <a href="reservas_admin.html">Reservas</a>
+                <a href="reservas_jugador.html">Reservar mesa</a>
                 <a href="reportes.html">Reportes</a>
                 <a href="mesas_config.html">Config. salón</a>
                 <a href="/club/index.html">Portal club</a>
@@ -591,9 +592,12 @@ function abrirModal(mesaId) {
         var cPro = costoSesionProporcionalMinutos(m, inicio, Date.now());
         var ahora = new Date();
         var te = tarifaEfectivaPorHora(m, ahora);
-        var dct = descuentoPctAplicable(ahora);
+        var adj = ajusteHorarioPct(ahora);
         var linea = 'Costo (por minuto): $' + Math.round(cPro) + ' · Tarifa efectiva ahora: $' + Math.round(te) + '/h';
-        if (dct > 0) linea += ' (desc. ' + Math.round(dct) + '%)';
+        if (adj !== 0) {
+            var adjR = Math.round(adj * 100) / 100;
+            linea += ' (ajuste ' + (adjR > 0 ? '+' : '') + adjR + '%)';
+        }
         document.getElementById('modal_costo').textContent = linea;
         acciones.innerHTML = '<button class="modal-btn cerrar" onclick="accionMesa(\'cerrar\')">⏹ CERRAR SESIÓN</button>';
         var streamUrl = (m.url_camara || '').trim();
@@ -638,25 +642,61 @@ function cerrarModalTicket() {
     window._dcTicketCierre = null;
 }
 async function confirmarLiquidacionMesa() {
+    function toastSalon(msg, tipo) {
+        var isErr = tipo === 'error' || tipo === 'err';
+        var t = document.createElement('div');
+        t.setAttribute('role', 'status');
+        t.textContent = msg;
+        t.style.cssText =
+            'position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);max-width:min(92vw,360px);padding:12px 18px;border-radius:12px;z-index:10000;font-size:0.85rem;font-weight:500;font-family:system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,0.45);' +
+            (isErr
+                ? 'background:#2a1818;border:1px solid rgba(231,76,60,0.4);color:#ffc9c9;'
+                : 'background:#1a2f22;border:1px solid rgba(46,204,113,0.4);color:#b8f5d0;');
+        document.body.appendChild(t);
+        setTimeout(function () {
+            try {
+                t.remove();
+            } catch (e2) {}
+        }, 3200);
+    }
     var d = window._dcTicketCierre;
-    if (!d) { cerrarModalTicket(); return; }
+    if (!d) {
+        cerrarModalTicket();
+        return;
+    }
     var m = d.m;
     var hist = d.hist;
-    var inicio = new Date(hist.inicio).getTime();
+    var inicioMs = new Date(hist.inicio).getTime();
+    if (!hist.inicio || isNaN(inicioMs)) {
+        toastSalon('Error: la sesión no tiene hora de inicio válida. No se puede cerrar.', 'error');
+        return;
+    }
     var fin = Date.now();
-    var horas = (fin - inicio) / 3600000;
+    var horas = (fin - inicioMs) / 3600000;
     var costo = d.costo;
     var tarifaSnap = d.tarifaSnap;
+    if (typeof costo !== 'number' || isNaN(costo)) {
+        toastSalon('Error al calcular el costo. No se puede cerrar.', 'error');
+        return;
+    }
+    var btn = document.querySelector('#modal_ticket_mesa .modal-acciones button.modal-btn.cerrar');
+    var btnLabelOriginal = btn ? btn.textContent : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Cerrando…';
+    }
     try {
         var api = await _clubApi();
-        await api.updateMesasHistorialRow(hist.id, {
+        var ur = await api.updateMesasHistorialRow(hist.id, {
             fin_sesion: new Date().toISOString(),
             horas_reales: Math.round(horas * 100) / 100,
             costo_total: costo,
             tarifa_aplicada: tarifaSnap,
             estado: 'cerrada'
         });
+        if (ur.error) throw ur.error;
         var compR = await api.listInstalacionesComponentesByMesa(m.id);
+        if (compR.error) throw compR.error;
         var comps = compR.data || [];
         for (var ci = 0; ci < comps.length; ci++) {
             var c = comps[ci];
@@ -665,16 +705,31 @@ async function confirmarLiquidacionMesa() {
             var opt = parseInt(c.horas_uso_optimo, 10) || 500,
                 al = parseInt(c.horas_uso_alerta, 10) || 800;
             var est = nuevo >= al ? 'urgente' : nuevo >= opt ? 'desgaste' : 'optimo';
-            await api.updateInstalacionComponenteRow(c.id, { horas_uso_actual: nuevo, estado: est, updated_at: new Date().toISOString() });
+            var upComp = await api.updateInstalacionComponenteRow(c.id, {
+                horas_uso_actual: nuevo,
+                estado: est,
+                updated_at: new Date().toISOString()
+            });
+            if (upComp.error) throw upComp.error;
         }
-        await api.updateMesa(m.id, { estado: 'libre', updated_at: new Date().toISOString() });
-    } catch (e) { console.warn(e); }
-    delete sesionesAbiertas[m.id];
-    window._dcTicketCierre = null;
-    var mt = document.getElementById('modal_ticket_mesa');
-    if (mt) mt.classList.remove('visible');
-    cerrarModal();
-    refresh();
+        var um = await api.updateMesa(m.id, { estado: 'libre', updated_at: new Date().toISOString() });
+        if (um.error) throw um.error;
+        delete sesionesAbiertas[m.id];
+        window._dcTicketCierre = null;
+        var mt = document.getElementById('modal_ticket_mesa');
+        if (mt) mt.classList.remove('visible');
+        cerrarModal();
+        refresh();
+    } catch (e) {
+        console.warn(e);
+        toastSalon('No se pudo cerrar la sesión. Revisá tu conexión e intentá de nuevo.', 'error');
+        return;
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = btnLabelOriginal || '✓ LIBERAR MESA (COBRAR)';
+        }
+    }
 }
 function previsualizarCamaraMesa() {
     if (!mesaSeleccionada) return;
@@ -687,42 +742,95 @@ function previsualizarCamaraMesa() {
 function irFicha() { if (mesaSeleccionada) location.href = '/apps/club/sala/instalacion_ficha.html?id=' + encodeURIComponent(mesaSeleccionada.id); cerrarModal(); }
 
 function accionMesa(accion) {
+    function toastSalon(msg, tipo) {
+        var isErr = tipo === 'error' || tipo === 'err';
+        var t = document.createElement('div');
+        t.setAttribute('role', 'status');
+        t.textContent = msg;
+        t.style.cssText =
+            'position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);max-width:min(92vw,360px);padding:12px 18px;border-radius:12px;z-index:10000;font-size:0.85rem;font-weight:500;font-family:system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,0.45);' +
+            (isErr
+                ? 'background:#2a1818;border:1px solid rgba(231,76,60,0.4);color:#ffc9c9;'
+                : 'background:#1a2f22;border:1px solid rgba(46,204,113,0.4);color:#b8f5d0;');
+        document.body.appendChild(t);
+        setTimeout(function () {
+            try {
+                t.remove();
+            } catch (e2) {}
+        }, 3200);
+    }
     if (!mesaSeleccionada) return;
     var m = mesaSeleccionada;
     if (accion === 'abrir') {
         var nombre = (prompt('Nombre del jugador o cliente:') || '').trim() || 'Cliente';
         var inicio = new Date().toISOString();
-        _clubApi().then(function (api) {
-            return api.insertMesasHistorialRow({ mesa_id: m.id, club_id: getClubId(), jugador_nombre: nombre, inicio_sesion: inicio, estado: 'abierta' });
-        }).then(function (ins) {
-            var row = ins && ins.data;
-            var nuevoId = row && row.id ? row.id : null;
-            if (nuevoId) sesionesAbiertas[m.id] = { inicio: inicio, jugador_nombre: nombre, id: nuevoId };
-            return _clubApi().then(function (api2) {
-                return api2.updateMesa(m.id, { estado: 'ocupada', updated_at: new Date().toISOString() });
+        _clubApi()
+            .then(function (api) {
+                return api.insertMesasHistorialRow({
+                    mesa_id: m.id,
+                    club_id: getClubId(),
+                    jugador_nombre: nombre,
+                    inicio_sesion: inicio,
+                    estado: 'abierta'
+                });
+            })
+            .then(function (ins) {
+                if (ins && ins.error) throw ins.error;
+                var row = ins && ins.data;
+                var nuevoId = row && row.id ? row.id : null;
+                if (!nuevoId) throw new Error('sin fila insertada');
+                sesionesAbiertas[m.id] = { inicio: inicio, jugador_nombre: nombre, id: nuevoId };
+                return _clubApi().then(function (api2) {
+                    return api2.updateMesa(m.id, { estado: 'ocupada', updated_at: new Date().toISOString() });
+                });
+            })
+            .then(function (um) {
+                if (um && um.error) throw um.error;
+                refresh();
+                cerrarModal();
+            })
+            .catch(function (e) {
+                console.error('[abrir mesa]', e);
+                toastSalon('No se pudo abrir la sesión. Revisá tu conexión.', 'error');
             });
-        }).then(function () { refresh(); cerrarModal(); }).catch(function () {});
     } else if (accion === 'cerrar') {
         var hist = sesionesAbiertas[m.id];
-        if (!hist) { cerrarModal(); return; }
-        var inicio = new Date(hist.inicio).getTime();
+        if (!hist) {
+            cerrarModal();
+            return;
+        }
+        var inicioMs = new Date(hist.inicio).getTime();
+        if (!hist.inicio || isNaN(inicioMs)) {
+            toastSalon('Error: la sesión no tiene hora de inicio válida. No se puede cerrar.', 'error');
+            return;
+        }
         var fin = Date.now();
-        var horas = (fin - inicio) / 3600000;
+        var horas = (fin - inicioMs) / 3600000;
         var L = _tl();
         var costo = L
             ? L.calcularTotal(hist.inicio, fin, getSalonTarifas(), parseFloat(m.tarifa_hora) || 0).total
-            : costoSesionProporcionalMinutos(m, inicio, fin);
+            : costoSesionProporcionalMinutos(m, inicioMs, fin);
         var tarifaSnap = L
             ? L.construirTarifaSnapCierre(hist.inicio, new Date().toISOString(), parseFloat(m.tarifa_hora) || 0, getSalonTarifas())
             : {
                   metodo: 'proporcional_minuto',
                   inicio_iso: hist.inicio,
                   fin_iso: new Date().toISOString(),
-                  minutos: Math.round((fin - inicio) / 60000 * 100) / 100,
-                  total: Math.round(costo * 100) / 100,
+                  minutos: Math.round((fin - inicioMs) / 60000 * 100) / 100,
+                  total: Math.round(costo * 100) / 100
               };
         window._dcTicketCierre = { m: m, hist: hist, horas: Math.round(horas * 100) / 100, costo: costo, tarifaSnap: tarifaSnap };
         mostrarModalTicketVirtual();
+        var oldW = document.getElementById('dc-ticket-warn-tarifa');
+        if (oldW) oldW.remove();
+        if (costo === 0) {
+            var tb = document.getElementById('modal_ticket_body');
+            var w = document.createElement('div');
+            w.id = 'dc-ticket-warn-tarifa';
+            w.style.cssText = 'color:#f39c12;font-size:0.7rem;margin-top:8px;';
+            w.textContent = '⚠️ Costo $0 — verificá que la tarifa esté configurada.';
+            if (tb) tb.appendChild(w);
+        }
     } else if (['mantenimiento','reservada','fuera_servicio','libre'].indexOf(accion) >= 0) {
         _clubApi().then(function (api) {
             return api.updateMesa(m.id, { estado: accion, updated_at: new Date().toISOString() });

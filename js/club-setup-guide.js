@@ -93,6 +93,7 @@
 
     function tarifasTienenValor(t) {
         if (!t || typeof t !== "object") return false;
+        if ((parseFloat(t.tarifa_base) || 0) > 0) return true;
         var nums = ["hora", "media", "manana", "tarde", "noche", "finde"];
         for (var i = 0; i < nums.length; i++) {
             if ((parseFloat(t[nums[i]]) || 0) > 0) return true;

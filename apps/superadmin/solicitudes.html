@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+      import { getSession, getRole } from '/js/auth-manager.js';
+      const s = await getSession();
+      if (!s?.data) window.location.replace('/auth.html');
+      const r = await getRole();
+      if (r?.data !== 'superadmin') window.location.replace('/auth.html');
+      try { sessionStorage.setItem('plataforma_superadmin_activo', 'true'); } catch (e) {}
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0b0b0b">
+    <title>Solicitudes de club — Superadmin</title>
+    <link rel="stylesheet" href="/css/ux-shell.css">
+    <style>
+        :root { --oro: #d4af37; --azul: #3498db; --neon: #2eff70; --rojo: #e74c3c; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0b0b0b; color: #e8eaed; font-family: system-ui, sans-serif; min-height: 100vh; padding: 18px 16px 48px; }
+        .header { max-width: 640px; margin: 0 auto 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .header h1 { font-size: 1rem; letter-spacing: 0.06em; color: var(--oro); flex: 1; min-width: 200px; }
+        .header a { color: #888; font-size: 0.8rem; text-decoration: none; }
+        .header a:hover { color: var(--oro); }
+        .filtros { max-width: 640px; margin: 0 auto 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .filtros button {
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid #2a2a2a;
+            background: #111;
+            color: #888;
+            font-size: 0.72rem;
+            cursor: pointer;
+        }
+        .filtros button.activo { border-color: var(--azul); color: var(--azul); }
+        .lista { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+        .card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .card.pendiente { border-color: rgba(52, 152, 219, 0.25); }
+        .card h3 { color: var(--oro); font-size: 0.95rem; margin-bottom: 10px; }
+        .card dl { display: grid; gap: 6px; }
+        .card dt { color: #666; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; }
+        .card dd { margin: 0 0 8px 0; }
+        .card textarea {
+            width: 100%;
+            min-height: 64px;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #222;
+            background: #080808;
+            color: #ddd;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+        .acciones { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            cursor: pointer;
+            letter-spacing: 0.06em;
+        }
+        .btn-aprob { background: var(--neon); color: #000; }
+        .btn-rec { background: rgba(231, 76, 60, 0.2); color: var(--rojo); border: 1px solid rgba(231, 76, 60, 0.4); }
+        .empty { text-align: center; color: #555; padding: 40px 20px; max-width: 640px; margin: 0 auto; }
+        .loading { text-align: center; color: #666; padding: 24px; }
+        .err { color: var(--rojo); font-size: 0.82rem; margin-top: 8px; }
+    </style>
+</head>
+<body class="dc-ux dc-ux-skin">
+    <div class="header">
+        <h1>Solicitudes de configuración de club</h1>
+        <a href="/index.html">Inicio</a>
+        <a href="/pqrs_admin.html">PQRS</a>
+    </div>
+    <div class="filtros" id="filtros">
+        <button type="button" data-estado="" class="activo">Todas</button>
+        <button type="button" data-estado="pendiente">Pendientes</button>
+        <button type="button" data-estado="aprobada">Aprobadas</button>
+        <button type="button" data-estado="rechazada">Rechazadas</button>
+    </div>
+    <div id="loading" class="loading">Cargando…</div>
+    <div id="lista" class="lista" style="display: none;"></div>
+    <div id="empty" class="empty" style="display: none;">No hay solicitudes con este filtro.</div>
+
+    <script type="module">
+        import {
+            superadmin_listarSolicitudes,
+            superadmin_aprobarSolicitud,
+            superadmin_rechazarSolicitud,
+        } from '/js/solicitud-config.js';
+
+        var filtroActual = '';
+        var loading = document.getElementById('loading');
+        var listaEl = document.getElementById('lista');
+        var emptyEl = document.getElementById('empty');
+
+        async function cargar() {
+            loading.style.display = 'block';
+            listaEl.style.display = 'none';
+            emptyEl.style.display = 'none';
+            var r = await superadmin_listarSolicitudes(filtroActual || null);
+            loading.style.display = 'none';
+            if (r.error) {
+                alert(r.error);
+            }
+            var rows = r.data || [];
+            if (!rows.length) {
+                emptyEl.style.display = 'block';
+                return;
+            }
+            listaEl.style.display = 'flex';
+            listaEl.innerHTML = '';
+            rows.forEach(function (sol) {
+                listaEl.appendChild(renderCard(sol));
+            });
+        }
+
+        function renderCard(sol) {
+            var div = document.createElement('div');
+            div.className = 'card ' + (sol.estado || '');
+            var idShort = sol.id ? String(sol.id).slice(0, 8) : '';
+            div.innerHTML =
+                '<h3>' +
+                escapeHtml(sol.nombre_club || '(sin nombre)') +
+                ' <span style="color:#666;font-size:0.65rem;">#' +
+                idShort +
+                '…</span></h3>' +
+                '<dl>' +
+                '<dt>Estado</dt><dd><strong>' +
+                escapeHtml(sol.estado || '') +
+                '</strong></dd>' +
+                '<dt>Solicitante (user id)</dt><dd><code style="font-size:0.7rem;">' +
+                escapeHtml(sol.user_id || '') +
+                '</code></dd>' +
+                '<dt>Dimensiones (m)</dt><dd>' +
+                (sol.metraje_ancho != null ? sol.metraje_ancho : '—') +
+                ' × ' +
+                (sol.metraje_largo != null ? sol.metraje_largo : '—') +
+                '</dd>' +
+                '<dt>Mesas</dt><dd>' +
+                escapeHtml(String(sol.num_mesas != null ? sol.num_mesas : '')) +
+                '</dd>' +
+                '<dt>Ciudad / Dirección</dt><dd>' +
+                escapeHtml([sol.ciudad, sol.direccion].filter(Boolean).join(' — ') || '—') +
+                '</dd>' +
+                '<dt>Club (codigo)</dt><dd>' +
+                (sol.club_id ? escapeHtml(sol.club_id) + ' (cambio o asignado)' : 'Alta nueva') +
+                '</dd>' +
+                '<dt>Enviada</dt><dd>' +
+                (sol.created_at ? new Date(sol.created_at).toLocaleString() : '—') +
+                '</dd>' +
+                (sol.comentario_admin
+                    ? '<dt>Comentario admin</dt><dd>' + escapeHtml(sol.comentario_admin) + '</dd>'
+                    : '') +
+                '</dl>';
+
+            if (sol.estado === 'pendiente') {
+                var ta = document.createElement('textarea');
+                ta.className = 'comentario-scc';
+                ta.placeholder = 'Comentario para el club (opcional en aprobar, recomendado en rechazar)';
+                ta.dataset.id = sol.id;
+
+                var acc = document.createElement('div');
+                acc.className = 'acciones';
+                var b1 = document.createElement('button');
+                b1.type = 'button';
+                b1.className = 'btn btn-aprob';
+                b1.textContent = 'APROBAR';
+                b1.addEventListener('click', async function () {
+                    b1.disabled = true;
+                    var res = await superadmin_aprobarSolicitud(sol.id, ta.value.trim() || null);
+                    if (!res.ok) {
+                        alert(res.error || 'Error');
+                        b1.disabled = false;
+                        return;
+                    }
+                    alert('Aprobado. Código club: ' + (res.club_codigo || ''));
+                    cargar();
+                });
+                var b2 = document.createElement('button');
+                b2.type = 'button';
+                b2.className = 'btn btn-rec';
+                b2.textContent = 'RECHAZAR';
+                b2.addEventListener('click', async function () {
+                    if (!ta.value.trim()) {
+                        if (!confirm('¿Rechazar sin comentario?')) return;
+                    }
+                    b2.disabled = true;
+                    var res = await superadmin_rechazarSolicitud(sol.id, ta.value.trim() || null);
+                    if (!res.ok) {
+                        alert(res.error || 'Error');
+                        b2.disabled = false;
+                        return;
+                    }
+                    cargar();
+                });
+                acc.appendChild(b1);
+                acc.appendChild(b2);
+                div.appendChild(ta);
+                div.appendChild(acc);
+            }
+
+            return div;
+        }
+
+        function escapeHtml(t) {
+            if (t == null) return '';
+            var d = document.createElement('div');
+            d.textContent = t;
+            return d.innerHTML;
+        }
+
+        document.getElementById('filtros').addEventListener('click', function (e) {
+            var b = e.target.closest('button[data-estado]');
+            if (!b) return;
+            document.querySelectorAll('.filtros button').forEach(function (x) {
+                x.classList.remove('activo');
+            });
+            b.classList.add('activo');
+            filtroActual = b.getAttribute('data-estado') || '';
+            cargar();
+        });
+
+        cargar();
+    </script>
+</body>
+</html>

@@ -3,17 +3,19 @@
  * Requiere migración 011_clubs_operacion_flags.sql y políticas RLS adecuadas.
  *
  * @param {string} clubId — id UUID o clubs.codigo
- * @param {object} tarifasObj — objeto tarifas (hora, media, …)
+ * @param {object} tarifasObj — objeto tarifas (tarifa_base o legado hora, media, …)
  * @param {{ onlyTarifas?: boolean }} [opts] — si onlyTarifas: solo actualiza setup_tarifas_ok (pantalla tarifas_salon)
  */
 export async function syncClubOperacionFlags(clubId, tarifasObj, opts) {
     opts = opts || {};
     if (!clubId) return { ok: false, error: "sin club_id" };
     var t = tarifasObj && typeof tarifasObj === "object" ? tarifasObj : {};
-    var hasTarifa = false;
-    ["hora", "media", "manana", "tarde", "noche", "finde"].forEach(function (k) {
-        if ((parseFloat(t[k]) || 0) > 0) hasTarifa = true;
-    });
+    var hasTarifa = (parseFloat(t.tarifa_base) || 0) > 0;
+    if (!hasTarifa) {
+        ["hora", "media", "manana", "tarde", "noche", "finde"].forEach(function (k) {
+            if ((parseFloat(t[k]) || 0) > 0) hasTarifa = true;
+        });
+    }
     try {
         var mod = await import("./supabase-client.js");
         var supabase = mod.supabase;

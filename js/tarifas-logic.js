@@ -1,22 +1,20 @@
 /**
- * Motor puro de tarifas y liquidación por minuto (Salón en vivo).
- * Contrato canónico Supabase: club_id, tarifas en mesas_config.tarifas (JSON).
- * Sin I/O: funciones puras salvo conversión Date.
+ * Motor de tarifas — modelo simple (Salón en vivo).
+ * Contrato Supabase: mesas_config.tarifas (JSON).
  *
- * Franjas base: fin de semana → mañana (<12h) → tarde [12h,20h) → noche (≥20h) → tarifa hora salón → tarifa_hora de la mesa.
- * Campo opcional `tarde` ($/h) en configuracionTarifas; si es 0 se omiten y aplica la siguiente regla.
+ * Una tarifa base $/h y ajustes opcionales por horario (%, con signo):
+ * negativo = descuento, positivo = recargo. Cobro proporcional al minuto;
+ * si la sesión cruza franjas, cada minuto usa el % que corresponda a ese instante.
+ *
+ * Compatibilidad: JSON antiguo (hora, manana, finde, …) se normaliza al leer.
  */
 
 /**
- * @typedef {Object} ConfiguracionTarifas
- * @property {number} [hora]
- * @property {number} [media]
- * @property {number} [manana]
- * @property {number} [tarde] — franja 12:00–19:59 (mismo día); solo días laborables ya filtrados por finde
- * @property {number} [noche]
- * @property {number} [finde]
- * @property {number} [descuento_global_pct]
- * @property {Array<{tipo:string, desde?:string, hasta?:string, pct?:number, dias?:number[]}>} [reglas_descuento]
+ * @typedef {Object} ConfiguracionTarifasNorm
+ * @property {number} tarifa_base
+ * @property {number} descuento_manana
+ * @property {number} descuento_noche
+ * @property {number} descuento_finde
  */
 
 /**
@@ -42,85 +40,92 @@ export function parseHMToMinutes(s) {
 }
 
 /**
- * @param {number} mesaTarifaHora — mesa.tarifa_hora
- * @param {ConfiguracionTarifas|null|undefined} configuracionTarifas — mesas_config.tarifas
- * @param {Date} when
- * @returns {number} USD/COP etc. por hora (sin descuento)
+ * Migra configuración antigua o incompleta a tarifa_base + tres %.
+ * @param {object|null|undefined} raw
+ * @returns {ConfiguracionTarifasNorm}
  */
-export function tarifaBasePorHora(mesaTarifaHora, configuracionTarifas, when) {
-    var t = configuracionTarifas && typeof configuracionTarifas === "object" ? configuracionTarifas : {};
-    var wd = when.getDay();
-    var minsDay = when.getHours() * 60 + when.getMinutes();
-    var baseMesa = parseFloat(mesaTarifaHora) || 0;
-    var finde = parseFloat(t.finde) || 0;
-    var manana = parseFloat(t.manana) || 0;
-    var tarde = parseFloat(t.tarde) || 0;
-    var noche = parseFloat(t.noche) || 0;
-    var horaSalon = parseFloat(t.hora) || 0;
-    if (finde > 0 && (wd === 0 || wd === 6)) return finde;
-    if (manana > 0 && minsDay < 12 * 60) return manana;
-    if (tarde > 0 && minsDay >= 12 * 60 && minsDay < 20 * 60) return tarde;
-    if (noche > 0 && minsDay >= 20 * 60) return noche;
-    if (horaSalon > 0) return horaSalon;
-    return baseMesa;
-}
-
-/**
- * @param {ConfiguracionTarifas|null|undefined} configuracionTarifas
- * @param {Date} when
- * @returns {number} 0–100
- */
-export function descuentoPctAplicable(configuracionTarifas, when) {
-    var t = configuracionTarifas && typeof configuracionTarifas === "object" ? configuracionTarifas : {};
-    var maxPct = Math.min(100, Math.max(0, parseFloat(t.descuento_global_pct) || 0));
-    var rules = t.reglas_descuento || [];
-    var wd = when.getDay();
-    var hm = when.getHours() * 60 + when.getMinutes();
-    for (var i = 0; i < rules.length; i++) {
-        var r = rules[i];
-        if (!r) continue;
-        var p = Math.min(100, Math.max(0, parseFloat(r.pct) || 0));
-        if (r.tipo === "rango_hora" && r.desde && r.hasta) {
-            var a = parseHMToMinutes(r.desde);
-            var b = parseHMToMinutes(r.hasta);
-            if (a < b) {
-                if (hm >= a && hm < b) maxPct = Math.max(maxPct, p);
-            } else if (a > b) {
-                if (hm >= a || hm < b) maxPct = Math.max(maxPct, p);
-            }
-        }
-        if (r.tipo === "dia_semana" && r.dias && r.dias.length) {
-            for (var j = 0; j < r.dias.length; j++) {
-                if (r.dias[j] === wd) {
-                    maxPct = Math.max(maxPct, p);
-                    break;
-                }
+export function normalizarConfiguracionTarifas(raw) {
+    var t = raw && typeof raw === "object" ? raw : {};
+    var tarifa_base = parseFloat(t.tarifa_base) || 0;
+    if (tarifa_base <= 0) tarifa_base = parseFloat(t.hora) || 0;
+    if (tarifa_base <= 0) {
+        var cands = [t.manana, t.tarde, t.noche, t.finde];
+        for (var i = 0; i < cands.length; i++) {
+            var v = parseFloat(cands[i]) || 0;
+            if (v > 0) {
+                tarifa_base = v;
+                break;
             }
         }
     }
-    return Math.min(100, maxPct);
+    if (tarifa_base <= 0) {
+        var med = parseFloat(t.media) || 0;
+        if (med > 0) tarifa_base = med * 2;
+    }
+    return {
+        tarifa_base: tarifa_base,
+        descuento_manana: parseFloat(t.descuento_manana) || 0,
+        descuento_noche: parseFloat(t.descuento_noche) || 0,
+        descuento_finde: parseFloat(t.descuento_finde) || 0,
+    };
+}
+
+/**
+ * % de ajuste vigente en un instante (negativo descuento, positivo recargo).
+ * @param {object|null|undefined} configuracionTarifas
+ * @param {Date} when
+ */
+export function ajusteHorarioPct(configuracionTarifas, when) {
+    var cfg = normalizarConfiguracionTarifas(configuracionTarifas);
+    var wd = when.getDay();
+    var mins = when.getHours() * 60 + when.getMinutes();
+
+    var pct = 0;
+
+    // Franja horaria — aplica todos los días incluyendo finde
+    if (mins < 12 * 60) pct += cfg.descuento_manana;
+    else if (mins >= 20 * 60) pct += cfg.descuento_noche;
+
+    // Fin de semana se acumula sobre la franja
+    if (wd === 0 || wd === 6) pct += cfg.descuento_finde;
+
+    return pct;
+}
+
+/**
+ * @param {number} mesaTarifaHora — mesa.tarifa_hora (respaldo si no hay tarifa_base en config)
+ * @param {object|null|undefined} configuracionTarifas
+ * @param {Date} when
+ * @returns {number} $/h efectivos en ese instante
+ */
+export function tarifaBasePorHora(mesaTarifaHora, configuracionTarifas, when) {
+    var cfg = normalizarConfiguracionTarifas(configuracionTarifas);
+    var base = cfg.tarifa_base > 0 ? cfg.tarifa_base : parseFloat(mesaTarifaHora) || 0;
+    if (base <= 0) return 0;
+    var pct = ajusteHorarioPct(configuracionTarifas, when);
+    return base * (1 + pct / 100);
+}
+
+/**
+ * Reservado por compatibilidad con pantallas que leían % global antiguo.
+ * En el modelo simple el ajuste va en tarifaBasePorHora; aquí retornamos 0.
+ */
+export function descuentoPctAplicable(configuracionTarifas, when) {
+    void configuracionTarifas;
+    void when;
+    return 0;
 }
 
 /**
  * @param {number} mesaTarifaHora
- * @param {ConfiguracionTarifas|null|undefined} configuracionTarifas
+ * @param {object|null|undefined} configuracionTarifas
  * @param {Date} when
  */
 export function tarifaEfectivaPorHora(mesaTarifaHora, configuracionTarifas, when) {
-    var base = tarifaBasePorHora(mesaTarifaHora, configuracionTarifas, when);
-    var pct = descuentoPctAplicable(configuracionTarifas, when);
-    return base * (1 - pct / 100);
+    return tarifaBasePorHora(mesaTarifaHora, configuracionTarifas, when);
 }
 
-/**
- * Liquidación proporcional por minuto (tarifa efectiva puede variar minuto a minuto).
- * @param {number} mesaTarifaHora
- * @param {ConfiguracionTarifas|null|undefined} configuracionTarifas
- * @param {number} inicioMs
- * @param {number} finMs
- */
-export function costoSesionProporcionalMinutos(mesaTarifaHora, configuracionTarifas, inicioMs, finMs) {
-    if (finMs <= inicioMs) return 0;
+function acumularCostoPorMinuto(mesaTarifaHora, configuracionTarifas, inicioMs, finMs) {
     var totalMin = (finMs - inicioMs) / 60000;
     var enteros = Math.floor(totalMin);
     var frac = totalMin - enteros;
@@ -132,16 +137,26 @@ export function costoSesionProporcionalMinutos(mesaTarifaHora, configuracionTari
     if (frac > 1e-6) {
         acc += (tarifaEfectivaPorHora(mesaTarifaHora, configuracionTarifas, new Date(finMs)) / 60) * frac;
     }
+    return acc;
+}
+
+/**
+ * @param {number} mesaTarifaHora
+ * @param {object|null|undefined} configuracionTarifas
+ * @param {number} inicioMs
+ * @param {number} finMs
+ */
+export function costoSesionProporcionalMinutos(mesaTarifaHora, configuracionTarifas, inicioMs, finMs) {
+    if (finMs <= inicioMs) return 0;
+    var acc = acumularCostoPorMinuto(mesaTarifaHora, configuracionTarifas, inicioMs, finMs);
     return Math.round(acc * 100) / 100;
 }
 
 /**
- * API única para cierre de sesión y pantallas que deben coincidir.
  * @param {string|number|Date} inicio
  * @param {string|number|Date} fin
- * @param {ConfiguracionTarifas|null|undefined} configuracionTarifas
+ * @param {object|null|undefined} configuracionTarifas
  * @param {number} [mesaTarifaHora=0]
- * @returns {{ total: number, minutos: number, inicioMs: number, finMs: number }}
  */
 export function calcularTotal(inicio, fin, configuracionTarifas, mesaTarifaHora) {
     var mesaTh = mesaTarifaHora != null ? mesaTarifaHora : 0;
@@ -157,24 +172,23 @@ export function calcularTotal(inicio, fin, configuracionTarifas, mesaTarifaHora)
 
 /**
  * Snapshot JSON para mesas_historial.tarifa_aplicada al cerrar.
- * @param {string} inicioIso
- * @param {string} finIso
- * @param {number} mesaTarifaHora
- * @param {ConfiguracionTarifas|null|undefined} configuracionTarifas
  */
 export function construirTarifaSnapCierre(inicioIso, finIso, mesaTarifaHora, configuracionTarifas) {
     var i = toMs(inicioIso);
     var f = toMs(finIso);
+    var cfg = normalizarConfiguracionTarifas(configuracionTarifas);
     var teFin = tarifaEfectivaPorHora(mesaTarifaHora, configuracionTarifas, new Date(f));
-    var dctFin = descuentoPctAplicable(configuracionTarifas, new Date(f));
+    var adjFin = ajusteHorarioPct(configuracionTarifas, new Date(f));
     var costo = costoSesionProporcionalMinutos(mesaTarifaHora, configuracionTarifas, i, f);
     return {
         metodo: "proporcional_minuto",
+        modelo: "tarifa_base_ajustes",
+        tarifa_referencia: Math.round(cfg.tarifa_base * 100) / 100,
         inicio_iso: inicioIso,
         fin_iso: finIso,
         minutos: Math.round(((f - i) / 60000) * 100) / 100,
+        ajuste_pct_ejemplo_fin: Math.round(adjFin * 100) / 100,
         tarifa_efectiva_ejemplo_fin: Math.round(teFin * 100) / 100,
-        descuento_pct_fin: Math.round(dctFin * 100) / 100,
         total: Math.round(costo * 100) / 100,
     };
 }

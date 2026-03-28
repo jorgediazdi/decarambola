@@ -125,6 +125,16 @@
         <div class="ficha-row"><span>Promedio horas/día</span><span class="v" id="stat_promedio">—</span></div>
     </div>
 
+    <div class="ficha-card" id="card_tarifa_mesa" style="display:none;">
+        <div class="ficha-titulo">TARIFA POR HORA (ESTA MESA)</div>
+        <p class="ficha-minihelp" id="tarifa_mesa_help_admin" style="display:none;">Valor base de esta instalación; se combina con franjas del salón. Solo administradores del club (<code>club_admin</code>).</p>
+        <div class="campo" id="wrap_tarifa_input" style="display:none;">
+            <label>Tarifa por hora</label>
+            <input type="number" id="ficha_tarifa_hora" min="0" step="0.01" inputmode="decimal" autocomplete="off">
+            <button type="button" class="btn-paso" style="margin-top:10px;" onclick="guardarTarifaMesa()">GUARDAR TARIFA</button>
+        </div>
+    </div>
+
     <div class="ficha-card" id="card_hoja_vida">
         <div class="ficha-titulo">HOJA DE VIDA DE LA MESA</div>
         <p class="ficha-minihelp">Fecha de compra, paño, próximo cambio, detalle de compra, monitor y notas. Se guardan en la nube (columna <code style="color:#888;">hoja_vida</code> en Supabase — si falla, revisa <code style="color:#888;">db/alter_mesas_hoja_vida.sql</code>).</p>
@@ -582,6 +592,56 @@ async function cargar() {
     pintarHistorialSesiones();
     pintarHistoriaCompleta();
     llenarSelectComponentes();
+    initTarifaMesaEdit();
+}
+
+async function initTarifaMesaEdit() {
+    var card = document.getElementById('card_tarifa_mesa');
+    var wrapIn = document.getElementById('wrap_tarifa_input');
+    var help = document.getElementById('tarifa_mesa_help_admin');
+    if (!card || !wrapIn) return;
+    try {
+        var am = await import('/js/auth-manager.js');
+        var rr = await am.getRole();
+        if (rr.data === 'club_admin') {
+            card.style.display = 'block';
+            wrapIn.style.display = 'block';
+            if (help) help.style.display = 'block';
+            var inp = document.getElementById('ficha_tarifa_hora');
+            if (inp && mesa) inp.value = mesa.tarifa_hora != null && mesa.tarifa_hora !== '' ? mesa.tarifa_hora : '';
+        } else {
+            card.style.display = 'none';
+        }
+    } catch (e) {
+        if (card) card.style.display = 'none';
+    }
+}
+
+async function guardarTarifaMesa() {
+    try {
+        var am = await import('/js/auth-manager.js');
+        var rr = await am.getRole();
+        if (!rr.data || rr.data !== 'club_admin') {
+            alert('Solo administradores del club pueden editar la tarifa.');
+            return;
+        }
+    } catch (e) {
+        alert('No se pudo verificar el rol.');
+        return;
+    }
+    if (!mesaId || !mesa) return;
+    var inp = document.getElementById('ficha_tarifa_hora');
+    var v = Math.max(0, parseFloat(inp && inp.value) || 0);
+    var api = await _clubApiFicha();
+    var ur = await api.updateMesa(mesaId, { tarifa_hora: v, updated_at: new Date().toISOString() });
+    if (ur.error) {
+        alert('No se pudo guardar en Supabase. Revisá permisos o conexión.');
+        return;
+    }
+    mesa.tarifa_hora = v;
+    var lbl = document.getElementById('lbl_tarifa');
+    if (lbl) lbl.textContent = 'Tarifa/h: $' + v;
+    alert('Tarifa actualizada.');
 }
 
 function llenarSelectComponentes() {

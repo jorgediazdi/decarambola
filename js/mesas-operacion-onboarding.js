@@ -9,6 +9,7 @@
 
     function tarifasTienenValor(t) {
         if (!t || typeof t !== "object") return false;
+        if ((parseFloat(t.tarifa_base) || 0) > 0) return true;
         var nums = ["hora", "media", "manana", "tarde", "noche", "finde"];
         for (var i = 0; i < nums.length; i++) {
             if ((parseFloat(t[nums[i]]) || 0) > 0) return true;
@@ -136,7 +137,7 @@
                 );
             }
             if (!tarifasOk && !derivedTarifas) {
-                faltan.push("Paso 4: al menos una tarifa > 0 (hora, media, mañana, noche o fin de semana)");
+                faltan.push("Paso 4: tarifa por hora > 0 (o tarifa legada en mesas_config.tarifas)");
             }
 
             /* Coherencia extra: si hay config local pero 0 mesas visibles */
@@ -178,7 +179,7 @@
             (opts.hrefTarifas || "tarifas_salon.html") +
             '" style="display:inline-block;margin-top:10px;padding:10px 18px;border:1px solid rgba(212,175,55,0.45);color:#d4af37;text-decoration:none;border-radius:12px;font-size:0.72rem;font-weight:600;letter-spacing:0.04em;">Paso 4: tarifas del salón</a>' +
             '<p style="margin-top:12px;font-size:0.68rem;color:#888;line-height:1.45;">Podés ver el <strong style="color:#d4af37">preview del plano</strong> en <strong style="color:#aaa">Configurar instalaciones</strong> aunque el salón siga bloqueado. En <strong style="color:#d4af37">Salón en vivo</strong> el mapa completo abre cuando paso 3 y 4 estén OK (mesas en Supabase + al menos una tarifa base &gt; 0).</p>' +
-            '<p style="margin-top:10px;font-size:0.68rem;color:#666;">Si ya guardaste tarifas y sigue este aviso: revisá que haya <strong style="color:#aaa">al menos un valor &gt; 0</strong> en hora/media/mañana/noche/finde, y que en Supabase existan filas en <code style="color:#888;">mesas</code> para tu club.</p>' +
+            '<p style="margin-top:10px;font-size:0.68rem;color:#666;">Si ya guardaste tarifas y sigue este aviso: revisá <strong style="color:#aaa">tarifa por hora &gt; 0</strong> (o la tarifa legada), y filas en <code style="color:#888;">mesas</code> para tu club.</p>' +
             '<p style="margin-top:14px;font-size:0.68rem;color:#666;">Validación en Supabase (clubs, mesas_config, mesas). Migración 011: flags en <code style="color:#888;">clubs</code>.</p>' +
             "</div>";
         document.body.appendChild(el);

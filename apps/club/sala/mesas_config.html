@@ -5,19 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#d4af37">
     <title>Configurar instalaciones — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
+        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --platino:rgba(220, 228, 236, 0.14); --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:120px; }
+        body { background:var(--negro); color:#e8eaed; font-family:'Outfit','Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:120px; }
 
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; position:sticky; top:0; z-index:50; flex-wrap:wrap; }
-        .header-titulo { color:#d4af37; font-size:0.95rem; letter-spacing:3px; }
+        .header { width:100%; background:rgba(5,5,5,0.95); border-bottom:1px solid rgba(212,175,55,0.18); padding:14px 18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:50; flex-wrap:wrap; }
+        .header > .header-row-main { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; width:100%; }
+        .header-titulo { color:#d4af37; font-size:0.95rem; letter-spacing:0.12em; font-weight:800; font-family:'Outfit',sans-serif; text-transform:uppercase; }
         .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
         .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
         .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
         .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
 
-        .wrap { max-width:500px; margin:0 auto; padding:16px 18px; position:relative; z-index:40; }
+        .wrap { max-width:500px; margin:12px auto 0; padding:20px 20px 24px; position:relative; z-index:40; }
+        /* Bloques consola platino — creación (paso 2) y tarifas (paso 4) */
+        #paso2.paso.activo,
+        #paso4.paso.activo {
+            padding: 18px 16px;
+            border-radius: 28px;
+            border: 1px solid var(--platino);
+            background: linear-gradient(165deg, rgba(36, 38, 42, 0.55), rgba(5, 5, 5, 0.98));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .btn-paso, .wizard-dot.activo { font-family:'Outfit','Arial Black',sans-serif; }
+        .sec-titulo { font-family:'Outfit',sans-serif; font-weight:700; }
 
         .wizard-steps { display:flex; gap:4px; margin-bottom:20px; }
         .wizard-dot { flex:1; height:6px; border-radius:3px; background:var(--g1); transition:0.3s; cursor:pointer; touch-action:manipulation; }
@@ -46,14 +61,75 @@
             .comp-fila { display:grid; grid-template-columns:1fr 1fr 80px 80px auto; }
             .comp-fila input[type=text], .comp-fila select, .comp-fila input[type=number] { width:auto; flex:none; min-width:0; }
         }
-        .btn-quitar { background:none; border:none; color:var(--rojo); cursor:pointer; padding:4px; font-size:1rem; }
+        .btn-quitar { background:none; border:none; color:rgba(180,170,150,0.75); cursor:pointer; padding:4px; font-size:1rem; }
+        .btn-quitar:hover { color:var(--oro); }
 
-        .preview-plano { background:var(--g2); border:2px solid var(--oro); border-radius:18px; padding:16px; margin:14px 0; min-height:180px; display:flex; flex-direction:column; gap:8px; align-items:stretch; }
+        /* Paso 3: plano con mesas en posición absoluta (drag); proporción del local en .preview-plano-sala */
+        #preview_plano.preview-plano {
+            position: relative;
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            padding: 16px;
+            margin: 14px 0;
+            background: var(--g2);
+            border: 2px solid var(--oro);
+            border-radius: 18px;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        .preview-plano-sala {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
         .preview-fila { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; width:100%; }
         .preview-plano.layout-horizontal .preview-fila { justify-content:flex-start; }
         .preview-plano.layout-vertical .preview-fila { justify-content:center; }
         .preview-plano.layout-vertical { align-items:center; }
-        .preview-celda { width:56px; height:56px; border-radius:12px; background:rgba(212,175,55,0.15); border:2px solid var(--oro); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:0.5rem; color:var(--oro); text-align:center; padding:4px; animation:preview-luz 2.5s ease-in-out infinite; }
+        .preview-celda {
+            position: absolute;
+            width: 56px;
+            height: 56px;
+            margin: 0;
+            border-radius: 12px;
+            background: rgba(212,175,55,0.15);
+            border: 2px solid var(--oro);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            color: var(--oro);
+            text-align: center;
+            padding: 4px;
+            animation: preview-luz 2.5s ease-in-out infinite;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            z-index: 2;
+            box-sizing: border-box;
+            touch-action: none;
+        }
+        /* Mesa real 2,84 m × 1,42 m respecto al local (paso 1): tamaño vía JS en % del .preview-plano-sala */
+        .preview-celda.preview-celda--metrica {
+            min-width: 20px;
+            min-height: 12px;
+            padding: 2px;
+            font-size: clamp(0.32rem, 2.5vw, 0.5rem);
+        }
+        .preview-celda.preview-celda--metrica .nom {
+            font-size: clamp(0.48rem, 4.2vw, 0.85rem);
+        }
+        .preview-celda.preview-celda--dragging {
+            cursor: grabbing;
+            z-index: 300;
+            animation: none;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 20px rgba(212,175,55,0.35);
+        }
         @keyframes preview-luz { 0%, 100% { box-shadow:0 0 6px rgba(212,175,55,0.25); } 50% { box-shadow:0 0 14px rgba(212,175,55,0.5), 0 0 22px rgba(46,204,113,0.12); } }
         .preview-celda .nom { font-size:0.85rem; font-weight:bold; color:var(--oro); }
         .preview-celda:hover { background:rgba(212,175,55,0.25); border-color:var(--oro); }
@@ -67,7 +143,22 @@
         .paso3-guia strong { color:var(--oro); }
         .paso3-pasos { margin:10px 0 0 1.1rem; padding:0; }
         .paso3-pasos li { margin-bottom:8px; }
-        .preview-vacio-msj { margin:auto; padding:24px 16px; text-align:center; color:#666; font-size:0.58rem; line-height:1.45; max-width:280px; }
+        .preview-plano-sala .preview-vacio-msj,
+        #preview_plano .preview-vacio-msj {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
+            padding: 24px 16px;
+            text-align: center;
+            color: #666;
+            font-size: 0.58rem;
+            line-height: 1.45;
+            max-width: 280px;
+            width: 100%;
+            box-sizing: border-box;
+        }
 
         .promo-fila { display:grid; grid-template-columns:1fr 80px 1fr auto; gap:8px; align-items:center; margin-bottom:8px; font-size:0.55rem; }
         .promo-fila input { padding:6px; border-radius:8px; border:1px solid var(--g1); background:var(--g3); color:#fff; }
@@ -102,7 +193,7 @@
         .paso2-info strong { color: #c9a227; font-weight: 700; }
         .paso2-info code { color: #666; font-size: 0.9em; }
         .vacio { text-align:center; color:#444; font-size:0.6rem; padding:20px; }
-        #err-paso1 { display:none; margin:12px 0; padding:12px 14px; border-radius:12px; border:1px solid rgba(231,76,60,0.45); background:rgba(231,76,60,0.12); color:#e88; font-size:0.62rem; line-height:1.4; letter-spacing:0.04em; }
+        #err-paso1 { display:none; margin:12px 0; padding:12px 14px; border-radius:12px; border:1px solid rgba(212,175,55,0.45); background:rgba(212,175,55,0.08); color:#c9b060; font-size:0.62rem; line-height:1.4; letter-spacing:0.04em; }
         .dc-mesas-atajo { margin-top:14px; padding:12px; border-radius:12px; border:1px dashed rgba(212,175,55,0.35); font-size:0.55rem; color:#666; line-height:1.45; }
         .dc-mesas-atajo a { color:var(--oro); cursor:pointer; text-decoration:underline; }
     </style>
@@ -145,8 +236,12 @@
 
 
 <div class="header">
+    <div class="dc-dash-back-row" style="margin-bottom:0;">
+        <a href="/index.html" class="btn-dash-dashboard"><span class="dc-dash-ico">←</span> Volver al dashboard</a>
+    </div>
+    <div class="header-row-main">
     <div>
-        <div class="header-titulo">CONFIGURAR INSTALACIONES</div>
+        <div class="header-titulo">Configurar instalaciones</div>
         <div class="header-sub" id="lbl-paso">Paso 1 · Datos del salón</div>
     </div>
     <div class="header-actions">
@@ -163,9 +258,10 @@
             </div>
         </details>
     </div>
+    </div>
 </div>
 
-<div class="wrap" id="contenido-principal">
+<div class="wrap dc-premium-chassis" id="contenido-principal">
     <div class="wizard-steps" id="wizard-steps-bar" role="tablist" aria-label="Pasos del asistente">
         <div class="wizard-dot" id="wd1" role="button" tabindex="0" data-wizard-step="1" title="Paso 1"></div>
         <div class="wizard-dot" id="wd2" role="button" tabindex="0" data-wizard-step="2" title="Paso 2"></div>
@@ -316,7 +412,7 @@
     <div class="paso" id="paso3">
         <div class="sec-titulo">PASO 3 · VISTA DEL PLANO (SOLO PREVIEW)</div>
         <div class="paso3-guia">
-            <p style="margin:0 0 8px;"><strong>No se configura nada acá:</strong> es para que veas cómo se verán las mesas en pantalla. <strong>No hay que “crear”</strong> mesas en este recuadro ni arrastrar.</p>
+            <p style="margin:0 0 8px;"><strong>No se guarda el dibujo en el sistema desde acá:</strong> es una vista previa. Podés <strong>arrastrar</strong> cada mesa dentro del recuadro dorado para ver el plano como te guste (solo en esta pantalla, hasta que recargues la página).</p>
             <ol class="paso3-pasos">
                 <li>El <strong>número de mesas</strong> y el dibujo salen del <strong>paso 2</strong> (cantidad / layout) y del <strong>paso 1</strong> (filas × columnas del plano). Si el recuadro de abajo está vacío o raro, tocá <strong>← ATRÁS</strong> y revisá «Cantidad» (1–50) y tipo de instalación.</li>
                 <li><strong>Tocá</strong> uno de los tres botones: solo cambian <strong>cómo se ordenan</strong> las mismas cajas — en una fila, en una columna o en grilla. El que está en <strong>oro</strong> es el modo activo.</li>
@@ -675,6 +771,46 @@ function initValidacionInputsSalon() {
 if (typeof window.pasoActual !== 'number') window.pasoActual = 1;
 window.layoutMode = 'grid';
 var layoutMode = window.layoutMode;
+/** Posiciones personalizadas del paso 3 (preview): numMesa → { x, y } en % del área .preview-plano-sala */
+var posicionesMesas = {};
+/** Medidas fijas mesa de billar (m): largo × ancho — vista cenital, largo según ancho del local, ancho según largo del local */
+var PREVIEW_MESA_LARGO_M = 2.84;
+var PREVIEW_MESA_ANCHO_M = 1.42;
+
+function crearPreviewPlanoSala(anchoM, largoM) {
+    var sala = document.createElement('div');
+    sala.className = 'preview-plano-sala';
+    sala.style.position = 'relative';
+    sala.style.width = '100%';
+    sala.style.maxWidth = '100%';
+    sala.style.margin = '0 auto';
+    sala.style.overflow = 'visible';
+    if (anchoM > 0 && largoM > 0) {
+        sala.style.aspectRatio = anchoM + ' / ' + largoM;
+        sala.dataset.roomAncho = String(anchoM);
+        sala.dataset.roomLargo = String(largoM);
+    } else {
+        sala.style.aspectRatio = '4 / 3';
+        sala.style.minHeight = '280px';
+        sala.removeAttribute('data-room-ancho');
+        sala.removeAttribute('data-room-largo');
+    }
+    return sala;
+}
+
+function applyPreviewMesaSize(celda, anchoM, largoM) {
+    if (anchoM > 0 && largoM > 0) {
+        var wPct = Math.min(100, (PREVIEW_MESA_LARGO_M / anchoM) * 100);
+        var hPct = Math.min(100, (PREVIEW_MESA_ANCHO_M / largoM) * 100);
+        celda.style.width = wPct + '%';
+        celda.style.height = hPct + '%';
+        celda.classList.add('preview-celda--metrica');
+    } else {
+        celda.style.width = '';
+        celda.style.height = '';
+        celda.classList.remove('preview-celda--metrica');
+    }
+}
 
 try {
     document.querySelectorAll('#chips_tipo span').forEach(function (s) {
@@ -709,7 +845,7 @@ function DC_mesas_paso1_a_2() {
         var ns = document.getElementById('nombre_salon');
         if (ns) {
             ns.focus();
-            ns.style.borderBottomColor = 'var(--rojo)';
+            ns.style.borderBottomColor = '#d4af37';
         }
         try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
         return;
@@ -862,6 +998,145 @@ function actualizarCantidadDesdeLayout() {
     if (inp && sum >= 1 && sum <= 50) inp.value = sum;
 }
 
+function clampPreviewPct(v, min, max) {
+    var n = Number(v);
+    if (isNaN(n)) return min;
+    return Math.max(min, Math.min(max, n));
+}
+
+function getClientPointPreview(e) {
+    if (e.touches && e.touches.length) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    if (e.changedTouches && e.changedTouches.length) {
+        return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+}
+
+function prunePosicionesMesas(activos) {
+    var set = {};
+    for (var i = 0; i < activos.length; i++) set[activos[i]] = true;
+    Object.keys(posicionesMesas).forEach(function (k) {
+        var nk = parseInt(k, 10);
+        if (!set[nk]) delete posicionesMesas[k];
+    });
+}
+
+/**
+ * Posiciones por defecto (% del contenedor) según layout horizontal / vertical / grid (incl. layout por filas).
+ */
+function computeDefaultPositionsPct(celdasOrden, layoutMode, columnas, layoutPorFila) {
+    var n = celdasOrden.length;
+    var out = [];
+    if (!n) return out;
+    if (layoutMode === 'horizontal') {
+        for (var i = 0; i < n; i++) {
+            out[i] = { x: ((i + 0.5) / n) * 100, y: 50 };
+        }
+    } else if (layoutMode === 'vertical') {
+        for (var j = 0; j < n; j++) {
+            out[j] = { x: 50, y: ((j + 0.5) / n) * 100 };
+        }
+    } else {
+        var rows = [];
+        var ci = 0;
+        if (layoutPorFila && layoutPorFila.length) {
+            for (var r = 0; r < layoutPorFila.length && ci < n; r++) {
+                var k = layoutPorFila[r];
+                var row = [];
+                for (var c = 0; c < k && ci < n; c++) {
+                    row.push(ci);
+                    ci++;
+                }
+                rows.push(row);
+            }
+        }
+        while (ci < n) {
+            var row2 = [];
+            for (var c2 = 0; c2 < columnas && ci < n; c2++) {
+                row2.push(ci);
+                ci++;
+            }
+            rows.push(row2);
+        }
+        var numRows = rows.length || 1;
+        for (var rr = 0; rr < rows.length; rr++) {
+            var rw = rows[rr];
+            var k2 = rw.length || 1;
+            for (var cc = 0; cc < rw.length; cc++) {
+                var pos = rw[cc];
+                out[pos] = { x: ((cc + 0.5) / k2) * 100, y: ((rr + 0.5) / numRows) * 100 };
+            }
+        }
+    }
+    return out;
+}
+
+function bindPreviewDrag(celda, num, cont) {
+    var dragging = false;
+    var offsetX = 0;
+    var offsetY = 0;
+
+    function setFromClient(cx, cy) {
+        var rect = cont.getBoundingClientRect();
+        if (rect.width < 1 || rect.height < 1) return { x: 50, y: 50 };
+        var centerX = cx - offsetX;
+        var centerY = cy - offsetY;
+        var x = ((centerX - rect.left) / rect.width) * 100;
+        var y = ((centerY - rect.top) / rect.height) * 100;
+        x = clampPreviewPct(x, 0, 100);
+        y = clampPreviewPct(y, 0, 100);
+        celda.style.left = x + '%';
+        celda.style.top = y + '%';
+        return { x: x, y: y };
+    }
+
+    function onMove(e) {
+        if (!dragging) return;
+        if (e.type === 'touchmove') e.preventDefault();
+        var p = getClientPointPreview(e);
+        setFromClient(p.x, p.y);
+    }
+
+    function onEnd(e) {
+        if (!dragging) return;
+        dragging = false;
+        celda.classList.remove('preview-celda--dragging');
+        celda.style.zIndex = '';
+        var p = getClientPointPreview(e);
+        var fin = setFromClient(p.x, p.y);
+        posicionesMesas[num] = { x: fin.x, y: fin.y };
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onEnd);
+        document.removeEventListener('touchmove', onMove);
+        document.removeEventListener('touchend', onEnd);
+        document.removeEventListener('touchcancel', onEnd);
+    }
+
+    function onStart(e) {
+        if (e.type === 'mousedown' && e.button !== 0) return;
+        dragging = true;
+        var p = getClientPointPreview(e);
+        var cellRect = celda.getBoundingClientRect();
+        var centerX = (cellRect.left + cellRect.right) / 2;
+        var centerY = (cellRect.top + cellRect.bottom) / 2;
+        offsetX = p.x - centerX;
+        offsetY = p.y - centerY;
+        celda.classList.add('preview-celda--dragging');
+        celda.style.zIndex = '250';
+        if (e.type === 'touchstart') e.preventDefault();
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
+        document.addEventListener('touchcancel', onEnd);
+    }
+
+    celda.addEventListener('mousedown', onStart);
+    celda.addEventListener('touchstart', onStart, { passive: false });
+}
+
 function actualizarPreview() {
     var elFilas = document.getElementById('filas');
     var elCols = document.getElementById('columnas');
@@ -891,6 +1166,9 @@ function actualizarPreview() {
 
     cont.innerHTML = '';
     cont.className = 'preview-plano layout-' + (layoutMode === 'horizontal' || layoutMode === 'vertical' ? layoutMode : 'grid');
+
+    var sala = crearPreviewPlanoSala(ancho, largo);
+    cont.appendChild(sala);
 
     function celdaPreview(num) {
         var celda = document.createElement('div');
@@ -935,62 +1213,35 @@ function actualizarPreview() {
         celdasOrden = celdasOrden.slice(0, capCant);
     }
 
-    if (layoutMode === 'horizontal') {
-        var filaH = document.createElement('div');
-        filaH.className = 'preview-fila';
-        for (var i = 0; i < celdasOrden.length; i++) {
-            filaH.appendChild(celdaPreview(celdasOrden[i]));
-        }
-        cont.appendChild(filaH);
-    } else if (layoutMode === 'vertical') {
-        for (var j = 0; j < celdasOrden.length; j++) {
-            var filaV = document.createElement('div');
-            filaV.className = 'preview-fila';
-            filaV.appendChild(celdaPreview(celdasOrden[j]));
-            cont.appendChild(filaV);
-        }
-    } else {
-        var ci = 0;
-        if (layoutPorFila && layoutPorFila.length) {
-            for (var r2 = 0; r2 < layoutPorFila.length && ci < celdasOrden.length; r2++) {
-                var nEnFila = layoutPorFila[r2];
-                var filaG = document.createElement('div');
-                filaG.className = 'preview-fila';
-                for (var c3 = 0; c3 < nEnFila && ci < celdasOrden.length; c3++) {
-                    filaG.appendChild(celdaPreview(celdasOrden[ci]));
-                    ci++;
-                }
-                cont.appendChild(filaG);
-            }
-            while (ci < celdasOrden.length) {
-                var filaRest = document.createElement('div');
-                filaRest.className = 'preview-fila';
-                for (var cr = 0; cr < columnas && ci < celdasOrden.length; cr++) {
-                    filaRest.appendChild(celdaPreview(celdasOrden[ci]));
-                    ci++;
-                }
-                cont.appendChild(filaRest);
-            }
+    prunePosicionesMesas(celdasOrden);
+    var defaultsPct = computeDefaultPositionsPct(celdasOrden, layoutMode, columnas, layoutPorFila);
+    for (var pi = 0; pi < celdasOrden.length; pi++) {
+        var numMesa = celdasOrden[pi];
+        var celdaP = celdaPreview(numMesa);
+        var posPct;
+        var guardada = posicionesMesas[numMesa];
+        if (guardada && typeof guardada.x === 'number' && typeof guardada.y === 'number') {
+            posPct = {
+                x: clampPreviewPct(guardada.x, 0, 100),
+                y: clampPreviewPct(guardada.y, 0, 100)
+            };
         } else {
-            while (ci < celdasOrden.length) {
-                var filaG2 = document.createElement('div');
-                filaG2.className = 'preview-fila';
-                for (var c4 = 0; c4 < columnas && ci < celdasOrden.length; c4++) {
-                    filaG2.appendChild(celdaPreview(celdasOrden[ci]));
-                    ci++;
-                }
-                cont.appendChild(filaG2);
-            }
+            posPct = defaultsPct[pi] || { x: 50, y: 50 };
         }
+        celdaP.style.left = posPct.x + '%';
+        celdaP.style.top = posPct.y + '%';
+        applyPreviewMesaSize(celdaP, ancho, largo);
+        sala.appendChild(celdaP);
+        bindPreviewDrag(celdaP, numMesa, sala);
     }
-    var nC = cont.querySelectorAll('.preview-celda').length;
+    var nC = sala.querySelectorAll('.preview-celda').length;
     if (nC === 0) {
         var vac = document.createElement('div');
         vac.className = 'preview-vacio-msj';
         vac.setAttribute('role', 'status');
         vac.innerHTML =
             'No se pudo dibujar ninguna mesa. Tocá <strong style="color:var(--oro);">← ATRÁS</strong>, revisá en el paso 2 la <strong>cantidad</strong> (número entre 1 y 50) y volvé a entrar al paso 3.';
-        cont.appendChild(vac);
+        sala.appendChild(vac);
     }
 }
 

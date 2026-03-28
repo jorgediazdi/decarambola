@@ -71,6 +71,7 @@
                 <a href="socios.html">Jugadores</a>
                 <a href="mesas.html">Salón en vivo</a>
                 <a href="reservas_admin.html">Reservas</a>
+                <a href="reservas_jugador.html">Reservar mesa</a>
                 <a href="reportes.html">Reportes</a>
                 <a href="mesas_config.html">Config. instalaciones</a>
                 <a href="/club/index.html">Portal club</a>
@@ -81,40 +82,35 @@
 </div>
 <div class="wrap">
     <div class="info-tarifa">
-        Edita tarifas sin pasar por todo el asistente. El <strong>Salón en vivo</strong> liquida por <strong>minuto</strong> según la tarifa en <code style="color:#666;">mesas_config.tarifas</code> (Supabase). Fuente de verdad: la nube; operario y admin ven lo mismo.
-        <span style="display:block;margin-top:8px;color:#777;">El <strong>plano / preview</strong> de la sala está en <a href="mesas_config.html" style="color:var(--oro);">Configurar instalaciones</a>. Para operar el salón hace falta además al menos <strong>una tarifa base &gt; 0</strong> y mesas creadas en Supabase.</span>
+        Una sola <strong>tarifa por hora</strong> de referencia y, si querés, <strong>descuentos o recargos en %</strong> según el horario. El <strong>Salón en vivo</strong> cobra el <strong>tiempo real jugado</strong>, minuto a minuto (si la sesión cruza franjas, cada tramo usa su %). Todo se guarda en <code style="color:#666;">mesas_config.tarifas</code> (Supabase).
+        <span style="display:block;margin-top:8px;color:#777;">El <strong>plano</strong> de la sala está en <a href="mesas_config.html" style="color:var(--oro);">Configurar instalaciones</a>. Necesitás <strong>tarifa base &gt; 0</strong> y mesas en Supabase para operar el salón.</span>
     </div>
-    <div class="sec">TARIFAS BASE</div>
+    <div class="sec">TARIFA</div>
     <div class="campo">
-        <label>Tarifa por hora</label>
-        <input type="number" id="tarifa_hora" min="0" step="0.01" value="0" oninput="calcularMedia()">
+        <label>Tarifa por hora ($)</label>
+        <input type="number" id="tarifa_base" min="0" step="0.01" value="0" inputmode="decimal" oninput="actualizarEjemploTarifas()">
     </div>
-    <div class="campo">
-        <label>Media hora (referencia)</label>
-        <input type="number" id="tarifa_media" min="0" step="0.01" value="0">
-    </div>
-    <div class="campo-doble">
-        <div class="campo"><label>Mañana (antes 12h)</label><input type="number" id="tarifa_manana" min="0" step="0.01" value="0"></div>
-        <div class="campo"><label>Tarde (12h–20h, laborable)</label><input type="number" id="tarifa_tarde" min="0" step="0.01" value="0"></div>
-    </div>
-    <div class="campo"><label>Noche (después 20h)</label><input type="number" id="tarifa_noche" min="0" step="0.01" value="0"></div>
-    <div class="campo"><label>Fin de semana</label><input type="number" id="tarifa_finde" min="0" step="0.01" value="0"></div>
 
-    <div class="sec">DESCUENTOS (%)</div>
+    <div class="sec">DESCUENTOS / RECARGOS POR HORARIO (OPCIONAL)</div>
+    <p class="info-tarifa" style="margin-top:0;margin-bottom:12px;">
+        <strong>Valor negativo</strong> = descuento sobre la tarifa base · <strong>Valor positivo</strong> = recargo.<br>
+        Ejemplo: <code style="color:#888;">-20</code> en mañana = cobrás 20% menos antes de las 12h; <code style="color:#888;">+10</code> en noche = 10% más desde las 20h.
+    </p>
     <div class="campo">
-        <label>Descuento global</label>
-        <input type="number" id="desc_global_pct" min="0" max="100" step="1" value="0">
+        <label>Mañana (antes de 12:00) — %</label>
+        <input type="number" id="descuento_manana" step="0.1" value="0" placeholder="0" oninput="actualizarEjemploTarifas()">
     </div>
-    <div class="sec" style="margin-top:8px;">Franjas horarias</div>
-    <div id="lista_desc_franjas"></div>
-    <button type="button" class="btn-paso sec" onclick="agregarDescFranja()">+ Franja + %</button>
-    <div class="sec" style="margin-top:12px;">Días de la semana</div>
-    <div id="lista_desc_dias"></div>
-    <button type="button" class="btn-paso sec" onclick="agregarDescDias()">+ Días + %</button>
+    <div class="campo">
+        <label>Noche (desde las 20:00) — %</label>
+        <input type="number" id="descuento_noche" step="0.1" value="0" placeholder="0" oninput="actualizarEjemploTarifas()">
+    </div>
+    <div class="campo">
+        <label>Fin de semana (sábado y domingo) — %</label>
+        <input type="number" id="descuento_finde" step="0.1" value="0" placeholder="0" oninput="actualizarEjemploTarifas()">
+    </div>
 
-    <div class="sec">PROMOCIONES (texto libre)</div>
-    <div id="lista_promos"></div>
-    <button type="button" class="btn-paso sec" onclick="agregarPromo()">+ Promoción</button>
+    <div class="sec">EJEMPLO (SE ACTUALIZA AL ESCRIBIR)</div>
+    <div id="tarifas_ejemplo_vivo" class="info-tarifa" style="font-size:0.62rem;line-height:1.5;"></div>
 
     <button type="button" class="btn-paso" id="btn_guardar" onclick="guardarTarifas()">GUARDAR TARIFAS</button>
 </div>
@@ -172,6 +168,7 @@ async function findMesasConfigRowTarifas() {
 
 function tarifasBaseTienenValor(t) {
     if (!t || typeof t !== 'object') return false;
+    if ((parseFloat(t.tarifa_base) || 0) > 0) return true;
     var nums = ['hora', 'media', 'manana', 'tarde', 'noche', 'finde'];
     for (var j = 0; j < nums.length; j++) {
         if ((parseFloat(t[nums[j]]) || 0) > 0) return true;
@@ -179,109 +176,91 @@ function tarifasBaseTienenValor(t) {
     return false;
 }
 
-function calcularMedia() {
-    var h = parseFloat(document.getElementById('tarifa_hora').value) || 0;
-    document.getElementById('tarifa_media').value = (h * 0.5).toFixed(2);
-}
-
-function agregarDescFranja() {
-    var div = document.createElement('div');
-    div.className = 'desc-franja-fila';
-    div.innerHTML = '<input type="time" class="df-desde" value="14:00"><input type="time" class="df-hasta" value="18:00"><input type="number" class="df-pct" min="0" max="100" step="1" value="10"><button type="button" class="btn-quitar" onclick="this.closest(\'.desc-franja-fila\').remove()">✕</button>';
-    document.getElementById('lista_desc_franjas').appendChild(div);
-}
-
-function agregarDescDias() {
-    var div = document.createElement('div');
-    div.className = 'desc-dia-fila';
-    var chks = '', nombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    for (var d = 0; d < 7; d++) chks += '<label><input type="checkbox" class="dd-dia" value="' + d + '"> ' + nombres[d] + '</label>';
-    div.innerHTML = '<div class="dias-chk">' + chks + '</div><div style="display:flex;gap:8px;align-items:center;"><span style="color:#666;">%</span><input type="number" class="dd-pct" min="0" max="100" step="1" value="15" style="width:80px;padding:6px;border-radius:8px;border:1px solid var(--g1);background:var(--g3);color:#fff;"><button type="button" class="btn-quitar" onclick="this.closest(\'.desc-dia-fila\').remove()">✕</button></div>';
-    document.getElementById('lista_desc_dias').appendChild(div);
-}
-
-function agregarPromo() {
-    var div = document.createElement('div');
-    div.className = 'promo-fila';
-    div.innerHTML = '<input type="text" placeholder="Nombre"><input type="number" placeholder="%" value="10"><input type="text" placeholder="Horario"><button type="button" class="btn-quitar" onclick="this.closest(\'.promo-fila\').remove()">✕</button>';
-    document.getElementById('lista_promos').appendChild(div);
-}
-
 function construirObjetoTarifas() {
-    var tarifaHora = parseFloat(document.getElementById('tarifa_hora').value) || 0;
-    var tarifas = {
-        hora: tarifaHora,
-        media: parseFloat(document.getElementById('tarifa_media').value) || 0,
-        manana: parseFloat(document.getElementById('tarifa_manana').value) || 0,
-        tarde: parseFloat(document.getElementById('tarifa_tarde').value) || 0,
-        noche: parseFloat(document.getElementById('tarifa_noche').value) || 0,
-        finde: parseFloat(document.getElementById('tarifa_finde').value) || 0
+    return {
+        tarifa_base: parseFloat(document.getElementById('tarifa_base').value) || 0,
+        descuento_manana: parseFloat(document.getElementById('descuento_manana').value) || 0,
+        descuento_noche: parseFloat(document.getElementById('descuento_noche').value) || 0,
+        descuento_finde: parseFloat(document.getElementById('descuento_finde').value) || 0,
     };
-    tarifas.descuento_global_pct = Math.min(100, Math.max(0, parseFloat(document.getElementById('desc_global_pct').value) || 0));
-    tarifas.reglas_descuento = [];
-    document.querySelectorAll('#lista_desc_franjas .desc-franja-fila').forEach(function (row) {
-        var desde = (row.querySelector('.df-desde') && row.querySelector('.df-desde').value) || '';
-        var hasta = (row.querySelector('.df-hasta') && row.querySelector('.df-hasta').value) || '';
-        var pct = Math.min(100, Math.max(0, parseFloat(row.querySelector('.df-pct').value) || 0));
-        if (desde && hasta && pct > 0) tarifas.reglas_descuento.push({ tipo: 'rango_hora', desde: desde, hasta: hasta, pct: pct });
-    });
-    document.querySelectorAll('#lista_desc_dias .desc-dia-fila').forEach(function (row) {
-        var dias = [];
-        row.querySelectorAll('.dd-dia:checked').forEach(function (c) { dias.push(parseInt(c.value, 10)); });
-        var pct = Math.min(100, Math.max(0, parseFloat(row.querySelector('.dd-pct').value) || 0));
-        if (dias.length && pct > 0) tarifas.reglas_descuento.push({ tipo: 'dia_semana', dias: dias, pct: pct });
-    });
-    var promos = [];
-    document.querySelectorAll('#lista_promos .promo-fila').forEach(function (r) {
-        var inputs = r.querySelectorAll('input');
-        if (inputs[0] && inputs[0].value) promos.push({ nombre: inputs[0].value, descuento: parseFloat(inputs[1].value) || 0, horario: (inputs[2] && inputs[2].value) || '' });
-    });
-    tarifas.promociones = promos;
-    return tarifas;
 }
 
 function aplicarTarifasAlForm(t) {
     if (!t) return;
-    document.getElementById('tarifa_hora').value = t.hora != null ? t.hora : 0;
-    document.getElementById('tarifa_media').value = t.media != null ? t.media : 0;
-    document.getElementById('tarifa_manana').value = t.manana != null ? t.manana : 0;
-    var tt = document.getElementById('tarifa_tarde');
-    if (tt) tt.value = t.tarde != null ? t.tarde : 0;
-    document.getElementById('tarifa_noche').value = t.noche != null ? t.noche : 0;
-    document.getElementById('tarifa_finde').value = t.finde != null ? t.finde : 0;
-    document.getElementById('desc_global_pct').value = t.descuento_global_pct != null ? t.descuento_global_pct : 0;
-    document.getElementById('lista_desc_franjas').innerHTML = '';
-    document.getElementById('lista_desc_dias').innerHTML = '';
-    (t.reglas_descuento || []).forEach(function (r) {
-        if (r.tipo === 'rango_hora') {
-            agregarDescFranja();
-            var rows = document.querySelectorAll('#lista_desc_franjas .desc-franja-fila');
-            var row = rows[rows.length - 1];
-            if (row.querySelector('.df-desde')) row.querySelector('.df-desde').value = r.desde || '';
-            if (row.querySelector('.df-hasta')) row.querySelector('.df-hasta').value = r.hasta || '';
-            if (row.querySelector('.df-pct')) row.querySelector('.df-pct').value = r.pct || 0;
+    var base = t.tarifa_base != null && t.tarifa_base !== '' ? parseFloat(t.tarifa_base) : NaN;
+    if (isNaN(base) || base <= 0) {
+        base = parseFloat(t.hora) || 0;
+    }
+    if (base <= 0) {
+        var cands = [t.manana, t.tarde, t.noche, t.finde];
+        for (var i = 0; i < cands.length; i++) {
+            var v = parseFloat(cands[i]) || 0;
+            if (v > 0) {
+                base = v;
+                break;
+            }
         }
-        if (r.tipo === 'dia_semana') {
-            agregarDescDias();
-            var rows = document.querySelectorAll('#lista_desc_dias .desc-dia-fila');
-            var row = rows[rows.length - 1];
-            (r.dias || []).forEach(function (d) {
-                var cb = row.querySelector('.dd-dia[value="' + d + '"]');
-                if (cb) cb.checked = true;
-            });
-            if (row.querySelector('.dd-pct')) row.querySelector('.dd-pct').value = r.pct || 0;
-        }
-    });
-    document.getElementById('lista_promos').innerHTML = '';
-    (t.promociones || []).forEach(function (p) {
-        agregarPromo();
-        var rows = document.querySelectorAll('#lista_promos .promo-fila');
-        var row = rows[rows.length - 1];
-        var inputs = row.querySelectorAll('input');
-        if (inputs[0]) inputs[0].value = p.nombre || '';
-        if (inputs[1]) inputs[1].value = p.descuento != null ? p.descuento : '';
-        if (inputs[2]) inputs[2].value = p.horario || '';
-    });
+    }
+    if (base <= 0) {
+        var med = parseFloat(t.media) || 0;
+        if (med > 0) base = med * 2;
+    }
+    document.getElementById('tarifa_base').value = base > 0 ? base : '';
+    document.getElementById('descuento_manana').value =
+        t.descuento_manana != null && t.descuento_manana !== '' ? t.descuento_manana : 0;
+    document.getElementById('descuento_noche').value =
+        t.descuento_noche != null && t.descuento_noche !== '' ? t.descuento_noche : 0;
+    document.getElementById('descuento_finde').value =
+        t.descuento_finde != null && t.descuento_finde !== '' ? t.descuento_finde : 0;
+    actualizarEjemploTarifas();
+}
+
+function actualizarEjemploTarifas() {
+    var el = document.getElementById('tarifas_ejemplo_vivo');
+    if (!el) return;
+    var base = parseFloat(document.getElementById('tarifa_base').value) || 0;
+    var dm = parseFloat(document.getElementById('descuento_manana').value) || 0;
+    var dn = parseFloat(document.getElementById('descuento_noche').value) || 0;
+    var df = parseFloat(document.getElementById('descuento_finde').value) || 0;
+
+    function eff(pct) { return base * (1 + pct / 100); }
+    function fmt(n) { return Math.round(n).toLocaleString('es-CO'); }
+    function signo(n) { return n >= 0 ? '+' + n : '' + n; }
+
+    if (base <= 0) {
+        el.innerHTML = 'Ingresá una <strong>tarifa por hora</strong> para ver ejemplos.';
+        return;
+    }
+
+    var tarde43 = (base * 43) / 60;
+
+    // Finde acumula con la franja (igual que ajusteHorarioPct)
+    var findeDia   = eff(df);           // sáb/dom sin franja especial (12h–20h)
+    var findeMan   = eff(df + dm);      // sáb/dom antes de 12h
+    var findeNoche = eff(df + dn);      // sáb/dom desde 20h
+
+    var lineas = [];
+
+    lineas.push(
+        '<strong>Lun–Vie 12h–20h (base):</strong> $' + fmt(base) + '/h' +
+        ' · 43 min = <strong>$' + fmt(tarde43) + '</strong>'
+    );
+
+    lineas.push(
+        '<strong>Mañana Lun–Vie</strong> (' + signo(dm) + '%)&nbsp; $' + fmt(eff(dm)) + '/h' +
+        ' &nbsp;|&nbsp; ' +
+        '<strong>Noche Lun–Vie</strong> (' + signo(dn) + '%)&nbsp; $' + fmt(eff(dn)) + '/h'
+    );
+
+    lineas.push(
+        '<strong>Sáb/Dom día</strong> (' + signo(df) + '%)&nbsp; $' + fmt(findeDia) + '/h' +
+        ' &nbsp;|&nbsp; ' +
+        '<strong>Sáb/Dom mañana</strong> (' + signo(df + dm) + '%)&nbsp; $' + fmt(findeMan) + '/h' +
+        ' &nbsp;|&nbsp; ' +
+        '<strong>Sáb/Dom noche</strong> (' + signo(df + dn) + '%)&nbsp; $' + fmt(findeNoche) + '/h'
+    );
+
+    el.innerHTML = lineas.join('<br><br>');
 }
 
 async function cargarTarifas() {
@@ -339,7 +318,7 @@ async function guardarTarifas() {
                 if (!syncOk) {
                     mostrarToastTarifas('Tarifas guardadas. No se pudo actualizar el estado del club en Supabase (migración 011 o permisos en clubs).');
                 } else if (!tarifasBaseTienenValor(tarifas)) {
-                    mostrarToastTarifas('Guardado. Poné al menos una tarifa base > 0 (hora, media, mañana, noche o finde) para desbloquear el salón.');
+                    mostrarToastTarifas('Guardado. Poné una tarifa por hora > 0 para desbloquear el salón.');
                 } else {
                     mostrarToastTarifas('Tarifas guardadas en la nube.');
                 }

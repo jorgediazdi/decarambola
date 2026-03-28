@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0b0b0b">
+    <title>Solicitud de configuración de club — DeCarambola</title>
+    <link rel="stylesheet" href="/css/ux-shell.css">
+    <style>
+        :root { --oro: #d4af37; --g1: #1a1a1a; --g2: #111; --txt: #e8eaed; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #0b0b0b;
+            color: var(--txt);
+            min-height: 100vh;
+            padding: calc(20px + env(safe-area-inset-top)) 18px calc(40px + env(safe-area-inset-bottom));
+        }
+        .wrap { max-width: 480px; margin: 0 auto; }
+        h1 {
+            font-size: 1.05rem;
+            letter-spacing: 0.08em;
+            color: var(--oro);
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+        .lead { font-size: 0.82rem; color: #888; line-height: 1.45; margin-bottom: 20px; }
+        .estado {
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+            font-size: 0.85rem;
+            line-height: 1.45;
+            border: 1px solid var(--g1);
+            background: var(--g2);
+        }
+        .estado.pendiente { border-color: rgba(52, 152, 219, 0.35); color: #9cc; }
+        .estado.aprobada { border-color: rgba(46, 255, 112, 0.25); color: #9e9; }
+        .estado.rechazada { border-color: rgba(231, 76, 60, 0.35); color: #eaa; }
+        .campo-ayuda { font-size: 0.72rem; color: #666; line-height: 1.35; margin-top: 6px; }
+        #wrap-cambio label { text-transform: none; letter-spacing: normal; font-size: 0.85rem; color: #bbb; display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+        #wrap-cambio input { width: auto; margin-top: 4px; }
+        label {
+            display: block;
+            font-size: 0.62rem;
+            letter-spacing: 0.12em;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .campo { margin-bottom: 14px; }
+        input, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--g1);
+            background: #0a0a0a;
+            color: #fff;
+            font-size: 1rem;
+        }
+        textarea { min-height: 72px; resize: vertical; }
+        .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button[type="submit"] {
+            width: 100%;
+            margin-top: 8px;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--oro), #a07800);
+            color: #000;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .err { color: #e74c3c; font-size: 0.82rem; margin-top: 10px; }
+        .ok { color: #2ecc71; font-size: 0.82rem; margin-top: 10px; }
+        .back { display: inline-block; margin-top: 20px; color: #666; font-size: 0.8rem; }
+        .back:hover { color: var(--oro); }
+    </style>
+</head>
+<body class="dc-ux dc-ux-skin">
+    <div class="stars" id="stars-bg" aria-hidden="true"></div>
+    <div class="wrap">
+        <h1>Solicitud de configuración de club</h1>
+        <p class="lead">
+            Completá los datos para que un administrador de la plataforma revise y apruebe tu club. Hasta entonces no podrás guardar la configuración del salón (mesas, plano, tarifas).
+        </p>
+        <div id="bloque-estado" class="estado" style="display: none;"></div>
+        <form id="form-solicitud">
+            <div class="campo">
+                <label for="nombre_club">Nombre del club *</label>
+                <input type="text" id="nombre_club" name="nombre_club" required maxlength="120" autocomplete="organization" placeholder="Ej: Club Billar Centro">
+            </div>
+            <div class="row2">
+                <div class="campo">
+                    <label for="metraje_ancho">Ancho del local (m)</label>
+                    <input type="number" id="metraje_ancho" name="metraje_ancho" min="0" step="0.1" placeholder="Ej: 12">
+                </div>
+                <div class="campo">
+                    <label for="metraje_largo">Largo del local (m)</label>
+                    <input type="number" id="metraje_largo" name="metraje_largo" min="0" step="0.1" placeholder="Ej: 18">
+                </div>
+            </div>
+            <div class="campo">
+                <label for="num_mesas">Número de mesas *</label>
+                <input type="number" id="num_mesas" name="num_mesas" min="1" max="50" value="4" required inputmode="numeric">
+            </div>
+            <div class="campo">
+                <label for="ciudad">Ciudad</label>
+                <input type="text" id="ciudad" name="ciudad" maxlength="80" placeholder="Ej: Bogotá">
+            </div>
+            <div class="campo">
+                <label for="direccion">Dirección</label>
+                <textarea id="direccion" name="direccion" maxlength="300" placeholder="Calle, barrio, referencia…"></textarea>
+            </div>
+            <div class="campo" id="wrap-cambio" style="display: none;">
+                <label for="chk_cambio">
+                    <input type="checkbox" id="chk_cambio" name="solicitud_cambio" value="1" />
+                    Solicitar cambio de datos ya aprobados
+                </label>
+                <p class="campo-ayuda">Si la plataforma ya aprobó una solicitud, marcá esto para enviar una nueva revisión. Hasta que se apruebe de nuevo, no podés guardar cambios de configuración del salón.</p>
+            </div>
+            <button type="submit" id="btn-enviar">Enviar solicitud</button>
+            <p id="msg-err" class="err" style="display: none;"></p>
+            <p id="msg-ok" class="ok" style="display: none;"></p>
+        </form>
+        <a class="back" href="/club/index.html">← Portal club</a>
+    </div>
+    <script type="module">
+        import { getSession, getRole } from '/js/auth-manager.js';
+        import { club_getResumenPortal, club_enviarSolicitud } from '/js/solicitud-config.js';
+
+        var form = document.getElementById('form-solicitud');
+        var btn = document.getElementById('btn-enviar');
+        var bloqueEstado = document.getElementById('bloque-estado');
+        var msgErr = document.getElementById('msg-err');
+        var msgOk = document.getElementById('msg-ok');
+        var wrapCambio = document.getElementById('wrap-cambio');
+        var chkCambio = document.getElementById('chk_cambio');
+
+        async function boot() {
+            var s = await getSession();
+            if (!s || !s.data) {
+                window.location.href = '/auth.html?next=' + encodeURIComponent('/apps/club/solicitud_config.html');
+                return;
+            }
+            var r = await getRole();
+            var role = r && r.data ? String(r.data) : 'jugador';
+            if (role === 'superadmin') {
+                window.location.href = '/apps/superadmin/solicitudes.html';
+                return;
+            }
+            if (role !== 'club_admin') {
+                bloqueEstado.style.display = 'block';
+                bloqueEstado.className = 'estado rechazada';
+                bloqueEstado.textContent =
+                    'Esta solicitud la completa el administrador del club (rol club_admin). Iniciá sesión con esa cuenta o pedí acceso en tu sede.';
+                form.style.display = 'none';
+                return;
+            }
+
+            var res = await club_getResumenPortal();
+            wrapCambio.style.display = res.mostrarCheckboxCambio ? 'block' : 'none';
+            chkCambio.checked = false;
+
+            if (res.ultima) {
+                bloqueEstado.style.display = 'block';
+                bloqueEstado.className = 'estado ' + String(res.ultima.estado || '').toLowerCase();
+                var estLabel =
+                    res.ultima.estado === 'pendiente'
+                        ? 'Pendiente de revisión.'
+                        : res.ultima.estado === 'aprobada'
+                          ? 'Aprobada.'
+                          : 'Rechazada.';
+                var txt =
+                    '<strong>Estado de tu última solicitud:</strong> ' +
+                    estLabel +
+                    '<br><small style="color:#888">Enviada: ' +
+                    new Date(res.ultima.created_at).toLocaleString() +
+                    '</small>';
+                if (res.ultima.comentario_admin) {
+                    txt += '<br><span style="color:#bbb">Comentario: ' + escapeHtml(res.ultima.comentario_admin) + '</span>';
+                }
+                if (res.ultima.club_id) {
+                    txt += '<br><span style="color:#d4af37">Código de club: ' + escapeHtml(res.ultima.club_id) + '</span>';
+                }
+                bloqueEstado.innerHTML = txt;
+            } else {
+                bloqueEstado.style.display = 'none';
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Enviar solicitud';
+            chkCambio.onchange = null;
+            if (res.tienePendiente) {
+                btn.disabled = true;
+                btn.textContent = 'Ya hay una solicitud en revisión';
+            } else if (res.ultima && res.ultima.estado === 'aprobada' && res.mostrarCheckboxCambio) {
+                btn.disabled = true;
+                btn.textContent = 'Marcá «Solicitar cambio» y enviá';
+                chkCambio.onchange = function () {
+                    btn.disabled = !chkCambio.checked;
+                    btn.textContent = chkCambio.checked ? 'Enviar solicitud de cambio' : 'Marcá «Solicitar cambio» y enviá';
+                };
+            }
+        }
+
+        function escapeHtml(t) {
+            var d = document.createElement('div');
+            d.textContent = t;
+            return d.innerHTML;
+        }
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            msgErr.style.display = 'none';
+            msgOk.style.display = 'none';
+            btn.disabled = true;
+            var fd = new FormData(form);
+            var solicitudCambio = !!(chkCambio && chkCambio.checked);
+            var r = await club_enviarSolicitud(
+                {
+                    nombre_club: fd.get('nombre_club'),
+                    metraje_ancho: fd.get('metraje_ancho'),
+                    metraje_largo: fd.get('metraje_largo'),
+                    num_mesas: fd.get('num_mesas'),
+                    ciudad: fd.get('ciudad'),
+                    direccion: fd.get('direccion'),
+                },
+                { solicitudCambio: solicitudCambio }
+            );
+            if (r.ok) {
+                msgOk.style.display = 'block';
+                msgOk.textContent =
+                    'Solicitud enviada. Volvé a entrar más tarde para ver el estado, o revisá el portal del club.';
+                await boot();
+            } else {
+                msgErr.style.display = 'block';
+                msgErr.textContent = r.error || 'Error al enviar.';
+                btn.disabled = false;
+                btn.textContent = 'Enviar solicitud';
+            }
+        });
+
+        boot();
+    </script>
+</body>
+</html>
