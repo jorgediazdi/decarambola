@@ -48,6 +48,13 @@
         .dc-campo.campo label { color:var(--oro); font-size:0.52rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
         .dc-campo input[type="checkbox"] { width:22px; height:22px; margin-top:6px; accent-color:var(--oro); cursor:pointer; flex-shrink:0; }
         .dc-ayuda { color:#aaa; font-size:0.54rem; line-height:1.45; margin-top:10px; font-weight:normal; letter-spacing:0.02em; text-transform:none; font-family:system-ui,-apple-system,sans-serif; }
+        #dc-superadmin-salon { margin-top:8px; }
+        #dc-superadmin-salon .dc-sa-preview-host { margin-top:12px; }
+        #dc-superadmin-salon .dc-sa-preview-plano { position:relative; width:100%; background:var(--g2); border:1px solid rgba(212,175,55,0.35); border-radius:14px; overflow:hidden; box-sizing:border-box; touch-action:none; }
+        #dc-superadmin-salon .dc-sa-mesa { position:absolute; transform:translate(-50%,-50%); cursor:grab; touch-action:none; background:rgba(46,204,113,0.18); border:1px solid #2ecc71; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:0.48rem; color:#2ecc71; font-weight:bold; box-sizing:border-box; z-index:2; }
+        #dc-superadmin-salon .dc-sa-mesa:active { cursor:grabbing; }
+        #dc-superadmin-salon .dc-sa-grip { position:absolute; left:2px; bottom:2px; font-size:0.4rem; opacity:0.55; line-height:1; pointer-events:none; }
+        #dc-superadmin-salon .dc-sa-sin-config { color:#888; font-size:0.55rem; line-height:1.4; padding:10px 0; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
@@ -115,6 +122,30 @@
         <div class="logo-url-campo campo" style="margin-top:12px;">
             <label>O pega la URL del logo</label>
             <input type="url" id="inp-logo-url" placeholder="https://...">
+        </div>
+    </div>
+
+    <div id="dc-superadmin-salon" style="display:none">
+        <div class="sec-titulo">METRAJE DEL LOCAL · SUPERADMIN</div>
+        <div class="campo">
+            <label for="inp-largo-local">Largo del local (metros)</label>
+            <input type="number" id="inp-largo-local" min="1" step="0.1" value="20" inputmode="decimal">
+        </div>
+        <div class="campo">
+            <label for="inp-ancho-local">Ancho del local (metros)</label>
+            <input type="number" id="inp-ancho-local" min="1" step="0.1" value="15" inputmode="decimal">
+        </div>
+        <p class="dc-ayuda" style="margin-top:-4px;">Se guarda en <code style="color:#666;">mesas_config.metraje</code> como JSON <code style="color:#666;">{ largo, ancho }</code>.</p>
+
+        <div class="sec-titulo">MESAS DEL SALÓN · SUPERADMIN</div>
+        <div class="campo">
+            <label for="inp-num-mesas">Número de mesas</label>
+            <input type="number" id="inp-num-mesas" min="1" max="30" step="1" value="1">
+        </div>
+        <p class="dc-ayuda" style="margin-top:-4px;">Vista previa proporcional al local. Arrastrá cada mesa desde ⠿. Al guardar: si aumentás la cantidad se insertan filas en <code style="color:#666;">mesas</code>; si la bajás, las sobrantes pasan a <code style="color:#666;">fuera_servicio</code>.</p>
+        <div id="dc-sa-sin-config" class="dc-sa-sin-config" style="display:none;"></div>
+        <div class="dc-sa-preview-host" id="dc-sa-preview-host" style="display:none;">
+            <div class="dc-sa-preview-plano" id="dc-sa-preview-plano"></div>
         </div>
     </div>
 
@@ -221,6 +252,338 @@ window.__salaBoot = function() {
         return sel ? sel.getAttribute('data-c') : COLORES[0];
     }
 
+    var dcSa = {
+        salonId: null,
+        clubIdKey: null,
+        slots: [],
+        drag: { idx: null, ptr: null, cont: null },
+        winEnd: null,
+        moveBound: false
+    };
+
+    function dcSaLeerMetrajeInputs() {
+        var elL = document.getElementById('inp-largo-local');
+        var elA = document.getElementById('inp-ancho-local');
+        var L = parseFloat(elL && elL.value) || 20;
+        var A = parseFloat(elA && elA.value) || 15;
+        return { largo: Math.max(0.5, L), ancho: Math.max(0.5, A) };
+    }
+
+    function dcSaGridPct(i, n, cols) {
+        if (n <= 0) return { x: 50, y: 50 };
+        var c = cols != null ? cols : Math.max(1, Math.ceil(Math.sqrt(n)));
+        var rows = Math.max(1, Math.ceil(n / c));
+        var row = Math.floor(i / c);
+        var col = i % c;
+        var x = ((col + 0.5) / c) * 100;
+        var y = ((row + 0.5) / rows) * 100;
+        return { x: Math.max(4, Math.min(96, x)), y: Math.max(4, Math.min(96, y)) };
+    }
+
+    function dcSaPctEnPlano(cont, clientX, clientY) {
+        var rect = cont.getBoundingClientRect();
+        if (rect.width < 1 || rect.height < 1) return { x: 50, y: 50 };
+        var x = ((clientX - rect.left) / rect.width) * 100;
+        var y = ((clientY - rect.top) / rect.height) * 100;
+        return { x: Math.max(3, Math.min(97, x)), y: Math.max(3, Math.min(97, y)) };
+    }
+
+    function dcSaOnPreviewMove(ev) {
+        if (dcSa.drag.idx == null || dcSa.drag.ptr !== ev.pointerId) return;
+        var cont = dcSa.drag.cont;
+        if (!cont) return;
+        var coords = dcSaPctEnPlano(cont, ev.clientX, ev.clientY);
+        var idx = dcSa.drag.idx;
+        if (dcSa.slots[idx]) {
+            dcSa.slots[idx].x = coords.x;
+            dcSa.slots[idx].y = coords.y;
+        }
+        var el = cont.querySelector('.dc-sa-mesa[data-dc-sa-idx="' + idx + '"]');
+        if (el) {
+            el.style.left = coords.x + '%';
+            el.style.top = coords.y + '%';
+        }
+    }
+
+    function dcSaBindPreviewDrag(cont) {
+        if (!cont) return;
+        if (!dcSa.moveBound) {
+            dcSa.moveBound = true;
+            cont.addEventListener('pointermove', dcSaOnPreviewMove);
+        }
+        cont.querySelectorAll('.dc-sa-mesa').forEach(function (node) {
+            if (node._dcSaDown) return;
+            node._dcSaDown = true;
+            node.addEventListener('pointerdown', function (ev) {
+                if (ev.button !== 0) return;
+                ev.stopPropagation();
+                ev.preventDefault();
+                var idx = parseInt(node.getAttribute('data-dc-sa-idx'), 10);
+                if (isNaN(idx)) return;
+                if (dcSa.winEnd) {
+                    try {
+                        window.removeEventListener('pointerup', dcSa.winEnd, true);
+                        window.removeEventListener('pointercancel', dcSa.winEnd, true);
+                    } catch (e1) {}
+                    dcSa.winEnd = null;
+                }
+                dcSa.drag.idx = idx;
+                dcSa.drag.ptr = ev.pointerId;
+                dcSa.drag.cont = cont;
+                try {
+                    node.setPointerCapture(ev.pointerId);
+                } catch (e2) {}
+                dcSa.winEnd = function (ev2) {
+                    if (dcSa.drag.idx == null || dcSa.drag.ptr !== ev2.pointerId) return;
+                    dcSa.drag.idx = null;
+                    dcSa.drag.ptr = null;
+                    dcSa.drag.cont = null;
+                    try {
+                        window.removeEventListener('pointerup', dcSa.winEnd, true);
+                        window.removeEventListener('pointercancel', dcSa.winEnd, true);
+                    } catch (e3) {}
+                    dcSa.winEnd = null;
+                    try {
+                        node.releasePointerCapture(ev2.pointerId);
+                    } catch (e4) {}
+                };
+                window.addEventListener('pointerup', dcSa.winEnd, true);
+                window.addEventListener('pointercancel', dcSa.winEnd, true);
+            });
+        });
+    }
+
+    function dcSaRenderPreview() {
+        var cont = document.getElementById('dc-sa-preview-plano');
+        if (!cont || !dcSa.salonId) return;
+        var ma = dcSaLeerMetrajeInputs();
+        cont.style.aspectRatio = ma.largo + ' / ' + ma.ancho;
+        var L = ma.largo;
+        var A = ma.ancho;
+        var wPct = (2.84 / L) * 100;
+        var hPct = (1.42 / A) * 100;
+        var html = '';
+        for (var i = 0; i < dcSa.slots.length; i++) {
+            var s = dcSa.slots[i];
+            var label = s.numero != null ? 'Mesa ' + s.numero : 'Mesa ' + (i + 1);
+            html +=
+                '<div class="dc-sa-mesa" data-dc-sa-idx="' +
+                i +
+                '" style="left:' +
+                s.x +
+                '%;top:' +
+                s.y +
+                '%;width:' +
+                wPct +
+                '%;height:' +
+                hPct +
+                '%">';
+            html += '<span class="dc-sa-grip">⠿</span><span style="position:relative;z-index:1;pointer-events:none;">' + label + '</span></div>';
+        }
+        cont.innerHTML = html;
+        dcSaBindPreviewDrag(cont);
+    }
+
+    function dcSaRebuildSlotsFromNumInput() {
+        var inp = document.getElementById('inp-num-mesas');
+        var newN = Math.min(30, Math.max(1, parseInt(inp && inp.value, 10) || 1));
+        if (inp) inp.value = String(newN);
+        var prev = dcSa.slots || [];
+        var cols = Math.max(1, Math.ceil(Math.sqrt(newN)));
+        var nex = [];
+        for (var i = 0; i < newN; i++) {
+            var p = prev[i];
+            var g = dcSaGridPct(i, newN, cols);
+            nex.push({
+                key: p && p.key != null ? p.key : 't' + i,
+                id: p && p.id ? p.id : null,
+                numero: p && p.numero != null ? p.numero : null,
+                x: p && typeof p.x === 'number' && !isNaN(p.x) ? p.x : g.x,
+                y: p && typeof p.y === 'number' && !isNaN(p.y) ? p.y : g.y
+            });
+        }
+        dcSa.slots = nex;
+        dcSaRenderPreview();
+    }
+
+    var _dcSaInputsOnce = false;
+    function dcSaBindInputsOnce() {
+        if (_dcSaInputsOnce) return;
+        _dcSaInputsOnce = true;
+        var l = document.getElementById('inp-largo-local');
+        var a = document.getElementById('inp-ancho-local');
+        var n = document.getElementById('inp-num-mesas');
+        if (l) l.addEventListener('input', function () { dcSaRenderPreview(); });
+        if (a) a.addEventListener('input', function () { dcSaRenderPreview(); });
+        if (n) n.addEventListener('change', function () { dcSaRebuildSlotsFromNumInput(); });
+    }
+
+    async function dcSaCargarDesdeSupabase() {
+        var box = document.getElementById('dc-superadmin-salon');
+        if (!box || box.style.display === 'none') return;
+        var club = getClubActivo();
+        var sinEl = document.getElementById('dc-sa-sin-config');
+        var host = document.getElementById('dc-sa-preview-host');
+        if (!club || !club.codigo) {
+            dcSa.salonId = null;
+            dcSa.clubIdKey = null;
+            dcSa.slots = [];
+            if (sinEl) sinEl.style.display = 'none';
+            if (host) host.style.display = 'none';
+            return;
+        }
+        dcSa.clubIdKey = club.codigo;
+        dcSaBindInputsOnce();
+        var api = await import('/js/api/club-api.js');
+        var cfgR = await api.getFirstMesasConfigByClubId(dcSa.clubIdKey);
+        var row = cfgR.data;
+        if (!row || !row.id) {
+            dcSa.salonId = null;
+            dcSa.slots = [];
+            if (sinEl) {
+                sinEl.style.display = 'block';
+                sinEl.textContent =
+                    'No hay mesas_config para este club. Creá la configuración en Configurar instalaciones; después podrás ajustar metraje y mesas aquí.';
+            }
+            if (host) host.style.display = 'none';
+            return;
+        }
+        dcSa.salonId = row.id;
+        if (sinEl) sinEl.style.display = 'none';
+        if (host) host.style.display = 'block';
+        var met = row.metraje;
+        var L = 20;
+        var A = 15;
+        if (met && typeof met === 'object') {
+            if (met.largo != null) L = parseFloat(met.largo) || 20;
+            if (met.ancho != null) A = parseFloat(met.ancho) || 15;
+        }
+        var elL = document.getElementById('inp-largo-local');
+        var elA = document.getElementById('inp-ancho-local');
+        if (elL) elL.value = String(L);
+        if (elA) elA.value = String(A);
+        var lr = await api.listMesasBySalonId(dcSa.salonId);
+        var todos = (lr.data || []).slice().sort(function (a, b) {
+            return (a.numero || 0) - (b.numero || 0);
+        });
+        var nDef = Math.min(30, Math.max(1, todos.length || 1));
+        var elN = document.getElementById('inp-num-mesas');
+        if (elN) elN.value = String(nDef);
+        var cols = Math.max(1, Math.ceil(Math.sqrt(nDef)));
+        dcSa.slots = [];
+        for (var i = 0; i < nDef; i++) {
+            var m = todos[i];
+            var g = dcSaGridPct(i, nDef, cols);
+            var px = g.x;
+            var py = g.y;
+            if (m && m.posicion_x != null && m.posicion_y != null) {
+                var pxx = parseFloat(m.posicion_x);
+                var pyy = parseFloat(m.posicion_y);
+                if (!isNaN(pxx) && !isNaN(pyy)) {
+                    px = pxx;
+                    py = pyy;
+                }
+            }
+            if (m) {
+                dcSa.slots.push({ key: m.id, id: m.id, numero: m.numero, x: px, y: py });
+            } else {
+                dcSa.slots.push({ key: 't' + i, id: null, numero: null, x: px, y: py });
+            }
+        }
+        dcSaRenderPreview();
+    }
+
+    function aplicarSuperadminSalonUi() {
+        var box = document.getElementById('dc-superadmin-salon');
+        if (!box) return;
+        import('/js/auth-manager.js')
+            .then(function (auth) {
+                return auth.getRole();
+            })
+            .then(function (r) {
+                if (r.error || r.data !== 'superadmin') {
+                    box.style.display = 'none';
+                    return;
+                }
+                box.style.display = 'block';
+                dcSaCargarDesdeSupabase().catch(function (e) {
+                    console.error('[admin_sede] dcSa carga', e);
+                });
+            })
+            .catch(function () {
+                box.style.display = 'none';
+            });
+    }
+
+    async function dcSaGuardarSalon(apiMod) {
+        var club = getClubActivo();
+        if (!club || !club.codigo || !dcSa.salonId) return { ok: true, skip: true };
+        var authMod = await import('/js/auth-manager.js');
+        var rr = await authMod.getRole();
+        if (rr.error || rr.data !== 'superadmin') return { ok: true, skip: true };
+        var ma = dcSaLeerMetrajeInputs();
+        var cfgR = await apiMod.getFirstMesasConfigByClubId(club.codigo);
+        var cfg = cfgR.data;
+        if (!cfg || !cfg.id) return { ok: false, err: 'Sin mesas_config' };
+        var met = cfg.metraje && typeof cfg.metraje === 'object' ? Object.assign({}, cfg.metraje) : {};
+        met.largo = ma.largo;
+        met.ancho = ma.ancho;
+        var ur = await apiMod.updateMesasConfig(cfg.id, { metraje: met, updated_at: new Date().toISOString() });
+        if (ur.error) return { ok: false, err: ur.error };
+        var targetN = Math.min(30, Math.max(1, parseInt(document.getElementById('inp-num-mesas').value, 10) || 1));
+        while (true) {
+            var listR = await apiMod.listMesasBySalonId(dcSa.salonId);
+            var todos = (listR.data || []).slice().sort(function (a, b) {
+                return (a.numero || 0) - (b.numero || 0);
+            });
+            if (todos.length >= targetN) break;
+            var maxNum = 0;
+            for (var t = 0; t < todos.length; t++) {
+                if ((todos[t].numero || 0) > maxNum) maxNum = todos[t].numero;
+            }
+            var nextNum = maxNum + 1;
+            var ir = await apiMod.insertMesaRow({
+                club_id: club.codigo,
+                salon_id: dcSa.salonId,
+                numero: nextNum,
+                nombre: 'Mesa ' + nextNum,
+                tipo_instalacion: 'Mesa',
+                estado: 'libre',
+                tarifa_hora: 0
+            });
+            if (ir.error) return { ok: false, err: ir.error };
+        }
+        var listR2 = await apiMod.listMesasBySalonId(dcSa.salonId);
+        var todos2 = (listR2.data || []).slice().sort(function (a, b) {
+            return (a.numero || 0) - (b.numero || 0);
+        });
+        var surplus = todos2.slice(targetN);
+        var si;
+        for (si = 0; si < surplus.length; si++) {
+            var sr = await apiMod.updateMesa(surplus[si].id, {
+                estado: 'fuera_servicio',
+                updated_at: new Date().toISOString()
+            });
+            if (sr.error) return { ok: false, err: sr.error };
+        }
+        var active = todos2.slice(0, targetN);
+        for (var ai = 0; ai < active.length; ai++) {
+            var sl = dcSa.slots[ai];
+            if (!sl) continue;
+            var est = (active[ai].estado || 'libre').toLowerCase().replace(/ /g, '_');
+            var patch = {
+                posicion_x: Math.round(sl.x * 1000) / 1000,
+                posicion_y: Math.round(sl.y * 1000) / 1000,
+                nombre: 'Mesa ' + (active[ai].numero || ai + 1),
+                updated_at: new Date().toISOString()
+            };
+            if (est === 'fuera_servicio') patch.estado = 'libre';
+            var ur2 = await apiMod.updateMesa(active[ai].id, patch);
+            if (ur2.error) return { ok: false, err: ur2.error };
+        }
+        return { ok: true };
+    }
+
     window.previewLogo = function(input) {
         var file = input && input.files && input.files[0];
         var prev = document.getElementById('logo-preview');
@@ -242,6 +605,8 @@ window.__salaBoot = function() {
             document.getElementById('btn-guardar').disabled = true;
             var secNoClub = document.getElementById('dc-salon-acceso-section');
             if (secNoClub) secNoClub.style.display = 'none';
+            var su0 = document.getElementById('dc-superadmin-salon');
+            if (su0) su0.style.display = 'none';
             return;
         }
 
@@ -269,6 +634,7 @@ window.__salaBoot = function() {
         }
 
         aplicarSalonAccesoUi();
+        aplicarSuperadminSalonUi();
     }
 
     function aplicarSalonAccesoUi() {
@@ -342,6 +708,7 @@ window.__salaBoot = function() {
         var sessG = await authMod.getSession();
         var roleG = await authMod.getRole();
         var puedeSalonToggle = !sessG.error && sessG.data && !roleG.error && roleG.data === 'club_admin';
+        var esSuperadmin = !roleG.error && roleG.data === 'superadmin';
 
         var nombre = (document.getElementById('inp-nombre').value || '').trim();
         var ciudad = (document.getElementById('inp-ciudad').value || '').trim();
@@ -407,6 +774,10 @@ window.__salaBoot = function() {
                     onError(r.error.message || String(r.error));
                     return;
                 }
+                if (esSuperadmin) {
+                    var gr = await dcSaGuardarSalon(api);
+                    if (!gr.ok && gr.err) console.error('[admin_sede] superadmin salón', gr.err);
+                }
                 await persistSalonAccesoPublicoSiAdmin();
                 onSuccess();
             } else {
@@ -426,6 +797,10 @@ window.__salaBoot = function() {
                     set('wl_club_id', fila.id);
                     if (window.WL && window.WL.setClub) {
                         window.WL.setClub({ id: fila.id, nombre: nombre, logo_url: logoUrl || null, color_primario: color });
+                    }
+                    if (esSuperadmin) {
+                        var gr2 = await dcSaGuardarSalon(api);
+                        if (!gr2.ok && gr2.err) console.error('[admin_sede] superadmin salón', gr2.err);
                     }
                     await persistSalonAccesoPublicoSiAdmin();
                     onSuccess();
