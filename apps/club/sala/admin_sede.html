@@ -45,6 +45,9 @@
         .msg.ok { display:block; background:rgba(46,255,112,0.15); color:#2eff70; border:1px solid rgba(46,255,112,0.3); }
         .msg.err { display:block; background:rgba(231,76,60,0.15); color:#e74c3c; border:1px solid rgba(231,76,60,0.3); }
         .codigo-readonly { background:var(--g2); color:#888; padding:10px 14px; border-radius:10px; font-size:0.8rem; margin-bottom:10px; }
+        .dc-campo.campo label { color:var(--oro); font-size:0.52rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+        .dc-campo input[type="checkbox"] { width:22px; height:22px; margin-top:6px; accent-color:var(--oro); cursor:pointer; flex-shrink:0; }
+        .dc-ayuda { color:#aaa; font-size:0.54rem; line-height:1.45; margin-top:10px; font-weight:normal; letter-spacing:0.02em; text-transform:none; font-family:system-ui,-apple-system,sans-serif; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
@@ -84,6 +87,19 @@
     <div class="sec-titulo">CIUDAD</div>
     <div class="campo">
         <input type="text" id="inp-ciudad" placeholder="Ej: Bogotá" maxlength="80">
+    </div>
+
+    <div id="dc-salon-acceso-section" style="display:none">
+    <div class="dc-campo campo">
+        <label for="chk-salon-acceso-publico">
+            Acceso público al salón
+        </label>
+        <input type="checkbox" id="chk-salon-acceso-publico">
+        <p class="dc-ayuda">
+            Si está activo, cualquier persona puede ver
+            el salón sin iniciar sesión.
+        </p>
+    </div>
     </div>
 
     <div class="sec-titulo">COLOR PRIMARIO</div>
@@ -224,6 +240,8 @@ window.__salaBoot = function() {
         if (!club) {
             document.getElementById('codigo-display').textContent = 'No hay club activo. Crea o únete a un club desde Inicio.';
             document.getElementById('btn-guardar').disabled = true;
+            var secNoClub = document.getElementById('dc-salon-acceso-section');
+            if (secNoClub) secNoClub.style.display = 'none';
             return;
         }
 
@@ -249,6 +267,43 @@ window.__salaBoot = function() {
             prev.innerHTML = '<span class="ph">🟡</span>';
             prev.removeAttribute('data-dataurl');
         }
+
+        aplicarSalonAccesoUi();
+    }
+
+    function aplicarSalonAccesoUi() {
+        var wrap = document.getElementById('dc-salon-acceso-section');
+        var chk = document.getElementById('chk-salon-acceso-publico');
+        if (!wrap || !chk) return;
+        import('/js/auth-manager.js')
+            .then(function (auth) {
+                return Promise.all([auth.getSession(), auth.getRole(), auth.getClubId()]);
+            })
+            .then(function (r) {
+                var sess = r[0];
+                var roleR = r[1];
+                var clubIdR = r[2];
+                var esAdmin = !sess.error && sess.data && !roleR.error && roleR.data === 'club_admin';
+                if (!esAdmin) {
+                    wrap.style.display = 'none';
+                    return;
+                }
+                wrap.style.display = '';
+                var codigo = clubIdR.data != null ? String(clubIdR.data).trim() : '';
+                if (!codigo) {
+                    chk.checked = false;
+                    return;
+                }
+                return import('/js/supabase-client.js').then(function (m) {
+                    return m.supabase.from('clubs').select('salon_acceso_publico').eq('codigo', codigo).maybeSingle();
+                }).then(function (q) {
+                    if (q.error || !q.data) chk.checked = false;
+                    else chk.checked = !!q.data.salon_acceso_publico;
+                });
+            })
+            .catch(function () {
+                wrap.style.display = 'none';
+            });
     }
 
     function actualizarClubLocal(nombre, ciudad, color, logoUrl) {
@@ -282,7 +337,12 @@ window.__salaBoot = function() {
         localStorage.setItem('mi_perfil', JSON.stringify(perfil));
     }
 
-    window.guardarSede = function() {
+    window.guardarSede = async function() {
+        var authMod = await import('/js/auth-manager.js');
+        var sessG = await authMod.getSession();
+        var roleG = await authMod.getRole();
+        var puedeSalonToggle = !sessG.error && sessG.data && !roleG.error && roleG.data === 'club_admin';
+
         var nombre = (document.getElementById('inp-nombre').value || '').trim();
         var ciudad = (document.getElementById('inp-ciudad').value || '').trim();
         var color = getColorSeleccionado();
@@ -318,6 +378,18 @@ window.__salaBoot = function() {
             activo: true
         };
 
+        async function persistSalonAccesoPublicoSiAdmin() {
+            if (!puedeSalonToggle) return;
+            var cr = await authMod.getClubId();
+            var codigoSupa = cr.data != null ? String(cr.data).trim() : '';
+            if (!codigoSupa) return;
+            var chk = document.getElementById('chk-salon-acceso-publico');
+            var valor = !!(chk && chk.checked);
+            var supaM = await import('/js/supabase-client.js');
+            var ur = await supaM.supabase.from('clubs').update({ salon_acceso_publico: valor }).eq('codigo', codigoSupa);
+            if (ur.error) console.error('[admin_sede] salon_acceso_publico', ur.error);
+        }
+
         function onSuccess() {
             mostrarMsg('✅ Cambios guardados. El código de invitación y el whitelabel se actualizarán.', false);
             btn.disabled = false;
@@ -328,40 +400,40 @@ window.__salaBoot = function() {
             btn.disabled = false;
         }
 
-        import('/js/api/club-api.js').then(function (api) {
+        import('/js/api/club-api.js').then(async function (api) {
             if (id) {
-                api.patchClub(id, payload).then(function (r) {
-                    if (r.error) {
-                        onError(r.error.message || String(r.error));
-                        return;
-                    }
-                    onSuccess();
-                });
+                var r = await api.patchClub(id, payload);
+                if (r.error) {
+                    onError(r.error.message || String(r.error));
+                    return;
+                }
+                await persistSalonAccesoPublicoSiAdmin();
+                onSuccess();
             } else {
                 payload.codigo = codigo || ('CLB-' + Math.floor(Math.random() * 900 + 100));
-                api.insertClub(payload).then(function (r) {
-                    if (r.error) {
-                        onError(r.error.message || String(r.error));
-                        return;
+                var r2 = await api.insertClub(payload);
+                if (r2.error) {
+                    onError(r2.error.message || String(r2.error));
+                    return;
+                }
+                var fila = r2.data;
+                if (fila && fila.id) {
+                    club.id = fila.id;
+                    localStorage.setItem('club_activo', JSON.stringify(club));
+                    var clubes = getObj('mis_clubes') || [];
+                    var i = clubes.findIndex(function(c) { return c.codigo === club.codigo; });
+                    if (i >= 0) { clubes[i] = club; localStorage.setItem('mis_clubes', JSON.stringify(clubes)); }
+                    set('wl_club_id', fila.id);
+                    if (window.WL && window.WL.setClub) {
+                        window.WL.setClub({ id: fila.id, nombre: nombre, logo_url: logoUrl || null, color_primario: color });
                     }
-                    var fila = r.data;
-                    if (fila && fila.id) {
-                        club.id = fila.id;
-                        localStorage.setItem('club_activo', JSON.stringify(club));
-                        var clubes = getObj('mis_clubes') || [];
-                        var i = clubes.findIndex(function(c) { return c.codigo === club.codigo; });
-                        if (i >= 0) { clubes[i] = club; localStorage.setItem('mis_clubes', JSON.stringify(clubes)); }
-                        set('wl_club_id', fila.id);
-                        if (window.WL && window.WL.setClub) {
-                            window.WL.setClub({ id: fila.id, nombre: nombre, logo_url: logoUrl || null, color_primario: color });
-                        }
-                        onSuccess();
-                    } else {
-                        onError('No se devolvió id del club');
-                    }
-                });
+                    await persistSalonAccesoPublicoSiAdmin();
+                    onSuccess();
+                } else {
+                    onError('No se devolvió id del club');
+                }
             }
-        }).catch(onError);
+        }).catch(function (e) { onError(e && e.message ? e.message : String(e)); });
     };
 
     document.getElementById('inp-logo-url').addEventListener('change', function() {
