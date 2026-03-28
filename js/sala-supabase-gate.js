@@ -16,7 +16,7 @@ const DEV_MODE_KEY = 'dev_mode_activo';
  * Roadmap: pasar a `false` y exigir Supabase Auth + email verificado + rol en `profiles`
  * (club_admin / superadmin). Ver docs/ACCESO_SALA_ROADMAP.md
  */
-const OPEN_ACCESS_PUBLIC = true;
+const OPEN_ACCESS_PUBLIC = false;
 
 function esModoDevActivo() {
     try {
