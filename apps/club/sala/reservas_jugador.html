@@ -354,8 +354,31 @@
     <div id="bloque-form" class="form-block" style="display:none;">
         <h3>SOLICITUD</h3>
         <div class="field">
-            <label for="inp-fecha">Fecha y hora</label>
-            <input type="datetime-local" id="inp-fecha" required>
+            <label>Fecha y hora</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <select id="inp-fecha-dia" style="flex:1;padding:12px;background:#111;color:#fff;border:1px solid #333;border-radius:10px;font-size:0.9rem;">
+                </select>
+                <select id="inp-hora" style="flex:1;padding:12px;background:#111;color:#fff;border:1px solid #333;border-radius:10px;font-size:0.9rem;">
+                    <option value="06:00">6:00 AM</option>
+                    <option value="07:00">7:00 AM</option>
+                    <option value="08:00">8:00 AM</option>
+                    <option value="09:00">9:00 AM</option>
+                    <option value="10:00">10:00 AM</option>
+                    <option value="11:00">11:00 AM</option>
+                    <option value="12:00">12:00 PM</option>
+                    <option value="13:00">1:00 PM</option>
+                    <option value="14:00">2:00 PM</option>
+                    <option value="15:00">3:00 PM</option>
+                    <option value="16:00">4:00 PM</option>
+                    <option value="17:00">5:00 PM</option>
+                    <option value="18:00">6:00 PM</option>
+                    <option value="19:00">7:00 PM</option>
+                    <option value="20:00">8:00 PM</option>
+                    <option value="21:00">9:00 PM</option>
+                    <option value="22:00">10:00 PM</option>
+                </select>
+            </div>
+            <input type="hidden" id="inp-fecha">
         </div>
         <div class="field">
             <label for="sel-duracion">Duración</label>
@@ -470,10 +493,42 @@ function setCtxStrip(ok, text) {
     tx.innerHTML = text;
 }
 
-function minDatetimeLocal() {
-    var d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 16);
+function ymdLocalReserva(d) {
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1);
+    if (m.length < 2) m = '0' + m;
+    var day = String(d.getDate());
+    if (day.length < 2) day = '0' + day;
+    return y + '-' + m + '-' + day;
+}
+
+function rellenarSelectDiasReserva() {
+    var sel = document.getElementById('inp-fecha-dia');
+    if (!sel) return;
+    var now = new Date();
+    sel.innerHTML = '';
+    for (var i = 0; i <= 60; i++) {
+        var dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+        var v = ymdLocalReserva(dt);
+        var opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = dt.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+        sel.appendChild(opt);
+    }
+}
+
+function actualizarInpFechaOculto() {
+    var selDia = document.getElementById('inp-fecha-dia');
+    var selHora = document.getElementById('inp-hora');
+    var hid = document.getElementById('inp-fecha');
+    if (!selDia || !selHora || !hid) return;
+    var d = selDia.value;
+    var h = selHora.value;
+    if (!d || !h) {
+        hid.value = '';
+        return;
+    }
+    hid.value = d + 'T' + h;
 }
 
 function pintarMesas(mesas) {
@@ -611,6 +666,7 @@ async function solicitarReserva() {
         toast('Elegí una mesa.', 'error');
         return;
     }
+    actualizarInpFechaOculto();
     var inpF = document.getElementById('inp-fecha');
     var val = inpF && inpF.value;
     if (!val) {
@@ -681,10 +737,14 @@ async function cargarMisReservas() {
 }
 
 function aplicarMinFecha() {
-    var inp = document.getElementById('inp-fecha');
-    if (inp) {
-        inp.min = minDatetimeLocal();
-    }
+    rellenarSelectDiasReserva();
+    actualizarInpFechaOculto();
+    if (window._dcReservaDiaHoraBound) return;
+    window._dcReservaDiaHoraBound = true;
+    var selDia = document.getElementById('inp-fecha-dia');
+    var selHora = document.getElementById('inp-hora');
+    if (selDia) selDia.addEventListener('change', actualizarInpFechaOculto);
+    if (selHora) selHora.addEventListener('change', actualizarInpFechaOculto);
 }
 
 function initReservasJugador() {
