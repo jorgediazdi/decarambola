@@ -9,6 +9,16 @@ function wrap(data, error) {
   return { data, error: null };
 }
 
+/**
+ * true si la clave tiene forma UUID (clubs.id). Si es false, tratarla como clubs.codigo
+ * en filtros REST — nunca usar .eq('id', código) (PostgREST 400 en columna uuid).
+ */
+export function isClubKeyLikelyUuid(s) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    String(s || '').trim()
+  );
+}
+
 /** club_id para filtros: perfil Auth, si no mi_perfil / club_activo (legacy). */
 export async function resolveClubIdForQuery(explicitClubId) {
   try {
@@ -45,14 +55,19 @@ export async function insertClub(payload) {
   }
 }
 
-/** Una fila de club por id (uuid) o por codigo (texto). */
+/** Una fila de club por id (uuid) o por codigo (texto). Nunca pide id= con código MVIP-001. */
 export async function getClubByIdOrCodigo(clubKey) {
   try {
     var key = String(clubKey || '').trim();
     if (!key) return { data: null, error: null };
     const sel = 'id,nombre,codigo,ciudad,color_primario,logo_url';
-    const byId = await supabase.from('clubs').select(sel).eq('id', key).maybeSingle();
-    if (byId.data) return wrap(byId.data, null);
+    if (isClubKeyLikelyUuid(key)) {
+      const byId = await supabase.from('clubs').select(sel).eq('id', key).maybeSingle();
+      if (byId.error) return wrap(null, byId.error);
+      if (byId.data) return wrap(byId.data, null);
+      const byCodigoAfterUuid = await supabase.from('clubs').select(sel).eq('codigo', key).maybeSingle();
+      return wrap(byCodigoAfterUuid.data, byCodigoAfterUuid.error);
+    }
     const byCodigo = await supabase.from('clubs').select(sel).eq('codigo', key).maybeSingle();
     return wrap(byCodigo.data, byCodigo.error);
   } catch (e) {

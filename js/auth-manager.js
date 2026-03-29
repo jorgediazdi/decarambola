@@ -56,6 +56,10 @@ export async function getRole() {
   }
 }
 
+/**
+ * club_id del perfil (Auth): puede ser clubs.id (UUID) o clubs.codigo (texto, ej. MVIP-001).
+ * Para leer la fila en `clubs`, usar getClubByIdOrCodigo (club-api) — ya elige .eq('id') vs .eq('codigo').
+ */
 export async function getClubId() {
   try {
     const { data: sess, error: e1 } = await supabase.auth.getSession();

@@ -3,13 +3,9 @@
  * Las queries a mesas_config / mesas deben usar la clave que esté en BD; este módulo
  * devuelve el UUID canónico y el código cuando existan, para probar ambas.
  */
-import { getClubByIdOrCodigo } from '/js/api/club-api.js';
+import { getClubByIdOrCodigo, isClubKeyLikelyUuid } from '/js/api/club-api.js';
 
-export function isClubKeyLikelyUuid(s) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    String(s || '').trim()
-  );
-}
+export { isClubKeyLikelyUuid };
 
 /**
  * @param {string|null|undefined} clubKey — id UUID o codigo texto
