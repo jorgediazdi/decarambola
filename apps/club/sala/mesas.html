@@ -213,6 +213,7 @@ var countdownSegundos = 30;
 /** grid | mapa — mapa usa posicion_x/y en % (Supabase). */
 var vistaPlano = 'mapa';
 var mapaDrag = { id: null, ptr: null, cont: null };
+var mapaDragMoveEnd = null;
 var mapaDragWinEnd = null;
 var _dcClubApiP = null;
 function _clubApi() {
@@ -516,6 +517,10 @@ function bindMapaArrastre(cont) {
         } catch (e0) {}
         mapaDragWinEnd = null;
     }
+    if (mapaDragMoveEnd) {
+        try { cont.removeEventListener('pointermove', mapaDragMoveEnd); } catch(e){}
+        mapaDragMoveEnd = null;
+    }
     cont.querySelectorAll('.mesa-grip').forEach(function (grip) {
         grip.addEventListener('pointerdown', function (ev) {
             if (ev.button !== 0) return;
@@ -556,7 +561,7 @@ function bindMapaArrastre(cont) {
             window.addEventListener('pointercancel', mapaDragWinEnd, true);
         });
     });
-    cont.addEventListener('pointermove', function (ev) {
+    mapaDragMoveEnd = function (ev) {
         if (!mapaDrag.id || mapaDrag.ptr !== ev.pointerId) return;
         var coordsM = mapaPctDesdeCliente(cont, ev.clientX, ev.clientY);
         var el = cont.querySelector('.mesa-mapa-pos[data-mesa-id="' + mapaDrag.id + '"]');
@@ -564,7 +569,8 @@ function bindMapaArrastre(cont) {
             el.style.left = coordsM.px + '%';
             el.style.top = coordsM.py + '%';
         }
-    });
+    };
+    cont.addEventListener('pointermove', mapaDragMoveEnd);
 }
 
 function renderPlano() {
