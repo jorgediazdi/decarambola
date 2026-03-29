@@ -72,6 +72,7 @@ async function checkStaffAccess() {
         return { ok: true, role: 'dev', clubId: devCid };
     }
 
+    /* Refrescar primero: getSession() puede devolver JWT cacheado y stale tras expiración. */
     await supabase.auth.refreshSession();
     var _s = await supabase.auth.getSession();
     var session = _s && _s.data && _s.data.session;

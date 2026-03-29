@@ -162,10 +162,34 @@ body.dc-ux-skin #fase2 {
     color: #888;
     padding: 10px 12px;
 }
+/* Cabecera salón/club: el desplegable flota sobre el contenido (no empuja el plano). */
 .header .jug-nav-fold.dc-sala-nav-fold,
 body.dc-ux-skin .header .jug-nav-fold.dc-sala-nav-fold {
     position: relative;
-    z-index: 35;
+    z-index: 80;
+    overflow: visible;
+}
+.header .jug-nav-fold.dc-sala-nav-fold .jug-nav-fold__links,
+body.dc-ux-skin .header .jug-nav-fold.dc-sala-nav-fold .jug-nav-fold__links {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    left: auto;
+    width: min(300px, calc(100vw - 28px));
+    min-width: 200px;
+    margin: 0;
+    box-sizing: border-box;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(10, 10, 10, 0.98);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.75);
+    z-index: 81;
+    /* Sobre el plano del salón; por debajo de modales .modal-mesa (z-index 100 en mesas.html). */
+}
+
+/* Salón en vivo: .wrap también tiene z-index:10 en esta hoja; si no, el menú flotante queda tapado por el plano. */
+body.dc-ux-skin.m-root-salon .header {
+    z-index: 30;
 }
 
 /* Barra sticky portal club (saltos de sección) */

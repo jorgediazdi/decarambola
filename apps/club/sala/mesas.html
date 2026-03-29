@@ -155,7 +155,7 @@
         </div>
         <a href="mesas_config.html" class="btn-plano-cfg">⚙ CONFIGURAR SALÓN</a>
     </div>
-    <div class="plano-mapa-toolbar" id="plano_mapa_toolbar" style="display:none;">
+    <div class="plano-mapa-toolbar" id="plano_mapa_toolbar" style="display:none;" data-solo-admin="true">
         <span>Vista:</span>
         <button type="button" id="btn_vista_grid" class="on">Cuadrícula</button>
         <button type="button" id="btn_vista_mapa">Mapa (arrastrar mesas)</button>
@@ -200,7 +200,7 @@ var intervaloRefresh = null;
 var intervaloCrono = null;
 var countdownSegundos = 30;
 /** grid | mapa — mapa usa posicion_x/y en % (Supabase). */
-var vistaPlano = 'grid';
+var vistaPlano = 'mapa';
 var mapaDrag = { id: null, ptr: null, cont: null };
 var mapaDragWinEnd = null;
 var _dcClubApiP = null;
@@ -447,7 +447,8 @@ function celdaMesaHtmlMapa(m, i) {
     var suM = getStreamUrlLocal(m);
     var camClsM = 'mesa-cam-icon' + (suM ? '' : ' inactiva');
     var camOnM = suM ? ' onclick="dcAbrirStreamMesaIcon(event, \'' + encodeURIComponent(suM) + '\')"' : '';
-    var html = '<div class="mesa-celda luz-mesa estado-' + estado + ' mesa-mapa-pos" data-mesa-id="' + m.id + '" style="left:' + px + '%;top:' + py + '%;" onclick="abrirModal(\'' + m.id + '\')">';
+    var rotStyle = (m.meta && m.meta.rotada) ? 'transform:rotate(90deg);' : '';
+    var html = '<div class="mesa-celda luz-mesa estado-' + estado + ' mesa-mapa-pos" data-mesa-id="' + m.id + '" style="left:' + px + '%;top:' + py + '%;' + rotStyle + '" onclick="abrirModal(\'' + m.id + '\')">';
     html += '<span class="mesa-grip" data-mesa-id="' + m.id + '" title="Arrastrar posición" style="position:absolute;left:2px;bottom:2px;font-size:0.42rem;opacity:0.55;cursor:grab;z-index:3;line-height:1;">⠿</span>';
     html += '<span class="' + camClsM + '" title="' + (suM ? 'Ver stream' : 'Sin cámara') + '"' + camOnM + '>📹</span>';
     html += '<span class="emoji-estado">' + emoji + '</span>';
@@ -1004,8 +1005,31 @@ window.__salaBoot = function() {
                 .catch(function () {});
         }
         refresh().then(function () {
-            if (tb) tb.style.display = mesasLista && mesasLista.length ? 'flex' : 'none';
-            bindMapaToolbar();
+            function finishMapaToolbar() {
+                bindMapaToolbar();
+            }
+            if (!tb) {
+                finishMapaToolbar();
+                return;
+            }
+            if (tb.getAttribute('data-solo-admin') === 'true') {
+                import('/js/auth-manager.js')
+                    .then(function (auth) {
+                        return auth.getRole();
+                    })
+                    .then(function (rr) {
+                        var role = rr.error ? null : rr.data;
+                        var ok = role === 'club_admin' || role === 'superadmin';
+                        tb.style.display = mesasLista && mesasLista.length && ok ? 'flex' : 'none';
+                    })
+                    .catch(function () {
+                        tb.style.display = 'none';
+                    })
+                    .then(finishMapaToolbar);
+            } else {
+                tb.style.display = mesasLista && mesasLista.length ? 'flex' : 'none';
+                finishMapaToolbar();
+            }
         });
         intervaloCrono = setInterval(actualizarCronos, 1000);
         intervaloRefresh = setInterval(tickCountdown, 1000);
@@ -1014,8 +1038,21 @@ window.__salaBoot = function() {
     var chk = window.DC_mesasOperacionCheckOnboarding ? window.DC_mesasOperacionCheckOnboarding() : Promise.resolve({ ok: true });
     chk.then(function (r) {
         if (!r.ok) {
+            var infoFail = document.getElementById('actualizar_info');
+            var esValidacionRed =
+                r.faltan &&
+                r.faltan.some(function (x) {
+                    return String(x).indexOf('No se pudo validar') !== -1;
+                });
+            if (infoFail) {
+                infoFail.textContent = esValidacionRed
+                    ? 'No se pudo validar el salón con Supabase. Revisá conexión o el mensaje en pantalla completa.'
+                    : 'Salón bloqueado: falta configuración u onboarding. Revisá el mensaje en pantalla completa.';
+                infoFail.style.color = '#e8a0a0';
+            }
             window.DC_mesasOperacionMostrarGate({
                 mensaje: r.mensaje,
+                tituloBanner: esValidacionRed ? 'NO SE PUDO VALIDAR EL SALÓN' : 'CONFIGURACIÓN INCOMPLETA',
                 hrefConfig: 'mesas_config.html',
                 hrefTarifas: 'tarifas_salon.html',
             });

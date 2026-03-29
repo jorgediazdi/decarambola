@@ -700,6 +700,7 @@ window.__salaBoot = function() {
                 updated_at: new Date().toISOString()
             };
             if (est === 'fuera_servicio') patch.estado = 'libre';
+            console.log('[save mesa]', active[ai].id, JSON.stringify(patch));
             var ur2 = await apiMod.updateMesa(active[ai].id, patch);
             if (ur2.error) return { ok: false, err: ur2.error };
         }
