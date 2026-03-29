@@ -190,7 +190,18 @@
 <script src="/session.js"></script>
 <script src="/js/mesas-operacion-onboarding.js"></script>
 <script>
-try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
+/** TIMEOUTS de SESSION solo entienden jugador | organizador | partida — mapear desde profiles.role. */
+function _dcSessionRolDesdePerfil(profileRole) {
+    var r = String(profileRole || '').trim();
+    if (r === 'club_admin' || r === 'superadmin') return 'organizador';
+    return 'jugador';
+}
+import('/js/auth-manager.js').then(function (am) { return am.getRole(); }).then(function (rr) {
+    var rol = _dcSessionRolDesdePerfil(!rr.error ? rr.data : '');
+    try { SESSION.verificarAlCargar(rol); } catch (e) {}
+}).catch(function () {
+    try { SESSION.verificarAlCargar('jugador'); } catch (e) {}
+});
 
 var salonConfig = null;
 var mesasLista = [];
@@ -410,6 +421,11 @@ function celdaMesaHtml(m, animDelaySec) {
     html += '<span class="emoji-estado">' + emoji + '</span>';
     html += '<span class="nom">' + (m.nombre || m.numero) + '</span>';
     html += '<span class="tipo">' + (m.tipo_instalacion || '') + '</span>';
+    var tarifaMesa = m.tarifa_hora != null 
+        ? '$' + Math.round(parseFloat(m.tarifa_hora)).toLocaleString('es-CO') + '/hr'
+        : null;
+    if (tarifaMesa) html += '<span class="tipo" title="Tarifa propia de esta mesa">' + tarifaMesa + '</span>';
+    if (m.video_activo) html += '<span class="tipo" style="color:#d4af37" title="Video IA activo">🎥 Video IA</span>';
     if (crono) html += '<span class="crono">' + crono + '</span>';
     if (costo) html += '<span class="costo">' + costo + '</span>';
     if (sesion && sesion.jugador_nombre) html += '<span class="tipo">' + sesion.jugador_nombre + '</span>';

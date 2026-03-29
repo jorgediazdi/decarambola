@@ -32,6 +32,41 @@
         .btn-quitar { background:none; border:none; color:#e74c3c; cursor:pointer; padding:4px; }
         .btn-paso { width:100%; padding:14px; margin-top:12px; background:linear-gradient(135deg,var(--oro),#a07800); color:#000; border:none; border-radius:14px; font-size:0.75rem; font-weight:bold; cursor:pointer; font-family:'Arial Black',sans-serif; }
         .btn-paso.sec { background:var(--g3); color:#888; border:1px solid var(--g1); }
+        .tarifa-mesa-fila {
+            background: var(--g3);
+            border: 1px solid var(--g1);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            font-size: 0.52rem;
+        }
+        .tarifa-mesa-fila .tarifa-mesa-leyenda {
+            color: #888;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .tarifa-mesa-fila .tarifa-mesa-leyenda strong { color: var(--oro); font-size: 0.58rem; }
+        .tarifa-mesa-fila label { display: block; color: #555; font-size: 0.48rem; margin-bottom: 6px; }
+        .tarifa-mesa-fila input[type="number"] {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--g1);
+            color: #fff;
+            font-size: 0.95rem;
+            padding: 6px 0;
+        }
+        .tarifa-mesa-fila .tarifa-mesa-video-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--g1);
+        }
+        .tarifa-mesa-fila .tarifa-mesa-video-row label { margin: 0; display: flex; align-items: center; gap: 6px; color: #888; cursor: pointer; }
+        .tarifa-mesa-fila .tarifa-mesa-video-row input[type="number"] { flex: 1; min-width: 100px; }
         #tarifas-toast {
             position: fixed;
             bottom: max(20px, env(safe-area-inset-bottom));
@@ -129,6 +164,11 @@
 
     <div class="sec">EJEMPLO (SE ACTUALIZA AL ESCRIBIR)</div>
     <div id="tarifas_ejemplo_vivo" class="info-tarifa" style="font-size:0.62rem;line-height:1.5;"></div>
+
+    <div class="sec">TARIFAS POR MESA</div>
+    <div id="dc-tarifas-por-mesa-estado" class="info-tarifa" style="display:none;font-size:0.55rem;"></div>
+    <div id="dc-tarifas-por-mesa-body"></div>
+    <button type="button" class="btn-paso sec" id="btn_guardar_tarifas_mesa" onclick="guardarTarifasPorMesa()">GUARDAR TARIFAS POR MESA</button>
 
     <button type="button" class="btn-paso" id="btn_guardar" onclick="guardarTarifas()">GUARDAR TARIFAS</button>
     </div>
@@ -310,6 +350,209 @@ function mostrarToastTarifas(msg) {
     }, 2600);
 }
 
+var _dcTarifasSalonMesasLista = null;
+var _dcTarifasSalonMesasSnapshot = {};
+var _dcTarifasPorMesaEsSuperadmin = false;
+
+function _normTarifaHoraMesaInput(v) {
+    if (v == null || String(v).trim() === '') return null;
+    var n = parseFloat(v);
+    return isNaN(n) ? null : n;
+}
+
+function _snapTarifaHoraFromMesa(m) {
+    var th = m.tarifa_hora;
+    if (th != null && th !== '') {
+        var n = parseFloat(th);
+        return isNaN(n) ? null : n;
+    }
+    return null;
+}
+
+function _escAttrTarifa(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+async function initTarifasPorMesaSection() {
+    var body = document.getElementById('dc-tarifas-por-mesa-body');
+    var estado = document.getElementById('dc-tarifas-por-mesa-estado');
+    if (!body) return;
+    body.innerHTML = '';
+    _dcTarifasSalonMesasLista = null;
+    _dcTarifasSalonMesasSnapshot = {};
+    if (estado) {
+        estado.style.display = 'none';
+        estado.textContent = '';
+    }
+    try {
+        var auth = await import('/js/auth-manager.js');
+        var sr = await auth.getSession();
+        if (sr.error || !sr.data) return;
+        var rr = await auth.getRole();
+        var rol = rr.error ? null : rr.data;
+        _dcTarifasPorMesaEsSuperadmin = rol === 'superadmin';
+        if (rol !== 'club_admin' && rol !== 'superadmin') return;
+    } catch (_e) {
+        return;
+    }
+    var cfgRow = await findMesasConfigRowTarifas();
+    var salonId = cfgRow && cfgRow.id ? cfgRow.id : null;
+    var clubId = getClubIdTarifas();
+    var api = await _clubApiTar();
+    var list = null;
+    if (salonId) {
+        var lr = await api.listMesasBySalonId(salonId);
+        list = lr.data;
+    } else if (clubId) {
+        var lr2 = await api.listMesas(clubId, { orderBy: 'numero' });
+        list = lr2.data;
+    }
+    _dcTarifasSalonMesasLista = (list || []).slice(0, 200);
+    _dcTarifasSalonMesasLista.sort(function (a, b) {
+        return (a.numero || 0) - (b.numero || 0);
+    });
+    if (!_dcTarifasSalonMesasLista.length) {
+        if (estado) {
+            estado.style.display = 'block';
+            estado.textContent =
+                salonId || clubId ? 'No hay mesas en este salón todavía.' : 'No hay club vinculado o salón en Supabase.';
+        }
+        return;
+    }
+    var html = '';
+    for (var i = 0; i < _dcTarifasSalonMesasLista.length; i++) {
+        var m = _dcTarifasSalonMesasLista[i];
+        var mid = String(m.id);
+        var num = m.numero != null ? m.numero : '—';
+        var nom = (m.nombre || '').trim() || '—';
+        var thVal = m.tarifa_hora != null && m.tarifa_hora !== '' ? String(m.tarifa_hora) : '';
+        var vid = !!m.video_activo;
+        var vt = m.video_tarifa != null && m.video_tarifa !== '' ? String(m.video_tarifa) : '';
+        _dcTarifasSalonMesasSnapshot[mid] = {
+            tarifa_hora: _snapTarifaHoraFromMesa(m),
+            video_activo: vid,
+            video_tarifa: parseFloat(vt) || 0
+        };
+        html += '<div class="tarifa-mesa-fila" data-mesa-id="' + _escAttrTarifa(mid) + '">';
+        html += '<div class="tarifa-mesa-leyenda"><strong>Mesa ' + _escAttrTarifa(num) + '</strong> · ' + _escAttrTarifa(nom) + '</div>';
+        html += '<label for="tarifa_hr_' + mid + '">Tarifa/hr propia</label>';
+        html +=
+            '<input type="number" id="tarifa_hr_' +
+            mid +
+            '" min="0" step="0.01" placeholder="Sin tarifa propia (usa base salón)" value="' +
+            _escAttrTarifa(thVal) +
+            '">';
+        if (_dcTarifasPorMesaEsSuperadmin) {
+            html += '<div class="tarifa-mesa-video-row">';
+            html +=
+                '<label><input type="checkbox" id="video_ia_' +
+                mid +
+                '" ' +
+                (vid ? 'checked' : '') +
+                '> Video IA</label>';
+            html += '<label for="video_tarifa_' + mid + '" style="flex:1 1 100%;color:#555;">Tarifa video</label>';
+            html +=
+                '<input type="number" id="video_tarifa_' +
+                mid +
+                '" min="0" step="0.01" placeholder="0" value="' +
+                _escAttrTarifa(vt) +
+                '">';
+            html += '</div>';
+        }
+        html += '</div>';
+    }
+    body.innerHTML = html;
+}
+
+async function guardarTarifasPorMesa() {
+    var auth = await import('/js/auth-manager.js');
+    var sr = await auth.getSession();
+    if (sr.error || !sr.data) {
+        mostrarToastTarifas('Iniciá sesión para guardar.');
+        return;
+    }
+    var rr = await auth.getRole();
+    var rol = rr.error ? null : rr.data;
+    if (rol !== 'club_admin' && rol !== 'superadmin') {
+        mostrarToastTarifas('Sin permiso para guardar tarifas por mesa.');
+        return;
+    }
+    var isSuper = rol === 'superadmin';
+    var list = _dcTarifasSalonMesasLista;
+    if (!list || !list.length) {
+        mostrarToastTarifas('No hay mesas cargadas.');
+        return;
+    }
+    var btn = document.getElementById('btn_guardar_tarifas_mesa');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Guardando…';
+    }
+    var api = await _clubApiTar();
+    var nOk = 0;
+    var nErr = 0;
+    try {
+        for (var i = 0; i < list.length; i++) {
+            var m = list[i];
+            var mid = String(m.id);
+            var snap = _dcTarifasSalonMesasSnapshot[mid];
+            if (!snap) continue;
+            var thEl = document.getElementById('tarifa_hr_' + mid);
+            var newTh = thEl ? _normTarifaHoraMesaInput(thEl.value) : snap.tarifa_hora;
+            var newVid = snap.video_activo;
+            var newVt = snap.video_tarifa;
+            if (isSuper) {
+                var cEl = document.getElementById('video_ia_' + mid);
+                var vEl = document.getElementById('video_tarifa_' + mid);
+                newVid = !!(cEl && cEl.checked);
+                newVt = vEl ? parseFloat(vEl.value) || 0 : 0;
+            }
+            var changed =
+                newTh !== snap.tarifa_hora ||
+                newVid !== snap.video_activo ||
+                newVt !== snap.video_tarifa;
+            if (!changed) continue;
+            var patch = {
+                tarifa_hora: newTh,
+                video_activo: newVid,
+                video_tarifa: newVt,
+                updated_at: new Date().toISOString()
+            };
+            var ur = await api.updateMesa(m.id, patch);
+            if (ur.error) {
+                nErr++;
+                console.error('[tarifas_por_mesa]', mid, ur.error);
+            } else {
+                nOk++;
+                snap.tarifa_hora = newTh;
+                snap.video_activo = newVid;
+                snap.video_tarifa = newVt;
+            }
+        }
+        if (nOk === 0 && nErr === 0) {
+            mostrarToastTarifas('No había cambios en tarifas por mesa.');
+        } else if (nErr && !nOk) {
+            mostrarToastTarifas('No se pudieron guardar las tarifas por mesa (RLS o red).');
+        } else if (nErr) {
+            mostrarToastTarifas('Guardado parcial: ' + nOk + ' mesa(s) OK, ' + nErr + ' con error.');
+        } else {
+            mostrarToastTarifas('Tarifas por mesa guardadas (' + nOk + ' actualización/es).');
+        }
+    } catch (e) {
+        console.error('[tarifas_por_mesa]', e);
+        mostrarToastTarifas('Error al guardar. Revisá consola.');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'GUARDAR TARIFAS POR MESA';
+        }
+    }
+}
+
 async function guardarTarifas() {
     var auth = await import('/js/auth-manager.js');
     var sr = await auth.getSession();
@@ -372,6 +615,13 @@ async function guardarTarifas() {
 }
 
 window.__salaBoot = cargarTarifas;
+(function () {
+    var prev = window.__salaBoot;
+    window.__salaBoot = async function () {
+        if (typeof prev === 'function') await prev();
+        if (typeof initTarifasPorMesaSection === 'function') await initTarifasPorMesaSection();
+    };
+})();
 </script>
 
 <script>
@@ -397,7 +647,8 @@ try {
     var results = await Promise.all([getSession(), getRole()]);
     var sess = results[0];
     var roleR = results[1];
-    var okAdmin = !sess.error && sess.data && !roleR.error && roleR.data === 'club_admin';
+    var okAdmin =
+        !sess.error && sess.data && !roleR.error && (roleR.data === 'club_admin' || roleR.data === 'superadmin');
     if (editable && msg) {
         if (okAdmin) {
             editable.style.display = '';
