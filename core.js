@@ -982,10 +982,12 @@ const SESSION = {
     // CONFIGURACIÓN
     // ─────────────────────────────────────────
     TIMEOUTS: {
-        jugador:      60 * 60 * 1000,   // 60 min
-        organizador:  15 * 60 * 1000,   // 15 min
-        partida:      30 * 60 * 1000,   // 30 min → aviso árbitro
-        aviso:         2 * 60 * 1000    //  2 min de gracia tras aviso
+        jugador:      60 * 60 * 1000,
+        organizador:  15 * 60 * 1000,
+        superadmin:   15 * 60 * 1000,
+        club_admin:   15 * 60 * 1000,
+        partida:      30 * 60 * 1000,
+        aviso:         2 * 60 * 1000
     },
 
     _timer:      null,
@@ -1040,7 +1042,7 @@ const SESSION = {
         this._timer = setTimeout(function() {
             if (self._rol === 'partida') {
                 self._avisarArbitro();
-            } else if (self._rol === 'organizador') {
+            } else if (self._rol === 'organizador' || self._rol === 'superadmin' || self._rol === 'club_admin') {
                 self._avisarOrganizador();
             } else {
                 self.cerrar('inactividad');
