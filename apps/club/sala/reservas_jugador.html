@@ -736,8 +736,17 @@ function initReservasJugador() {
     }
 }
 
-window.__salaBoot = function () {
-    try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch (e) {}
+window.__salaBoot = async function () {
+    try {
+        const { getRole } = await import('/js/auth-manager.js');
+        const { data: rolReal } = await getRole();
+        const rolSesion = (rolReal === 'superadmin' || rolReal === 'club_admin') ? 'organizador' : 'jugador';
+        SESSION.verificarAlCargar(rolSesion);
+        SESSION.iniciar(rolSesion);
+    } catch (e) {
+        SESSION.verificarAlCargar('jugador');
+        SESSION.iniciar('jugador');
+    }
     initReservasJugador();
 };
 </script>
