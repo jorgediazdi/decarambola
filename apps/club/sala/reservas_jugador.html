@@ -700,9 +700,14 @@ async function solicitarReserva() {
     }
 
     var fechaISO = new Date(val).toISOString();
+    var sesionActual = await import('/js/auth-manager.js')
+        .then(function(am){ return am.getSession(); });
+    var currentUserId = (!sesionActual.error && sesionActual.data && sesionActual.data.user)
+        ? sesionActual.data.user.id : null;
     var row = {
         mesa_id: mesaSeleccionada.id,
         club_id: clubId,
+        user_id: currentUserId,
         jugador_nombre: nombreJugadorDisplay(jugadorActivo),
         fecha_reserva: fechaISO,
         duracion_minutos: Number(duracion),

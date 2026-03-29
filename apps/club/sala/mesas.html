@@ -337,6 +337,12 @@ async function cargarDatos() {
     }
     mesasLista = (list || []).slice(0, 200);
     mesasLista.sort(function(a,b){ return (a.numero||0) - (b.numero||0); });
+    // Filtrar por mesa asignada si es jugador con reserva
+    if (window._dcJugadorMesaId) {
+        mesasLista = mesasLista.filter(function(m) {
+            return m.id === window._dcJugadorMesaId;
+        });
+    }
 
     sesionesAbiertas = {};
     var idSet = {};
@@ -1003,12 +1009,53 @@ function tickCountdown() {
     }
 }
 
-window.__salaBoot = function() {
+window.__salaBoot = async function() {
     var logoEl = document.getElementById('header-logo');
     if (typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) { if (logoEl) logoEl.innerHTML = MasterVIP.getLogoHTML(40); }
     else if (logoEl) logoEl.innerHTML = '<span style="font-size:1.5rem;">🟡</span>';
     actualizarReloj();
     setInterval(actualizarReloj, 1000);
+
+    async function verificarAccesoSalon() {
+        var auth = await import('/js/auth-manager.js');
+        var rr = await auth.getRole();
+        var rol = rr.error ? null : rr.data;
+
+        // superadmin no accede al salón
+        if (rol === 'superadmin') {
+            window.location.href = '/admin/index.html';
+            return false;
+        }
+
+        // club_admin pasa sin restricción
+        if (rol === 'club_admin') return true;
+
+        // jugador: verificar reserva confirmada activa
+        var sr = await auth.getSession();
+        var userId = (!sr.error && sr.data && sr.data.user) ? sr.data.user.id : null;
+        if (!userId) {
+            window.location.href = 'reservas_jugador.html';
+            return false;
+        }
+
+        var supabaseMod = await import('/js/supabase-client.js');
+        var reservaR = await supabaseMod.supabase
+            .from('mesas_reservas')
+            .select('id, mesa_id, estado')
+            .eq('user_id', userId)
+            .eq('estado', 'confirmada')
+            .gte('fecha_reserva', new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString())
+            .limit(1);
+
+        if (!reservaR.data || !reservaR.data.length) {
+            window.location.href = 'reservas_jugador.html';
+            return false;
+        }
+
+        // guardar mesa asignada para filtrar vista
+        window._dcJugadorMesaId = reservaR.data[0].mesa_id;
+        return true;
+    }
 
     function iniciarOperacionSalon() {
         var tb = document.getElementById('plano_mapa_toolbar');
@@ -1057,6 +1104,8 @@ window.__salaBoot = function() {
         intervaloRefresh = setInterval(tickCountdown, 1000);
     }
 
+    var acceso = await verificarAccesoSalon();
+    if (!acceso) return;
     var chk = window.DC_mesasOperacionCheckOnboarding ? window.DC_mesasOperacionCheckOnboarding() : Promise.resolve({ ok: true });
     chk.then(function (r) {
         if (!r.ok) {
