@@ -72,6 +72,7 @@ async function checkStaffAccess() {
         return { ok: true, role: 'dev', clubId: devCid };
     }
 
+    await supabase.auth.refreshSession();
     var _s = await supabase.auth.getSession();
     var session = _s && _s.data && _s.data.session;
     if (!session) {
@@ -89,8 +90,8 @@ async function checkStaffAccess() {
     }
 
     var role = q.data.role != null ? String(q.data.role).trim() : '';
-    if (role !== 'club_admin' && role !== 'superadmin') {
-        return { ok: false, reason: 'role', role: role || '(vacío)' };
+    if (!role) {
+        return { ok: false, reason: 'role', role: '(vacío)' };
     }
 
     var clubIdOut = null;
