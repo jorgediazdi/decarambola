@@ -116,15 +116,15 @@
     </p>
     <div class="campo">
         <label>Mañana (antes de 12:00) — %</label>
-        <input type="number" id="descuento_manana" step="0.1" value="0" placeholder="0" oninput="actualizarEjemploTarifas()">
+        <input type="number" id="descuento_manana" step="0.1" value="0" placeholder="0" min="-100" max="200" oninput="actualizarEjemploTarifas()">
     </div>
     <div class="campo">
         <label>Noche (desde las 20:00) — %</label>
-        <input type="number" id="descuento_noche" step="0.1" value="0" placeholder="0" oninput="actualizarEjemploTarifas()">
+        <input type="number" id="descuento_noche" step="0.1" value="0" placeholder="0" min="-100" max="200" oninput="actualizarEjemploTarifas()">
     </div>
     <div class="campo">
         <label>Fin de semana (sábado y domingo) — %</label>
-        <input type="number" id="descuento_finde" step="0.1" value="0" placeholder="0" oninput="actualizarEjemploTarifas()">
+        <input type="number" id="descuento_finde" step="0.1" value="0" placeholder="0" min="-100" max="200" oninput="actualizarEjemploTarifas()">
     </div>
 
     <div class="sec">EJEMPLO (SE ACTUALIZA AL ESCRIBIR)</div>
@@ -320,6 +320,13 @@ async function guardarTarifas() {
     var rr = await auth.getRole();
     if (rr.error || rr.data !== 'club_admin') {
         mostrarToastTarifas('Solo el administrador del club puede editar tarifas.');
+        return;
+    }
+    var dm = parseFloat(document.getElementById('descuento_manana').value) || 0;
+    var dn = parseFloat(document.getElementById('descuento_noche').value) || 0;
+    var df = parseFloat(document.getElementById('descuento_finde').value) || 0;
+    if (dm < -100 || dm > 200 || dn < -100 || dn > 200 || df < -100 || df > 200) {
+        mostrarToastTarifas('Los descuentos deben estar entre -100% y +200%.');
         return;
     }
     var btn = document.getElementById('btn_guardar');
