@@ -5,224 +5,228 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0b0b0b">
     <title>TV Salón — DeCarambola</title>
-    <style>
-        :root { --oro:#d4af37; --g1:#1a1a1a; --g2:#111; --neon:#2eff70; }
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body { background:#000; color:#e0e0e0; font-family:system-ui,-apple-system,sans-serif; min-height:100vh; padding:16px 14px 32px; }
-        .hdr { text-align:center; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--g1); }
-        .hdr h1 { color:var(--oro); font-size:0.95rem; letter-spacing:0.12em; }
-        .hdr p { color:#666; font-size:0.72rem; margin-top:8px; line-height:1.5; }
-        .hdr a { color:var(--oro); font-size:0.72rem; }
-        .status { text-align:center; font-size:0.7rem; color:#666; margin-bottom:16px; min-height:1.2em; }
-        .status.err { color:#e74c3c; }
-        .status.ok { color:var(--neon); }
-        /* Una sola fila, orden DOM = orden físico de mesas (número ascendente) para encajar con OBS/cámaras */
-        .grid {
-            display:grid;
-            grid-auto-flow:column;
-            grid-auto-columns:minmax(260px,1fr);
-            gap:14px;
-            max-width:100%;
-            margin:0 auto;
-            overflow-x:auto;
-            overflow-y:visible;
-            padding-bottom:4px;
-            align-items:stretch;
-        }
-        .card { background:var(--g2); border:1px solid var(--g1); border-radius:14px; padding:14px; }
-        .card h2 { font-size:0.8rem; color:var(--oro); letter-spacing:0.06em; margin-bottom:8px; }
-        .card .meta { font-size:0.68rem; color:#888; line-height:1.45; }
-        .card .crono { font-family:ui-monospace,monospace; font-size:1.1rem; color:#fff; margin:10px 0; }
-        .embed-wrap { position:relative; width:100%; padding-bottom:56.25%; height:0; margin-top:10px; border-radius:10px; overflow:hidden; background:#000; border:1px solid var(--g1); }
-        .embed-wrap iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
-        .live-pill { display:inline-block; margin-top:8px; padding:4px 10px; border-radius:999px; font-size:0.62rem; font-weight:700; letter-spacing:0.08em; background:rgba(231,76,60,0.2); color:#e74c3c; border:1px solid rgba(231,76,60,0.45); }
-        .stream-link { display:inline-block; margin-top:10px; font-size:0.72rem; color:var(--oro); word-break:break-all; }
-        .empty { text-align:center; color:#555; font-size:0.75rem; padding:40px 16px; }
-        .grid.grid--empty { display:block; overflow:visible; }
-        .tools { max-width:520px; margin:20px auto 0; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
-        .tools a { color:#888; font-size:0.65rem; }
-    </style>
+<style>
+    :root { --oro:#d4af37; --g1:#1a1a1a; --neon:#2eff70; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:#000; color:#fff; font-family:system-ui,sans-serif; 
+           width:100vw; height:100vh; overflow:hidden; }
+    #dc-tv-grid { width:100vw; height:100vh; position:relative; }
+    .card { width:100vw; height:100vh; position:absolute; inset:0; display:none; }
+    .card.activa { display:block; }
+    .embed-wrap { width:100%; height:100%; position:relative; }
+    .embed-wrap iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+    .overlay-mda { position:fixed; inset:0; pointer-events:none; z-index:10; }
+    .overlay-logo-club { position:absolute; top:24px; left:24px; opacity:0.35; max-width:120px; max-height:60px; font-size:0.75rem; color:var(--oro); letter-spacing:0.1em; }
+    .overlay-marca { position:absolute; bottom:20px; right:24px; font-size:0.72rem; color:rgba(255,255,255,0.35); letter-spacing:0.12em; font-weight:600; }
+    .overlay-jugador { position:absolute; bottom:60px; left:0; right:0; text-align:center; transition:opacity 1s ease; }
+    .overlay-jugador .jug-nombre { font-size:1.6rem; font-weight:700; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,0.8); letter-spacing:0.06em; }
+    .overlay-jugador .jug-crono { font-family:ui-monospace,monospace; font-size:1.1rem; color:var(--oro); margin-top:4px; text-shadow:0 2px 8px rgba(0,0,0,0.8); }
+    .overlay-jugador.oculto { opacity:0; }
+    .nav-mesas { position:fixed; top:50%; transform:translateY(-50%); z-index:20; pointer-events:all; background:rgba(0,0,0,0.4); border:none; color:#fff; font-size:1.5rem; padding:12px 8px; cursor:pointer; border-radius:6px; opacity:0.5; transition:opacity 0.2s; }
+    .nav-mesas:hover { opacity:1; }
+    .nav-prev { left:8px; }
+    .nav-next { right:8px; }
+    .nav-mesas.oculto { display:none; }
+    .mesa-indicator { position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:20; font-size:0.65rem; color:rgba(255,255,255,0.4); letter-spacing:0.1em; pointer-events:none; }
+    .empty { text-align:center; color:#555; font-size:0.75rem; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+</style>
 </head>
 <body>
-    <div class="hdr">
-        <h1>TV · SALÓN EN VIVO</h1>
-        <p>Mesas <strong>ocupadas</strong>, tiempo de sesión y stream (canónico Supabase: <code style="color:#555;">club_id</code>, <code style="color:#555;">url_camara</code>). Actualización vía Realtime.</p>
-        <p><a href="index.html">← Portal club</a> · <a href="/apps/club/sala/mesas.html">Operación salón</a> · <a href="/duelo-tv.html?modo=tv">Duelo TV</a></p>
+<button class="nav-mesas nav-prev oculto" id="btn-prev" onclick="navMesa(-1)">‹</button>
+<button class="nav-mesas nav-next oculto" id="btn-next" onclick="navMesa(1)">›</button>
+<div class="mesa-indicator" id="mesa-indicator"></div>
+<div id="dc-tv-grid"></div>
+<div class="overlay-mda">
+    <div class="overlay-logo-club" id="overlay-club">CLUB</div>
+    <div class="overlay-marca">decarambola.com</div>
+    <div class="overlay-jugador" id="overlay-jugador">
+        <div class="jug-nombre" id="overlay-nombre">—</div>
+        <div class="jug-crono" id="overlay-crono">00:00</div>
     </div>
-    <div class="status" id="dc-tv-status">Conectando…</div>
-    <div class="grid" id="dc-tv-grid"></div>
-    <div class="tools">
-        <a href="?">Quitar ?club= de la URL</a>
-        <span style="color:#333;">|</span>
-        <a href="/duelo-tv.html?modo=produccion">Producción duelo</a>
-    </div>
+</div>
+<script type="module">
+    import { supabase } from '../js/supabase-client.js';
 
-    <script type="module">
-        import { supabase } from '../js/supabase-client.js';
+    function getClubIdFromPage() {
+        try {
+            var q = new URLSearchParams(window.location.search).get('club');
+            if (q && String(q).trim()) return String(q).trim();
+        } catch (e) {}
+        try {
+            var p = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+            if (p && p.club_id) return String(p.club_id).trim();
+        } catch (e2) {}
+        return '';
+    }
 
-        function getClubIdFromPage() {
-            try {
-                var q = new URLSearchParams(window.location.search).get('club');
-                if (q && String(q).trim()) return String(q).trim();
-            } catch (e) {}
-            try {
-                var p = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-                if (p && p.club_id) return String(p.club_id).trim();
-            } catch (e2) {}
-            return '';
+    function urlStreamingMesa(m) {
+        if (!m) return '';
+        var u = (m.url_camara || '').trim();
+        if (!u && m.urls_camaras && m.urls_camaras.length) {
+            var first = m.urls_camaras[0];
+            u = (first && typeof first === 'object' && first.url) ? String(first.url).trim() : (typeof first === 'string' ? first.trim() : '');
+        }
+        return u || '';
+    }
+
+    function youtubeEmbedUrl(url) {
+        if (!url) return null;
+        var s = String(url);
+        var m = s.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{6,})/);
+        if (m && m[1]) return 'https://www.youtube.com/embed/' + m[1] + '?rel=0';
+        return null;
+    }
+
+    var clubId = getClubIdFromPage();
+    var mesasById = {};
+    var sesionesByMesa = {};
+    var tickTimer = null;
+
+    function normalizarEstado(e) {
+        return String(e || '')
+            .toLowerCase()
+            .replace(/\s+/g, '_');
+    }
+
+    async function cargarSnapshot() {
+        if (!clubId) return;
+        var m = await supabase.from('mesas').select('*').eq('club_id', clubId);
+        if (m.error) return;
+        mesasById = {};
+        (m.data || []).forEach(function (row) {
+            mesasById[row.id] = row;
+        });
+        var h = await supabase.from('mesas_historial').select('*').eq('club_id', clubId).eq('estado', 'abierta');
+        if (h.error) return;
+        sesionesByMesa = {};
+        (h.data || []).forEach(function (row) {
+            if (row.mesa_id) sesionesByMesa[row.mesa_id] = row;
+        });
+        render();
+    }
+
+    function fmtCrono(inicioIso) {
+        var t0 = new Date(inicioIso).getTime();
+        if (isNaN(t0)) return '—';
+        var seg = Math.floor((Date.now() - t0) / 1000);
+        var h = Math.floor(seg / 3600),
+            mi = Math.floor((seg % 3600) / 60),
+            s = seg % 60;
+        return (h ? h + ':' : '') + (mi < 10 ? '0' : '') + mi + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    var mesasOcupadas = [];
+    var mesaActualIdx = 0;
+
+    function navMesa(dir) {
+        if (mesasOcupadas.length < 2) return;
+        mesaActualIdx = (mesaActualIdx + dir + mesasOcupadas.length) % mesasOcupadas.length;
+        mostrarMesaActual();
+        var ind = document.getElementById('mesa-indicator');
+        if (ind && mesasOcupadas.length) {
+            var cur = mesasOcupadas[mesaActualIdx];
+            ind.textContent = 'MESA ' + (cur.numero != null ? cur.numero : '—') + ' · ' + (mesaActualIdx + 1) + '/' + mesasOcupadas.length;
+        }
+    }
+
+    function mostrarMesaActual() {
+        var cards = document.querySelectorAll('#dc-tv-grid .card');
+        cards.forEach(function (c) { c.classList.remove('activa'); });
+        if (cards[mesaActualIdx]) cards[mesaActualIdx].classList.add('activa');
+
+        var mesa = mesasOcupadas[mesaActualIdx];
+        var ses = mesa ? sesionesByMesa[mesa.id] : null;
+
+        var nombre = ses && ses.jugador_nombre ? ses.jugador_nombre : '—';
+        var elNombre = document.getElementById('overlay-nombre');
+        var elCrono = document.getElementById('overlay-crono');
+        if (elNombre) elNombre.textContent = nombre;
+        if (elCrono) elCrono.textContent = ses && ses.inicio_sesion ? fmtCrono(ses.inicio_sesion) : '00:00';
+    }
+
+    function render() {
+        var grid = document.getElementById('dc-tv-grid');
+        if (!grid) return;
+
+        mesasOcupadas = [];
+        Object.keys(mesasById).forEach(function (id) {
+            var mesa = mesasById[id];
+            if (normalizarEstado(mesa.estado) === 'ocupada') mesasOcupadas.push(mesa);
+        });
+        mesasOcupadas.sort(function (a, b) { return (a.numero || 0) - (b.numero || 0); });
+
+        if (!mesasOcupadas.length) {
+            grid.innerHTML = '<div class="empty">Ninguna mesa ocupada. Cuando la operadora abra una sesión, aparecerá acá.</div>';
+            var ind = document.getElementById('mesa-indicator');
+            if (ind) ind.textContent = '';
+            var btnP = document.getElementById('btn-prev');
+            var btnN = document.getElementById('btn-next');
+            if (btnP) btnP.classList.add('oculto');
+            if (btnN) btnN.classList.add('oculto');
+            return;
         }
 
-        /** URL de streaming canónica en BD: url_camara (+ urls_camaras[0] como respaldo). */
-        function urlStreamingMesa(m) {
-            if (!m) return '';
-            var u = (m.url_camara || '').trim();
-            if (!u && m.urls_camaras && m.urls_camaras.length) {
-                var first = m.urls_camaras[0];
-                u = (first && typeof first === 'object' && first.url) ? String(first.url).trim() : (typeof first === 'string' ? first.trim() : '');
+        if (mesaActualIdx >= mesasOcupadas.length) mesaActualIdx = 0;
+
+        var html = '';
+        mesasOcupadas.forEach(function (mesa) {
+            var url = urlStreamingMesa(mesa);
+            var yt = youtubeEmbedUrl(url);
+            html += '<div class="card" data-mesa-id="' + mesa.id + '">';
+            if (yt) {
+                var q = yt.indexOf('?') >= 0 ? '&' : '?';
+                html += '<div class="embed-wrap"><iframe src="' + yt + q + 'autoplay=1&mute=1" title="Stream" allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
+            } else if (url) {
+                html += '<div class="embed-wrap" style="display:flex;align-items:center;justify-content:center;">';
+                html += '<a style="color:var(--oro);font-size:0.9rem;" href="' + url.replace(/"/g, '&quot;') + '" target="_blank" rel="noopener">Abrir stream</a></div>';
+            } else {
+                html += '<div class="embed-wrap" style="display:flex;align-items:center;justify-content:center;">';
+                html += '<span style="color:#666;font-size:0.85rem;">Sin URL de stream en esta mesa.</span></div>';
             }
-            return u || '';
-        }
+            html += '</div>';
+        });
+        grid.innerHTML = html;
 
-        function youtubeEmbedUrl(url) {
-            if (!url) return null;
-            var s = String(url);
-            var m = s.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{6,})/);
-            if (m && m[1]) return 'https://www.youtube.com/embed/' + m[1] + '?rel=0';
-            return null;
-        }
-
-        function isMuxLike(url) {
-            return /mux\.com|stream\.mux/i.test(String(url || ''));
-        }
-
-        var clubId = getClubIdFromPage();
-        var mesasById = {};
-        var sesionesByMesa = {};
-        var tickTimer = null;
-
-        function setStatus(msg, cls) {
-            var el = document.getElementById('dc-tv-status');
-            if (!el) return;
-            el.textContent = msg || '';
-            el.className = 'status' + (cls ? ' ' + cls : '');
-        }
-
-        function normalizarEstado(e) {
-            return String(e || '')
-                .toLowerCase()
-                .replace(/\s+/g, '_');
-        }
-
-        async function cargarSnapshot() {
-            if (!clubId) {
-                setStatus('Falta club: abrí con ?club=TU_CODIGO o iniciá sesión con perfil que tenga club_id.', 'err');
-                return;
-            }
-            var m = await supabase.from('mesas').select('*').eq('club_id', clubId);
-            if (m.error) {
-                setStatus('Error mesas: ' + m.error.message, 'err');
-                return;
-            }
-            mesasById = {};
-            (m.data || []).forEach(function (row) {
-                mesasById[row.id] = row;
-            });
-            var h = await supabase.from('mesas_historial').select('*').eq('club_id', clubId).eq('estado', 'abierta');
-            if (h.error) {
-                setStatus('Error historial: ' + h.error.message, 'err');
-                return;
-            }
-            sesionesByMesa = {};
-            (h.data || []).forEach(function (row) {
-                if (row.mesa_id) sesionesByMesa[row.mesa_id] = row;
-            });
-            setStatus('Realtime activo · club_id=' + clubId, 'ok');
-            render();
-        }
-
-        function fmtCrono(inicioIso) {
-            var t0 = new Date(inicioIso).getTime();
-            if (isNaN(t0)) return '—';
-            var seg = Math.floor((Date.now() - t0) / 1000);
-            var h = Math.floor(seg / 3600),
-                mi = Math.floor((seg % 3600) / 60),
-                s = seg % 60;
-            return (h ? h + ':' : '') + (mi < 10 ? '0' : '') + mi + ':' + (s < 10 ? '0' : '') + s;
-        }
-
-        function render() {
-            var grid = document.getElementById('dc-tv-grid');
-            if (!grid) return;
-            var ocupadas = [];
-            Object.keys(mesasById).forEach(function (id) {
-                var mesa = mesasById[id];
-                if (normalizarEstado(mesa.estado) === 'ocupada') ocupadas.push(mesa);
-            });
-            ocupadas.sort(function (a, b) { return (a.numero || 0) - (b.numero || 0); });
-            if (!ocupadas.length) {
-                grid.classList.add('grid--empty');
-                grid.innerHTML = '<div class="empty">Ninguna mesa ocupada. Cuando la operadora abra una sesión, aparecerá acá al instante.</div>';
-                return;
-            }
-            grid.classList.remove('grid--empty');
-            var html = '';
-            ocupadas.forEach(function (mesa) {
-                var ses = sesionesByMesa[mesa.id];
-                var inicio = ses && ses.inicio_sesion ? ses.inicio_sesion : null;
-                var url = urlStreamingMesa(mesa);
-                var yt = youtubeEmbedUrl(url);
-                var titulo = (mesa.nombre || 'Mesa') + ' · #' + (mesa.numero != null ? mesa.numero : '—');
-                var jug = ses && ses.jugador_nombre ? ses.jugador_nombre : '—';
-                html += '<div class="card" data-mesa-id="' + mesa.id + '">';
-                html += '<h2>' + titulo + '</h2>';
-                html += '<div class="meta">Cliente: ' + jug + '</div>';
-                if (inicio) {
-                    html += '<div class="crono" data-inicio="' + inicio.replace(/"/g, '') + '">' + fmtCrono(inicio) + '</div>';
-                    html += '<span class="live-pill">EN SESIÓN</span>';
-                } else {
-                    html += '<div class="crono">Sin fila abierta en historial (revisá sync)</div>';
-                }
-                if (yt) {
-                    html += '<div class="embed-wrap"><iframe src="' + yt + '" title="Stream" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
-                } else if (url) {
-                    html += '<a class="stream-link" href="' + url.replace(/"/g, '&quot;') + '" target="_blank" rel="noopener">';
-                    html += (isMuxLike(url) ? 'Abrir stream (Mux / HLS)' : 'Abrir señal en nueva pestaña') + '</a>';
-                } else {
-                    html += '<div class="meta" style="margin-top:10px;">Sin URL de stream en esta mesa.</div>';
-                }
-                html += '</div>';
-            });
-            grid.innerHTML = html;
-        }
-
-        function tickCronos() {
-            document.querySelectorAll('.crono[data-inicio]').forEach(function (el) {
-                var iso = el.getAttribute('data-inicio');
-                if (iso) el.textContent = fmtCrono(iso);
-            });
-        }
-
-        if (!clubId) {
-            setStatus('Indicá el club en la URL: ?club=TU_CODIGO o usá el mismo navegador donde ya elegiste club.', 'err');
+        var btnP = document.getElementById('btn-prev');
+        var btnN = document.getElementById('btn-next');
+        if (mesasOcupadas.length < 2) {
+            if (btnP) btnP.classList.add('oculto');
+            if (btnN) btnN.classList.add('oculto');
         } else {
-            await cargarSnapshot();
-            var cid = encodeURIComponent(clubId.replace(/[^a-zA-Z0-9_-]/g, '_'));
-            var ch = supabase.channel('dc-premium-tv-' + cid);
-            ch.on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'mesas', filter: 'club_id=eq.' + clubId },
-                function () { cargarSnapshot(); }
-            );
-            ch.on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'mesas_historial', filter: 'club_id=eq.' + clubId },
-                function () { cargarSnapshot(); }
-            );
-            ch.subscribe(function (status) {
-                if (status === 'CHANNEL_ERROR') setStatus('Canal Realtime con error. Activá replicación para mesas y mesas_historial en Supabase.', 'err');
-            });
-            tickTimer = setInterval(tickCronos, 1000);
+            if (btnP) btnP.classList.remove('oculto');
+            if (btnN) btnN.classList.remove('oculto');
         }
-    </script>
+        var ind2 = document.getElementById('mesa-indicator');
+        if (ind2 && mesasOcupadas.length) {
+            var cur = mesasOcupadas[mesaActualIdx];
+            ind2.textContent = 'MESA ' + (cur.numero != null ? cur.numero : '—') + ' · ' + (mesaActualIdx + 1) + '/' + mesasOcupadas.length;
+        }
+        mostrarMesaActual();
+    }
+
+    function tickCronos() {
+        mostrarMesaActual();
+    }
+
+    window.navMesa = navMesa;
+
+    if (clubId) {
+        await cargarSnapshot();
+        var cid = encodeURIComponent(clubId.replace(/[^a-zA-Z0-9_-]/g, '_'));
+        var ch = supabase.channel('dc-premium-tv-' + cid);
+        ch.on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'mesas', filter: 'club_id=eq.' + clubId },
+            function () { cargarSnapshot(); }
+        );
+        ch.on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'mesas_historial', filter: 'club_id=eq.' + clubId },
+            function () { cargarSnapshot(); }
+        );
+        ch.subscribe();
+        tickTimer = setInterval(tickCronos, 1000);
+    }
+</script>
 </body>
 </html>
