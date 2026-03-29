@@ -95,12 +95,17 @@ export async function requireRole(role) {
   }
 }
 
-export async function signUp(email, password) {
+export async function signUp(email, password, clubId) {
   try {
-    const { data, error } = await supabase.auth.signUp({
+    const payload = {
       email: String(email || '').trim(),
       password: String(password || '')
-    });
+    };
+    var c = clubId != null ? String(clubId).trim() : '';
+    if (c) {
+      payload.options = { data: { club_id: c } };
+    }
+    const { data, error } = await supabase.auth.signUp(payload);
     return wrap(data, error);
   } catch (e) {
     return { data: null, error: e };

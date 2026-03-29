@@ -1,8 +1,8 @@
 /**
  * Cableado de auth.html — importa cliente y auth-manager (sin createClient duplicado).
  */
+import { supabase } from '/js/supabase-client.js';
 import {
-  supabase,
   signIn,
   signOut,
   signUp,
@@ -156,6 +156,7 @@ document.getElementById('btn-up').onclick = async function () {
   clearMsg();
   var email = (elEmail.value || '').trim();
   var password = elPass.value || '';
+  var clubCodigo = (document.getElementById('club-codigo') && document.getElementById('club-codigo').value || '').trim();
   if (!email || !password) {
     showMsg('Escribí correo y contraseña para crear la cuenta.', false);
     return;
@@ -165,11 +166,22 @@ document.getElementById('btn-up').onclick = async function () {
     return;
   }
   this.disabled = true;
-  var r = await signUp(email, password);
+  var r = await signUp(email, password, clubCodigo || undefined);
   this.disabled = false;
   if (r.error) {
     showMsg(r.error.message || 'Error al registrarse', false);
     return;
+  }
+  if (r.data && r.data.user) {
+    var u = r.data.user;
+    await supabase.from('profiles').upsert(
+      {
+        id: u.id,
+        role: 'jugador',
+        club_id: clubCodigo || null
+      },
+      { onConflict: 'id' }
+    );
   }
   if (r.data && r.data.user && !r.data.session) {
     showMsg('Revisá tu correo para confirmar la cuenta (o desactivá confirmación en Supabase en desarrollo).', true);
