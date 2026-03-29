@@ -661,12 +661,13 @@ var avisoRestringidoActivo = false;
  * Por ahora: asistente visible sin exigir admin en localStorage (acceso alineado con sala-supabase-gate).
  * Después: restricción con email/sesión — poner false y/o leer la misma política que guardSalaPage. Ver docs/ACCESO_SALA_ROADMAP.md
  */
-var DC_SALA_OPEN_ACCESS = true;
+var DC_SALA_OPEN_ACCESS = false;
 (function(){
     var clubAdmin = localStorage.getItem('club_admin') === 'true';
     var pinAdmin = localStorage.getItem('club_admin_activo') === 'true';
     /* Admin en MI CLUB / PIN, o acceso abierto alineado con guardSalaPage. */
-    var puedeConfig = clubAdmin || pinAdmin || DC_SALA_OPEN_ACCESS;
+    var rolSesion = localStorage.getItem('session_rol');
+    var puedeConfig = rolSesion === 'superadmin' || rolSesion === 'club_admin' || clubAdmin || pinAdmin || DC_SALA_OPEN_ACCESS;
     /* Antes también exigíamos session_ultimo_act “fresco” antes de SESSION.iniciar → el formulario desaparecía. */
     if (!puedeConfig) {
         avisoRestringidoActivo = true;
