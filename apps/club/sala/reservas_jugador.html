@@ -578,7 +578,7 @@ async function buscarJugador(cedula) {
         toast('Cédula no registrada en este club', 'error');
         return;
     }
-    if (String(jug.club_id || '') !== String(clubId)) {
+    if (String(jug.club || jug.club_id || '') !== String(clubId)) {
         toast('Cédula no registrada en este club', 'error');
         return;
     }
