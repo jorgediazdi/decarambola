@@ -145,11 +145,19 @@
         body.salon-vista-tv #modal_ticket_mesa,
         body.salon-vista-tv #modal_crono,
         body.salon-vista-tv #modal_costo { display: none !important; }
+
+        /* ── ALERTA MESA >3h ── */
+        .mesa-alerta-3h { outline: 2px solid #e74c3c !important; }
+        .mesa-alerta-3h::after { content: '⚠'; position: absolute; top: 4px; right: 5px; font-size: 0.65rem; line-height: 1; }
+        #dc-alerta-3h { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #2a1010; border: 1px solid rgba(231,76,60,0.5); color: #ffc9c9; padding: 10px 18px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; z-index: 9999; display: none; text-align: center; max-width: min(92vw, 380px); }
+        body.salon-vista-tv #dc-alerta-3h { font-size: 1.1rem; padding: 14px 24px; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
 <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-app dc-ux dc-ux-skin m-root-salon">
+
+<div id="dc-alerta-3h"></div>
 
 <div class="stars" id="stars-bg" aria-hidden="true"></div>
 
@@ -476,7 +484,8 @@ function celdaMesaHtml(m, animDelaySec) {
     var su = getStreamUrlLocal(m);
     var camCls = 'mesa-cam-icon' + (su ? '' : ' inactiva');
     var camOn = su ? ' onclick="dcAbrirStreamMesaIcon(event, \'' + encodeURIComponent(su) + '\')"' : '';
-    var html = '<div class="mesa-celda luz-mesa estado-' + estado + '"' + delayAttr + ' data-id="' + m.id + '" onclick="abrirModal(\'' + m.id + '\')">';
+    var _alerta3h = (estado === 'ocupada' && sesion && ((Date.now() - new Date(sesion.inicio).getTime()) >= 10800000)) ? ' mesa-alerta-3h' : '';
+    var html = '<div class="mesa-celda luz-mesa estado-' + estado + _alerta3h + '"' + delayAttr + ' data-id="' + m.id + '" onclick="abrirModal(\'' + m.id + '\')">';
     html += '<span class="' + camCls + '" title="' + (su ? 'Ver stream' : 'Sin cámara') + '"' + camOn + '>📹</span>';
     html += '<span class="emoji-estado">' + emoji + '</span>';
     html += '<span class="nom">' + (m.nombre || m.numero) + '</span>';
@@ -717,11 +726,25 @@ function renderPlano() {
 
 function actualizarCronos() {
     var needUpdate = false;
+    var alertas = [];
     mesasLista.forEach(function(m){
         if ((m.estado||'') !== 'ocupada') return;
-        if (sesionesAbiertas[m.id]) needUpdate = true;
+        var sesion = sesionesAbiertas[m.id];
+        if (!sesion) return;
+        needUpdate = true;
+        var horas = (Date.now() - new Date(sesion.inicio).getTime()) / 3600000;
+        if (horas >= 3) alertas.push((m.nombre || ('Mesa ' + (m.numero || ''))).toUpperCase());
     });
     if (needUpdate) renderPlano();
+    var alEl = document.getElementById('dc-alerta-3h');
+    if (alEl) {
+        if (alertas.length) {
+            alEl.textContent = '⚠ +3h: ' + alertas.join(' · ');
+            alEl.style.display = 'block';
+        } else {
+            alEl.style.display = 'none';
+        }
+    }
 }
 
 function dcUrlOverlayMarcador(matchUuid) {
