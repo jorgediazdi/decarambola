@@ -354,6 +354,7 @@ function mostrarToastTarifas(msg) {
 var _dcTarifasSalonMesasLista = null;
 var _dcTarifasSalonMesasSnapshot = {};
 var _dcTarifasPorMesaEsSuperadmin = false;
+var _dcClubVideoIaActivo = false;
 
 function _normTarifaHoraMesaInput(v) {
     if (v == null || String(v).trim() === '') return null;
@@ -385,6 +386,7 @@ async function initTarifasPorMesaSection() {
     body.innerHTML = '';
     _dcTarifasSalonMesasLista = null;
     _dcTarifasSalonMesasSnapshot = {};
+    _dcClubVideoIaActivo = false;
     if (estado) {
         estado.style.display = 'none';
         estado.textContent = '';
@@ -397,6 +399,16 @@ async function initTarifasPorMesaSection() {
         var rol = rr.error ? null : rr.data;
         _dcTarifasPorMesaEsSuperadmin = rol === 'superadmin';
         if (rol !== 'club_admin' && rol !== 'superadmin') return;
+        if (rol === 'club_admin') {
+            try {
+                var cid = getClubIdTarifas();
+                if (cid) {
+                    var apiC = await _clubApiTar();
+                    var clubR = await apiC.getClubByIdOrCodigo(cid);
+                    _dcClubVideoIaActivo = !!(clubR.data && clubR.data.video_ia_activo);
+                }
+            } catch (_ec) {}
+        }
     } catch (_e) {
         return;
     }
@@ -447,7 +459,7 @@ async function initTarifasPorMesaSection() {
             '" min="0" step="0.01" placeholder="Sin tarifa propia (usa base salón)" value="' +
             _escAttrTarifa(thVal) +
             '">';
-        if (_dcTarifasPorMesaEsSuperadmin) {
+        if (_dcTarifasPorMesaEsSuperadmin || _dcClubVideoIaActivo) {
             html += '<div class="tarifa-mesa-video-row">';
             html +=
                 '<label><input type="checkbox" id="video_ia_' +
@@ -506,7 +518,7 @@ async function guardarTarifasPorMesa() {
             var newTh = thEl ? _normTarifaHoraMesaInput(thEl.value) : snap.tarifa_hora;
             var newVid = snap.video_activo;
             var newVt = snap.video_tarifa;
-            if (isSuper) {
+            if (isSuper || _dcClubVideoIaActivo) {
                 var cEl = document.getElementById('video_ia_' + mid);
                 var vEl = document.getElementById('video_tarifa_' + mid);
                 newVid = !!(cEl && cEl.checked);

@@ -60,7 +60,7 @@ export async function getClubByIdOrCodigo(clubKey) {
   try {
     var key = String(clubKey || '').trim();
     if (!key) return { data: null, error: null };
-    const sel = 'id,nombre,codigo,ciudad,color_primario,logo_url';
+    const sel = 'id,nombre,codigo,ciudad,color_primario,logo_url,video_ia_activo';
     if (isClubKeyLikelyUuid(key)) {
       const byId = await supabase.from('clubs').select(sel).eq('id', key).maybeSingle();
       if (byId.error) return wrap(null, byId.error);
