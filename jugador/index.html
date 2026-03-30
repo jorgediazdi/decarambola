@@ -3,26 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#b03028">
+    <meta name="theme-color" content="#c9a84c">
     <meta name="description" content="App jugador DeCarambola — partida, perfil, torneos">
     <title>App jugador — DeCarambola</title>
     <link rel="stylesheet" href="/css/dc-system.css">
     <script src="/js/dc-nav.js" defer></script>
     <link rel="stylesheet" href="/css/ux-shell.css">
     <style>
-        :root {
-            --oro: #d4af37;
-            --negro: #0b0b0b;
-            --neon: #2eff70;
-            --azul: #3498db;
-            --rojo: #e74c3c;
-            --jug: #e74c3c;
-        }
+        /* App jugador — dc-system (dorado único, sin neón/azul/rojo de acento) */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body.dc-ux.dc-ux-skin.jugador-hub {
-            font-family: 'Arial Black', Arial, sans-serif !important;
+        body.dc-app.dc-ux.dc-ux-skin.jugador-hub {
+            font-family: var(--dc-font-body, "DM Sans", system-ui, sans-serif) !important;
         }
-        /* Fondo estrellas (misma base que index) */
         #stars-bg.stars,
         .stars#stars-bg {
             position: fixed;
@@ -32,7 +24,7 @@
             height: 100%;
             pointer-events: none;
             z-index: 0;
-            background: radial-gradient(ellipse at 50% 0%, #0d0800 0%, #000 70%);
+            background: radial-gradient(ellipse at 50% 0%, #12100a 0%, var(--dc-bg, #0a0a0a) 70%);
         }
         body.dc-ux-skin .star {
             position: absolute;
@@ -54,8 +46,8 @@
         }
         .hdr-top-nav {
             width: 100%;
-            background: #000;
-            border-bottom: 1px solid #1a1a1a;
+            background: var(--dc-bg, #0a0a0a);
+            border-bottom: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
             padding: 12px 16px;
             position: sticky;
             top: 0;
@@ -73,45 +65,44 @@
             padding: 14px 16px;
             margin-bottom: 16px;
             border-radius: 16px;
-            border: 1px solid rgba(212, 175, 55, 0.28);
-            background: rgba(20, 16, 10, 0.55);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            background: var(--dc-surface, #111111);
         }
         .jug-club-brand img {
             width: 52px;
             height: 52px;
             border-radius: 50%;
             object-fit: contain;
-            background: #111;
-            border: 2px solid rgba(212, 175, 55, 0.35);
+            background: var(--dc-surface, #111111);
+            border: 2px solid var(--dc-border-hover, rgba(201, 168, 76, 0.3));
             flex-shrink: 0;
         }
         .jug-club-label {
             font-size: 0.42rem;
-            color: #555;
+            color: var(--dc-text-subtle, #555);
             letter-spacing: 0.18em;
             display: block;
             margin-bottom: 4px;
         }
         .jug-club-nombre {
             font-size: 0.72rem;
-            color: var(--oro);
+            color: var(--dc-gold, #c9a84c);
             letter-spacing: 0.06em;
         }
         body.jugador-hub .jug-nav-fold {
-            border-color: rgba(231, 76, 60, 0.22);
-            background: rgba(12, 6, 6, 0.55);
+            border-color: var(--dc-border, rgba(201, 168, 76, 0.12));
+            background: var(--dc-surface, #111111);
         }
         body.jugador-hub .jug-nav-fold[open] > summary {
-            border-bottom-color: rgba(231, 76, 60, 0.15);
-            color: #c99;
+            border-bottom-color: var(--dc-border, rgba(201, 168, 76, 0.12));
+            color: var(--dc-text-muted, #888);
         }
-        /* ── Mismo panel jugador que index.html ── */
         .bienvenida {
             display: flex;
             align-items: center;
             gap: 12px;
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
             border-radius: 16px;
             padding: 14px 18px;
             margin-bottom: 16px;
@@ -120,8 +111,8 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #1a1500, #0d0a00);
-            border: 2px solid rgba(212, 175, 55, 0.4);
+            background: var(--dc-surface2, #1a1a1a);
+            border: 2px solid var(--dc-border-hover, rgba(201, 168, 76, 0.3));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -129,18 +120,20 @@
             flex-shrink: 0;
         }
         .bienvenida-nombre {
-            color: var(--oro);
+            color: var(--dc-gold, #c9a84c);
             font-size: 0.85rem;
             letter-spacing: 1px;
+            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
         }
         .bienvenida-sub {
-            color: #444;
+            color: var(--dc-text-muted, #888);
             font-size: 0.4rem;
             margin-top: 3px;
         }
         .seccion-label {
+            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
             font-size: 0.6rem;
-            color: #333;
+            color: var(--dc-text-muted, #888);
             letter-spacing: 3px;
             margin-bottom: 10px;
             padding-left: 4px;
@@ -164,37 +157,25 @@
             gap: 8px;
             font-size: 0.5rem;
             letter-spacing: 1px;
+            font-weight: 600;
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            color: var(--dc-gold, #c9a84c);
         }
         .rapida-btn:active {
             transform: scale(0.95);
+            border-color: var(--dc-border-hover, rgba(201, 168, 76, 0.3));
         }
-        .rapida-btn.r-neon {
-            background: rgba(46, 255, 112, 0.05);
-            border: 1px solid rgba(46, 255, 112, 0.25);
-            color: var(--neon);
-        }
-        .rapida-btn.r-neon:active {
-            border-color: var(--neon);
-        }
-        .rapida-btn.r-oro {
-            background: rgba(212, 175, 55, 0.05);
-            border: 1px solid rgba(212, 175, 55, 0.25);
-            color: var(--oro);
-        }
-        .rapida-btn.r-oro:active {
-            border-color: var(--oro);
-        }
+        .rapida-btn.r-neon,
+        .rapida-btn.r-oro,
         .rapida-btn.r-rojo {
-            background: rgba(231, 76, 60, 0.05);
-            border: 1px solid rgba(231, 76, 60, 0.25);
-            color: var(--rojo);
-        }
-        .rapida-btn.r-rojo:active {
-            border-color: var(--rojo);
+            background: rgba(201, 168, 76, 0.06);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            color: var(--dc-gold, #c9a84c);
         }
         .menu-lista-item {
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
             border-radius: 16px;
             padding: 15px 18px;
             margin-bottom: 8px;
@@ -207,37 +188,34 @@
         }
         .menu-lista-item:active {
             transform: scale(0.98);
-            border-color: var(--oro);
+            border-color: var(--dc-border-hover, rgba(201, 168, 76, 0.3));
         }
-        .mli-icon {
-            flex-shrink: 0;
-        }
-        .mli-info {
-            flex: 1;
-        }
+        .mli-icon { flex-shrink: 0; }
+        .mli-info { flex: 1; }
         .mli-titulo {
             font-size: 0.6rem;
-            color: #ddd;
+            color: var(--dc-text, #f0f0f0);
             letter-spacing: 1px;
             margin-bottom: 3px;
         }
         .mli-desc {
             font-size: 0.6rem;
-            color: #444;
+            color: var(--dc-text-muted, #888);
         }
         .mli-arrow {
-            color: #333;
+            color: var(--dc-text-subtle, #555);
             font-size: 0.9rem;
         }
         .ranking-mini {
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
             border-radius: 18px;
             padding: 16px 18px;
             margin-bottom: 10px;
         }
         .ranking-mini-titulo {
-            color: var(--oro);
+            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
+            color: var(--dc-gold, #c9a84c);
             font-size: 0.65rem;
             letter-spacing: 2px;
             margin-bottom: 12px;
@@ -247,13 +225,11 @@
             align-items: center;
             gap: 10px;
             padding: 9px 0;
-            border-bottom: 1px solid #111;
+            border-bottom: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
         }
-        .ranking-row:last-child {
-            border: none;
-        }
+        .ranking-row:last-child { border: none; }
         .ranking-pos {
-            color: #333;
+            color: var(--dc-text-subtle, #555);
             font-size: 0.6rem;
             width: 16px;
             text-align: center;
@@ -261,22 +237,23 @@
         }
         .ranking-nombre {
             flex: 1;
-            color: #ccc;
+            color: var(--dc-text, #f0f0f0);
             font-size: 0.55rem;
         }
         .ranking-cat {
-            color: #444;
+            color: var(--dc-text-muted, #888);
             font-size: 0.38rem;
             display: block;
             margin-top: 2px;
         }
         .ranking-prom {
-            color: var(--oro);
+            font-family: var(--dc-font-mono, "JetBrains Mono", monospace);
+            color: var(--dc-gold, #c9a84c);
             font-size: 0.6rem;
         }
     </style>
 </head>
-<body class="dc-ux dc-ux-skin m-root-legacy jugador-hub">
+<body class="dc-app dc-ux dc-ux-skin m-root-legacy jugador-hub">
     <div class="stars" id="stars-bg" aria-hidden="true"></div>
 
     <div class="hdr-top-nav" style="max-width:640px;margin:0 auto;padding:0 18px;">
@@ -574,7 +551,7 @@
             <span class="mli-arrow">›</span>
         </a>
 
-        <a href="/Sensei.html?contacto=1" class="menu-lista-item">
+        <a href="/apps/sensei/index.html?contacto=1" class="menu-lista-item">
             <span class="mli-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="1.5" stroke-linecap="round">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />

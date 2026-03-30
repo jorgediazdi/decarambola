@@ -35,6 +35,12 @@
             label: "Perfil",
             icon: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
             href: "/perfil.html"
+        },
+        {
+            id: "sensei",
+            label: "Sensei",
+            icon: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+            href: "/apps/sensei/index.html"
         }
     ];
 
@@ -60,6 +66,9 @@
         }
         if (item.id === "perfil") {
             return p.indexOf("perfil") !== -1;
+        }
+        if (item.id === "sensei") {
+            return p.indexOf("/apps/sensei/") !== -1 || p.indexOf("sensei/index") !== -1;
         }
         return false;
     }
