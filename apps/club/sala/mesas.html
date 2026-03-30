@@ -604,8 +604,9 @@ function celdaMesaHtmlMapa(m, i) {
     var suM = getStreamUrlLocal(m);
     var camClsM = 'mesa-cam-icon' + (suM ? '' : ' inactiva');
     var camOnM = suM ? ' onclick="dcAbrirStreamMesaIcon(event, \'' + encodeURIComponent(suM) + '\')"' : '';
+    var _alerta3h = (estado === 'ocupada' && sesion && ((Date.now() - new Date(sesion.inicio).getTime()) >= 10800000)) ? ' mesa-alerta-3h' : '';
     var rotStyle = (m.meta && m.meta.rotada) ? 'transform:rotate(90deg);' : '';
-    var html = '<div class="mesa-celda luz-mesa estado-' + estado + ' mesa-mapa-pos" data-mesa-id="' + m.id + '" style="left:' + px + '%;top:' + py + '%;' + rotStyle + '" onclick="abrirModal(\'' + m.id + '\')">';
+    var html = '<div class="mesa-celda luz-mesa estado-' + estado + _alerta3h + ' mesa-mapa-pos" data-mesa-id="' + m.id + '" style="left:' + px + '%;top:' + py + '%;' + rotStyle + '" onclick="abrirModal(\'' + m.id + '\')">';
     html += '<span class="mesa-grip" data-mesa-id="' + m.id + '" title="Arrastrar posición" style="position:absolute;left:2px;bottom:2px;font-size:0.42rem;opacity:0.55;cursor:grab;z-index:3;line-height:1;">⠿</span>';
     html += '<span class="' + camClsM + '" title="' + (suM ? 'Ver stream' : 'Sin cámara') + '"' + camOnM + '>📹</span>';
     html += '<span class="emoji-estado">' + emoji + '</span>';
