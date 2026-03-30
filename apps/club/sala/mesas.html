@@ -215,11 +215,11 @@
 <div class="modal-mesa" id="modal_ticket_mesa" aria-labelledby="modal_ticket_titulo">
     <div class="modal-caja">
         <div class="modal-titulo" id="modal_ticket_titulo">COBRO DE MESA</div>
-        <div id="ticket-total-grande" style="text-align:center;margin:8px 0 4px;font-family:var(--dc-font-mono,'JetBrains Mono',monospace);font-size:2rem;font-weight:700;color:var(--dc-gold,#c9a84c);letter-spacing:2px;"></div>
         <div class="modal-ticket-body" id="modal_ticket_body"></div>
+        <div id="ticket-total-grande" style="font-size:2rem;font-weight:700;color:var(--dc-gold,#c9a84c);text-align:center;margin:10px 0 4px;letter-spacing:0.04em;"></div>
         <div class="modal-acciones">
-            <button type="button" class="modal-btn abrir" style="font-size:0.85rem;padding:16px;letter-spacing:2px;" onclick="confirmarLiquidacionMesa()">💰 CONFIRMAR COBRO</button>
-            <button type="button" class="modal-btn cerrar-modal" onclick="cerrarModalTicket()">← Volver</button>
+            <button type="button" class="modal-btn abrir" onclick="confirmarLiquidacionMesa()">✓ CONFIRMAR COBRO</button>
+            <button type="button" class="modal-btn cerrar-modal" onclick="cerrarModalTicket()">Volver</button>
         </div>
     </div>
 </div>
@@ -961,7 +961,7 @@ async function confirmarLiquidacionMesa() {
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.textContent = btnLabelOriginal || '💰 CONFIRMAR COBRO';
+            btn.textContent = btnLabelOriginal || '✓ CONFIRMAR COBRO';
         }
     }
 }
