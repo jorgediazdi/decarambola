@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script type="module">
+  import { getSession, getRole } from '/js/auth-manager.js';
+  const s = await getSession();
+  if (!s?.data?.user) {
+    window.location.replace('/auth.html?next=' +
+      encodeURIComponent(window.location.pathname));
+  }
+  const r = await getRole();
+  const rol = r?.data || '';
+  if (rol !== 'club_admin' && rol !== 'superadmin') {
+    window.location.replace('/jugador/index.html');
+  }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#c9a84c">
