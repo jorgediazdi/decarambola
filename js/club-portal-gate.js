@@ -328,8 +328,19 @@ export async function initClubPortalGate() {
         return;
     }
 
+    function _withTimeout(promise, ms) {
+        return Promise.race([
+            promise,
+            new Promise(function (_, reject) {
+                setTimeout(function () {
+                    reject(new Error('TIMEOUT'));
+                }, ms);
+            })
+        ]);
+    }
+
     try {
-        var _s = await supabase.auth.getSession();
+        var _s = await _withTimeout(supabase.auth.getSession(), 5000);
         var session = _s && _s.data && _s.data.session;
         if (!session) {
             deny(
@@ -341,11 +352,10 @@ export async function initClubPortalGate() {
             return;
         }
 
-        var q = await supabase
-            .from('profiles')
-            .select('role, club_id')
-            .eq('id', session.user.id)
-            .maybeSingle();
+        var q = await _withTimeout(
+            supabase.from('profiles').select('role, club_id').eq('id', session.user.id).maybeSingle(),
+            5000
+        );
 
         if (q.error) {
             deny('<p style="color:#e88;">No se pudo verificar el perfil.</p>', '<p style="color:#666;font-size:0.8rem;">' + q.error.message + '</p>');
@@ -411,6 +421,13 @@ export async function initClubPortalGate() {
             } catch (e) {}
         }
     } catch (e) {
-        deny('<p style="color:#e88;">Error de conexión al verificar acceso.</p>', '');
+        if (e && e.message === 'TIMEOUT') {
+            deny(
+                '<p style="color:#e88;font-size:0.95rem;">⏱ Supabase tardó más de 5 s en responder.</p>',
+                '<p style="color:#666;font-size:0.78rem;margin-top:10px;">Verificá tu conexión y <a href="" style="color:#d4af37;" onclick="location.reload();return false;">intentá de nuevo</a>.</p>'
+            );
+        } else {
+            deny('<p style="color:#e88;">Error de conexión al verificar acceso.</p>', '');
+        }
     }
 }
