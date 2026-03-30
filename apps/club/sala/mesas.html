@@ -214,11 +214,12 @@
 
 <div class="modal-mesa" id="modal_ticket_mesa" aria-labelledby="modal_ticket_titulo">
     <div class="modal-caja">
-        <div class="modal-titulo" id="modal_ticket_titulo">TICKET VIRTUAL</div>
+        <div class="modal-titulo" id="modal_ticket_titulo">COBRO DE MESA</div>
+        <div id="ticket-total-grande" style="text-align:center;margin:8px 0 4px;font-family:var(--dc-font-mono,'JetBrains Mono',monospace);font-size:2rem;font-weight:700;color:var(--dc-gold,#c9a84c);letter-spacing:2px;"></div>
         <div class="modal-ticket-body" id="modal_ticket_body"></div>
         <div class="modal-acciones">
-            <button type="button" class="modal-btn cerrar" onclick="confirmarLiquidacionMesa()">✓ LIBERAR MESA (COBRAR)</button>
-            <button type="button" class="modal-btn cerrar-modal" onclick="cerrarModalTicket()">Volver</button>
+            <button type="button" class="modal-btn abrir" style="font-size:0.85rem;padding:16px;letter-spacing:2px;" onclick="confirmarLiquidacionMesa()">💰 CONFIRMAR COBRO</button>
+            <button type="button" class="modal-btn cerrar-modal" onclick="cerrarModalTicket()">← Volver</button>
         </div>
     </div>
 </div>
@@ -864,6 +865,8 @@ function mostrarModalTicketVirtual() {
     body += 'Liquidación por minuto (tarifas del salón en Supabase).\n';
     var el = document.getElementById('modal_ticket_body');
     if (el) el.textContent = body;
+    var tt = document.getElementById('ticket-total-grande');
+    if (tt) tt.textContent = mon + Math.round(d.costo);
     var mt = document.getElementById('modal_ticket_mesa');
     if (mt) mt.classList.add('visible');
 }
@@ -910,7 +913,7 @@ async function confirmarLiquidacionMesa() {
         toastSalon('Error al calcular el costo. No se puede cerrar.', 'error');
         return;
     }
-    var btn = document.querySelector('#modal_ticket_mesa .modal-acciones button.modal-btn.cerrar');
+    var btn = document.querySelector('#modal_ticket_mesa .modal-acciones button.modal-btn.abrir');
     var btnLabelOriginal = btn ? btn.textContent : '';
     if (btn) {
         btn.disabled = true;
@@ -958,7 +961,7 @@ async function confirmarLiquidacionMesa() {
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.textContent = btnLabelOriginal || '✓ LIBERAR MESA (COBRAR)';
+            btn.textContent = btnLabelOriginal || '💰 CONFIRMAR COBRO';
         }
     }
 }
