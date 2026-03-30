@@ -793,15 +793,18 @@ function abrirModal(mesaId) {
     var acciones = document.getElementById('modal_acciones');
     acciones.innerHTML = '';
     if (estado === 'libre') {
-        acciones.innerHTML = '<button class="modal-btn abrir" onclick="accionMesa(\'abrir\')">▶ ABRIR SESIÓN</button>' +
-            '<button class="modal-btn reservar" onclick="accionMesa(\'reservar\')">📅 RESERVAR</button>' +
-            '<button class="modal-btn mant" onclick="accionMesa(\'mantenimiento\')">🔧 MANTENIMIENTO</button>' +
-            '<button class="modal-btn fuera" onclick="accionMesa(\'fuera_servicio\')">⚫ FUERA DE SERVICIO</button>';
+        // LIBRE: 2 acciones principales + admin colapsado
         var suLibre = (m.url_camara || '').trim();
         if (!suLibre && m.urls_camaras && m.urls_camaras[0] && m.urls_camaras[0].url) suLibre = String(m.urls_camaras[0].url).trim();
-        if (suLibre) {
-            acciones.innerHTML += '<button type="button" class="modal-btn ficha" onclick="previsualizarCamaraMesa()">📹 PREVISUALIZAR CÁMARA</button>';
-        }
+        acciones.innerHTML =
+            '<button class="modal-btn abrir" onclick="accionMesa(\'abrir\')">▶ ABRIR PARTIDA</button>' +
+            '<button class="modal-btn reservar" onclick="accionMesa(\'reservar\')">📅 RESERVAR</button>' +
+            '<details style="margin-top:6px;"><summary style="color:var(--dc-text-subtle,#555);font-size:0.55rem;letter-spacing:1px;cursor:pointer;padding:6px 0;">Más opciones</summary>' +
+            '<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">' +
+            '<button class="modal-btn mant" onclick="accionMesa(\'mantenimiento\')">🔧 MANTENIMIENTO</button>' +
+            '<button class="modal-btn fuera" onclick="accionMesa(\'fuera_servicio\')">⚫ FUERA DE SERVICIO</button>' +
+            (suLibre ? '<button type="button" class="modal-btn ficha" onclick="previsualizarCamaraMesa()">📹 PREVISUALIZAR CÁMARA</button>' : '') +
+            '</div></details>';
         document.getElementById('modal_crono').textContent = '—';
         document.getElementById('modal_costo').textContent = '';
     } else if (estado === 'ocupada' && sesion) {
@@ -813,27 +816,28 @@ function abrirModal(mesaId) {
         var ahora = new Date();
         var te = tarifaEfectivaPorHora(m, ahora);
         var adj = ajusteHorarioPct(ahora);
-        var linea = 'Costo (por minuto): $' + Math.round(cPro) + ' · Tarifa efectiva ahora: $' + Math.round(te) + '/h';
-        if (adj !== 0) {
-            var adjR = Math.round(adj * 100) / 100;
-            linea += ' (ajuste ' + (adjR > 0 ? '+' : '') + adjR + '%)';
-        }
-        document.getElementById('modal_costo').textContent = linea;
-        acciones.innerHTML = '<button class="modal-btn cerrar" onclick="accionMesa(\'cerrar\')">⏹ CERRAR SESIÓN</button>';
+        var mon = (salonConfig && salonConfig.moneda) ? String(salonConfig.moneda) : '$';
+        // Mostrar total prominente + tarifa secundaria
+        var totalLabel = '<strong style="font-size:1.1rem;color:var(--dc-gold,#c9a84c);">' + mon + Math.round(cPro) + '</strong>';
+        var tarifaLabel = 'Tarifa: ' + mon + Math.round(te) + '/h';
+        if (adj !== 0) { var adjR = Math.round(adj*100)/100; tarifaLabel += ' (ajuste ' + (adjR>0?'+':'') + adjR + '%)'; }
+        document.getElementById('modal_costo').innerHTML = totalLabel + '<br><span style="font-size:0.55rem;color:var(--dc-text-muted,#888);">' + tarifaLabel + '</span>';
+        // OCUPADA: 2 acciones principales
         var streamUrl = (m.url_camara || '').trim();
         if (!streamUrl && m.urls_camaras && m.urls_camaras[0] && m.urls_camaras[0].url) streamUrl = String(m.urls_camaras[0].url).trim();
-        if (streamUrl) {
-            acciones.innerHTML += '<button type="button" class="modal-btn ficha" onclick="previsualizarCamaraMesa()">📹 PREVISUALIZAR CÁMARA</button>';
-        }
+        acciones.innerHTML =
+            '<button class="modal-btn cerrar" onclick="accionMesa(\'cerrar\')">⏹ COBRAR Y CERRAR</button>' +
+            (streamUrl ? '<button type="button" class="modal-btn ficha" onclick="previsualizarCamaraMesa()">📹 VER CÁMARA</button>' : '');
         if (sesion && sesion.id) {
             actualizarBloqueUrlOverlaySesion(sesion.id);
         }
     } else {
+        // RESERVADA / MANTENIMIENTO / FUERA: volver a libre
         document.getElementById('modal_crono').textContent = '—';
         document.getElementById('modal_costo').textContent = '';
         acciones.innerHTML = '<button class="modal-btn libre" onclick="accionMesa(\'libre\')">✅ MARCAR LIBRE</button>';
     }
-    acciones.innerHTML += '<button class="modal-btn ficha" onclick="irFicha()">📋 VER FICHA</button>';
+    acciones.innerHTML += '<button class="modal-btn cerrar-modal" style="margin-top:4px;" onclick="irFicha()">📋 VER FICHA</button>';
     document.getElementById('modal_mesa').classList.add('visible');
 }
 
