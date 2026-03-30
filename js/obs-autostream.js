@@ -189,6 +189,12 @@ function createObsClient() {
     stopStream: function () {
       return request('StopStream', {});
     },
+    setScene: function (sceneName) {
+      return request('SetCurrentProgramScene', { sceneName: sceneName });
+    },
+    getStreamStatus: function () {
+      return request('GetStreamStatus', {});
+    },
     disconnect: function () {
       identifiedOk = false;
       try {
