@@ -3,874 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
-    <meta name="description" content="Dashboard de élite para billar carambola: duelos, torneos y clínica del Maestro.">
-    <title>DeCarambola — Billar carambola en Colombia</title>
+    <meta name="theme-color" content="#c9a84c">
+    <meta name="description" content="DeCarambola — billar carambola: duelos, torneos, ranking y entrenamiento premium.">
+    <title>DeCarambola — El mundo del carambola</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --negro: #0b0b0b;
-            --oro: #d4af37;
-            --neon: #2eff70;
-            --plata: #c8d0dd;
-            --gris: #1c1c1c;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body {
-            min-height: 100vh;
-            font-family: system-ui, -apple-system, sans-serif;
-            color: #f5f5f5;
-            background:
-                radial-gradient(circle at 15% 0%, rgba(212, 175, 55, 0.18), transparent 60%),
-                radial-gradient(circle at 85% 100%, rgba(46, 255, 112, 0.14), transparent 55%),
-                #050505;
-        }
-        .shell {
-            max-width: 1120px;
-            margin: 0 auto;
-            padding: 18px 18px 32px;
-        }
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        .logo-mark {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 12px;
-            border: 1px solid rgba(212, 175, 55, 0.55);
-            background: radial-gradient(circle at 30% 0%, rgba(212, 175, 55, 0.8), #1b1506);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .logo-icon span {
-            font-family: "Arial Black", Arial, sans-serif;
-            font-size: 0.85rem;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: #000;
-        }
-        .logo-text-main {
-            font-family: "Arial Black", Arial, sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--oro);
-        }
-        .logo-text-sub {
-            font-size: 0.7rem;
-            letter-spacing: 0.1em;
-            color: #7b7b7b;
-            margin-top: 2px;
-        }
-        .top-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .badge-perfil {
-            padding: 7px 11px 7px 12px;
-            border-radius: 999px;
-            border: 1px solid rgba(212, 175, 55, 0.5);
-            background: radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.35), rgba(10, 10, 10, 0.95));
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.78rem;
-        }
-        .badge-perfil span.star {
-            color: var(--oro);
-            font-size: 0.9rem;
-        }
-        .badge-perfil strong {
-            font-weight: 700;
-            letter-spacing: 0.06em;
-        }
-        .admin-link {
-            width: 32px;
-            height: 32px;
-            border-radius: 11px;
-            border: 1px solid rgba(200, 208, 221, 0.7);
-            background: radial-gradient(circle at 30% 0%, rgba(255, 255, 255, 0.25), rgba(16, 22, 30, 0.95));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            transition: box-shadow 0.22s ease, border-color 0.22s ease, transform 0.15s ease;
-        }
-        .admin-link:hover {
-            border-color: rgba(230, 240, 255, 0.95);
-            box-shadow:
-                0 0 22px rgba(200, 215, 235, 0.55),
-                0 0 10px rgba(200, 208, 221, 0.45),
-                inset 0 0 12px rgba(255, 255, 255, 0.08);
-            transform: scale(1.04);
-        }
-        .admin-link svg {
-            width: 16px;
-            height: 16px;
-            stroke: #dfe7ff;
-        }
-        .home-main-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-        /* Hero — conversión entrenamiento */
-        .home-hero {
-            position: relative;
-            text-align: center;
-            padding: 28px 18px 32px;
-            border-radius: 22px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            background:
-                radial-gradient(ellipse 90% 80% at 50% 0%, rgba(212, 175, 55, 0.12), transparent 55%),
-                radial-gradient(circle at 80% 100%, rgba(46, 255, 112, 0.08), transparent 50%),
-                linear-gradient(165deg, rgba(14, 12, 8, 0.98), rgba(4, 4, 4, 0.98));
-            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
-            overflow: hidden;
-        }
-        .home-hero::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 50% 120%, rgba(212, 175, 55, 0.06), transparent 45%);
-            pointer-events: none;
-        }
-        .home-hero-inner {
-            position: relative;
-            z-index: 1;
-            max-width: 640px;
-            margin: 0 auto;
-        }
-        .home-hero h1 {
-            font-family: 'Outfit', system-ui, sans-serif;
-            font-weight: 800;
-            font-size: clamp(1.45rem, 5vw, 2.35rem);
-            line-height: 1.15;
-            letter-spacing: -0.02em;
-            color: #fafafa;
-            text-wrap: balance;
-        }
-        .home-hero-sub {
-            margin-top: 14px;
-            font-size: clamp(0.88rem, 2.4vw, 1.02rem);
-            line-height: 1.55;
-            color: #9a9a9a;
-            font-weight: 400;
-        }
-        .home-hero-ctas {
-            margin-top: 22px;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 12px;
-            max-width: 420px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        @media (min-width: 520px) {
-            .home-hero-ctas {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-                max-width: none;
-            }
-            .home-hero-ctas .btn-cta-primary,
-            .home-hero-ctas .btn-cta-secondary {
-                flex: 1 1 auto;
-                min-width: 200px;
-                max-width: 280px;
-            }
-        }
-        .btn-cta-primary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px 28px;
-            border-radius: 14px;
-            border: none;
-            background: linear-gradient(180deg, #e8c547, #c9a227 45%, #a88620);
-            color: #0b0b0b !important;
-            font-family: "Arial Black", Arial, sans-serif;
-            font-size: 0.78rem;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            text-decoration: none;
-            font-weight: 900;
-            box-shadow:
-                0 0 0 1px rgba(212, 175, 55, 0.5),
-                0 8px 28px rgba(212, 175, 55, 0.35),
-                0 20px 40px rgba(0, 0, 0, 0.5);
-            transition: transform 0.15s ease, box-shadow 0.2s ease;
-        }
-        .btn-cta-primary:hover {
-            transform: translateY(-2px);
-            box-shadow:
-                0 0 0 1px rgba(212, 175, 55, 0.65),
-                0 12px 36px rgba(212, 175, 55, 0.45),
-                0 24px 48px rgba(0, 0, 0, 0.55);
-        }
-        .btn-cta-secondary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 24px;
-            border-radius: 14px;
-            border: 2px solid rgba(212, 175, 55, 0.55);
-            background: transparent;
-            color: var(--oro) !important;
-            font-family: "Arial Black", Arial, sans-serif;
-            font-size: 0.72rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            text-decoration: none;
-            font-weight: 800;
-            transition: background 0.2s, border-color 0.2s, color 0.2s;
-        }
-        .btn-cta-secondary:hover {
-            background: rgba(212, 175, 55, 0.08);
-            border-color: var(--oro);
-            color: #f5e070 !important;
-        }
-        .home-hero-micro {
-            margin-top: 18px;
-            font-size: 0.68rem;
-            letter-spacing: 0.04em;
-            color: #5a5a5a;
-            line-height: 1.6;
-        }
-        @media (max-width: 639px) {
-            .home-hero {
-                min-height: 80vh;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            }
-            .home-hero-ctas .btn-cta-primary,
-            .home-hero-ctas .btn-cta-secondary {
-                width: 100%;
-                max-width: none;
-            }
-        }
-        .home-clinica-highlight {
-            padding: 16px 18px 18px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-            background: radial-gradient(circle at 0% 0%, rgba(46, 255, 112, 0.1), transparent 55%);
-        }
-        .home-clinica-highlight p {
-            font-size: 0.82rem;
-            color: #b0b0b0;
-            line-height: 1.55;
-            margin-bottom: 14px;
-        }
-        .home-clinica-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 14px;
-            font-size: 0.72rem;
-            color: #888;
-        }
-        .home-clinica-meta span {
-            padding: 4px 10px;
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(0, 0, 0, 0.4);
-        }
-        .home-clinica-meta .val {
-            color: var(--neon);
-        }
-        .btn-clinica-ghost {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(46, 255, 112, 0.35);
-            color: var(--neon) !important;
-            font-size: 0.72rem;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            text-decoration: none;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        .btn-clinica-ghost:hover {
-            background: rgba(46, 255, 112, 0.08);
-        }
-        .home-duelo-section {
-            padding: 0;
-            overflow: hidden;
-        }
-        .home-duelo-card {
-            padding: 20px 18px 18px;
-            background:
-                radial-gradient(circle at 100% 0%, rgba(212, 175, 55, 0.15), transparent 50%),
-                linear-gradient(160deg, rgba(18, 14, 10, 0.98), rgba(6, 6, 6, 0.98));
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .home-duelo-card > .panel-title {
-            margin-bottom: 6px;
-        }
-        .home-duelo-card .panel-sub {
-            margin-bottom: 14px;
-        }
-        .cta-duelo-wrap.home-duelo-inner {
-            border-top: none;
-            padding: 0;
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .home-duelo-inner .cta-duelo-main {
-            width: 100%;
-            border-radius: 16px;
-            min-height: 52px;
-        }
-        @media (max-width: 639px) {
-            .home-duelo-inner .cta-secondary-links {
-                text-align: center;
-            }
-        }
-        .panel {
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            background: linear-gradient(160deg, rgba(16, 14, 10, 0.96), rgba(4, 4, 4, 0.96));
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
-            overflow: hidden;
-        }
-        .panel-head {
-            padding: 12px 16px 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-        .panel-title {
-            font-size: 0.78rem;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: #e5e5e5;
-        }
-        .panel-sub {
-            font-size: 0.7rem;
-            color: #7d7d7d;
-        }
-        .slider-shell {
-            position: relative;
-            padding: 14px 16px 12px;
-            background: radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.18), #050505);
-        }
-        .slider-track {
-            position: relative;
-            overflow: hidden;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: radial-gradient(circle at 50% 0%, #111, #050505);
-            min-height: 118px;
-        }
-        .slide {
-            position: absolute;
-            inset: 0;
-            padding: 16px 18px;
-            opacity: 0;
-            transition: opacity 420ms ease-in-out;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .slide::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .slide > * {
-            position: relative;
-            z-index: 1;
-        }
-        .slide--active { opacity: 1; }
-        .slide-k {
-            font-size: 0.66rem;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: #9c9c9c;
-        }
-        .slide-title {
-            margin-top: 6px;
-            font-size: 1.02rem;
-            font-weight: 700;
-            color: #fff;
-        }
-        .slide-title span.highlight {
-            color: var(--oro);
-        }
-        .slide-meta {
-            margin-top: 8px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            font-size: 0.74rem;
-            color: #a5a5a5;
-        }
-        .slide-meta span.tag {
-            padding: 3px 9px;
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(0, 0, 0, 0.55);
-        }
-        .slide-meta span.val {
-            color: var(--neon);
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-        }
-        .slider-dots {
-            margin-top: 12px;
-            padding: 0 4px 4px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-        }
-        .slider-dots button {
-            width: 6px;
-            height: 6px;
-            border-radius: 999px;
-            border: none;
-            background: rgba(255, 255, 255, 0.22);
-            cursor: pointer;
-            padding: 0;
-            transition: width 0.2s ease, background 0.2s ease;
-        }
-        .slider-dots button.is-active {
-            width: 16px;
-            background: var(--oro);
-        }
-        .cta-duelo-wrap {
-            padding: 10px 16px 14px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-        .cta-duelo-main {
-            flex: 1;
-            padding: 14px 22px;
-            border-radius: 999px;
-            border: 1px solid rgba(0, 0, 0, 0.9);
-            background:
-                linear-gradient(140deg, #201108, #000),
-                radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.6), transparent 60%);
-            box-shadow:
-                0 14px 32px rgba(0, 0, 0, 0.85),
-                inset 0 0 0 1px rgba(212, 175, 55, 0.38);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
-            text-transform: uppercase;
-            font-family: "Arial Black", Arial, sans-serif;
-            font-size: 0.8rem;
-            letter-spacing: 0.18em;
-            color: var(--oro);
-        }
-        .cta-duelo-main span.plus {
-            display: inline-flex;
-            width: 18px;
-            height: 18px;
-            border-radius: 6px;
-            background: rgba(0, 0, 0, 0.8);
-            align-items: center;
-            justify-content: center;
-            color: var(--neon);
-            font-size: 0.9rem;
-        }
-        .cta-secondary-links {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            font-size: 0.7rem;
-        }
-        .cta-secondary-links a {
-            color: #b0b0b0;
-            text-decoration: none;
-        }
-        .cta-secondary-links a:hover { color: var(--oro); }
-        .panel-blog {
-            padding: 12px 15px 14px;
-        }
-        .blog-header {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .blog-title {
-            font-size: 0.78rem;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-        }
-        .blog-sub {
-            font-size: 0.68rem;
-            color: #7e7e7e;
-        }
-        .blog-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-        }
-        .blog-card {
-            position: relative;
-            border-radius: 14px;
-            border: 1px solid rgba(212, 175, 55, 0.5);
-            background: linear-gradient(150deg, rgba(15, 13, 10, 0.95), rgba(6, 6, 6, 0.96));
-            padding: 10px 11px 11px;
-            padding-top: 26px;
-        }
-        .blog-card-badge {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            font-size: 0.5rem;
-            letter-spacing: 0.14em;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-weight: 800;
-            text-transform: uppercase;
-            line-height: 1;
-        }
-        .blog-card-badge--tecnico {
-            color: #050505;
-            background: #2eff70;
-            box-shadow: 0 0 12px rgba(46, 255, 112, 0.35);
-        }
-        .blog-card-badge--estrategia {
-            color: #0b0b0b;
-            background: #d4af37;
-            box-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
-        }
-        .blog-k {
-            font-size: 0.65rem;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: #8e8e8e;
-            margin-bottom: 3px;
-        }
-        .blog-h {
-            font-family: "Arial Black", Arial, sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: #f3f3f3;
-            margin-bottom: 4px;
-        }
-        .blog-body {
-            font-size: 0.74rem;
-            color: #b9b9b9;
-            line-height: 1.45;
-        }
-        .blog-meta {
-            margin-top: 6px;
-            font-size: 0.68rem;
-            color: #777;
-            display: flex;
-            justify-content: space-between;
-        }
-        .blog-meta span.val {
-            color: var(--neon);
-            font-family: ui-monospace, monospace;
-        }
-        .foot {
-            margin-top: 20px;
-            text-align: center;
-            color: #6a6a6a;
-            font-size: 0.7rem;
-            letter-spacing: 0.08em;
-        }
-        .foot a {
-            color: #888;
-            text-decoration: none;
-        }
-        .foot a:hover { color: var(--oro); }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/index-v2.css">
 </head>
-<body>
-    <div class="shell">
-        <header class="topbar" aria-label="Barra superior">
-            <div class="logo-mark">
-                <div class="logo-icon"><span>DC</span></div>
-                <div>
-                    <div class="logo-text-main">decarambola.com</div>
-                    <div class="logo-text-sub">El mundo del carambola</div>
+<body class="dc-home-v2">
+    <!-- ======================== -->
+    <!-- COMPONENTE: HomeHeader   -->
+    <!-- ======================== -->
+    <header class="home-header home-header--user" id="home-header" aria-label="Cabecera principal">
+        <a class="home-header__brand" href="index.html" aria-label="DeCarambola inicio">
+            <img src="assets/logo-decarambola.svg" alt="DeCarambola" width="120" height="36">
+            <div class="home-header__titles">
+                <div class="home-header__title">DECARAMBOLA</div>
+                <div class="home-header__sub">El mundo del carambola</div>
+            </div>
+        </a>
+        <div class="home-header__actions">
+            <div class="user-mini" aria-label="Usuario">
+                <div class="user-mini__avatar" id="user-avatar-initials">DC</div>
+                <div class="user-mini__text">
+                    <div class="user-mini__name" id="user-name">Maestro JH</div>
+                    <div class="user-mini__badge" id="user-badge">Nivel 3 · Pro</div>
                 </div>
             </div>
-            <div class="top-actions">
-                <div class="badge-perfil" aria-label="Perfil del Maestro">
-                    <span class="star">★</span>
-                    <div>
-                        <strong>Maestro JH</strong>
-                        <div style="font-size:0.64rem;color:#9a9a9a;letter-spacing:0.04em;">ESTRELLA DORADA</div>
-                    </div>
-                </div>
-                <a href="/auth.html" title="Iniciar sesión" style="color:#C9A84C;font-size:13px;font-weight:700;text-decoration:none;letter-spacing:1px">INGRESAR</a>
-                <a class="admin-link" href="admin/index.html" title="Torre de Control — panel plataforma">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M12 3L4 7v5c0 4.418 3.582 8 8 8s8-3.582 8-8V7l-8-4Z" stroke-width="1.4" />
-                        <path d="M12 9v4" stroke-width="1.4" />
-                        <circle cx="12" cy="15" r="1.2" fill="#dfe7ff" />
-                    </svg>
-                </a>
-            </div>
-        </header>
-
-        <div class="home-main-stack" aria-label="Dashboard principal">
-
-            <section class="home-hero" aria-label="Entrenamiento y mejora">
-                <div class="home-hero-inner">
-                    <h1>Aprende billar como un profesional</h1>
-                    <p class="home-hero-sub">Entrena, compite y mejora tu promedio con metodología real de carambola</p>
-                    <div class="home-hero-ctas">
-                        <a class="btn-cta-primary" href="entrenamiento.html">ENTRENAR AHORA</a>
-                        <a class="btn-cta-secondary" href="#home-torneos">Ver torneos</a>
-                    </div>
-                    <p class="home-hero-micro">✅ Rutinas reales | ✅ Seguimiento de promedio | ✅ Nivel progresivo</p>
-                </div>
-            </section>
-
-            <article class="panel" aria-label="Clínicas y entrenamiento">
-                <div class="panel-head">
-                    <div>
-                        <div class="panel-title">Clínicas · Entrenamiento</div>
-                        <div class="panel-sub">Metodología del Maestro · mesa y lectura</div>
-                    </div>
-                </div>
-                <div class="home-clinica-highlight">
-                    <p>
-                        Tiro, línea y <strong style="color:var(--oro);">control de efecto</strong> — bloques guiados para subir tu promedio con rutina medible, no solo práctica suelta.
-                    </p>
-                    <div class="home-clinica-meta">
-                        <span>Sábado: <span class="val">05 ABR · 09:00–13:00</span></span>
-                        <span>Nivel: <span class="val">INTERMEDIO · AVANZADO</span></span>
-                        <span>Plazas: <span class="val">10</span></span>
-                    </div>
-                    <a class="btn-clinica-ghost" href="entrenamiento.html">Ir a entrenamiento</a>
-                </div>
-            </article>
-
-            <article class="panel" id="home-torneos" aria-label="Torneos y eventos">
-                <div class="panel-head">
-                    <div>
-                        <div class="panel-title">Torneos · Eventos</div>
-                        <div class="panel-sub">Agenda editorial · Copa, clínicas y retos en vivo</div>
-                    </div>
-                </div>
-                <div class="slider-shell">
-                    <div class="slider-track" id="slider-track"></div>
-                    <div class="slider-dots" id="slider-dots" aria-label="Selector de evento"></div>
-                </div>
-            </article>
-
-            <article class="panel home-duelo-section" aria-label="Comunidad y duelos">
-                <div class="home-duelo-card">
-                    <div class="panel-title">Comunidad · Duelo</div>
-                    <div class="panel-sub">Marcador en vivo · mismo flujo que la app jugador</div>
-                    <div class="cta-duelo-wrap home-duelo-inner">
-                        <a class="cta-duelo-main" href="/duelo-tv.html?modo=movil" title="Fase 1: registro · Fase 2: marcador (mismo flujo que jugador)">
-                            <span class="plus">+</span>
-                            <span>NUEVO DUELO</span>
-                        </a>
-                        <div class="cta-secondary-links">
-                            <a href="jugador/index.html">Entrar como jugador</a>
-                            <a href="apps/club/organizador/organizador.html">Organizador · Torneos</a>
-                            <a href="club/index.html">Portal club</a>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
-            <aside class="panel" aria-label="Diario del Maestro">
-                <div class="panel-blog">
-                    <div class="blog-header">
-                        <div class="blog-title">DIARIO DEL MAESTRO</div>
-                        <div class="blog-sub">Notas técnicas y rutina de alto rendimiento</div>
-                    </div>
-                    <div id="blog-grid" class="blog-grid"></div>
-                </div>
-            </aside>
-
+            <a class="btn-ingresar-header" href="auth.html">Ingresar</a>
+            <a class="btn-icon-gear" href="perfil.html" title="Configuración y perfil" aria-label="Configuración">⚙️</a>
         </div>
+    </header>
 
-        <footer class="foot">
-            decarambola.com · 2026 · <a href="jugador/index.html">Jugador</a> · <a href="club/index.html">Club</a>
+    <main class="home-main" id="home-main">
+        <!-- ======================== -->
+        <!-- COMPONENTE: HeroDashboard -->
+        <!-- ======================== -->
+        <section class="hero-dashboard dc-section" id="hero-dashboard" aria-label="¿Qué hago ahora?">
+            <div class="hero-dashboard__bg" aria-hidden="true"></div>
+            <div class="hero-dashboard__glow" aria-hidden="true"></div>
+            <div class="hero-dashboard__inner">
+                <div class="hero-ring-wrap" aria-hidden="true">
+                    <svg class="hero-ring" viewBox="0 0 100 100" aria-hidden="true">
+                        <circle class="hero-ring__bg" cx="50" cy="50" r="42"></circle>
+                        <circle class="hero-ring__fg" cx="50" cy="50" r="42"></circle>
+                    </svg>
+                    <div class="hero-ring__pct" id="hero-ring-pct">0%</div>
+                </div>
+                <div class="hero-dashboard__copy">
+                    <h1 class="hero-dashboard__greeting" id="hero-greeting">Bienvenido</h1>
+                    <p class="hero-dashboard__motivation" id="hero-motivation">Tu promedio actual: 1.12</p>
+                    <p class="hero-dashboard__ring-caption" id="hero-ring-caption">0 de 5 partidas esta semana</p>
+                    <p class="hero-dashboard__recent" id="hero-recent-session"></p>
+                    <div class="hero-dashboard__ctas">
+                        <a class="btn-primary-lg" href="apps/club/sala/mesas.html">Jugar ahora</a>
+                        <a class="btn-secondary-outline" href="#home-torneos">Inscribirme a torneo</a>
+                        <a class="btn-tertiary" href="/duelo-tv.html?modo=movil" title="Crear duelo con marcador en vivo">Crear duelo <span aria-hidden="true">＋</span></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================== -->
+        <!-- COMPONENTE: QuickStats   -->
+        <!-- ======================== -->
+        <section class="quick-stats dc-section" aria-label="Resumen rápido">
+            <div class="dc-section__label">Tu actividad</div>
+            <h2 class="dc-section__title">Números clave</h2>
+            <div class="quick-stats__grid" id="quick-stats-grid"></div>
+        </section>
+
+        <!-- ======================== -->
+        <!-- COMPONENTE: UpcomingEvents -->
+        <!-- ======================== -->
+        <section class="dc-section" id="home-torneos" aria-label="Torneos próximos">
+            <div class="dc-section__label">Agenda</div>
+            <h2 class="dc-section__title">Torneos próximos</h2>
+            <div class="events-strip" id="events-strip"></div>
+        </section>
+
+        <!-- ======================== -->
+        <!-- COMPONENTE: RoleAccessCards -->
+        <!-- ======================== -->
+        <section class="dc-section" aria-label="Acceso por rol">
+            <div class="dc-section__label">Accesos</div>
+            <h2 class="dc-section__title">Tu espacio en DeCarambola</h2>
+            <div class="role-grid">
+                <article class="role-card" data-role="jugador">
+                    <div class="role-card__icon" aria-hidden="true">🎱</div>
+                    <h3 class="role-card__title">Jugador</h3>
+                    <p class="role-card__desc">Duelos, torneos, ranking y entrenamiento.</p>
+                    <a class="role-card__cta" href="apps/club/sala/mesas.html">Entrar al salón</a>
+                </article>
+                <article class="role-card" data-role="organizador">
+                    <div class="role-card__icon" aria-hidden="true">🏆</div>
+                    <h3 class="role-card__title">Organizador</h3>
+                    <p class="role-card__desc">Crea y gestiona torneos para tu comunidad.</p>
+                    <a class="role-card__cta" href="apps/club/organizador/organizador.html">Panel organizador</a>
+                </article>
+                <article class="role-card" data-role="club">
+                    <div class="role-card__icon" aria-hidden="true">🏠</div>
+                    <h3 class="role-card__title">Club</h3>
+                    <p class="role-card__desc">Administra tu establecimiento y mesas.</p>
+                    <a class="role-card__cta" href="club/index.html">Ir al club</a>
+                </article>
+            </div>
+        </section>
+
+        <!-- ======================== -->
+        <!-- COMPONENTE: MasterJournal -->
+        <!-- ======================== -->
+        <section class="master-journal dc-section" aria-label="Diario del Maestro">
+            <div class="master-journal__head">
+                <span class="master-journal__icon" aria-hidden="true">📘</span>
+                <div>
+                    <h2 class="master-journal__title">Diario del Maestro</h2>
+                    <p class="master-journal__sub">Entrenamiento y valor técnico</p>
+                </div>
+            </div>
+            <div class="master-journal__body">
+                <p>
+                    <!-- MOCK - conectar a Supabase: contenido editorial / clínicas -->
+                    <strong>Rutina del día:</strong> 20 min a banda + 2 bloques de 15 entradas con foco en apertura y segunda bola.
+                </p>
+                <p>
+                    <strong>Nota técnica:</strong> El efecto acorta o alarga la trayectoria natural — trabajá tres tiros con el mismo tercio de puntería y variá solo el taco.
+                </p>
+                <ul class="master-journal__list">
+                    <li><strong>Próxima clínica:</strong> 05 ABR · Línea de bola y lectura de mesa</li>
+                    <li><strong>Checklist mesa TV:</strong> Cámara, iluminación y marcador verificados antes del duelo</li>
+                </ul>
+            </div>
+            <div class="master-journal__actions">
+                <a class="btn-primary-lg" href="entrenamiento.html">Practicar ahora</a>
+                <a class="btn-secondary-outline" href="entrenamiento.html">Ver rutina completa</a>
+            </div>
+        </section>
+
+        <!-- ======================== -->
+        <!-- COMPONENTE: SocialHighlights -->
+        <!-- ======================== -->
+        <section class="dc-section" aria-label="Comunidad y ranking">
+            <div class="dc-section__label">Comunidad</div>
+            <h2 class="dc-section__title">Destacados</h2>
+            <div class="social-grid">
+                <div class="social-block">
+                    <div class="social-block__title">Top 3 · semanal</div>
+                    <div id="social-ranking"></div>
+                    <a class="social-block__more" href="ranking.html">Ver más →</a>
+                </div>
+                <div class="social-block">
+                    <div class="social-block__title">Clubes activos</div>
+                    <div id="social-clubes"></div>
+                    <a class="social-block__more" href="club/index.html">Ver más →</a>
+                </div>
+                <div class="social-block">
+                    <div class="social-block__title">Jugador de la semana</div>
+                    <div id="social-featured"></div>
+                    <a class="social-block__more" href="ranking.html">Ver más →</a>
+                </div>
+                <div class="social-block">
+                    <div class="social-block__title">Próximo duelo TV</div>
+                    <div id="social-duelo-tv"></div>
+                    <a class="social-block__more" href="/duelo-tv.html?modo=movil">Ver más →</a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="home-footer-v2">
+            decarambola.com · 2026 ·
+            <a href="jugador/index.html">Jugador</a> ·
+            <a href="club/index.html">Club</a> ·
+            <a href="admin/index.html">Torre de control</a>
         </footer>
-    </div>
+    </main>
 
-    <script>
-    (function () {
-        var eventos = [
-            {
-                k: 'Copa Maestros',
-                titleHtml: 'Copa <span class="highlight">DeCarambola</span> · Etapa regional',
-                tags: [
-                    { label: 'Inscripciones hasta', val: '30 MAR · 23:59' },
-                    { label: 'Sorteo de grupos', val: '02 ABR · 18:00' },
-                    { label: 'Cupos', val: '32' }
-                ]
-            },
-            {
-                k: 'Clínicas',
-                titleHtml: 'Tiro, línea y <span class="highlight">control de efecto</span>',
-                tags: [
-                    { label: 'Sábado', val: '05 ABR · 09:00–13:00' },
-                    { label: 'Nivel', val: 'INTERMEDIO · AVANZADO' },
-                    { label: 'Plazas', val: '10' }
-                ]
-            },
-            {
-                k: 'Retos',
-                titleHtml: 'Noche <span class="highlight">Tres Bandas</span> · Mesa oficial',
-                tags: [
-                    { label: 'Transmisión', val: '06 ABR · 20:00' },
-                    { label: 'Estado', val: 'AGENDA CLUB' }
-                ]
-            }
-        ];
+    <!-- ======================== -->
+    <!-- COMPONENTE: BottomNav    -->
+    <!-- ======================== -->
+    <nav class="bottom-nav" aria-label="Navegación inferior">
+        <a class="bottom-nav__item bottom-nav__item--active" href="index.html">
+            <span class="bottom-nav__icon" aria-hidden="true">🏠</span>
+            <span>Inicio</span>
+        </a>
+        <a class="bottom-nav__item" href="apps/club/organizador/organizador.html">
+            <span class="bottom-nav__icon" aria-hidden="true">🏆</span>
+            <span>Torneos</span>
+        </a>
+        <a class="bottom-nav__item" href="apps/club/sala/mesas.html">
+            <span class="bottom-nav__icon" aria-hidden="true">🎱</span>
+            <span>Jugar</span>
+        </a>
+        <a class="bottom-nav__item" href="ranking.html">
+            <span class="bottom-nav__icon" aria-hidden="true">📊</span>
+            <span>Ranking</span>
+        </a>
+        <a class="bottom-nav__item" href="perfil.html">
+            <span class="bottom-nav__icon" aria-hidden="true">👤</span>
+            <span>Perfil</span>
+        </a>
+    </nav>
 
-        var articulos = [
-            {
-                tipo: 'tecnico',
-                k: 'Física del efecto',
-                h: 'Spin útil vs spin decorativo',
-                body: 'El efecto no “gira la mesa”: acorta o alarga la trayectoria natural. Trabajá tres tiros con el mismo tercio de puntería y variá solo el taco hasta ver la bola objetivo llegar al mismo hueco: ahí entendés cuánto efecto aporta cada milímetro.',
-                metaLeft: 'Lectura',
-                metaRight: '03 min'
-            },
-            {
-                tipo: 'tecnico',
-                k: 'Sistemas de diamantes',
-                h: 'De la referencia a la rutina',
-                body: 'Elegí dos diamantes ancla por banda y un tercero de chequeo. Antes de cada bloque, dos tiros solo de ubicación sin anotar: es el sistema que te devuelve a la línea cuando el partido se aprieta.',
-                metaLeft: 'Diario',
-                metaRight: '05 min'
-            },
-            {
-                tipo: 'estrategia',
-                k: 'Pre-torneo',
-                h: 'Semana Copa DeCarambola',
-                body: 'Calentamiento 20 min a banda + 2 bloques de 15 entradas con foco en apertura y segunda bola. Objetivo de sesión: mantener promedio <span class="val">≥ 1.15</span> sin forzar velocidad.',
-                metaLeft: 'Cierre inscripciones',
-                metaRight: '30 MAR'
-            },
-            {
-                tipo: 'estrategia',
-                k: 'Clínica 05 ABR',
-                h: 'Línea de bola y lectura de mesa',
-                body: 'En la clínica del sábado trabajamos lectura de línea en diagonal, ajuste fino de efecto y rutina de 5 minutos antes de cada bloque de competencia.',
-                metaLeft: 'Plazas',
-                metaRight: '10'
-            },
-            {
-                tipo: 'tecnico',
-                k: 'Mesa TV',
-                h: 'Checklist antes del duelo',
-                body: 'Cámara, iluminación y marcador verificados. Paño y tiza al estándar del club; temperatura ambiente estable para que la bola no “salte” en el último tercio de mesa.',
-                metaLeft: 'Próximo duelo TV',
-                metaRight: '06 ABR · 20:00'
-            }
-        ];
-
-        var track = document.getElementById('slider-track');
-        var dotsHost = document.getElementById('slider-dots');
-        var blogGrid = document.getElementById('blog-grid');
-        if (!track || !dotsHost) return;
-
-        eventos.forEach(function (ev, i) {
-            var slide = document.createElement('div');
-            slide.className = 'slide' + (i === 0 ? ' slide--active' : '');
-            slide.setAttribute('data-idx', String(i));
-            var inner = document.createElement('div');
-            inner.innerHTML =
-                '<div class="slide-k">' + ev.k + '</div>' +
-                '<div class="slide-title">' + ev.titleHtml + '</div>' +
-                '<div class="slide-meta"></div>';
-            var meta = inner.querySelector('.slide-meta');
-            ev.tags.forEach(function (t) {
-                var span = document.createElement('span');
-                span.className = 'tag';
-                span.innerHTML = t.label + ': <span class="val">' + t.val + '</span>';
-                meta.appendChild(span);
-            });
-            slide.appendChild(inner);
-            track.appendChild(slide);
-        });
-
-        if (blogGrid) {
-            articulos.forEach(function (a) {
-                var art = document.createElement('article');
-                art.className = 'blog-card';
-                var esEst = a.tipo === 'estrategia';
-                var badgeCls = esEst ? 'blog-card-badge blog-card-badge--estrategia' : 'blog-card-badge blog-card-badge--tecnico';
-                var badgeTxt = esEst ? 'Estrategia' : 'Técnico';
-                art.innerHTML =
-                    '<span class="' + badgeCls + '">' + badgeTxt + '</span>' +
-                    '<div class="blog-k"></div>' +
-                    '<div class="blog-h"></div>' +
-                    '<p class="blog-body"></p>' +
-                    '<div class="blog-meta"><span class="meta-l"></span><span class="val meta-r"></span></div>';
-                art.querySelector('.blog-k').textContent = a.k;
-                art.querySelector('.blog-h').textContent = a.h;
-                art.querySelector('.blog-body').innerHTML = a.body;
-                art.querySelector('.meta-l').textContent = a.metaLeft;
-                art.querySelector('.meta-r').textContent = a.metaRight;
-                blogGrid.appendChild(art);
-            });
-        }
-
-        var slides = Array.prototype.slice.call(track.querySelectorAll('.slide'));
-        if (!slides.length) return;
-        var idx = 0;
-
-        slides.forEach(function (_, i) {
-            var b = document.createElement('button');
-            if (i === 0) b.classList.add('is-active');
-            b.setAttribute('type', 'button');
-            b.addEventListener('click', function () { goTo(i); });
-            dotsHost.appendChild(b);
-        });
-        var dots = Array.prototype.slice.call(dotsHost.querySelectorAll('button'));
-
-        function goTo(n) {
-            slides[idx].classList.remove('slide--active');
-            dots[idx].classList.remove('is-active');
-            idx = n;
-            slides[idx].classList.add('slide--active');
-            dots[idx].classList.add('is-active');
-        }
-
-        var timer = setInterval(function () {
-            var next = (idx + 1) % slides.length;
-            goTo(next);
-        }, 5000);
-
-        track.addEventListener('mouseenter', function () { clearInterval(timer); });
-    })();
-    </script>
+    <script src="js/index-v2.js"></script>
 </body>
 </html>

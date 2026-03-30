@@ -13,6 +13,8 @@
     <meta name="theme-color" content="#e74c3c">
     <meta name="description" content="Backoffice DeCarambola — flujos de plataforma y soporte">
     <title>Backoffice — DeCarambola</title>
+    <link rel="stylesheet" href="/css/dc-system.css">
+    <script src="/js/dc-nav.js" defer></script>
     <link rel="stylesheet" href="../css/ux-shell.css">
     <link rel="stylesheet" href="../css/hub-sections.css">
     <style>
@@ -132,11 +134,11 @@
         .note a { color: #d4af37; }
     </style>
 </head>
-<body class="dc-ux dc-ux-skin">
+<body class="dc-app dc-ux dc-ux-skin">
 
 <div class="stars" id="stars-bg" aria-hidden="true"></div>
 
-    <header class="hero">
+    <header class="hero dc-reveal">
         <div class="hero-eyebrow">DeCarambola</div>
         <h1>BACKOFFICE</h1>
         <p>Herramientas de <strong style="color:#aaa;">plataforma</strong>: atender, reproducir y documentar — no es la lista de deseos del producto.</p>
@@ -148,7 +150,7 @@
 
     <p class="note"><strong>Portal club:</strong> el menú se presenta en <strong>6 bloques plegables</strong>; <strong>las mismas pantallas siguen enlazadas</strong>. Si echas en falta algo: <a href="../club/index.html">club/index.html</a>.</p>
 
-    <div class="flow-strip" aria-label="Tu flujo en 3 pasos">
+    <div class="flow-strip dc-reveal" aria-label="Tu flujo en 3 pasos">
         <div class="flow-step">
             <strong>1 · BANDEJA</strong>
             <span>Entrar a PQRS y gestionar contactos entrantes.</span>
@@ -163,7 +165,7 @@
         </div>
     </div>
 
-    <div class="dc-hub dc-hub--staff" id="admin-hub-main">
+    <div class="dc-hub dc-hub--staff dc-reveal" id="admin-hub-main">
         <p class="dc-hub-lead"><strong>3 áreas.</strong> Misma lógica que <a href="../jugador/index.html" style="color:#c98;">jugador</a> y <a href="../club/index.html" style="color:#c98;">club</a>: pocos bloques visibles, detalle dentro.</p>
 
         <details class="dc-hub-fold" open>

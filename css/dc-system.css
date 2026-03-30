@@ -1,0 +1,409 @@
+/* DeCarambola — Sistema de diseño unificado (dc-system) */
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:wght@600;700&display=swap");
+
+:root {
+    --dc-bg: #0a0a0a;
+    --dc-surface: #111111;
+    --dc-surface2: #1a1a1a;
+    --dc-gold: #c9a84c;
+    --dc-gold-light: #e8c97a;
+    --dc-gold-glow: rgba(201, 168, 76, 0.15);
+    --dc-gold-glow2: rgba(201, 168, 76, 0.08);
+    --dc-text: #f0f0f0;
+    --dc-text-muted: #888888;
+    --dc-text-subtle: #555555;
+    --dc-border: rgba(201, 168, 76, 0.12);
+    --dc-border-hover: rgba(201, 168, 76, 0.3);
+    --dc-radius: 12px;
+    --dc-radius-sm: 8px;
+    --dc-radius-lg: 16px;
+    --dc-nav-h: 64px;
+    --dc-bottom-nav-h: 60px;
+    --dc-transition: 0.25s ease;
+
+    /* Tipografía */
+    --dc-font-display: "Playfair Display", Georgia, serif;
+    --dc-font-body: "DM Sans", system-ui, sans-serif;
+    --dc-font-mono: "JetBrains Mono", monospace;
+}
+
+/* Aplicar a BODY en páginas que usen dc-system */
+.dc-app {
+    background: var(--dc-bg);
+    color: var(--dc-text);
+    font-family: var(--dc-font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Padding inferior para que el contenido no quede detrás del bottom nav en mobile */
+.dc-app {
+    padding-bottom: calc(var(--dc-bottom-nav-h) + env(safe-area-inset-bottom, 0px));
+}
+
+.dc-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--dc-nav-h);
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--dc-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 100;
+}
+
+.dc-header-title {
+    font-family: var(--dc-font-display);
+    font-size: 18px;
+    color: var(--dc-gold);
+    letter-spacing: 0.02em;
+}
+
+.dc-header-back {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--dc-border);
+    background: var(--dc-surface);
+    color: var(--dc-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color var(--dc-transition);
+    text-decoration: none;
+    font-size: 18px;
+}
+
+.dc-header-back:hover {
+    border-color: var(--dc-gold);
+    color: var(--dc-gold);
+}
+
+.dc-card {
+    background: var(--dc-surface);
+    border: 1px solid var(--dc-border);
+    border-radius: var(--dc-radius);
+    padding: 16px;
+    transition: border-color var(--dc-transition), box-shadow var(--dc-transition);
+}
+
+.dc-card:hover {
+    border-color: var(--dc-gold);
+    box-shadow: 0 0 20px var(--dc-gold-glow);
+}
+
+.dc-card-title {
+    font-family: var(--dc-font-display);
+    font-size: 16px;
+    color: var(--dc-text);
+    margin-bottom: 4px;
+}
+
+.dc-card-subtitle {
+    font-size: 13px;
+    color: var(--dc-text-muted);
+}
+
+.dc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: var(--dc-radius-sm);
+    font-family: var(--dc-font-body);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--dc-transition);
+    border: none;
+    text-decoration: none;
+    white-space: nowrap;
+    min-height: 44px;
+}
+
+.dc-btn-primary {
+    background: var(--dc-gold);
+    color: #0a0a0a;
+}
+
+.dc-btn-primary:hover {
+    background: var(--dc-gold-light);
+    transform: translateY(-1px);
+}
+
+.dc-btn-secondary {
+    background: transparent;
+    color: var(--dc-gold);
+    border: 1px solid var(--dc-gold);
+}
+
+.dc-btn-secondary:hover {
+    background: var(--dc-gold-glow);
+}
+
+.dc-btn-ghost {
+    background: transparent;
+    color: var(--dc-text-muted);
+    border: 1px solid var(--dc-border);
+}
+
+.dc-btn-ghost:hover {
+    color: var(--dc-text);
+    border-color: var(--dc-border-hover);
+}
+
+.dc-btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+    min-height: 36px;
+}
+
+.dc-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+}
+
+.dc-badge-gold {
+    background: rgba(201, 168, 76, 0.15);
+    color: var(--dc-gold);
+}
+
+.dc-badge-green {
+    background: rgba(34, 197, 94, 0.12);
+    color: #4ade80;
+}
+
+.dc-badge-red {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+}
+
+.dc-badge-gray {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--dc-text-muted);
+}
+
+.dc-badge-live {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    animation: dc-pulse 2s infinite;
+}
+
+@keyframes dc-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.dc-divider {
+    height: 1px;
+    background: var(--dc-border);
+    margin: 16px 0;
+}
+
+.dc-section-title {
+    font-family: var(--dc-font-display);
+    font-size: 20px;
+    color: var(--dc-text);
+    margin-bottom: 4px;
+}
+
+.dc-section-sub {
+    font-size: 13px;
+    color: var(--dc-text-muted);
+    margin-bottom: 16px;
+}
+
+.dc-stat-number {
+    font-family: var(--dc-font-mono);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--dc-gold);
+    line-height: 1;
+}
+
+.dc-stat-label {
+    font-size: 12px;
+    color: var(--dc-text-muted);
+    margin-top: 4px;
+}
+
+.dc-page {
+    padding-top: calc(var(--dc-nav-h) + 16px);
+    padding-left: 16px;
+    padding-right: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.dc-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.dc-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--dc-text-muted);
+}
+
+.dc-empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+}
+
+.dc-empty-text {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.dc-skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--dc-surface) 25%,
+        var(--dc-surface2) 50%,
+        var(--dc-surface) 75%
+    );
+    background-size: 200% 100%;
+    animation: dc-shimmer 1.5s infinite;
+    border-radius: var(--dc-radius-sm);
+}
+
+@keyframes dc-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.dc-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.dc-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Bottom nav inyectado por dc-nav.js */
+.dc-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(201, 168, 76, 0.12);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-around;
+    z-index: 200;
+    padding-top: 6px;
+}
+
+.dc-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 8px;
+    cursor: pointer;
+    text-decoration: none;
+    min-width: 52px;
+    transition: opacity 0.2s;
+}
+
+.dc-nav-item svg {
+    width: 22px;
+    height: 22px;
+    fill: #555555;
+    transition: fill 0.2s;
+}
+
+.dc-nav-item span {
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 10px;
+    color: #555555;
+    transition: color 0.2s;
+}
+
+.dc-nav-item.active svg {
+    fill: #c9a84c;
+}
+
+.dc-nav-item.active span {
+    color: #c9a84c;
+}
+
+.dc-nav-item:hover svg {
+    fill: #888888;
+}
+
+.dc-nav-item:hover span {
+    color: #888888;
+}
+
+.dc-nav-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #c9a84c;
+    margin: 0 auto;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.dc-nav-item.active .dc-nav-dot {
+    opacity: 1;
+}
+
+@media (min-width: 768px) {
+    .dc-page {
+        padding-left: 24px;
+        padding-right: 24px;
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .dc-page {
+        padding-left: 40px;
+        padding-right: 40px;
+        max-width: 1200px;
+    }
+
+    .dc-bottom-nav {
+        display: none !important;
+    }
+
+    .dc-app {
+        padding-bottom: 0;
+    }
+}
