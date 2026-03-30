@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+      import { getSession, getRole } from '/js/auth-manager.js';
+      const s = await getSession();
+      if (!s?.data) window.location.replace('/auth.html');
+      const r = await getRole();
+      if (r?.data !== 'superadmin') window.location.replace('/auth.html');
+      try { sessionStorage.setItem('plataforma_superadmin_activo', 'true'); } catch (e) {}
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0b0b0b">
+    <title>Video IA — Superadmin</title>
+    <link rel="stylesheet" href="/css/ux-shell.css">
+    <style>
+        :root { --oro: #d4af37; --verde: #2eff70; --rojo: #e74c3c; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0b0b0b; color: #e8eaed; font-family: system-ui, sans-serif; min-height: 100vh; padding: 18px 16px 48px; }
+        .header { max-width: 640px; margin: 0 auto 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .header h1 { font-size: 1rem; letter-spacing: 0.06em; color: var(--oro); flex: 1; }
+        .header a { color: #888; font-size: 0.8rem; text-decoration: none; }
+        .header a:hover { color: var(--oro); }
+        .lista { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 16px; padding: 16px; }
+        .card.activo { border-color: rgba(46, 255, 112, 0.25); }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+        .card-nombre { color: var(--oro); font-size: 0.95rem; font-weight: 700; }
+        .card-ciudad { color: #666; font-size: 0.72rem; margin-top: 3px; }
+        .badge { font-size: 0.62rem; padding: 4px 10px; border-radius: 20px; font-weight: 700; letter-spacing: 0.06em; }
+        .badge-on { background: rgba(46,255,112,0.12); color: var(--verde); border: 1px solid rgba(46,255,112,0.3); }
+        .badge-off { background: #111; color: #555; border: 1px solid #222; }
+        .card-body { margin-top: 14px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .toggle-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: #aaa; }
+        .toggle-wrap input[type=checkbox] { accent-color: var(--oro); width: 16px; height: 16px; cursor: pointer; }
+        .costo-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: #aaa; }
+        .costo-wrap input[type=number] { background: #111; border: 1px solid #2a2a2a; color: #eee; padding: 6px 10px; border-radius: 8px; font-size: 0.78rem; width: 100px; font-family: inherit; }
+        .btn-guardar { background: #111; border: 1px solid rgba(212,175,55,0.3); color: var(--oro); padding: 8px 16px; border-radius: 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer; letter-spacing: 0.06em; font-family: inherit; }
+        .btn-guardar:active { opacity: 0.8; }
+        .msg { font-size: 0.7rem; margin-top: 8px; min-height: 16px; }
+        .msg.ok { color: var(--verde); }
+        .msg.err { color: var(--rojo); }
+        .vacio { text-align: center; color: #555; font-size: 0.85rem; padding: 40px; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>🎥 VIDEO IA — CLUBS</h1>
+    <a href="/apps/superadmin/solicitudes.html">← Solicitudes</a>
+</div>
+<div class="lista" id="lista">
+    <div class="vacio">Cargando clubs…</div>
+</div>
+
+<script type="module">
+import { listClubsActivos, patchClub } from '/js/api/club-api.js';
+
+async function cargar() {
+    var cont = document.getElementById('lista');
+    var r = await listClubsActivos();
+    var clubs = r.data || [];
+    if (!clubs.length) {
+        cont.innerHTML = '<div class="vacio">No hay clubs activos.</div>';
+        return;
+    }
+    cont.innerHTML = clubs.map(function(c) {
+        var on = !!c.video_ia_activo;
+        var costo = c.video_ia_costo != null ? c.video_ia_costo : 0;
+        return '<div class="card' + (on ? ' activo' : '') + '" id="card-' + c.id + '">' +
+            '<div class="card-top">' +
+                '<div><div class="card-nombre">' + (c.nombre || c.id) + '</div>' +
+                '<div class="card-ciudad">' + (c.ciudad || '—') + '</div></div>' +
+                '<span class="badge ' + (on ? 'badge-on' : 'badge-off') + '" id="badge-' + c.id + '">' + (on ? 'ACTIVO' : 'INACTIVO') + '</span>' +
+            '</div>' +
+            '<div class="card-body">' +
+                '<label class="toggle-wrap"><input type="checkbox" id="chk-' + c.id + '"' + (on ? ' checked' : '') + '> Video IA activo</label>' +
+                '<label class="costo-wrap">Costo adicional $ <input type="number" id="costo-' + c.id + '" value="' + costo + '" min="0" step="100" placeholder="0"></label>' +
+                '<button class="btn-guardar" onclick="guardar(\'' + c.id + '\')">GUARDAR</button>' +
+            '</div>' +
+            '<div class="msg" id="msg-' + c.id + '"></div>' +
+        '</div>';
+    }).join('');
+}
+
+window.guardar = async function(clubId) {
+    var chk = document.getElementById('chk-' + clubId);
+    var costoEl = document.getElementById('costo-' + clubId);
+    var msgEl = document.getElementById('msg-' + clubId);
+    var card = document.getElementById('card-' + clubId);
+    var badge = document.getElementById('badge-' + clubId);
+    if (!chk || !costoEl || !msgEl) return;
+    var activo = chk.checked;
+    var costo = parseFloat(costoEl.value) || 0;
+    msgEl.textContent = 'Guardando…';
+    msgEl.className = 'msg';
+    var r = await patchClub(clubId, { video_ia_activo: activo, video_ia_costo: costo });
+    if (r.error) {
+        msgEl.textContent = 'Error: ' + (r.error.message || r.error);
+        msgEl.className = 'msg err';
+    } else {
+        msgEl.textContent = '✓ Guardado';
+        msgEl.className = 'msg ok';
+        card.className = 'card' + (activo ? ' activo' : '');
+        badge.textContent = activo ? 'ACTIVO' : 'INACTIVO';
+        badge.className = 'badge ' + (activo ? 'badge-on' : 'badge-off');
+        setTimeout(function() { msgEl.textContent = ''; }, 2500);
+    }
+};
+
+cargar();
+</script>
+</body>
+</html>
