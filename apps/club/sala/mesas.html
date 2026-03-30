@@ -226,6 +226,12 @@
             <div class="header-reloj" id="header-reloj">--:--:--</div>
             <div class="header-countdown" id="header-countdown">Actualizando en 30s</div>
         </div>
+        <div id="obs-toggle-wrap" style="margin-top:8px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.5rem;color:#888;letter-spacing:1px;">
+                <input type="checkbox" id="obs-toggle" onchange="obsHandleToggle(this.checked)" style="accent-color:#c9a84c;">
+                OBS ENLAZADO
+            </label>
+        </div>
     </div>
 </div>
 
@@ -1396,11 +1402,39 @@ async function obsToggleStream() {
     }
 }
 
+function obsHandleToggle(checked) {
+    if (checked) {
+        var pwd = prompt('Contraseña OBS WebSocket:');
+        if (!pwd) {
+            document.getElementById('obs-toggle').checked = false;
+            return;
+        }
+        window.DC_OBS_PASSWORD = pwd;
+        localStorage.setItem('dc_obs_enabled', '1');
+        obsInitIfEnabled();
+    } else {
+        localStorage.removeItem('dc_obs_enabled');
+        window.DC_OBS_PASSWORD = '';
+        if (_obsCleanup) { _obsCleanup(); _obsCleanup = null; }
+        if (window._obsClient) {
+            try { window._obsClient.disconnect(); } catch (e) {}
+        }
+        window._obsClient = null;
+        _obsStreaming = false;
+        var dock = document.getElementById('obs-dock');
+        if (dock) dock.classList.remove('visible');
+        obsSetStatus('OBS — sin conectar', false);
+        obsUpdateBtn();
+    }
+}
+
 async function obsInitIfEnabled() {
     if (!obsIsEnabled()) return;
     var dock = document.getElementById('obs-dock');
     if (dock) dock.classList.add('visible');
     obsSetStatus('OBS — conectando…', false);
+    var obsChk = document.getElementById('obs-toggle');
+    if (obsChk) obsChk.checked = true;
     try {
         var mod = await import('/js/obs-autostream.js');
         window._obsClient = mod.createObsClient();
