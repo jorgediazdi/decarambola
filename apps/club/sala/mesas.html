@@ -128,6 +128,23 @@
         body.salon-vista-jugador #modal_costo,
         body.salon-vista-jugador #modal_overlay_url { display: none !important; }
         body.salon-vista-jugador #modal_acciones .modal-btn:not(.reservar):not(.cerrar-modal) { display: none !important; }
+
+        /* ── MODO TV (pantalla mostrador) ── */
+        body.salon-vista-tv { cursor: none; overflow: hidden; }
+        body.salon-vista-tv .header { display: none !important; }
+        body.salon-vista-tv .bottom-nav { display: none !important; }
+        body.salon-vista-tv .leyenda { display: none !important; }
+        body.salon-vista-tv .plano-mapa-toolbar { display: none !important; }
+        body.salon-vista-tv .btn-plano-cfg { display: none !important; }
+        body.salon-vista-tv .actualizar-info { display: none !important; }
+        body.salon-vista-tv .wrap { padding: 0; max-width: 100%; }
+        body.salon-vista-tv .plano-salón { border-radius: 0; border: none; min-height: 100vh; padding: 24px; }
+        body.salon-vista-tv .mesa-celda { width: 110px; height: 110px; font-size: 0.75rem; border-radius: 18px; pointer-events: none; }
+        body.salon-vista-tv .mesa-celda .nom { font-size: 1rem; }
+        body.salon-vista-tv #modal_mesa,
+        body.salon-vista-tv #modal_ticket_mesa,
+        body.salon-vista-tv #modal_crono,
+        body.salon-vista-tv #modal_costo { display: none !important; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
 <link rel="stylesheet" href="/css/bottom-nav.css">
@@ -228,6 +245,11 @@ import('/js/auth-manager.js').then(function (am) {
 }).then(function (rr) {
     var rol = _dcSessionRolDesdePerfil(!rr || rr.error ? '' : rr.data);
     if (rol === 'jugador') document.body.classList.add('salon-vista-jugador');
+    var _tvParam = new URLSearchParams(window.location.search).get('modo');
+    if (_tvParam === 'tv') {
+        document.body.classList.add('salon-vista-tv');
+        countdownSegundos = 15;
+    }
     try { SESSION.verificarAlCargar(rol); } catch (e) {}
 }).catch(function (e) {
     if (e && e._dcAuthRedirect) return;
