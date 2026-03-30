@@ -142,7 +142,7 @@
             { icon: "◎", value: mockUser.promedio.toFixed(2), label: "Promedio", href: "ranking.html", seed: 0 },
             { icon: "◇", value: "#" + mockUser.ranking, label: "Ranking", href: "ranking.html", seed: 1 },
             { icon: "⚡", value: String(mockUser.duelos_semana), label: "Duelos esta semana", href: "apps/club/sala/mesas.html", seed: 2 },
-            { icon: "✦", value: String(mockUser.torneos_activos), label: "Torneos activos", href: "apps/club/organizador/organizador.html", seed: 3 }
+            { icon: "✦", value: String(mockUser.torneos_activos), label: "Torneos activos", href: "apps/organizador/organizador.html", seed: 3 }
         ];
         var html = "";
         stats.forEach(function (s) {
@@ -197,7 +197,7 @@
                     '<span class="btn-event btn-event--success" role="status">Ya inscrito ✓</span>';
             } else {
                 btnPrimary =
-                    '<a class="btn-event btn-event--primary" href="apps/club/organizador/organizador.html">Inscribirme</a>';
+                    '<a class="btn-event btn-event--primary" href="apps/organizador/organizador.html">Inscribirme</a>';
             }
 
             html +=
@@ -227,7 +227,7 @@
                 '%"></div></div>' +
                 '<div class="event-card__actions">' +
                 btnPrimary +
-                '<a class="btn-event btn-event--ghost" href="apps/club/organizador/organizador.html">Ver torneo</a>' +
+                '<a class="btn-event btn-event--ghost" href="apps/organizador/organizador.html">Ver torneo</a>' +
                 "</div></article>";
         });
         container.innerHTML = html;

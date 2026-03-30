@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+  import { getSession, getRole } from '/js/auth-manager.js';
+  const s = await getSession();
+  if (!s?.data?.user) {
+    window.location.replace('/auth.html?next=' +
+      encodeURIComponent(window.location.pathname));
+  }
+  const r = await getRole();
+  const rol = r?.data || '';
+  if (rol !== 'club_admin' && rol !== 'superadmin') {
+    window.location.replace('/jugador/index.html');
+  }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#c9a84c">
+    <title>Panel Organizador — DeCarambola</title>
+    <link rel="stylesheet" href="/css/dc-system.css">
+    <script src="/js/dc-nav.js" defer></script>
+    <style>
+        /* Panel organizador — paleta y tipografía alineadas con dc-system.css */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        .dc-app.dc-ux.dc-ux-skin {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            background: var(--dc-bg, #0a0a0a);
+            border-bottom: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            padding: 16px 18px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .header-principal-org { flex: 1; min-width: 200px; }
+        .header-marca {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .header-marca span {
+            color: var(--dc-gold, #c9a84c);
+            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
+            font-size: 1rem;
+            letter-spacing: 0.12em;
+        }
+        .header-marca small {
+            color: var(--dc-text-subtle, #555);
+            font-size: 0.65rem;
+            letter-spacing: 0.18em;
+        }
+        .header-sede {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 10px;
+            padding: 6px 12px;
+            margin-top: 10px;
+            font-size: 0.55rem;
+            color: var(--dc-text-muted, #888);
+            text-align: left;
+            letter-spacing: 1px;
+        }
+        .header-sede b {
+            color: var(--dc-gold, #c9a84c);
+            display: block;
+            font-size: 0.75rem;
+            margin-top: 1px;
+        }
+
+        .wrap {
+            width: 95vw;
+            max-width: 500px;
+            padding-top: 16px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .kpi {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 18px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--dc-gold, #c9a84c);
+        }
+
+        .kpi-val {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+            font-family: var(--dc-font-mono, "JetBrains Mono", monospace);
+            color: var(--dc-gold, #c9a84c);
+        }
+
+        .kpi-lbl { color: var(--dc-text-subtle, #555); font-size: 0.5rem; letter-spacing: 2px; }
+        .kpi-sub { color: var(--dc-text-muted, #888); font-size: 0.65rem; letter-spacing: 1px; margin-top: 2px; }
+
+        .sec-titulo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0 10px;
+        }
+        .sec-titulo h3 {
+            color: var(--dc-text, #f0f0f0);
+            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border-left: 3px solid var(--dc-gold, #c9a84c);
+            padding-left: 10px;
+        }
+        .sec-btn {
+            background: none;
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            color: var(--dc-text-muted, #888);
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-size: 0.5rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            font-family: var(--dc-font-body, "DM Sans", sans-serif);
+            font-weight: 600;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .sec-btn:active { border-color: var(--dc-gold, #c9a84c); color: var(--dc-gold, #c9a84c); }
+        .sec-btn.oro {
+            background: var(--dc-gold, #c9a84c);
+            color: #0a0a0a;
+            border-color: transparent;
+            font-size: 0.6rem;
+            padding: 7px 16px;
+        }
+
+        .torneo-card {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 20px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .torneo-card::before {
+            content: 'EN VIVO';
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            font-size: 0.65rem;
+            color: var(--dc-gold, #c9a84c);
+            letter-spacing: 2px;
+            font-family: var(--dc-font-body, "DM Sans", sans-serif);
+            font-weight: 600;
+        }
+        .torneo-nombre {
+            color: var(--dc-text, #f0f0f0);
+            font-size: 1rem;
+            margin-bottom: 4px;
+            padding-right: 70px;
+        }
+        .torneo-codigo { color: var(--dc-text-muted, #888); font-size: 0.5rem; letter-spacing: 2px; margin-bottom: 12px; }
+
+        .torneo-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .ts {
+            background: var(--dc-bg, #0a0a0a);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+        }
+        .ts b {
+            color: var(--dc-text, #f0f0f0);
+            font-size: 1.1rem;
+            display: block;
+            font-family: var(--dc-font-mono, "JetBrains Mono", monospace);
+        }
+        .ts small { color: var(--dc-text-muted, #888); font-size: 0.65rem; letter-spacing: 1px; }
+
+        .bolsa-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(201, 168, 76, 0.06);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+        }
+        .bolsa-lbl { color: var(--dc-text-muted, #888); font-size: 0.5rem; letter-spacing: 2px; }
+        .bolsa-val {
+            color: var(--dc-gold, #c9a84c);
+            font-size: 1.1rem;
+            font-family: var(--dc-font-mono, "JetBrains Mono", monospace);
+        }
+
+        .torneo-acciones {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn-accion {
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1px;
+            font-family: var(--dc-font-body, "DM Sans", sans-serif);
+            border: none;
+            transition: 0.15s;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+        }
+        .btn-accion:active { transform: scale(0.96); }
+        .btn-accion.primario {
+            background: var(--dc-gold, #c9a84c);
+            color: #0a0a0a;
+        }
+        .btn-accion.secundario {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            color: var(--dc-text-muted, #888);
+        }
+        .btn-accion.azul {
+            background: var(--dc-surface2, #1a1a1a);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            color: var(--dc-text, #f0f0f0);
+        }
+        .btn-accion.oro {
+            background: transparent;
+            border: 1px solid var(--dc-gold, #c9a84c);
+            color: var(--dc-gold, #c9a84c);
+        }
+
+        .no-torneo {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .no-torneo .icono { font-size: 2.5rem; margin-bottom: 10px; }
+        .no-torneo p { color: var(--dc-text-muted, #888); font-size: 0.65rem; line-height: 2; letter-spacing: 1px; }
+
+        .jugador-row {
+            display: flex;
+            align-items: center;
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 14px;
+            padding: 11px 14px;
+            margin-bottom: 8px;
+            gap: 12px;
+        }
+        .j-pos {
+            font-size: 0.75rem;
+            color: var(--dc-text-subtle, #555);
+            min-width: 22px;
+            text-align: center;
+        }
+        .j-pos.top { color: var(--dc-gold, #c9a84c); font-size: 1rem; }
+        .j-info { flex: 1; }
+        .j-nom { font-size: 0.85rem; color: var(--dc-text, #f0f0f0); }
+        .j-det { font-size: 0.65rem; color: var(--dc-text-muted, #888); letter-spacing: 1px; margin-top: 2px; }
+        .j-prom {
+            font-size: 1rem;
+            color: var(--dc-gold, #c9a84c);
+            font-family: var(--dc-font-mono, "JetBrains Mono", monospace);
+        }
+        .j-badge {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 8px;
+            letter-spacing: 1px;
+            background: rgba(201, 168, 76, 0.1);
+            color: var(--dc-gold, #c9a84c);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+        }
+
+        .hist-row {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .hist-info { flex: 1; }
+        .hist-nom { font-size: 0.8rem; color: var(--dc-text-muted, #888); }
+        .hist-det { font-size: 0.65rem; color: var(--dc-text-subtle, #555); letter-spacing: 1px; margin-top: 3px; }
+        .hist-campeon { font-size: 0.55rem; color: var(--dc-gold, #c9a84c); margin-top: 4px; }
+        .hist-estado {
+            font-size: 0.65rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+            letter-spacing: 1px;
+            background: rgba(201, 168, 76, 0.1);
+            color: var(--dc-gold, #c9a84c);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            white-space: nowrap;
+        }
+
+        .acciones-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .accion-card {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 18px;
+            padding: 18px 14px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .accion-card:active { transform: scale(0.95); border-color: var(--dc-border-hover, rgba(201, 168, 76, 0.3)); }
+        .accion-ico { font-size: 1.8rem; }
+        .accion-nom { font-size: 0.6rem; color: var(--dc-text-muted, #888); letter-spacing: 1px; }
+        .accion-det { font-size: 0.65rem; color: var(--dc-text-subtle, #555); letter-spacing: 1px; }
+
+        .reporte-card {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 18px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .reporte-info small { color: var(--dc-text-muted, #888); font-size: 0.65rem; letter-spacing: 2px; display: block; }
+        .reporte-info b { color: var(--dc-gold, #c9a84c); font-size: 0.8rem; margin-top: 3px; display: block; }
+        .btn-exportar {
+            background: rgba(201, 168, 76, 0.12);
+            border: 1px solid var(--dc-border-hover, rgba(201, 168, 76, 0.3));
+            color: var(--dc-gold, #c9a84c);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.55rem;
+            cursor: pointer;
+            font-family: var(--dc-font-body, "DM Sans", sans-serif);
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .btn-exportar:active { background: rgba(201, 168, 76, 0.2); }
+
+        .empty { text-align: center; padding: 24px 0; color: var(--dc-text-subtle, #555); font-size: 0.6rem; letter-spacing: 1px; }
+
+        .portal-links {
+            width: 95vw;
+            max-width: 500px;
+            margin: 12px auto 96px;
+            padding: 10px 6px 0;
+            border-top: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px 14px;
+        }
+        .portal-links a {
+            color: var(--dc-text-muted, #888);
+            font-size: 0.62rem;
+            letter-spacing: 0.06em;
+            text-decoration: none;
+            border-bottom: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            padding-bottom: 2px;
+        }
+        .portal-links a:hover, .portal-links a:focus-visible {
+            color: var(--dc-gold, #c9a84c);
+            border-bottom-color: var(--dc-border-hover, rgba(201, 168, 76, 0.3));
+            outline: none;
+        }
+    </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
+</head>
+<body class="dc-app dc-ux dc-ux-skin">
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-principal-org">
+            <div class="header-marca">
+                <span>DeCarambola</span>
+                <small>PANEL ORGANIZADOR</small>
+            </div>
+            <div class="header-sede">
+                SEDE ACTIVA
+                <b id="lbl-sede">—</b>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrap dc-reveal">
+
+        <!-- ══ KPIs ══ -->
+        <div class="kpi-grid">
+            <div class="kpi oro">
+                <div class="kpi-val" id="kpi-torneos">0</div>
+                <div class="kpi-lbl">TORNEOS</div>
+                <div class="kpi-sub" id="kpi-torneos-sub">sin torneos</div>
+            </div>
+            <div class="kpi neon">
+                <div class="kpi-val" id="kpi-jugadores">0</div>
+                <div class="kpi-lbl">JUGADORES</div>
+                <div class="kpi-sub">registrados en el club</div>
+            </div>
+            <div class="kpi azul">
+                <div class="kpi-val" id="kpi-partidas">0</div>
+                <div class="kpi-lbl">PARTIDAS</div>
+                <div class="kpi-sub">registradas en historial</div>
+            </div>
+            <div class="kpi rojo">
+                <div class="kpi-val" id="kpi-bolsa">$0</div>
+                <div class="kpi-lbl">BOLSA ACTIVA</div>
+                <div class="kpi-sub" id="kpi-bolsa-sub">torneo en curso</div>
+            </div>
+        </div>
+
+        <!-- ══ TORNEO ACTIVO ══ -->
+        <div class="sec-titulo">
+            <h3>Torneo Activo</h3>
+            <a href="torneo_crear.html" class="sec-btn oro">+ NUEVO TORNEO</a>
+        </div>
+
+        <div id="zona-torneo">
+            <!-- Se llena por JS -->
+        </div>
+
+        <!-- ══ ACCIONES RÁPIDAS ══ -->
+        <div class="sec-titulo">
+            <h3>Acciones Rápidas</h3>
+        </div>
+        <div class="acciones-grid">
+            <a href="inscripciones.html" class="accion-card">
+                <div class="accion-ico">🟡</div>
+                <div class="accion-nom">INSCRIBIR</div>
+                <div class="accion-det">Agregar jugador al torneo</div>
+            </a>
+            <a href="Brackets.html" class="accion-card">
+                <div class="accion-ico">🏆</div>
+                <div class="accion-nom">FIXTURE</div>
+                <div class="accion-det">Ver llaves del torneo</div>
+            </a>
+            <a href="/ranking.html" class="accion-card">
+                <div class="accion-ico">📊</div>
+                <div class="accion-nom">RANKING</div>
+                <div class="accion-det">Tabla oficial del club</div>
+            </a>
+            <a href="/index.html" class="accion-card" style="border-color:rgba(52,152,219,0.3);">
+                <div class="accion-ico">🎯</div>
+                <div class="accion-nom">INICIO</div>
+                <div class="accion-det">Mesas e instalaciones del club → MI CLUB</div>
+            </a>
+        </div>
+
+        <!-- ══ REPORTE ══ -->
+        <div class="reporte-card">
+            <div class="reporte-info">
+                <small>EXPORTAR</small>
+                <b>Reporte del Torneo Activo</b>
+            </div>
+            <button class="btn-exportar" onclick="exportarReporte()">
+                📄 GENERAR
+            </button>
+        </div>
+
+        <!-- ══ INSCRITOS EN EL TORNEO ══ -->
+        <div class="sec-titulo">
+            <h3>Inscritos al Torneo</h3>
+            <a href="inscripciones.html" class="sec-btn">VER TODOS</a>
+        </div>
+        <div id="zona-inscritos">
+            <div class="empty">Sin torneo activo</div>
+        </div>
+
+        <!-- ══ RANKING DEL CLUB ══ -->
+        <div class="sec-titulo">
+            <h3>Top Ranking del Club</h3>
+            <a href="/ranking.html" class="sec-btn">COMPLETO</a>
+        </div>
+        <div id="zona-ranking">
+            <div class="empty">Sin partidas registradas</div>
+        </div>
+
+        <!-- ══ HISTORIAL DE TORNEOS ══ -->
+        <div class="sec-titulo">
+            <h3>Historial de Torneos</h3>
+        </div>
+        <div id="zona-historial">
+            <div class="empty">Sin torneos anteriores</div>
+        </div>
+
+    </div>
+
+<!-- ══ LÓGICA ══ -->
+<script src="/core.js"></script>
+<script>
+
+    // ═══════════════════════════════════════
+    //  CONFIG MULTI‑DEPORTE (billar, fútbol, pádel…)
+    //  Usa WL.getDeporte() para ajustar textos e iconos
+    // ═══════════════════════════════════════
+    const CONFIG_DEPORTE = {
+        billar: {
+            emojiTorneoVacio: '🟡',
+            modalidadDefault: '3 BANDAS',
+            labelJugadores: 'JUGADORES',
+            labelRankingClub: 'Top Ranking del Club'
+        },
+        futbol: {
+            emojiTorneoVacio: '⚽',
+            modalidadDefault: 'FÚTBOL 5',
+            labelJugadores: 'JUGADORES',
+            labelRankingClub: 'Top Ranking del Equipo'
+        },
+        padel: {
+            emojiTorneoVacio: '🎾',
+            modalidadDefault: 'PÁDEL',
+            labelJugadores: 'JUGADORES',
+            labelRankingClub: 'Top Ranking del Club'
+        },
+        equitacion: {
+            emojiTorneoVacio: '🐎',
+            modalidadDefault: 'ESCUELA',
+            labelJugadores: 'JINETES',
+            labelRankingClub: 'Top Ranking de la Escuela'
+        }
+    };
+
+    function getDeporteActivo() {
+        try {
+            if (window.WL && typeof WL.getDeporte === 'function') {
+                return String(WL.getDeporte() || 'billar').toLowerCase();
+            }
+        } catch (e) {}
+        return 'billar';
+    }
+
+    function getConfigDeporte() {
+        const dep = getDeporteActivo();
+        return CONFIG_DEPORTE[dep] || CONFIG_DEPORTE.billar;
+    }
+
+    window.onload = async function () {
+        try {
+            await MasterVIP.init();
+            SESSION.verificarAlCargar('organizador');
+        } catch(e) {
+            console.warn('Init offline:', e);
+        }
+        MasterVIP.applyDesign();
+
+        // Nombre del club desde whitelabel
+        const nombreClub = localStorage.getItem('wl_club_nombre') || null;
+        document.getElementById('lbl-sede').innerText = nombreClub || 'SIN CONFIGURAR';
+
+        // Ajustar etiquetas por deporte (sin romper el diseño existente)
+        const cfg = getConfigDeporte();
+        try {
+            const kpiJugLbl = document.querySelector('.kpi.neon .kpi-lbl');
+            if (kpiJugLbl) kpiJugLbl.textContent = cfg.labelJugadores;
+
+            const secRanking = Array.from(document.querySelectorAll('.sec-titulo h3'))
+                .find(h => h.textContent.trim().toUpperCase().startsWith('TOP RANKING'));
+            if (secRanking) secRanking.textContent = cfg.labelRankingClub;
+        } catch (e) {
+            console.warn('No se pudieron ajustar algunos textos por deporte:', e);
+        }
+
+        await cargarKPIs();
+        cargarTorneoActivo();
+        cargarRanking();
+        cargarHistorial();
+    };
+
+    /* ══ KPIs ══ */
+    async function cargarKPIs() {
+        const torneos   = MasterVIP.getTorneos();
+        const jugadores = MasterVIP.getJugadores();
+        const torneo    = MasterVIP.getTorneoActivo();
+
+        const activos = torneos.filter(t => t.estado === 'EN_CURSO' || t.estado === 'ABIERTO').length;
+        document.getElementById('kpi-torneos').innerText     = torneos.length;
+        document.getElementById('kpi-torneos-sub').innerText = activos > 0 ? activos + ' en curso' : 'ninguno activo';
+        document.getElementById('kpi-jugadores').innerText   = jugadores.length;
+
+        const clubId = MasterVIP.getClubId();
+        try {
+            const jm = await import('/js/api/jugador-api.js');
+            const pc = await jm.countPartidasForClub(clubId || null);
+            document.getElementById('kpi-partidas').innerText =
+                pc.data != null && !pc.error ? String(pc.data) : '—';
+        } catch (e) {
+            document.getElementById('kpi-partidas').innerText = '—';
+        }
+
+        if (torneo) {
+            const bolsa = MasterVIP.calcularBolsa(torneo);
+            document.getElementById('kpi-bolsa').innerText     = MasterVIP.formatearPesos(bolsa);
+            document.getElementById('kpi-bolsa-sub').innerText = torneo.nombre.substring(0, 20);
+        } else {
+            document.getElementById('kpi-bolsa').innerText     = '$0';
+            document.getElementById('kpi-bolsa-sub').innerText = 'sin torneo activo';
+        }
+    }
+
+    /* ══ TORNEO ACTIVO ══ */
+    function cargarTorneoActivo() {
+        const torneo = MasterVIP.getTorneoActivo();
+        const zona   = document.getElementById('zona-torneo');
+
+        if (!torneo) {
+            const cfg = getConfigDeporte();
+            zona.innerHTML = `
+                <div class="no-torneo">
+                    <div class="icono">${cfg.emojiTorneoVacio}</div>
+                    <p>NO HAY TORNEO ACTIVO<br>CREA UNO Y EMPIEZA A INSCRIBIR</p>
+                </div>`;
+            return;
+        }
+
+        const inscritos = (torneo && torneo.inscritos) ? torneo.inscritos.length : 0;
+        const rondaActual = (torneo && torneo.rondas) ? torneo.rondas.length : 0;
+        const totalRondas = MasterVIP.totalRondas(torneo.cupoMax);
+        const bolsa = MasterVIP.calcularBolsa(torneo);
+        const rondaNom = rondaActual > 0
+            ? MasterVIP.nombreRonda(totalRondas, rondaActual)
+            : 'INSCRIPCIONES';
+
+        const cfg = getConfigDeporte();
+        zona.innerHTML = `
+            <div class="torneo-card">
+                <div class="torneo-nombre">${torneo.nombre}</div>
+                <div class="torneo-codigo">${torneo.codigo} · ${torneo.modalidad || cfg.modalidadDefault}</div>
+
+                <div class="torneo-stats">
+                    <div class="ts">
+                        <b>${inscritos}</b>
+                        <small>INSCRITOS</small>
+                    </div>
+                    <div class="ts">
+                        <b>${torneo.cupoMax}</b>
+                        <small>CUPO MÁX</small>
+                    </div>
+                    <div class="ts">
+                        <b>${rondaNom}</b>
+                        <small>FASE ACTUAL</small>
+                    </div>
+                </div>
+
+                <div class="bolsa-row">
+                    <span class="bolsa-lbl">BOLSA GARANTIZADA</span>
+                    <span class="bolsa-val">${MasterVIP.formatearPesos(bolsa)}</span>
+                </div>
+
+                <div class="torneo-acciones">
+                    <a href="control_torneo.html" class="btn-accion primario">▶ CONTROLAR</a>
+                    <a href="Brackets.html"        class="btn-accion azul">🏆 FIXTURE</a>
+                    <a href="inscripciones.html"   class="btn-accion secundario">+ INSCRIBIR</a>
+                    <button class="btn-accion oro" onclick="sortearTorneo()">🎲 SORTEAR</button>
+                </div>
+            </div>`;
+
+        // Cargar inscritos
+        cargarInscritos(torneo);
+    }
+
+    /* ══ INSCRITOS ══ */
+    function cargarInscritos(torneo) {
+        const zona = document.getElementById('zona-inscritos');
+        if (!(torneo && torneo.inscritos && torneo.inscritos.length)) {
+            zona.innerHTML = '<div class="empty">Sin jugadores inscritos aún</div>';
+            return;
+        }
+
+        const lista = [...torneo.inscritos]
+            .sort((a, b) => (b.promedio || 0) - (a.promedio || 0))
+            .slice(0, 6);
+
+        zona.innerHTML = lista.map((j, i) => {
+            const cat = MasterVIP.getCategoria(j.promedio || 0);
+            const medallas = ['🥇','🥈','🥉'];
+            return `
+            <div class="jugador-row">
+                <div class="j-pos ${i < 3 ? 'top' : ''}">${i < 3 ? medallas[i] : (i+1)}</div>
+                <div class="j-info">
+                    <div class="j-nom">${j.nombre}</div>
+                    <div class="j-det">${cat.emoji} ${cat.nombre}</div>
+                </div>
+                <div class="j-prom">${(j.promedio || 0).toFixed(3)}</div>
+            </div>`;
+        }).join('');
+
+        if (torneo.inscritos.length > 6) {
+            zona.innerHTML += `<div class="empty">+${torneo.inscritos.length - 6} más inscritos</div>`;
+        }
+    }
+
+    /* ══ RANKING DEL CLUB ══ */
+    async function cargarRanking() {
+        const zona = document.getElementById('zona-ranking');
+        zona.innerHTML = '<div class="empty">Cargando ranking...</div>';
+
+        const clubId = MasterVIP.getClubId();
+        let data = null;
+        try {
+            const jm = await import('/js/api/jugador-api.js');
+            const jr = await jm.listTopJugadoresByPromedio(clubId || null, 5);
+            if (!jr.error) data = jr.data;
+        } catch (e) {}
+
+        // Si Supabase devuelve datos, usarlos; si no, caer en localStorage
+        const jugadores = (data && data.length)
+            ? data.map(j => ({ nombre: j.nombre, promedio: parseFloat(j.promedio) || 0 }))
+            : MasterVIP.getJugadores()
+                .filter(j => j.promedio > 0)
+                .sort((a, b) => b.promedio - a.promedio)
+                .slice(0, 5);
+
+        if (!jugadores.length) {
+            zona.innerHTML = '<div class="empty">Sin partidas registradas aún</div>';
+            return;
+        }
+
+        const medallas = ['🥇','🥈','🥉'];
+        zona.innerHTML = jugadores.map((j, i) => {
+            const cat = MasterVIP.getCategoria(j.promedio);
+            return `
+            <div class="jugador-row">
+                <div class="j-pos ${i < 3 ? 'top' : ''}">${i < 3 ? medallas[i] : (i+1)}</div>
+                <div class="j-info">
+                    <div class="j-nom">${j.nombre}</div>
+                    <div class="j-det">${cat.emoji} ${cat.nombre}</div>
+                </div>
+                <div class="j-prom">${j.promedio.toFixed(3)}</div>
+            </div>`;
+        }).join('');
+    }
+
+    /* ══ HISTORIAL ══ */
+    async function cargarHistorial() {
+        const zona = document.getElementById('zona-historial');
+        zona.innerHTML = '<div class="empty">Cargando historial...</div>';
+
+        const clubId = MasterVIP.getClubId();
+        let data = null;
+        try {
+            const tm = await import('/js/api/torneo-api.js');
+            const tr = await tm.listTorneosFinalizados(clubId || null, 5);
+            if (!tr.error) data = tr.data;
+        } catch (e) {}
+
+        // Supabase primero, localStorage como fallback
+        let torneos = [];
+        if (data && data.length) {
+            torneos = data.map(t => ({
+                nombre:       t.nombre,
+                codigo:       t.codigo || '',
+                fechaCreacion: t.created_at,
+                campeon:      t.campeon_nombre || null,
+                inscritos:    []   // no crítico para mostrar el historial
+            }));
+        } else {
+            torneos = MasterVIP.getTorneos()
+                .filter(t => t.estado === 'FINALIZADO')
+                .sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion))
+                .slice(0, 5);
+        }
+
+        if (!torneos.length) {
+            zona.innerHTML = '<div class="empty">Sin torneos finalizados aún</div>';
+            return;
+        }
+
+        zona.innerHTML = torneos.map(t => {
+            const fecha = new Date(t.fechaCreacion).toLocaleDateString('es-CO');
+            return `
+            <div class="hist-row">
+                <div class="hist-info">
+                    <div class="hist-nom">${t.nombre}</div>
+                    <div class="hist-det">${t.codigo} · ${fecha}</div>
+                    ${t.campeon ? `<div class="hist-campeon">🏆 ${t.campeon}</div>` : ''}
+                </div>
+                <div class="hist-estado">FINALIZADO</div>
+            </div>`;
+        }).join('');
+    }
+
+    /* ══ SORTEAR ══ */
+    function sortearTorneo() {
+        const torneo = MasterVIP.getTorneoActivo();
+        if (!torneo) return alert('No hay torneo activo.');
+        if (torneo.inscritos.length < 2) return alert('JH, necesitas al menos 2 jugadores inscritos.');
+        if (torneo.estado === 'EN_CURSO') {
+            if (!confirm('El torneo ya está en curso. ¿Re-sortear?')) return;
+        }
+        const res = MasterVIP.realizarSorteo(torneo.id);
+        if (res.ok) {
+            alert('✅ SORTEO REALIZADO\n' + res.torneo.inscritos.length + ' jugadores sorteados.');
+            location.reload();
+        } else {
+            alert('Error: ' + res.msg);
+        }
+    }
+
+    /* ══ EXPORTAR REPORTE ══ */
+    function exportarReporte() {
+        const torneo = MasterVIP.getTorneoActivo();
+        if (!torneo) return alert('No hay torneo activo para exportar.');
+
+        const bolsa = MasterVIP.calcularBolsa(torneo);
+        let txt = '════════════════════════════\n';
+        txt += 'REPORTE — ' + torneo.nombre + '\n';
+        txt += torneo.codigo + '\n';
+        txt += '════════════════════════════\n\n';
+        txt += 'SEDE: ' + torneo.sede + '\n';
+        txt += 'ESTADO: ' + torneo.estado + '\n';
+        txt += 'INSCRITOS: ' + torneo.inscritos.length + ' / ' + torneo.cupoMax + '\n';
+        txt += 'BOLSA: ' + MasterVIP.formatearPesos(bolsa) + '\n\n';
+
+        txt += 'JUGADORES:\n';
+        torneo.inscritos.forEach((j, i) => {
+            txt += (i+1) + '. ' + j.nombre + ' — PROM: ' + (j.promedio || 0).toFixed(3) + '\n';
+        });
+
+        if (torneo.campeon) {
+            txt += '\n🏆 CAMPEÓN: ' + torneo.campeon + '\n';
+        }
+
+        txt += '\n════════════════════════════\n';
+        txt += 'DeCarambola · ' + new Date().toLocaleDateString('es-CO');
+
+        // Copiar al portapapeles
+        navigator.clipboard.writeText(txt).then(() => {
+            alert('✅ REPORTE COPIADO AL PORTAPAPELES\nPégalo en WhatsApp o email.');
+        }).catch(() => {
+            // Fallback: mostrar en ventana
+            const w = window.open('', '_blank');
+            w.document.write('<pre style="font-family:monospace;padding:20px;background:#000;color:#fff;">' + txt + '</pre>');
+        });
+    }
+
+</script>
+
+<div class="portal-links" aria-label="Enlaces globales">
+    <a href="torneos.html">Torneos</a>
+    <a href="torneo_crear.html">Nuevo torneo</a>
+    <a href="inscripciones.html">Inscripciones</a>
+    <a href="control_torneo.html">Control torneo</a>
+    <a href="../club/sala/mesas.html">Salón en vivo</a>
+    <a href="/club/index.html">Portal club</a>
+    <a href="/index.html">Inicio app</a>
+</div>
+
+<script src="/whitelabel.js"></script>
+<script>
+// Ajuste de textos por deporte usando WL.getDeporte()
+(function () {
+    if (!window.WL || typeof WL.getDeporte !== 'function') return;
+    var deporte = (WL.getDeporte() || 'billar').toLowerCase();
+
+    var hMarca = document.querySelector('.header-marca span');
+    var hSub   = document.querySelector('.header-marca small');
+
+    if (!hMarca || !hSub) return;
+
+    var textos = {
+        billar: {
+            titulo: 'DECARAMBOLA · BILLAR',
+            subt:   'PANEL ORGANIZADOR · TOUR DE BILLAR'
+        },
+        futbol: {
+            titulo: 'DECARAMBOLA · FÚTBOL 5',
+            subt:   'PANEL ORGANIZADOR · LIGAS & TORNEOS'
+        },
+        padel: {
+            titulo: 'DECARAMBOLA · PÁDEL',
+            subt:   'PANEL ORGANIZADOR · CIRCUITO PÁDEL'
+        },
+        equitacion: {
+            titulo: 'DECARAMBOLA · EQUESTRIAN',
+            subt:   'PANEL ORGANIZADOR · ESCUELA & TORNEOS'
+        },
+        tenis: {
+            titulo: 'DECARAMBOLA · TENIS',
+            subt:   'PANEL ORGANIZADOR · LIGAS & TORNEOS'
+        },
+        basquet: {
+            titulo: 'DECARAMBOLA · BÁSQUET',
+            subt:   'PANEL ORGANIZADOR · LIGAS & TORNEOS'
+        }
+    };
+
+    var conf = textos[deporte] || textos.billar;
+    hMarca.textContent = conf.titulo;
+    hSub.textContent   = conf.subt;
+})();
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+
+</body>
+</html>

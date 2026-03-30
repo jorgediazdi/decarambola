@@ -7,7 +7,7 @@
 | Archivo | Uso |
 |--------|-----|
 | `organizador.html` | Panel organizador |
-| `torneo_crear.html` | Crear torneo (enlace a `../sala/configurador_formato.html`) |
+| `torneo_crear.html` | Crear torneo (enlace a `../club/sala/configurador_formato.html`) |
 | `inscripciones.html` | Inscripciones |
 | `control_torneo.html` | Control en vivo; duelo TV → `/duelo-tv.html` |
 | `torneos.html` | Listado de torneos |
