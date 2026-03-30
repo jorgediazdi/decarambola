@@ -84,6 +84,11 @@
             <div class="kpi-value" id="kpi_top_mesa">—</div>
             <div class="kpi-sub" id="kpi_top_horas"></div>
         </div>
+        <div class="kpi">
+            <div class="kpi-label">MESAS ACTIVAS</div>
+            <div class="kpi-value" id="kpi_mesas_activas">—</div>
+            <div class="kpi-sub" id="kpi_mesas_activas_sub">En este momento</div>
+        </div>
     </div>
 
     <div class="sec-tit">ÚLTIMAS SESIONES CERRADAS</div>
@@ -118,6 +123,14 @@ async function cargarDatos() {
 
     pintarKPIs();
     pintarSesiones();
+    // KPI mesas activas en vivo (mismo listado que reporte — listMesasForReporte)
+    var activas = (mesas || []).filter(function (m) {
+        var e = (m.estado || 'libre').toString().toLowerCase().replace(/ /g, '_');
+        return e === 'ocupada';
+    });
+    document.getElementById('kpi_mesas_activas').textContent = activas.length;
+    document.getElementById('kpi_mesas_activas_sub').textContent =
+        activas.length === 1 ? '1 mesa ocupada ahora' : activas.length + ' mesas ocupadas ahora';
 }
 
 function nombreMesa(id) {
