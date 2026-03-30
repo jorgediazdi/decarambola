@@ -725,7 +725,7 @@
                         })
                     );
                     document.getElementById('form-identificacion').style.display = 'none';
-                    cargarDatosJugador();
+                    await cargarDatosJugador();
                     mostrarMsgCedula('', '#d4af37');
                 } else {
                     mostrarMsgCedula('No encontrado. ¿Nuevo jugador?', '#3498db');
@@ -736,7 +736,7 @@
                 if (perfil.cedula === cedula) {
                     localStorage.setItem('jugador_activo', JSON.stringify(perfil));
                     document.getElementById('form-identificacion').style.display = 'none';
-                    cargarDatosJugador();
+                    await cargarDatosJugador();
                 } else {
                     mostrarMsgCedula('Sin conexión. Cédula no reconocida offline.', '#e74c3c');
                 }
@@ -775,7 +775,7 @@
                 localStorage.setItem('mi_perfil', JSON.stringify({ nombre: jug.nombre, cedula: jug.cedula, promedio: 0, club: clubId }));
                 document.getElementById('form-identificacion').style.display = 'none';
                 document.getElementById('btn-registrar-nuevo').style.display = 'none';
-                cargarDatosJugador();
+                await cargarDatosJugador();
             } catch (e) {
                 mostrarMsgCedula('Error al registrar. Intenta de nuevo.', '#e74c3c');
             }
@@ -802,7 +802,20 @@
             }, 100);
         }
 
-        function cargarDatosJugador() {
+        async function cargarDatosJugador() {
+            if (!localStorage.getItem('jugador_activo')) {
+                try {
+                    var jm = await import('/js/api/jugador-api.js');
+                    var session = await import('/js/auth-manager.js');
+                    var s = await session.getSession();
+                    if (s?.data?.user?.id) {
+                        var r = await jm.getJugadorById(s.data.user.id);
+                        if (r?.data) {
+                            localStorage.setItem('jugador_activo', JSON.stringify(r.data));
+                        }
+                    }
+                } catch (e) {}
+            }
             try {
                 var u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
                 if (u && u.nombre) {
@@ -821,68 +834,106 @@
         }
 
         function cargarRetosPreview() {
-            var retos = {};
-            try {
-                retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES') || '{}');
-            } catch (e) {}
-            var lista = Object.values(retos);
-            var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-            var miNombre = (perfil.nombre || '').toUpperCase();
-            var pendientes = lista.filter(function (r) {
-                return r.estado === 'PENDIENTE' && (r.j2 === miNombre || r.tipo_reto === 'abierto');
-            });
-            var badge = document.getElementById('badge-retos-pendientes');
-            var preview = document.getElementById('retos-preview');
-            if (badge && pendientes.length > 0) {
-                badge.style.display = 'block';
-                badge.textContent = pendientes.length + ' PENDIENTE' + (pendientes.length > 1 ? 'S' : '');
+            function clubIdJugador() {
+                var wl = localStorage.getItem('wl_club_id');
+                if (wl) return wl;
+                try {
+                    var p = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+                    if (p.club || p.club_id) return p.club || p.club_id;
+                } catch (e) {}
+                try {
+                    var u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+                    if (u && (u.club_id || u.club)) return u.club_id || u.club;
+                } catch (e2) {}
+                return null;
             }
-            if (preview) {
-                if (lista.length === 0) {
-                    preview.textContent = 'Sin retos activos · Sé el primero en desafiar';
-                } else {
-                    var ultimo = lista[lista.length - 1];
-                    preview.textContent =
-                        '⚔️ ' +
-                        (ultimo.j1 || '?') +
-                        ' vs ' +
-                        (ultimo.j2 || 'ABIERTO') +
-                        ' · ' +
-                        (ultimo.modalidad || '3 Bandas') +
-                        ' · ' +
-                        (ultimo.meta1 || '?') +
-                        ' pts';
+            function mapRetoRow(row) {
+                return {
+                    j1: row.j1 || row.retador_nombre || row.jugador_1 || '',
+                    j2: row.j2 || row.rival_nombre || row.jugador_2 || '',
+                    estado: row.estado,
+                    modalidad: row.modalidad || '3 Bandas',
+                    meta1: row.meta1 != null ? row.meta1 : row.meta,
+                    tipo_reto: (row.tipo_reto || row.tipo || 'directo').toLowerCase(),
+                    created_at: row.created_at || null
+                };
+            }
+            function pickUltimoReto(lista) {
+                if (!lista.length) return null;
+                var conFecha = lista.filter(function (x) { return x.created_at; });
+                if (conFecha.length) {
+                    conFecha.sort(function (a, b) {
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    });
+                    return conFecha[0];
+                }
+                return lista[lista.length - 1];
+            }
+            function pintarRetosLista(lista) {
+                var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+                var miNombre = (perfil.nombre || '').toUpperCase();
+                var pendientes = lista.filter(function (r) {
+                    var st = String(r.estado || '').toUpperCase();
+                    var pend = st === 'PENDIENTE' || st === 'PENDING';
+                    var j2u = (r.j2 || '').toUpperCase();
+                    return pend && (j2u === miNombre || r.tipo_reto === 'abierto');
+                });
+                var badge = document.getElementById('badge-retos-pendientes');
+                var preview = document.getElementById('retos-preview');
+                if (badge) {
+                    if (pendientes.length > 0) {
+                        badge.style.display = 'block';
+                        badge.textContent = pendientes.length + ' PENDIENTE' + (pendientes.length > 1 ? 'S' : '');
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+                if (preview) {
+                    if (lista.length === 0) {
+                        preview.textContent = 'Sin retos activos · Sé el primero en desafiar';
+                    } else {
+                        var ultimo = pickUltimoReto(lista);
+                        preview.textContent =
+                            '⚔️ ' +
+                            (ultimo.j1 || '?') +
+                            ' vs ' +
+                            (ultimo.j2 || 'ABIERTO') +
+                            ' · ' +
+                            (ultimo.modalidad || '3 Bandas') +
+                            ' · ' +
+                            (ultimo.meta1 || '?') +
+                            ' pts';
+                    }
                 }
             }
+            (async function () {
+                var cid = clubIdJugador();
+                if (cid) {
+                    try {
+                        var jm = await import('/js/api/jugador-api.js');
+                        var r = await jm.listRetosByClubId(cid, 100);
+                        if (!r.error && r.data && r.data.length) {
+                            pintarRetosLista(r.data.map(mapRetoRow));
+                            return;
+                        }
+                    } catch (e) {}
+                }
+                var retos = {};
+                try {
+                    retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES') || '{}');
+                } catch (e) {}
+                pintarRetosLista(Object.values(retos));
+            })();
         }
 
         function cargarRankingMini() {
-            try {
-                var h = JSON.parse(localStorage.getItem('ranking_historico_club') || '[]');
-                if (!h.length) return;
-
-                var map = {};
-                h.forEach(function (r) {
-                    var n = r.nombre;
-                    if (!map[n]) map[n] = [];
-                    map[n].push(parseFloat(r.promedio) || 0);
-                });
-                var lista = Object.entries(map)
-                    .map(function (entry) {
-                        var n = entry[0];
-                        var ps = entry[1];
-                        return { nombre: n, promedio: ps.reduce(function (a, b) { return a + b; }, 0) / ps.length };
-                    })
-                    .sort(function (a, b) {
-                        return b.promedio - a.promedio;
-                    })
-                    .slice(0, 5);
-
+            function pintarRankingMini(lista) {
                 var medallas = ['🥇', '🥈', '🥉', '4', '5'];
                 var cat_fn =
                     typeof MasterVIP !== 'undefined' ? MasterVIP.getCategoria.bind(MasterVIP) : function (p) { return { nombre: '' }; };
-
-                document.getElementById('ranking-mini-lista').innerHTML = lista
+                var el = document.getElementById('ranking-mini-lista');
+                if (!el) return;
+                el.innerHTML = lista
                     .map(function (j, i) {
                         return (
                             '<div class="ranking-row">' +
@@ -900,14 +951,58 @@
                         );
                     })
                     .join('');
-            } catch (e) {}
+            }
+            (async function () {
+                var club = localStorage.getItem('wl_club_id');
+                if (club) {
+                    try {
+                        var jm = await import('/js/api/jugador-api.js');
+                        var r = await jm.listRankingClubTop(club, 5);
+                        if (!r.error && r.data && r.data.length) {
+                            var lista = r.data
+                                .map(function (row) {
+                                    return {
+                                        nombre: row.nombre || row.jugador_nombre || row.jugador || '',
+                                        promedio: parseFloat(row.promedio) || 0
+                                    };
+                                })
+                                .filter(function (x) { return x.nombre; });
+                            if (lista.length) {
+                                pintarRankingMini(lista);
+                                return;
+                            }
+                        }
+                    } catch (e) {}
+                }
+                try {
+                    var h = JSON.parse(localStorage.getItem('ranking_historico_club') || '[]');
+                    if (!h.length) return;
+                    var map = {};
+                    h.forEach(function (r) {
+                        var n = r.nombre;
+                        if (!map[n]) map[n] = [];
+                        map[n].push(parseFloat(r.promedio) || 0);
+                    });
+                    var lista = Object.entries(map)
+                        .map(function (entry) {
+                            var n = entry[0];
+                            var ps = entry[1];
+                            return { nombre: n, promedio: ps.reduce(function (a, b) { return a + b; }, 0) / ps.length };
+                        })
+                        .sort(function (a, b) {
+                            return b.promedio - a.promedio;
+                        })
+                        .slice(0, 5);
+                    pintarRankingMini(lista);
+                } catch (e) {}
+            })();
         }
 
-        window.addEventListener('load', function () {
+        window.addEventListener('load', async function () {
             try {
                 if (typeof MasterVIP !== 'undefined') MasterVIP.applyDesign?.();
             } catch (e) {}
-            cargarDatosJugador();
+            await cargarDatosJugador();
         });
     </script>
 </body>

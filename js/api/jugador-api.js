@@ -51,6 +51,22 @@ export async function getJugadorByCedula(cedula) {
   }
 }
 
+/** Una fila en `jugadores` por PK (p. ej. mismo UUID que `auth.users.id`). */
+export async function getJugadorById(id) {
+  try {
+    const uid = String(id || '').trim();
+    if (!uid) return { data: null, error: null };
+    const { data, error } = await supabase
+      .from('jugadores')
+      .select('*')
+      .eq('id', uid)
+      .maybeSingle();
+    return wrap(data, error);
+  } catch (e) {
+    return { data: null, error: e };
+  }
+}
+
 export async function updateJugador(id, payload) {
   try {
     const { data, error } = await supabase.from('jugadores').update(payload).eq('id', id).select();
@@ -164,6 +180,37 @@ export async function listTopJugadoresByPromedio(clubId, limit) {
     if (clubId) q = q.eq('club_id', clubId);
     const { data, error } = await q;
     return wrap(data, error);
+  } catch (e) {
+    return { data: null, error: e };
+  }
+}
+
+/** Vista ranking_club: top por posición (ascendente) para un club (campo `club`, ej. wl_club_id). */
+export async function listRankingClubTop(club, limit) {
+  try {
+    const cid = String(club || '').trim();
+    if (!cid) return { data: [], error: null };
+    const lim = Math.min(Math.max(parseInt(limit, 10) || 5, 1), 50);
+    const { data, error } = await supabase
+      .from('ranking_club')
+      .select('*')
+      .eq('club', cid)
+      .order('posicion', { ascending: true })
+      .limit(lim);
+    return wrap(data || [], error);
+  } catch (e) {
+    return { data: null, error: e };
+  }
+}
+
+/** Retos del club (tabla retos). */
+export async function listRetosByClubId(clubId, limit) {
+  try {
+    const cid = String(clubId || '').trim();
+    if (!cid) return { data: [], error: null };
+    const lim = Math.min(Math.max(parseInt(limit, 10) || 100, 1), 200);
+    const { data, error } = await supabase.from('retos').select('*').eq('club_id', cid).limit(lim);
+    return wrap(data || [], error);
   } catch (e) {
     return { data: null, error: e };
   }

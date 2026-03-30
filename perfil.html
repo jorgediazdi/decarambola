@@ -444,6 +444,9 @@ window.onload = async function(){
     }
     if (jm) { mostrarPerfil(jm); return; }
   }
+  // Fallback: leer jugador_activo de localStorage
+  var ja = MasterVIP._get('jugador_activo', null);
+  if (ja && ja.nombre) { mostrarPerfil(ja); return; }
   var mpRol = MasterVIP._get('mi_perfil', null);
   role = (mpRol && (mpRol.role || mpRol.rol || mpRol.tipo_rol || mpRol.tipoRol) || '').toString().toLowerCase();
   var isAdmin = role === 'club_admin' || role === 'superadmin';
