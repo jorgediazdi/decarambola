@@ -459,7 +459,7 @@ export async function listClubsActivos() {
   try {
     const { data, error } = await supabase
       .from('clubs')
-      .select('id,nombre,ciudad')
+      .select('id,nombre,ciudad,video_ia_activo,video_ia_costo')
       .eq('activo', true)
       .order('nombre', { ascending: true });
     return wrap(data, error);
