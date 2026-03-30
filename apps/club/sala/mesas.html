@@ -152,6 +152,17 @@
         #dc-alerta-3h { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #2a1010; border: 1px solid rgba(231,76,60,0.5); color: #ffc9c9; padding: 10px 18px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; z-index: 9999; display: none; text-align: center; max-width: min(92vw, 380px); }
         body.salon-vista-tv #dc-alerta-3h { font-size: 1.1rem; padding: 14px 24px; }
 
+        /* ── OBS CONTROLS ── */
+        #obs-dock { display:none; margin-top:10px; padding-top:10px; border-top:1px solid rgba(201,168,76,0.12); }
+        #obs-dock.visible { display:block; }
+        .obs-status { font-size:0.55rem; color:#888; letter-spacing:1px; margin-bottom:8px; text-align:center; }
+        .obs-status.on { color:#4caf7d; }
+        .obs-btn { width:100%; padding:9px; border-radius:10px; font-size:0.6rem; font-weight:700; letter-spacing:0.06em; cursor:pointer; border:1px solid rgba(201,168,76,0.25); background:#1a1a1a; color:#c9a84c; font-family:inherit; margin-bottom:6px; }
+        .obs-btn:active { opacity:0.8; }
+        body.salon-vista-jugador #obs-dock { display:none !important; }
+        body.salon-vista-barman #obs-dock { display:none !important; }
+        body.salon-vista-tv #obs-dock { display:none !important; }
+
         /* ── MODO BARMAN ── */
         body.salon-vista-barman .btn-plano-cfg { display: none !important; }
         body.salon-vista-barman .plano-mapa-toolbar { display: none !important; }
@@ -255,6 +266,10 @@
             <button type="button" class="modal-btn ficha" onclick="copiarUrlOverlayMesa()">Copiar URL del overlay</button>
         </div>
         <div class="modal-acciones" id="modal_acciones"></div>
+        <div id="obs-dock">
+            <div class="obs-status" id="obs-status-txt">OBS — sin conectar</div>
+            <button type="button" class="obs-btn" id="obs-btn-stream" onclick="obsToggleStream()">▶ INICIAR STREAM</button>
+        </div>
         <button class="modal-btn cerrar-modal" onclick="cerrarModal()">Cerrar</button>
     </div>
 </div>
@@ -1340,6 +1355,68 @@ window.__salaBoot = async function() {
     });
 };
 window.onbeforeunload = function() { if (intervaloRefresh) clearInterval(intervaloRefresh); if (intervaloCrono) clearInterval(intervaloCrono); };
+
+// ── OBS integration ──
+var _obsCleanup = null;
+var _obsStreaming = false;
+
+function obsIsEnabled() {
+    return localStorage.getItem('dc_obs_enabled') === '1';
+}
+
+function obsSetStatus(txt, on) {
+    var el = document.getElementById('obs-status-txt');
+    var dock = document.getElementById('obs-dock');
+    if (!el || !dock) return;
+    el.textContent = txt;
+    el.className = 'obs-status' + (on ? ' on' : '');
+}
+
+function obsUpdateBtn() {
+    var btn = document.getElementById('obs-btn-stream');
+    if (!btn) return;
+    btn.textContent = _obsStreaming ? '⏹ DETENER STREAM' : '▶ INICIAR STREAM';
+}
+
+async function obsToggleStream() {
+    if (!window._obsClient) return;
+    try {
+        if (_obsStreaming) {
+            await window._obsClient.stopStream();
+            _obsStreaming = false;
+            obsSetStatus('OBS — stream detenido', false);
+        } else {
+            await window._obsClient.startStream();
+            _obsStreaming = true;
+            obsSetStatus('OBS — EN VIVO 🔴', true);
+        }
+        obsUpdateBtn();
+    } catch(e) {
+        obsSetStatus('OBS — error: ' + e.message, false);
+    }
+}
+
+async function obsInitIfEnabled() {
+    if (!obsIsEnabled()) return;
+    var dock = document.getElementById('obs-dock');
+    if (dock) dock.classList.add('visible');
+    obsSetStatus('OBS — conectando…', false);
+    try {
+        var mod = await import('/js/obs-autostream.js');
+        window._obsClient = mod.createObsClient();
+        var clubId = getClubId();
+        if (clubId && !_obsCleanup) {
+            _obsCleanup = mod.initObsAutostream(clubId, window._obsClient);
+        }
+        obsSetStatus('OBS — listo', false);
+    } catch(e) {
+        obsSetStatus('OBS — sin conexión', false);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    obsInitIfEnabled();
+});
 </script>
 
 <script>

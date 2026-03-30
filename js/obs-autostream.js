@@ -46,7 +46,7 @@ async function obsAuthString(password, saltB64, challengeB64) {
   return bytesToBase64(hash);
 }
 
-function createObsClient() {
+export function createObsClient() {
   let ws = null;
   let identifiedPromise = null;
   let identifiedResolve = null;
@@ -214,7 +214,7 @@ let singletonChannel = null;
  * @param {string} clubId
  * @returns {function} cleanup — desuscribe y desconecta OBS
  */
-export function initObsAutostream(clubId) {
+export function initObsAutostream(clubId, sharedObsClient) {
   const cid = clubId != null ? String(clubId).trim() : '';
   if (!cid) {
     console.warn('[obs-autostream] clubId vacío');
@@ -227,7 +227,8 @@ export function initObsAutostream(clubId) {
   }
 
   const ocupadas = new Set();
-  const obs = createObsClient();
+  const ownsObs = !sharedObsClient;
+  const obs = sharedObsClient || createObsClient();
   let streamStarted = false;
 
   async function syncStreamToObs() {
@@ -307,6 +308,6 @@ export function initObsAutostream(clubId) {
     } catch (e) {}
     singletonChannel = null;
     ocupadas.clear();
-    obs.disconnect();
+    if (ownsObs) obs.disconnect();
   };
 }
