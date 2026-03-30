@@ -485,7 +485,12 @@ async function cargarDatos() {
     if (hist && hist.length) {
         hist.forEach(function (h) {
             if (!idSet[h.mesa_id]) return;
-            sesionesAbiertas[h.mesa_id] = { inicio: h.inicio_sesion, jugador_nombre: h.jugador_nombre || '', id: h.id };
+            sesionesAbiertas[h.mesa_id] = {
+                inicio: h.inicio_sesion,
+                jugador_nombre: h.jugador_nombre || '',
+                id: h.id,
+                video_ia_activo: !!h.video_ia_activo
+            };
         });
     }
 }
@@ -927,8 +932,11 @@ function abrirModal(mesaId) {
         // OCUPADA: 2 acciones principales
         var streamUrl = (m.url_camara || '').trim();
         if (!streamUrl && m.urls_camaras && m.urls_camaras[0] && m.urls_camaras[0].url) streamUrl = String(m.urls_camaras[0].url).trim();
+        var videoIaHabilitado = !!(m.video_activo);
+        var videoIaEnSesion = !!(sesion && sesion.video_ia_activo);
         acciones.innerHTML =
             '<button class="modal-btn cerrar" onclick="accionMesa(\'cerrar\')">⏹ COBRAR Y CERRAR</button>' +
+            (videoIaHabilitado ? '<button type="button" class="modal-btn ficha" id="btn-video-ia-sesion" onclick="toggleVideoIaSesion()">' + (videoIaEnSesion ? '🎥 VIDEO IA ACTIVO' : '🎥 ACTIVAR VIDEO IA') + '</button>' : '') +
             (streamUrl ? '<button type="button" class="modal-btn ficha" onclick="previsualizarCamaraMesa()">📹 VER CÁMARA</button>' : '');
         if (sesion && sesion.id) {
             actualizarBloqueUrlOverlaySesion(sesion.id);
@@ -1361,6 +1369,27 @@ window.__salaBoot = async function() {
         iniciarOperacionSalon();
     });
 };
+
+async function toggleVideoIaSesion() {
+    var m = mesaSeleccionada;
+    if (!m) return;
+    var sesion = sesionesAbiertas[m.id];
+    if (!sesion || !sesion.id) return;
+    var nuevoEstado = !sesion.video_ia_activo;
+    var btn = document.getElementById('btn-video-ia-sesion');
+    if (btn) btn.textContent = '⏳ Guardando…';
+    try {
+        var api = await _clubApi();
+        var r = await api.updateMesasHistorial(sesion.id, { video_ia_activo: nuevoEstado });
+        if (r && r.error) throw r.error;
+        sesion.video_ia_activo = nuevoEstado;
+        if (btn) btn.textContent = nuevoEstado ? '🎥 VIDEO IA ACTIVO' : '🎥 ACTIVAR VIDEO IA';
+    } catch(e) {
+        if (btn) btn.textContent = nuevoEstado ? '🎥 ACTIVAR VIDEO IA' : '🎥 VIDEO IA ACTIVO';
+        console.error('[video-ia]', e);
+    }
+}
+
 window.onbeforeunload = function() { if (intervaloRefresh) clearInterval(intervaloRefresh); if (intervaloCrono) clearInterval(intervaloCrono); };
 
 // ── OBS integration ──

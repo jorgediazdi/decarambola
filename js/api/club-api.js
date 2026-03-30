@@ -353,6 +353,10 @@ export async function updateMesasHistorialRow(id, patch) {
   }
 }
 
+export async function updateMesasHistorial(id, patch) {
+  return updateMesasHistorialRow(id, patch);
+}
+
 export async function listInstalacionesComponentesByMesa(mesaId) {
   try {
     const { data, error } = await supabase.from('instalaciones_componentes').select('*').eq('mesa_id', mesaId);
