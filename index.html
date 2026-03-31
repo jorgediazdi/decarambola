@@ -12,12 +12,10 @@
     <link rel="stylesheet" href="css/index-v2.css">
 </head>
 <body class="dc-home-v2">
-    <script>window.__dcHomeAuthPending = true;</script>
-    <script type="module" src="js/home-auth-gate.js"></script>
     <!-- ======================== -->
     <!-- COMPONENTE: HomeHeader   -->
     <!-- ======================== -->
-    <header class="home-header" id="home-header" aria-label="Cabecera principal">
+    <header class="home-header home-header--user" id="home-header" aria-label="Cabecera principal">
         <a class="home-header__brand" href="index.html" aria-label="DeCarambola inicio">
             <img src="assets/logo-decarambola.svg" alt="DeCarambola" width="120" height="36">
             <div class="home-header__titles">
@@ -33,7 +31,7 @@
                     <div class="user-mini__badge" id="user-badge">Nivel 3 · Pro</div>
                 </div>
             </div>
-            <a class="btn-ingresar-header" href="#home-login">Iniciar sesión</a>
+            <a class="btn-ingresar-header" href="auth.html">Ingresar</a>
             <a class="btn-icon-gear" href="perfil.html" title="Configuración y perfil" aria-label="Configuración">⚙️</a>
         </div>
     </header>
@@ -65,28 +63,6 @@
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- ======================== -->
-        <!-- COMPONENTE: HomeLogin (invitados) -->
-        <!-- ======================== -->
-        <section class="home-login dc-section" id="home-login" aria-labelledby="home-login-title">
-            <div class="dc-section__label">Cuenta</div>
-            <h2 class="dc-section__title" id="home-login-title">Iniciar sesión</h2>
-            <p class="home-login__lead">Entrá con tu email y contraseña para ir directo a tu espacio según tu rol (jugador, organizador, club o administración).</p>
-            <form class="home-login__form" id="home-login-form" autocomplete="on" novalidate>
-                <div class="home-login__field">
-                    <label class="home-login__label" for="home-login-email">Email</label>
-                    <input class="home-login__input" type="email" id="home-login-email" name="email" required autocomplete="username" inputmode="email" placeholder="tu@email.com">
-                </div>
-                <div class="home-login__field">
-                    <label class="home-login__label" for="home-login-password">Contraseña</label>
-                    <input class="home-login__input" type="password" id="home-login-password" name="password" required autocomplete="current-password" placeholder="••••••••">
-                </div>
-                <p class="home-login__error" id="home-login-error" role="alert" hidden></p>
-                <button type="submit" class="btn-primary-lg home-login__submit">Iniciar sesión</button>
-                <p class="home-login__aux"><a class="home-login__link" href="auth.html">¿No tenés cuenta? Registro y más opciones</a></p>
-            </form>
         </section>
 
         <!-- ======================== -->
@@ -253,7 +229,6 @@ if (!sess?.session) {
         </a>
     </nav>
 
-    <script type="module" src="js/home-login-form.js"></script>
     <script src="js/index-v2.js"></script>
 </body>
 </html>

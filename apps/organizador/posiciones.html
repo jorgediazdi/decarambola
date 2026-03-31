@@ -3,19 +3,15 @@
 <head>
     <script type="module">
 import { supabase } from '/js/supabase-client.js';
+import { getRole } from '/js/auth-manager.js';
 
-const { data: { session } } = await supabase.auth.getSession();
-if (!session) {
-  window.location.replace('/index.html');
-} else {
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', session.user.id)
-    .single();
-  if (error || !profile || profile.role !== 'organizador') {
-    window.location.replace('/index.html');
-  }
+const { data: sess } = await supabase.auth.getSession();
+if (!sess?.session) {
+  window.location.replace('/auth.html?next=' + encodeURIComponent(window.location.pathname));
+}
+const { data: rol } = await getRole();
+if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
+  window.location.replace('/jugador/index.html');
 }
     </script>
     <meta charset="UTF-8">
@@ -28,6 +24,14 @@ if (!session) {
         body { background: var(--negro); color: #fff; font-family: 'Arial Black', sans-serif; margin: 0; padding: 0; }
         .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 15px 20px; position: sticky; top: 0; z-index: 50; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; width: 100%; }
+        .btn-hdr {
+            background: rgba(10,10,10,0.95); border: 1px solid #1a1a1a; color: #888;
+            padding: 8px 12px; border-radius: 10px; font-size: 0.52rem; cursor: pointer;
+            text-decoration: none; font-family: 'Arial Black', sans-serif; font-weight: 600;
+            letter-spacing: 0.06em; transition: border-color 0.15s, color 0.15s;
+        }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color: rgba(212,175,55,0.35); color: var(--oro); outline: none; }
         .header-titulo { color: var(--oro); font-size: 1.1rem; letter-spacing: 2px; }
         .header-sub { color: #333; font-size: 0.55rem; margin-top: 5px; letter-spacing: 1px; }
         .fase-badge { background: rgba(52,152,219,0.15); border: 1px solid rgba(52,152,219,0.3); color: var(--azul); padding: 6px 12px; border-radius: 15px; font-size: 0.5rem; letter-spacing: 1px; }
@@ -114,6 +118,15 @@ if (!session) {
                 </div>
             </div>
             <div class="fase-badge" id="lbl-fase">GRUPOS</div>
+        </div>
+        <div class="header-actions">
+            <a href="organizador.html" class="btn-hdr">Panel organizador</a>
+            <a href="torneos.html" class="btn-hdr">Torneos</a>
+            <a href="torneo_crear.html" class="btn-hdr">Nuevo torneo</a>
+            <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
+            <a href="control_torneo.html" class="btn-hdr">Control torneo</a>
+            <a href="/club/index.html" class="btn-hdr">Portal club</a>
+            <a href="/index.html" class="btn-hdr">Inicio app</a>
         </div>
     </div>
     <div class="tabs">

@@ -6,44 +6,19 @@
 (function () {
     "use strict";
 
-    async function loadUserData() {
-        var sb = window.supabase;
-        if (!sb) {
-            try {
-                var mod = await import("/js/supabase-client.js");
-                sb = mod.supabase;
-                window.supabase = sb;
-            } catch (_e) {
-                return null;
-            }
-        }
-        var sessionRes = await sb.auth.getSession();
-        var session = sessionRes && sessionRes.data ? sessionRes.data.session : null;
-        if (!session) return null;
-        var row = await sb
-            .from("profiles")
-            .select("nombre_completo, role")
-            .eq("id", session.user.id)
-            .single();
-        if (row.error || !row.data) return null;
-        var profile = row.data;
-        return {
-            nombre: profile.nombre_completo || session.user.email,
-            role: profile.role,
-        };
-    }
-
-    function formatRoleLabel(role) {
-        if (!role) return "Jugador";
-        var r = String(role);
-        var map = {
-            jugador: "Jugador",
-            organizador: "Organizador",
-            club_admin: "Club",
-            superadmin: "Superadmin",
-        };
-        return map[r] || r.replace(/_/g, " ");
-    }
+    // MOCK - conectar a Supabase
+    var mockUser = {
+        nombre: "Maestro JH",
+        nivel: "Pro",
+        nivel_num: 3,
+        promedio: 1.12,
+        ranking: 47,
+        duelos_semana: 3,
+        torneos_activos: 1,
+        premium: true,
+        partidas_meta_semana: 5,
+        partidas_jugadas_semana: 3
+    };
 
     // MOCK - conectar a Supabase: tabla torneos
     var mockTorneos = [
@@ -95,10 +70,8 @@
         duelo_reciente: { rival: "La Sombra", delta: "+0.08 avg", cuando: "hace 2 días" }
     };
 
-    /** Home raíz: invitado tras home-auth-gate.js; si hay sesión se redirige antes de onReady. */
-    function computeHasSession() {
-        return window.__dcHomeIsGuest !== true;
-    }
+    /** MOCK - true hasta conectar sesión real (p. ej. supabase.auth.getSession) */
+    var hasSession = true;
 
     function initials(name) {
         if (!name) return "DC";
@@ -138,7 +111,7 @@
     }
 
     function pickMotivation() {
-        return "Promedio en estas partidas: " + (1.12).toFixed(2);
+        return "Promedio en estas partidas: " + mockUser.promedio.toFixed(2);
     }
 
     function sparkBars(seed) {
@@ -154,10 +127,10 @@
     function renderStats(container) {
         if (!container) return;
         var stats = [
-            { icon: "◎", value: (1.12).toFixed(2), label: "Promedio", href: "ranking.html", seed: 0 },
-            { icon: "◇", value: "#47", label: "Ranking", href: "ranking.html", seed: 1 },
-            { icon: "⚡", value: "3", label: "Duelos esta semana", href: "apps/club/sala/mesas.html", seed: 2 },
-            { icon: "✦", value: "1", label: "Torneos activos", href: "apps/organizador/organizador.html", seed: 3 }
+            { icon: "◎", value: mockUser.promedio.toFixed(2), label: "Promedio", href: "ranking.html", seed: 0 },
+            { icon: "◇", value: "#" + mockUser.ranking, label: "Ranking", href: "ranking.html", seed: 1 },
+            { icon: "⚡", value: String(mockUser.duelos_semana), label: "Duelos esta semana", href: "apps/club/sala/mesas.html", seed: 2 },
+            { icon: "✦", value: String(mockUser.torneos_activos), label: "Torneos activos", href: "apps/organizador/organizador.html", seed: 3 }
         ];
         var html = "";
         stats.forEach(function (s) {
@@ -254,67 +227,46 @@
         return d.innerHTML;
     }
 
-    async function applyHeaderSessionAsync() {
+    function applyHeaderSession() {
         var header = document.getElementById("home-header");
         if (!header) return;
-        var hasSessionFlag = computeHasSession();
-        window.__dcHomeUserProfile = null;
-        header.classList.toggle("home-header--user", hasSessionFlag);
-        header.classList.toggle("home-header--guest", !hasSessionFlag);
-        var mini = header.querySelector(".user-mini");
-        if (mini) mini.style.display = "";
+        header.classList.toggle("home-header--user", hasSession);
+        header.classList.toggle("home-header--guest", !hasSession);
         var av = document.getElementById("user-avatar-initials");
         var nm = document.getElementById("user-name");
         var bd = document.getElementById("user-badge");
-        if (!hasSessionFlag) {
-            return;
+        if (hasSession && av && nm && bd) {
+            av.textContent = initials(mockUser.nombre);
+            nm.textContent = mockUser.nombre;
+            bd.textContent = "Nivel " + mockUser.nivel_num + " · " + mockUser.nivel;
         }
-        var u = await loadUserData();
-        if (!u) {
-            header.classList.remove("home-header--user");
-            header.classList.add("home-header--guest");
-            if (mini) mini.style.display = "none";
-            return;
-        }
-        window.__dcHomeUserProfile = u;
-        header.classList.add("home-header--user");
-        header.classList.remove("home-header--guest");
-        if (mini) mini.style.display = "";
-        if (av) av.textContent = initials(u.nombre);
-        if (nm) nm.textContent = u.nombre;
-        if (bd) bd.textContent = formatRoleLabel(u.role);
     }
 
     function applyHero() {
-        var header = document.getElementById("home-header");
-        var visuallyGuest = header && header.classList.contains("home-header--guest");
         var greet = document.getElementById("hero-greeting");
         var mot = document.getElementById("hero-motivation");
         var ringPct = document.getElementById("hero-dashboard");
         var cap = document.getElementById("hero-ring-caption");
         var recent = document.getElementById("hero-recent-session");
-        var prof = window.__dcHomeUserProfile;
-        var displayName = visuallyGuest
-            ? "invitado"
-            : (prof && prof.nombre) || "Jugador";
+        var displayName = hasSession ? mockUser.nombre : "invitado";
         if (greet) greet.textContent = "Bienvenido, " + displayName;
         if (mot) mot.textContent = pickMotivation();
-        var partidasMeta = 5;
-        var partidasJugadas = 3;
-        if (ringPct && partidasMeta) {
-            var p = Math.min(1, partidasJugadas / partidasMeta);
+        if (ringPct && mockUser.partidas_meta_semana) {
+            var p = Math.min(1, mockUser.partidas_jugadas_semana / mockUser.partidas_meta_semana);
             ringPct.style.setProperty("--ring-pct", String(p));
         }
         if (cap)
             cap.textContent =
                 "Ganaste " +
-                partidasJugadas +
+                mockUser.partidas_jugadas_semana +
                 " de " +
-                partidasMeta +
+                mockUser.partidas_meta_semana +
                 " partidas esta semana";
         var pctEl = document.getElementById("hero-ring-pct");
-        if (pctEl && partidasMeta) {
-            var pct = Math.round((partidasJugadas / partidasMeta) * 100);
+        if (pctEl && mockUser.partidas_meta_semana) {
+            var pct = Math.round(
+                (mockUser.partidas_jugadas_semana / mockUser.partidas_meta_semana) * 100
+            );
             pctEl.textContent = pct + "%";
         }
         if (recent) {
@@ -415,12 +367,8 @@
         });
     }
 
-    async function onReady() {
-        try {
-            await applyHeaderSessionAsync();
-        } catch (e) {
-            console.warn("[index-v2] header session:", e);
-        }
+    function onReady() {
+        applyHeaderSession();
         applyHero();
         renderStats(document.getElementById("quick-stats-grid"));
         renderTorneos(document.getElementById("events-strip"));
@@ -429,28 +377,9 @@
         initReveal();
     }
 
-    function boot() {
-        if (window.__dcHomeAuthPending === true) {
-            if (!window.__dcHomeBootDeadline) {
-                window.__dcHomeBootDeadline = Date.now() + 12000;
-            }
-            if (Date.now() > window.__dcHomeBootDeadline) {
-                window.__dcHomeAuthPending = false;
-                window.__dcHomeIsGuest = true;
-                document.body.classList.add("dc-home-guest");
-            } else {
-                requestAnimationFrame(boot);
-                return;
-            }
-        }
-        onReady().catch(function (e) {
-            console.warn("[index-v2] onReady:", e);
-        });
-    }
-
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", boot);
+        document.addEventListener("DOMContentLoaded", onReady);
     } else {
-        boot();
+        onReady();
     }
 })();

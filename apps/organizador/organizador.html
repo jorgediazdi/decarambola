@@ -2,85 +2,85 @@
 <html lang="es">
 <head>
     <script type="module">
+  import { getSession, getRole } from '/js/auth-manager.js';
   import { supabase } from '/js/supabase-client.js';
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.replace('/index.html');
-  } else {
-    const { data: profile, error: profileErr } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-    if (profileErr || !profile || profile.role !== 'organizador') {
-      window.location.replace('/index.html');
+  const s = await getSession();
+  if (!s?.data?.user) {
+    window.location.replace('/auth.html?next=' +
+      encodeURIComponent(window.location.pathname));
+  }
+  const r = await getRole();
+  const rol = r?.data || '';
+  if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
+    window.location.replace('/jugador/index.html');
+  }
+
+  function _dcSetOrganizadorClubActivo(clubId) {
+    var id = String(clubId || '').trim();
+    if (!id) return;
+    localStorage.setItem('club_activo', JSON.stringify({ id: id }));
+    try {
+      var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+      perfil.club_id = id;
+      localStorage.setItem('mi_perfil', JSON.stringify(perfil));
+    } catch (_e) {}
+  }
+
+  function _dcMountOrganizadorClubSelector(clubes) {
+    function run() {
+      var root = document.getElementById('dc-org-club-selector');
+      var list = document.getElementById('dc-org-club-list');
+      if (!root || !list) return;
+      list.innerHTML = '';
+      clubes.forEach(function (row) {
+        var id = String(row.club_id);
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dc-org-club-btn';
+        var shortId = id.length > 14 ? id.slice(0, 10) + '…' : id;
+        btn.textContent = shortId;
+        btn.title = id;
+        btn.onclick = function () {
+          _dcSetOrganizadorClubActivo(id);
+          root.hidden = true;
+          root.setAttribute('aria-hidden', 'true');
+          window.location.reload();
+        };
+        list.appendChild(btn);
+      });
+      root.hidden = false;
+      root.setAttribute('aria-hidden', 'false');
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', run);
     } else {
-      function _dcSetOrganizadorClubActivo(clubId) {
-        var id = String(clubId || '').trim();
-        if (!id) return;
-        localStorage.setItem('club_activo', JSON.stringify({ id: id }));
-        try {
-          var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-          perfil.club_id = id;
-          localStorage.setItem('mi_perfil', JSON.stringify(perfil));
-        } catch (_e) {}
-      }
+      run();
+    }
+  }
 
-      function _dcMountOrganizadorClubSelector(clubes) {
-        function run() {
-          var root = document.getElementById('dc-org-club-selector');
-          var list = document.getElementById('dc-org-club-list');
-          if (!root || !list) return;
-          list.innerHTML = '';
-          clubes.forEach(function (row) {
-            var id = String(row.club_id);
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'dc-org-club-btn';
-            var shortId = id.length > 14 ? id.slice(0, 10) + '…' : id;
-            btn.textContent = shortId;
-            btn.title = id;
-            btn.onclick = function () {
-              _dcSetOrganizadorClubActivo(id);
-              root.hidden = true;
-              root.setAttribute('aria-hidden', 'true');
-              window.location.reload();
-            };
-            list.appendChild(btn);
-          });
-          root.hidden = false;
-          root.setAttribute('aria-hidden', 'false');
-        }
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', run);
-        } else {
-          run();
-        }
-      }
-
-      const uid = session.user.id;
-      const { data: clubes, error } = await supabase
-        .from('organizador_club')
-        .select('club_id, permisos, estado')
-        .eq('organizador_id', uid)
-        .eq('estado', 'activo');
-      if (error || !clubes || clubes.length === 0) {
-        window.location.replace('/sin-acceso.html');
+  if (rol === 'organizador') {
+    const uid = s.data.user.id;
+    const { data: clubes, error } = await supabase
+      .from('organizador_club')
+      .select('club_id, permisos, estado')
+      .eq('organizador_id', uid)
+      .eq('estado', 'activo');
+    if (error || !clubes || clubes.length === 0) {
+      window.location.replace('/sin-acceso.html');
+    } else {
+      localStorage.setItem('organizador_clubes', JSON.stringify(clubes));
+      if (clubes.length === 1) {
+        _dcSetOrganizadorClubActivo(clubes[0].club_id);
       } else {
-        localStorage.setItem('organizador_clubes', JSON.stringify(clubes));
-        if (clubes.length === 1) {
-          _dcSetOrganizadorClubActivo(clubes[0].club_id);
-        } else {
-          var allowed = new Set(clubes.map(function (c) { return String(c.club_id); }));
-          var prev = null;
-          try {
-            var ca = JSON.parse(localStorage.getItem('club_activo') || 'null');
-            if (ca && ca.id) prev = String(ca.id);
-          } catch (_e2) {}
-          if (!prev || !allowed.has(prev)) {
-            _dcMountOrganizadorClubSelector(clubes);
-          }
+        var allowed = new Set(clubes.map(function (c) { return String(c.club_id); }));
+        var prev = null;
+        try {
+          var ca = JSON.parse(localStorage.getItem('club_activo') || 'null');
+          if (ca && ca.id) prev = String(ca.id);
+        } catch (_e2) {}
+        if (!prev || !allowed.has(prev)) {
+          _dcMountOrganizadorClubSelector(clubes);
         }
       }
     }
@@ -590,25 +590,25 @@
             <h3>Acciones Rápidas</h3>
         </div>
         <div class="acciones-grid">
-            <a href="posiciones.html" class="accion-card">
-                <div class="accion-ico">📊</div>
-                <div class="accion-nom">POSICIONES</div>
-                <div class="accion-det">Tabla y fase de grupos</div>
+            <a href="inscripciones.html" class="accion-card">
+                <div class="accion-ico">🟡</div>
+                <div class="accion-nom">INSCRIBIR</div>
+                <div class="accion-det">Agregar jugador al torneo</div>
             </a>
-            <a href="Certificados.html" class="accion-card">
+            <a href="Brackets.html" class="accion-card">
                 <div class="accion-ico">🏆</div>
-                <div class="accion-nom">CERTIFICADOS</div>
-                <div class="accion-det">Campeón y subcampeón</div>
+                <div class="accion-nom">FIXTURE</div>
+                <div class="accion-det">Ver llaves del torneo</div>
             </a>
-            <a href="torneo_crear.html" class="accion-card">
-                <div class="accion-ico">➕</div>
-                <div class="accion-nom">CREAR TORNEO</div>
-                <div class="accion-det">Nuevo torneo en el club</div>
+            <a href="/ranking.html" class="accion-card">
+                <div class="accion-ico">📊</div>
+                <div class="accion-nom">RANKING</div>
+                <div class="accion-det">Tabla oficial del club</div>
             </a>
-            <a href="torneos.html" class="accion-card">
-                <div class="accion-ico">📋</div>
-                <div class="accion-nom">MIS TORNEOS</div>
-                <div class="accion-det">Lista y gestión de torneos</div>
+            <a href="/index.html" class="accion-card" style="border-color:rgba(52,152,219,0.3);">
+                <div class="accion-ico">🎯</div>
+                <div class="accion-nom">INICIO</div>
+                <div class="accion-det">Mesas e instalaciones del club → MI CLUB</div>
             </a>
         </div>
 
@@ -1002,14 +1002,14 @@
 </script>
 
 <nav class="bottom-nav" aria-label="Navegación organizador">
-    <a href="organizador.html" class="bottom-nav__item bottom-nav__item--active">
+    <a href="/index.html" class="bottom-nav__item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
             <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
             <path d="M9 21V12h6v9" />
         </svg>
         <span>Inicio</span>
     </a>
-    <a href="torneos.html" class="bottom-nav__item">
+    <a href="torneos.html" class="bottom-nav__item bottom-nav__item--active">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
             <path d="M6 9H4a2 2 0 0 0 0 4h2" />
             <path d="M18 9h2a2 2 0 0 1 0 4h-2" />

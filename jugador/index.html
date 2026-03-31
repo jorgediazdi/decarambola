@@ -2,21 +2,20 @@
 <html lang="es">
 <head>
     <script type="module">
-import { supabase } from '/js/supabase-client.js';
-
-const { data: { session } } = await supabase.auth.getSession();
-if (!session) {
-  window.location.replace('/index.html');
-} else {
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', session.user.id)
-    .single();
-  if (error || !profile || profile.role !== 'jugador') {
-    window.location.replace('/index.html');
+  import { getSession, getRole } from '/js/auth-manager.js';
+  const s = await getSession();
+  if (!s?.data?.user) {
+    window.location.replace('/auth.html?next=' +
+      encodeURIComponent(window.location.pathname));
   }
-}
+  const r = await getRole();
+  const rol = r?.data || '';
+  if (rol === 'club_admin') {
+    window.location.replace('/apps/club/');
+  }
+  if (rol === 'superadmin') {
+    window.location.replace('/admin/index.html');
+  }
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
