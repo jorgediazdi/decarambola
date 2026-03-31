@@ -45,6 +45,22 @@ body.dc-home-v2 {
     body.dc-home-v2 {
         padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 20px);
     }
+
+    /* 1. Ocultar texto DECARAMBOLA en header móvil — dejar solo el logo SVG */
+    .home-header__titles {
+        display: none;
+    }
+
+    /* 2. Ocultar nombre usuario en header móvil — el hero ya saluda */
+    .user-mini__name {
+        display: none;
+    }
+
+    /* 3. Forzar fondo oscuro en móvil — eliminar tinte morado */
+    body.dc-home-v2,
+    .hero-dashboard {
+        background: #0a0a0a !important;
+    }
 }
 
 /* ======================== */
