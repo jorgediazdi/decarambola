@@ -238,7 +238,7 @@ var vistaActual = 'lista';
 window.onload = async function() {
     try {
         await MasterVIP.init();
-        SESSION.verificarAlCargar('jugador');
+        SESSION.verificarAlCargar('organizador');
     } catch(e) { console.warn('Init offline:', e); }
     try { await MasterVIP.cargarTorneosNube(); } catch(e) { console.warn('Torneos desde Supabase:', e); }
     try {

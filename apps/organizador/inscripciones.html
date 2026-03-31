@@ -619,7 +619,7 @@ function mostrarBloqueoAfiliacion() {
 
 window.onload = async function() {
     try { await MasterVIP.init(); } catch(e) { console.warn('Init offline:', e); }
-    try { SESSION.verificarAlCargar('jugador'); } catch(e) {}
+    try { SESSION.verificarAlCargar('organizador'); } catch(e) {}
     MasterVIP.applyDesign();
     if (!jugadorAfiliadoAClubParaTorneo()) {
         mostrarBloqueoAfiliacion();
