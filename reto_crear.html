@@ -45,6 +45,8 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   background: #0a0a0a; color: #777; cursor: pointer; font-weight: 700; font-size: 0.7rem;
 }
 .toggle button.on { border-color: #d4af37; color: #d4af37; background: rgba(212,175,55,0.1); }
+.check-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: #bbb; font-size: 0.74rem; }
+.check-row input { accent-color: #d4af37; }
 .btn {
   width: 100%; border: none; border-radius: 12px; padding: 13px; font-weight: 800; cursor: pointer;
   font-size: 0.8rem; letter-spacing: 0.04em; margin-top: 4px;
@@ -99,15 +101,19 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       </select>
     </div>
 
-    <div class="row">
-      <div class="field">
-        <label for="meta1">Meta propia</label>
-        <input id="meta1" type="number" min="1" value="25">
-      </div>
-      <div class="field">
-        <label for="meta2">Meta rival</label>
-        <input id="meta2" type="number" min="1" value="25">
-      </div>
+    <div class="field">
+      <label for="meta">Meta (carambolas)</label>
+      <input id="meta" type="number" min="1" value="40">
+    </div>
+
+    <label class="check-row" for="con-handicap">
+      <input id="con-handicap" type="checkbox">
+      Con handicap
+    </label>
+
+    <div class="field hide" id="meta-rival-wrap">
+      <label for="meta-rival">Meta rival (handicap)</label>
+      <input id="meta-rival" type="number" min="1" value="30">
     </div>
 
     <div class="field">
@@ -120,9 +126,15 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       </select>
     </div>
 
-    <div class="field">
-      <label for="fecha">Fecha y hora</label>
-      <input id="fecha" type="datetime-local">
+    <div class="row">
+      <div class="field">
+        <label for="fecha">Fecha</label>
+        <input id="fecha" type="date">
+      </div>
+      <div class="field">
+        <label for="hora">Hora</label>
+        <input id="hora" type="time">
+      </div>
     </div>
 
     <div class="field">
@@ -184,9 +196,17 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
     $('rival-wrap').classList.remove('hide');
   };
 
+  $('con-handicap').onchange = function () {
+    $('meta-rival-wrap').classList.toggle('hide', !this.checked);
+  };
+
   $('btn-publicar').onclick = function () {
     var fecha = $('fecha').value;
-    if (!fecha) return alert('Define fecha y hora');
+    var hora = $('hora').value;
+    if (!fecha || !hora) return alert('Define fecha y hora');
+    if ($('con-handicap').checked && (!$('meta-rival').value || Number($('meta-rival').value) < 1)) {
+      return alert('Define la meta rival para handicap');
+    }
     if (estado.tipo === 'directo' && !String($('rival').value || '').trim()) return alert('Ingresa el jugador rival');
     estado.codigo = genCodigo();
     $('codigo').textContent = estado.codigo;
@@ -211,10 +231,10 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   $('btn-confirmar').onclick = function () { alert('Presencia confirmada ✅'); };
   $('btn-iniciar').onclick = function () { window.location.href = '/duelo-tv.html'; };
 
-  // mínima fecha permitida: ahora + 5 minutos
-  var minDate = new Date(Date.now() + 5 * 60 * 1000);
+  // mínima fecha permitida: hoy
+  var minDate = new Date();
   var pad = function (n) { return String(n).padStart(2, '0'); };
-  $('fecha').min = minDate.getFullYear() + '-' + pad(minDate.getMonth() + 1) + '-' + pad(minDate.getDate()) + 'T' + pad(minDate.getHours()) + ':' + pad(minDate.getMinutes());
+  $('fecha').min = minDate.getFullYear() + '-' + pad(minDate.getMonth() + 1) + '-' + pad(minDate.getDate());
 })();
 </script>
 </body>
