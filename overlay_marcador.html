@@ -7,15 +7,17 @@
   <meta name="theme-color" content="#d4af37">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --oro: #d4af37;
-      --oro-sutil: rgba(212, 175, 55, 0.5);
-      --fondo: #0A0A0A;
-      --panel: rgba(10, 10, 10, 0.92);
-      --texto: #f0f0f0;
-      --texto-muted: #888;
+      --oro-claro: #f0d060;
+      --oro-oscuro: #8b6914;
+      --oro-sutil: rgba(212, 175, 55, 0.35);
+      --panel: rgba(6, 4, 1, 0.94);
+      --panel-mid: rgba(14, 10, 2, 0.96);
+      --texto: #f0ede4;
+      --muted: #7a7060;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -35,252 +37,550 @@
       pointer-events: none;
     }
 
-    /* Header fijo */
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes rotar {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes shimmerLine {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    @keyframes blinkDot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--oro-claro); }
+      50% { opacity: 0.35; box-shadow: 0 0 4px var(--oro); }
+    }
+
     .header {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 32px;
-      min-height: 56px;
+      padding: 0 36px;
+      height: 64px;
+      flex-shrink: 0;
       background: var(--panel);
-      border-bottom: 1px solid var(--oro-sutil);
+      border-bottom: 2px solid var(--oro-oscuro);
+      animation: slideDown 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
-    .logo-decarambola {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.8rem;
-      letter-spacing: 4px;
-      color: var(--oro);
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--oro-claro), transparent);
+      opacity: 0.45;
     }
-    .header-center {
-      flex: 1;
-      text-align: center;
-      font-family: 'Oswald', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 500;
-      letter-spacing: 2px;
-      color: var(--texto);
-    }
-    .header-right {
+
+    .logo-wrap {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
+      min-width: 280px;
     }
-    .mesa-label {
-      font-family: 'Oswald', sans-serif;
-      font-size: 1rem;
-      color: var(--texto-muted);
+    .bola-3c {
+      width: 42px;
+      height: 42px;
+      flex-shrink: 0;
+      animation: rotar 8s linear infinite;
+      filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.45));
     }
-    .logo-club {
-      width: 40px;
-      height: 40px;
-      background: var(--fondo);
-      border: 1px solid var(--oro-sutil);
-      border-radius: 4px;
+    .logo-texto {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 4px;
+      color: var(--oro);
+      text-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+      line-height: 1;
+    }
+    .logo-texto span { color: var(--texto); letter-spacing: 2px; }
+
+    .header-center {
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.7rem;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 0 16px;
+    }
+    .torneo-bloque {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      max-width: 420px;
+    }
+    .torneo-nombre {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--texto);
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .ronda-linea {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .header-chips {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .chip-mesa {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--oro-sutil);
+      color: var(--oro-claro);
+      background: rgba(212, 175, 55, 0.08);
+    }
+    .crono-vivo {
+      font-family: ui-monospace, monospace;
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
       color: var(--oro);
+      min-width: 5.5em;
+      text-align: center;
+    }
+    .pill-estado {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--oro-sutil);
+      background: var(--panel-mid);
+      color: var(--texto);
+    }
+    .pill-estado .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+    .pill-estado.en-juego .dot {
+      background: #2ecc71;
+      animation: blinkDot 1.2s ease-in-out infinite;
+    }
+    .pill-estado.pausado .dot { background: var(--oro); }
+    .pill-estado.finalizado .dot { background: #888; }
+
+    .header-club {
+      min-width: 260px;
+      text-align: right;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      text-transform: uppercase;
+      line-height: 1.35;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    /* Contenido central (espacio) */
-    .spacer {
+    .spacer-mesa {
       flex: 1;
       min-height: 0;
     }
 
-    /* Marcador inferior (~180px) */
     .score-section {
-      padding: 16px 32px 24px;
-      min-height: 180px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
+      flex-shrink: 0;
+      padding: 14px 36px 22px;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
     }
     .score-bar {
+      position: relative;
       width: 100%;
-      max-width: 1600px;
+      max-width: 1680px;
+      margin: 0 auto;
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: stretch;
-      gap: 20px;
-      background: var(--panel);
-      border-radius: 12px;
+      gap: 24px;
+      background: var(--panel-mid);
+      border-radius: 14px;
       border: 1px solid var(--oro-sutil);
-      padding: 20px 24px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+      padding: 22px 28px;
+      box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.55);
+      overflow: hidden;
     }
+    .score-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--oro-oscuro),
+        var(--oro-claro),
+        var(--oro),
+        var(--oro-claro),
+        var(--oro-oscuro),
+        transparent
+      );
+      background-size: 200% 100%;
+      animation: shimmerLine 4s linear infinite;
+      opacity: 0.85;
+    }
+
     .player-panel {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      border: 1px solid rgba(201, 168, 76, 0.25);
-      border-radius: 8px;
-      padding: 12px;
-      transition: all 0.4s ease;
+      gap: 10px;
+      border: 1px solid rgba(212, 175, 55, 0.22);
+      border-radius: 10px;
+      padding: 16px 18px;
+      transition: border-color 0.35s ease, box-shadow 0.35s ease, background 0.35s ease;
     }
-    .player-panel.panel-ganando {
-      border: 2px solid #E8C76A;
+    .player-panel.right { text-align: right; align-items: flex-end; }
+    .player-panel.lider {
+      border: 2px solid var(--oro-claro);
+      box-shadow: 0 0 24px rgba(240, 208, 96, 0.18);
+      background: rgba(212, 175, 55, 0.06);
     }
-    .player-panel.panel-ganando .player-name {
-      color: #E8C76A;
-      text-shadow: 0 0 12px rgba(232, 199, 106, 0.4);
+    .player-panel.lider .player-name { color: var(--oro-claro); }
+    .player-panel.lider .player-score-big {
+      color: var(--oro-claro);
+      text-shadow: 0 0 20px rgba(240, 208, 96, 0.35);
     }
-    .player-panel.panel-ganando .player-score-big {
-      color: #E8C76A;
-      text-shadow: 0 0 12px rgba(232, 199, 106, 0.35);
-    }
-    .player-panel.panel-perdiendo {
-      border: 1px solid rgba(201, 168, 76, 0.25);
-    }
-    .player-panel.right {
-      text-align: right;
-      align-items: flex-end;
-    }
+
     .player-name {
-      font-family: 'Oswald', sans-serif;
-      font-size: 1rem;
-      font-weight: 500;
-      letter-spacing: 1px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
       color: var(--texto);
-      white-space: nowrap;
+      text-transform: uppercase;
+      max-width: 100%;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: color 0.3s ease;
     }
     .player-score-big {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 3.2rem;
-      line-height: 1;
+      font-size: 4rem;
+      line-height: 0.95;
       color: var(--oro);
+      transition: color 0.3s ease, transform 0.25s ease;
     }
     .player-meta {
-      font-family: 'Oswald', sans-serif;
-      font-size: 0.75rem;
-      color: var(--texto-muted);
-      letter-spacing: 1px;
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.06em;
     }
     .progress-bar-wrap {
-      height: 6px;
-      background: var(--fondo);
-      border-radius: 3px;
+      height: 8px;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 4px;
       overflow: hidden;
       margin-top: 4px;
     }
+    .player-panel.right .progress-bar-wrap { direction: rtl; }
     .progress-bar-fill {
       height: 100%;
-      background: var(--oro);
-      border-radius: 3px;
-      transition: width 0.3s ease;
+      width: 0%;
+      background: linear-gradient(90deg, var(--oro-oscuro), var(--oro), var(--oro-claro));
+      border-radius: 4px;
+      transition: width 0.45s cubic-bezier(0.33, 1, 0.68, 1);
     }
 
     .score-center {
-      min-width: 140px;
+      min-width: 160px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 6px;
+      padding-top: 8px;
     }
     .vs-text {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.4rem;
-      letter-spacing: 3px;
+      font-size: 2.2rem;
+      letter-spacing: 6px;
       color: var(--oro);
+      line-height: 1;
     }
-    .ronda-nombre {
-      font-family: 'Oswald', sans-serif;
-      font-size: 0.8rem;
-      color: var(--texto-muted);
-      letter-spacing: 1px;
+    .objetivo-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
     }
-
-    .badge-estado {
-      position: fixed;
-      top: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 6px 16px;
-      background: var(--panel);
-      border: 1px solid var(--oro);
-      border-radius: 20px;
-      font-family: 'Oswald', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 500;
-      letter-spacing: 2px;
-      color: var(--oro);
-      display: none;
-    }
-    .badge-estado.visible {
-      display: block;
+    .objetivo-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      color: var(--texto);
+      line-height: 1;
     }
   </style>
 </head>
 <body class="m-root-overlay">
-
   <div class="overlay-root" id="overlay-root">
     <header class="header">
-      <div class="logo-decarambola">DeCarambola</div>
-      <div class="header-center" id="torneo-nombre">—</div>
-      <div class="header-right">
-        <span class="mesa-label" id="mesa-label">Mesa —</span>
-        <div class="logo-club" id="logo-club">CLUB</div>
+      <div class="logo-wrap">
+        <svg class="bola-3c" viewBox="0 0 64 64" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="22" r="10" fill="#2a2418" stroke="var(--oro)" stroke-width="1.5"/>
+          <circle cx="22" cy="38" r="10" fill="#1a1510" stroke="var(--oro-claro)" stroke-width="1.5"/>
+          <circle cx="42" cy="38" r="10" fill="#3d3428" stroke="var(--oro)" stroke-width="1.5"/>
+        </svg>
+        <div class="logo-texto">DE<span>CARAMBOLA</span></div>
       </div>
+      <div class="header-center">
+        <div class="torneo-bloque">
+          <div class="torneo-nombre" id="torneo-nombre">—</div>
+          <div class="ronda-linea" id="ronda-nombre">Ronda</div>
+        </div>
+        <div class="header-chips">
+          <span class="chip-mesa" id="mesa-badge">MESA —</span>
+          <span class="crono-vivo" id="crono-vivo">00:00</span>
+          <div class="pill-estado" id="pill-estado"><span class="dot" aria-hidden="true"></span><span id="pill-estado-texto">—</span></div>
+        </div>
+      </div>
+      <div class="header-club" id="header-club" title="">BILLARES MASTER V.I.P</div>
     </header>
 
-    <div class="spacer"></div>
-
-    <div class="badge-estado" id="badge-estado"></div>
+    <div class="spacer-mesa" aria-hidden="true"></div>
 
     <section class="score-section">
       <div class="score-bar">
         <div class="player-panel" id="p1-panel">
           <div class="player-name" id="j1-nombre">Jugador 1</div>
           <div class="player-score-big" id="j1-carambolas">0</div>
-          <div class="player-meta" id="j1-meta">/ 0 · Entradas 0 · PROM 0.000</div>
+          <div class="player-meta" id="j1-meta">Entradas 0 · PROM 0.000</div>
           <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" id="j1-progress" style="width: 0%"></div>
+            <div class="progress-bar-fill" id="j1-progress"></div>
           </div>
         </div>
         <div class="score-center">
           <div class="vs-text">VS</div>
-          <div class="ronda-nombre" id="ronda-nombre">Ronda</div>
+          <div class="objetivo-label">Objetivo</div>
+          <div class="objetivo-num" id="objetivo-display">0</div>
         </div>
         <div class="player-panel right" id="p2-panel">
           <div class="player-name" id="j2-nombre">Jugador 2</div>
           <div class="player-score-big" id="j2-carambolas">0</div>
-          <div class="player-meta" id="j2-meta">/ 0 · Entradas 0 · PROM 0.000</div>
+          <div class="player-meta" id="j2-meta">Entradas 0 · PROM 0.000</div>
           <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" id="j2-progress" style="width: 0%"></div>
+            <div class="progress-bar-fill" id="j2-progress"></div>
           </div>
         </div>
       </div>
     </section>
   </div>
+
   <script>
     (function () {
       'use strict';
-      var API_URL = 'https://sensei-billar-api.onrender.com/overlay/state';
+
+      var API_BASE = 'https://sensei-billar-api.onrender.com/overlay/state';
+      var POLL_MS = 3000;
+      var DEFAULT_CLUB = 'BILLARES MASTER V.I.P';
+
       var params = new URLSearchParams(window.location.search);
-      // Grabando: ?rec=1 o ?interval=30 → refresco cada 30 s (menos carga, mejor buffer). En vivo YouTube puede usar 120 s si quieres.
-      var intervalSec = params.get('interval');
-      var rec = params.get('rec');
-      var POLL_MS = intervalSec ? Math.max(5000, parseInt(intervalSec, 10) * 1000) : (rec === '1' ? 30000 : 3000);
-      var timer = null;
+      var pollTimer = null;
+      var cronoTick = null;
+
+      var crono = {
+        running: false,
+        anchorMs: null,
+        frozenMs: 0,
+        lastEstadoNorm: ''
+      };
 
       function qs(id) { return document.getElementById(id); }
 
       function getMatchId() {
         try {
-          return params.get('match_id') || null;
+          var m = params.get('match_id');
+          return m && String(m).trim() ? String(m).trim() : null;
         } catch (e) {
           return null;
         }
       }
 
-      function applyState(s) {
+      function normEstado(s) {
+        return String(s || '')
+          .trim()
+          .toUpperCase()
+          .replace(/\s+/g, '_');
+      }
+
+      function isPlayingEstado(n) {
+        return n === 'EN_JUEGO' || n === 'OCUPADA';
+      }
+
+      function isPausedEstado(n) {
+        return n === 'PAUSADO';
+      }
+
+      function isFinalEstado(n) {
+        return n === 'FINALIZADO';
+      }
+
+      function fmtCrono(ms) {
+        if (ms < 0) ms = 0;
+        var seg = Math.floor(ms / 1000);
+        var h = Math.floor(seg / 3600);
+        var mi = Math.floor((seg % 3600) / 60);
+        var s = seg % 60;
+        return (h ? h + ':' : '') + (mi < 10 ? '0' : '') + mi + ':' + (s < 10 ? '0' : '') + s;
+      }
+
+      function cronoTickUpdate() {
+        var el = qs('crono-vivo');
+        if (!el) return;
+        if (!crono.running) {
+          el.textContent = fmtCrono(crono.frozenMs);
+          return;
+        }
+        if (crono.anchorMs == null) {
+          el.textContent = '00:00';
+          return;
+        }
+        el.textContent = fmtCrono(Date.now() - crono.anchorMs);
+      }
+
+      function startCronoTick() {
+        if (cronoTick) return;
+        cronoTick = setInterval(cronoTickUpdate, 250);
+      }
+
+      function stopCronoTick() {
+        if (cronoTick) {
+          clearInterval(cronoTick);
+          cronoTick = null;
+        }
+      }
+
+      function updateCronoMachine(estadoRaw, matchIdChanged) {
+        var n = normEstado(estadoRaw);
+        if (!n || n === 'LIBRE') n = 'LIBRE';
+
+        if (matchIdChanged) {
+          crono.running = false;
+          crono.anchorMs = null;
+          crono.frozenMs = 0;
+          crono.lastEstadoNorm = '';
+        }
+
+        if (isFinalEstado(n)) {
+          if (crono.running && crono.anchorMs != null) {
+            crono.frozenMs = Date.now() - crono.anchorMs;
+          }
+          crono.running = false;
+          crono.anchorMs = null;
+          crono.lastEstadoNorm = n;
+          cronoTickUpdate();
+          return;
+        }
+
+        if (isPausedEstado(n)) {
+          if (crono.running && crono.anchorMs != null) {
+            crono.frozenMs = Date.now() - crono.anchorMs;
+          }
+          crono.running = false;
+          crono.anchorMs = null;
+          crono.lastEstadoNorm = n;
+          cronoTickUpdate();
+          return;
+        }
+
+        if (isPlayingEstado(n)) {
+          var prev = crono.lastEstadoNorm;
+          if (!crono.running) {
+            if (isPausedEstado(prev) && crono.frozenMs > 0) {
+              crono.anchorMs = Date.now() - crono.frozenMs;
+            } else {
+              crono.anchorMs = Date.now();
+              crono.frozenMs = 0;
+            }
+            crono.running = true;
+          }
+          crono.lastEstadoNorm = n;
+          cronoTickUpdate();
+          return;
+        }
+
+        crono.running = false;
+        crono.anchorMs = null;
+        crono.frozenMs = 0;
+        crono.lastEstadoNorm = n;
+        cronoTickUpdate();
+      }
+
+      function setPillEstado(estadoRaw) {
+        var n = normEstado(estadoRaw);
+        var pill = qs('pill-estado');
+        var txt = qs('pill-estado-texto');
+        if (!pill || !txt) return;
+
+        pill.classList.remove('en-juego', 'pausado', 'finalizado');
+
+        if (isPlayingEstado(n)) {
+          txt.textContent = 'En juego';
+          pill.classList.add('en-juego');
+        } else if (isPausedEstado(n)) {
+          txt.textContent = 'Pausado';
+          pill.classList.add('pausado');
+        } else if (isFinalEstado(n)) {
+          txt.textContent = 'Finalizado';
+          pill.classList.add('finalizado');
+        } else {
+          txt.textContent = n === 'LIBRE' || !n ? 'Listo' : String(estadoRaw || '—').replace(/_/g, ' ');
+        }
+      }
+
+      function applyState(s, matchIdChanged) {
         if (!s) return;
-        qs('j1-nombre').textContent = s.j1_nombre != null ? String(s.j1_nombre) : 'Jugador 1';
-        qs('j2-nombre').textContent = s.j2_nombre != null ? String(s.j2_nombre) : 'Jugador 2';
+
+        var clubEl = qs('header-club');
+        if (clubEl) {
+          var cn = s.club_nombre != null && String(s.club_nombre).trim() !== ''
+            ? String(s.club_nombre).trim()
+            : DEFAULT_CLUB;
+          clubEl.textContent = cn;
+          clubEl.setAttribute('title', cn);
+        }
+
+        qs('torneo-nombre').textContent = s.torneo_nombre != null ? String(s.torneo_nombre) : '—';
+        qs('ronda-nombre').textContent = s.ronda_nombre != null ? String(s.ronda_nombre) : 'Ronda';
+        qs('mesa-badge').textContent = s.mesa != null ? 'MESA ' + s.mesa : 'MESA —';
+
         var c1 = s.j1_carambolas != null ? Number(s.j1_carambolas) : 0;
         var c2 = s.j2_carambolas != null ? Number(s.j2_carambolas) : 0;
         var obj = s.objetivo != null ? Number(s.objetivo) : 0;
@@ -289,55 +589,52 @@
         var pr1 = s.j1_promedio != null ? Number(s.j1_promedio) : 0;
         var pr2 = s.j2_promedio != null ? Number(s.j2_promedio) : 0;
 
+        qs('j1-nombre').textContent = (s.j1_nombre != null ? String(s.j1_nombre) : 'Jugador 1').toUpperCase();
+        qs('j2-nombre').textContent = (s.j2_nombre != null ? String(s.j2_nombre) : 'Jugador 2').toUpperCase();
         qs('j1-carambolas').textContent = c1;
         qs('j2-carambolas').textContent = c2;
-        qs('j1-meta').textContent = '/ ' + obj + ' · Entradas ' + e1 + ' · PROM ' + pr1.toFixed(3);
-        qs('j2-meta').textContent = '/ ' + obj + ' · Entradas ' + e2 + ' · PROM ' + pr2.toFixed(3);
+        qs('j1-meta').textContent = 'Entradas ' + e1 + ' · PROM ' + pr1.toFixed(3);
+        qs('j2-meta').textContent = 'Entradas ' + e2 + ' · PROM ' + pr2.toFixed(3);
+        qs('objetivo-display').textContent = obj;
 
         var pct1 = obj > 0 ? Math.min(100, (c1 / obj) * 100) : 0;
         var pct2 = obj > 0 ? Math.min(100, (c2 / obj) * 100) : 0;
         qs('j1-progress').style.width = pct1 + '%';
         qs('j2-progress').style.width = pct2 + '%';
 
-        qs('ronda-nombre').textContent = s.ronda_nombre != null ? String(s.ronda_nombre) : 'Ronda';
-        qs('torneo-nombre').textContent = s.torneo_nombre != null ? String(s.torneo_nombre) : '—';
-        qs('mesa-label').textContent = s.mesa != null ? 'Mesa ' + s.mesa : 'Mesa —';
-
-        var estado = (s.estado != null && String(s.estado).trim() !== '') ? String(s.estado) : 'LIBRE';
-        var badge = qs('badge-estado');
-        if (estado !== 'LIBRE') {
-          badge.textContent = estado;
-          badge.classList.add('visible');
-        } else {
-          badge.classList.remove('visible');
-        }
-
         var p1 = qs('p1-panel');
         var p2 = qs('p2-panel');
-        p1.classList.remove('panel-ganando', 'panel-perdiendo');
-        p2.classList.remove('panel-ganando', 'panel-perdiendo');
-        if (c1 > c2) {
-          p1.classList.add('panel-ganando');
-          p2.classList.add('panel-perdiendo');
-        } else if (c2 > c1) {
-          p2.classList.add('panel-ganando');
-          p1.classList.add('panel-perdiendo');
-        }
+        p1.classList.remove('lider');
+        p2.classList.remove('lider');
+        if (c1 > c2) p1.classList.add('lider');
+        else if (c2 > c1) p2.classList.add('lider');
+
+        setPillEstado(s.estado);
+        updateCronoMachine(s.estado, !!matchIdChanged);
       }
+
+      var lastMatchId = null;
 
       function fetchState() {
         var matchId = getMatchId();
         if (!matchId) return;
-        var url = API_URL + '?match_id=' + encodeURIComponent(matchId);
+
+        var matchIdChanged = matchId !== lastMatchId;
+        lastMatchId = matchId;
+
+        var url = API_BASE + '?match_id=' + encodeURIComponent(matchId);
         fetch(url)
           .then(function (res) { return res.ok ? res.json() : null; })
-          .then(function (data) { if (data) applyState(data); })
+          .then(function (data) {
+            if (data) applyState(data, matchIdChanged);
+          })
           .catch(function () {});
       }
 
       function start() {
+        startCronoTick();
         fetchState();
-        timer = setInterval(fetchState, POLL_MS);
+        pollTimer = setInterval(fetchState, POLL_MS);
       }
 
       if (document.readyState === 'loading') {

@@ -89,26 +89,50 @@
         <section class="dc-section" aria-label="Acceso por rol">
             <div class="dc-section__label">Accesos</div>
             <h2 class="dc-section__title">Tu espacio en DeCarambola</h2>
-            <div class="role-grid">
-                <article class="role-card" data-role="jugador">
-                    <div class="role-card__icon" aria-hidden="true">🎱</div>
-                    <h3 class="role-card__title">Jugador</h3>
-                    <p class="role-card__desc">Duelos, torneos, ranking y entrenamiento.</p>
-                    <a class="role-card__cta" href="apps/club/sala/mesas.html">Entrar al salón</a>
-                </article>
-                <article class="role-card" data-role="organizador">
-                    <div class="role-card__icon" aria-hidden="true">🏆</div>
-                    <h3 class="role-card__title">Organizador</h3>
-                    <p class="role-card__desc">Crea y gestiona torneos para tu comunidad.</p>
-                    <a class="role-card__cta" href="apps/organizador/organizador.html">Panel organizador</a>
-                </article>
-                <article class="role-card" data-role="club">
-                    <div class="role-card__icon" aria-hidden="true">🏠</div>
-                    <h3 class="role-card__title">Club</h3>
-                    <p class="role-card__desc">Administra tu establecimiento y mesas.</p>
-                    <a class="role-card__cta" href="club/index.html">Ir al club</a>
-                </article>
+            <div class="role-grid" id="role-grid">
+                <!-- Se renderizan dinámicamente según rol -->
             </div>
+
+            <script type="module">
+import { supabase } from '/js/supabase-client.js';
+import { getRole } from '/js/auth-manager.js';
+
+const CARDS = {
+  jugador: `<article class="role-card" data-role="jugador">
+    <div class="role-card__icon">🎱</div>
+    <h3 class="role-card__title">Jugador</h3>
+    <p class="role-card__desc">Duelos, torneos, ranking y entrenamiento.</p>
+    <a class="role-card__cta" href="/jugador/index.html">Entrar</a>
+  </article>`,
+  organizador: `<article class="role-card" data-role="organizador">
+    <div class="role-card__icon">🏆</div>
+    <h3 class="role-card__title">Organizador</h3>
+    <p class="role-card__desc">Crea y gestiona torneos.</p>
+    <a class="role-card__cta" href="/apps/organizador/organizador.html">Panel organizador</a>
+  </article>`,
+  club: `<article class="role-card" data-role="club">
+    <div class="role-card__icon">🏠</div>
+    <h3 class="role-card__title">Club</h3>
+    <p class="role-card__desc">Administra tu establecimiento y mesas.</p>
+    <a class="role-card__cta" href="/club/index.html">Ir al club</a>
+  </article>`
+};
+
+const { data: sess } = await supabase.auth.getSession();
+const grid = document.getElementById('role-grid');
+
+if (!sess?.session) {
+  // Sin sesión — solo jugador (público)
+  grid.innerHTML = CARDS.jugador;
+} else {
+  const { data: rol } = await getRole();
+  if (rol === 'jugador')      grid.innerHTML = CARDS.jugador;
+  else if (rol === 'organizador')  grid.innerHTML = CARDS.organizador + CARDS.jugador;
+  else if (rol === 'club_admin')   grid.innerHTML = CARDS.club + CARDS.organizador;
+  else if (rol === 'superadmin')   grid.innerHTML = CARDS.jugador + CARDS.organizador + CARDS.club;
+  else grid.innerHTML = CARDS.jugador; // rol desconocido → jugador por defecto
+}
+            </script>
         </section>
 
         <!-- ======================== -->

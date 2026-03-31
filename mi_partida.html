@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
+
+const { data: sess } = await supabase.auth.getSession();
+if (!sess?.session) {
+  window.location.replace('/auth.html?next=' + encodeURIComponent(window.location.pathname));
+}
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="theme-color" content="#d4af37">

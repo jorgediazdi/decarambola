@@ -3,6 +3,8 @@
 <head>
     <script type="module">
   import { getSession, getRole } from '/js/auth-manager.js';
+  import { supabase } from '/js/supabase-client.js';
+
   const s = await getSession();
   if (!s?.data?.user) {
     window.location.replace('/auth.html?next=' +
@@ -10,8 +12,78 @@
   }
   const r = await getRole();
   const rol = r?.data || '';
-  if (rol !== 'club_admin' && rol !== 'superadmin') {
+  if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
     window.location.replace('/jugador/index.html');
+  }
+
+  function _dcSetOrganizadorClubActivo(clubId) {
+    var id = String(clubId || '').trim();
+    if (!id) return;
+    localStorage.setItem('club_activo', JSON.stringify({ id: id }));
+    try {
+      var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+      perfil.club_id = id;
+      localStorage.setItem('mi_perfil', JSON.stringify(perfil));
+    } catch (_e) {}
+  }
+
+  function _dcMountOrganizadorClubSelector(clubes) {
+    function run() {
+      var root = document.getElementById('dc-org-club-selector');
+      var list = document.getElementById('dc-org-club-list');
+      if (!root || !list) return;
+      list.innerHTML = '';
+      clubes.forEach(function (row) {
+        var id = String(row.club_id);
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dc-org-club-btn';
+        var shortId = id.length > 14 ? id.slice(0, 10) + '…' : id;
+        btn.textContent = shortId;
+        btn.title = id;
+        btn.onclick = function () {
+          _dcSetOrganizadorClubActivo(id);
+          root.hidden = true;
+          root.setAttribute('aria-hidden', 'true');
+          window.location.reload();
+        };
+        list.appendChild(btn);
+      });
+      root.hidden = false;
+      root.setAttribute('aria-hidden', 'false');
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', run);
+    } else {
+      run();
+    }
+  }
+
+  if (rol === 'organizador') {
+    const uid = s.data.user.id;
+    const { data: clubes, error } = await supabase
+      .from('organizador_club')
+      .select('club_id, permisos, estado')
+      .eq('organizador_id', uid)
+      .eq('estado', 'activo');
+    if (error || !clubes || clubes.length === 0) {
+      window.location.replace('/sin-acceso.html');
+    } else {
+      localStorage.setItem('organizador_clubes', JSON.stringify(clubes));
+      if (clubes.length === 1) {
+        _dcSetOrganizadorClubActivo(clubes[0].club_id);
+      } else {
+        var allowed = new Set(clubes.map(function (c) { return String(c.club_id); }));
+        var prev = null;
+        try {
+          var ca = JSON.parse(localStorage.getItem('club_activo') || 'null');
+          if (ca && ca.id) prev = String(ca.id);
+        } catch (_e2) {}
+        if (!prev || !allowed.has(prev)) {
+          _dcMountOrganizadorClubSelector(clubes);
+        }
+      }
+    }
   }
     </script>
     <meta charset="UTF-8">
@@ -393,11 +465,72 @@
 
         .empty { text-align: center; padding: 24px 0; color: var(--dc-text-subtle, #555); font-size: 0.6rem; letter-spacing: 1px; }
 
+        /* Selector de club — rol organizador con varios vínculos */
+        .dc-org-club-selector {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.92);
+        }
+        .dc-org-club-selector[hidden] { display: none !important; }
+        .dc-org-club-selector__panel {
+            width: 100%;
+            max-width: 400px;
+            background: var(--dc-surface, #111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.2));
+            border-radius: 20px;
+            padding: 28px 22px;
+            text-align: center;
+        }
+        .dc-org-club-selector__panel h2 {
+            color: var(--dc-gold, #c9a84c);
+            font-size: 0.95rem;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+        .dc-org-club-selector__sub {
+            color: var(--dc-text-muted, #888);
+            font-size: 0.72rem;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        .dc-org-club-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .dc-org-club-btn {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.25));
+            background: var(--dc-bg, #0a0a0a);
+            color: var(--dc-gold, #c9a84c);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            font-family: var(--dc-font-body, "DM Sans", sans-serif);
+        }
+        .dc-org-club-btn:active { opacity: 0.85; }
+
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
     <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-app dc-ux dc-ux-skin">
+
+<div id="dc-org-club-selector" class="dc-org-club-selector" hidden aria-hidden="true">
+    <div class="dc-org-club-selector__panel" role="dialog" aria-modal="true" aria-labelledby="dc-org-club-h">
+        <h2 id="dc-org-club-h">Elegí el club</h2>
+        <p class="dc-org-club-selector__sub">Con cuál trabajás hoy en el panel organizador.</p>
+        <div id="dc-org-club-list" class="dc-org-club-list"></div>
+    </div>
+</div>
 
 <div class="stars" id="stars-bg" aria-hidden="true"></div>
 
