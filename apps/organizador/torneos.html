@@ -10,7 +10,7 @@ if (!sess?.session) {
   window.location.replace('/auth.html?next=' + encodeURIComponent(window.location.pathname));
 }
 const { data: rol } = await getRole();
-if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
+if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol !== 'jugador') {
   window.location.replace('/jugador/index.html');
 }
     </script>
@@ -467,7 +467,7 @@ function renderListas() {
     if (!contDest || !contTodos) return;
 
     if (!_torneosFiltrados.length) {
-        contDest.innerHTML = '<div class="empty">No hay torneos disponibles con estos filtros.</div>';
+        contDest.innerHTML = '<div class="empty">No hay torneos disponibles en este momento.<br>Vuelve pronto o crea uno desde el panel organizador.</div>';
         contTodos.innerHTML = '';
         return;
     }

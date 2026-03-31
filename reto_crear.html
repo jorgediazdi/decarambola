@@ -192,7 +192,7 @@ body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans
         </div>
     </div>
     <div class="hdr-top-nav" style="max-width:640px;margin:0 auto;padding:0 18px;">
-        <a href="/index.html" class="btn-nav-home">← Inicio</a>
+        <a href="/jugador/index.html" class="btn-nav-home">← MI ESPACIO</a>
     </div>
 </div>
 
@@ -783,6 +783,7 @@ function setPaso(n) {
 
 /* ── INIT ── */
 window.onload = function() {
+    console.log('boot ok');
     try { SESSION.verificarAlCargar('jugador'); } catch(e) {}
     // Fecha mínima: ahora + 5 minutos
     var minDate = new Date(Date.now() + 5*60*1000);

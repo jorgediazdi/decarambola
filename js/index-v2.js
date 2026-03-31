@@ -111,19 +111,7 @@
     }
 
     function pickMotivation() {
-        var lim = firstOpenTorneoLimite();
-        var dias = lim != null ? daysUntil(lim) : null;
-        var torneoLine =
-            dias != null && dias >= 0
-                ? "Tu próximo torneo cierra en " + dias + " días"
-                : "Hay torneos en agenda — revisá inscripciones";
-        var lines = [
-            "Tu promedio actual: " + mockUser.promedio.toFixed(2),
-            "Has jugado " + mockUser.duelos_semana + " duelos esta semana",
-            torneoLine
-        ];
-        var i = new Date().getDate() % lines.length;
-        return lines[i];
+        return "Promedio en estas partidas: " + mockUser.promedio.toFixed(2);
     }
 
     function sparkBars(seed) {
@@ -269,6 +257,7 @@
         }
         if (cap)
             cap.textContent =
+                "Ganaste " +
                 mockUser.partidas_jugadas_semana +
                 " de " +
                 mockUser.partidas_meta_semana +
