@@ -13,7 +13,7 @@ Esta regla define cómo debe mantenerse el `index.html` **en la raíz** como _Da
 - Mantener `index.html` como **dashboard** (no como mapa técnico, ni landing recargada).
 - Conservar rutas clave:
   - `jugador/index.html` (Jugador)
-  - `apps/club/organizador/organizador.html` (Organizador)
+  - `apps/organizador/organizador.html` (Organizador)
   - `club/index.html` (Portal Club)
   - `admin/index.html` (Backoffice / Admin)
 - Respetar el rol del botón **NUEVO DUELO** como CTA principal.

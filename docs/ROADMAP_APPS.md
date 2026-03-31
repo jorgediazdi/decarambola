@@ -14,7 +14,7 @@
 | **Portal club** (menú dedicado) | Estable | `club/index.html` |
 | **Administración sala** (mesas, reservas, reportes, sede, formato…) | **Lote 1 avanzado** | Copias en `apps/club/sala/` + enlaces desde `club/index.html` |
 | **App jugador** (entrada) | Parcial | `jugador/index.html` (raíz) — carpeta `apps/jugador/` aún sin HTML productivo |
-| **Organizador / torneos** | **Fase B** (copias migradas + hubs) | `apps/club/organizador/*.html` + copias en raíz sin borrar |
+| **Organizador / torneos** | **Fase B** (copias migradas + hubs) | `apps/organizador/*.html` + copias en raíz sin borrar |
 | **Backoffice (PQRS, staff)** | En raíz | `pqrs_admin.html` — `apps/superadmin/` solo README |
 | **Núcleo técnico** | Compartido | `core.js`, `session.js`, `whitelabel.js`, `Version.js`, `sw.js` en raíz |
 

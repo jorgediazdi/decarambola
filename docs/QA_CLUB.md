@@ -60,7 +60,7 @@ Sin sesión staff: overlay con mensaje y enlace a login (comportamiento de `sala
 
 ## 6. Organizador
 
-Enlaces desde portal a `/apps/club/organizador/...` — comprobar que esos archivos existen en el deploy (no duplicados rotos).
+Enlaces desde portal a `/apps/organizador/...` — comprobar que esos archivos existen en el deploy (no duplicados rotos).
 
 ---
 

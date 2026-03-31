@@ -61,20 +61,20 @@ Prefijo **`/apps/club/sala/`** (desde raíz del sitio).
 
 ## Club — organizador (canónico)
 
-Prefijo **`/apps/club/organizador/`**.
+Prefijo **`/apps/organizador/`**.
 
 | Ruta ejemplo | Archivo (repo) |
 |--------------|----------------|
-| `/apps/club/organizador/organizador.html` | `apps/club/organizador/organizador.html` |
-| `/apps/club/organizador/torneo_crear.html` | `apps/club/organizador/torneo_crear.html` |
-| `/apps/club/organizador/torneos.html` | `apps/club/organizador/torneos.html` |
-| `/apps/club/organizador/control_torneo.html` | `apps/club/organizador/control_torneo.html` |
-| `/apps/club/organizador/inscripciones.html` | `apps/club/organizador/inscripciones.html` |
-| `/apps/club/organizador/Brackets.html` | `apps/club/organizador/Brackets.html` |
-| `/apps/club/organizador/posiciones.html` | `apps/club/organizador/posiciones.html` |
-| `/apps/club/organizador/Certificados.html` | `apps/club/organizador/Certificados.html` |
+| `/apps/organizador/organizador.html` | `apps/organizador/organizador.html` |
+| `/apps/organizador/torneo_crear.html` | `apps/organizador/torneo_crear.html` |
+| `/apps/organizador/torneos.html` | `apps/organizador/torneos.html` |
+| `/apps/organizador/control_torneo.html` | `apps/organizador/control_torneo.html` |
+| `/apps/organizador/inscripciones.html` | `apps/organizador/inscripciones.html` |
+| `/apps/organizador/Brackets.html` | `apps/organizador/Brackets.html` |
+| `/apps/organizador/posiciones.html` | `apps/organizador/posiciones.html` |
+| `/apps/organizador/Certificados.html` | `apps/organizador/Certificados.html` |
 
-**Redirecciones 301 desde raíz:** `/organizador.html`, `/torneos.html`, etc. → equivalente bajo `/apps/club/organizador/` (ver `_redirects`).
+**Redirecciones 301 desde raíz:** `/organizador.html`, `/torneos.html`, etc. → equivalente bajo `/apps/organizador/` (ver `_redirects`).
 
 ---
 
