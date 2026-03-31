@@ -24,28 +24,33 @@ function humanAuthError(err) {
 
 async function redirectAfterLogin() {
   const { data: sess } = await supabase.auth.getSession();
-  const user = sess && sess.session && sess.session.user;
+  const session = sess && sess.session;
+  console.log('[Auth] session user id:', session?.user?.id);
+  const user = session && session.user;
   if (!user) {
     window.location.replace('/jugador/index.html');
     return;
   }
-  const { data: row, error } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .maybeSingle();
-  if (error || !row || !row.role) {
+  console.log('[Auth] profile data:', data);
+  console.log('[Auth] profile error:', error);
+  if (error || !data || !data.role) {
     window.location.replace('/jugador/index.html');
     return;
   }
-  var r = String(row.role);
+  var role = String(data.role);
   var paths = {
     jugador: '/jugador/index.html',
     organizador: '/apps/organizador/organizador.html',
     superadmin: '/admin/index.html',
     club_admin: '/apps/club/sala/mesas.html',
   };
-  window.location.replace(paths[r] || '/jugador/index.html');
+  console.log('[Auth] redirecting role:', role);
+  window.location.replace(paths[role] || '/jugador/index.html');
 }
 
 var elMsg = document.getElementById('msg');
