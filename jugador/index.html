@@ -114,16 +114,38 @@
             border-bottom-color: var(--dc-border, rgba(201, 168, 76, 0.12));
             color: var(--dc-text-muted, #888);
         }
-        .bienvenida {
+        .progreso-card {
             display: flex;
-            align-items: center;
-            gap: 12px;
+            flex-direction: column;
+            gap: 10px;
             background: var(--dc-surface, #111111);
             border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
             border-radius: 16px;
             padding: 14px 18px;
             margin-bottom: 16px;
         }
+        .progreso-top { width: 100%; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+        .progreso-nombre { color: var(--dc-gold, #c9a84c); font-size: 0.8rem; letter-spacing: 1px; }
+        .progreso-meta { color: var(--dc-text-muted, #888); font-size: 0.5rem; }
+        .progreso-grid { width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .progreso-kpi { background: var(--dc-surface2, #1a1a1a); border: 1px solid var(--dc-border, rgba(201,168,76,0.12)); border-radius: 12px; padding: 10px 12px; }
+        .progreso-kpi small { display: block; color: var(--dc-text-subtle, #555); font-size: 0.42rem; letter-spacing: 1px; }
+        .progreso-kpi b { color: var(--dc-text, #f0f0f0); font-size: 0.68rem; }
+        .progreso-bar-wrap { width: 100%; }
+        .progreso-bar-label { color: var(--dc-text-muted, #888); font-size: 0.45rem; margin-bottom: 4px; }
+        .progreso-bar-bg { width: 100%; height: 8px; border-radius: 999px; background: #1a1a1a; overflow: hidden; border: 1px solid rgba(201, 168, 76, 0.2); }
+        .progreso-bar { height: 100%; background: linear-gradient(90deg, #a07800, #d4af37); width: 60%; }
+        .perfil-card {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 16px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+        }
+        .perfil-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+        .perfil-stat { background: var(--dc-surface2, #1a1a1a); border: 1px solid var(--dc-border, rgba(201,168,76,0.12)); border-radius: 12px; padding: 10px 12px; }
+        .perfil-stat small { display:block; color: var(--dc-text-subtle, #555); font-size: 0.42rem; letter-spacing: 1px; }
+        .perfil-stat b { color: var(--dc-text, #f0f0f0); font-size: 0.65rem; }
         .bienvenida-avatar {
             width: 44px;
             height: 44px;
@@ -271,6 +293,26 @@
             color: var(--dc-gold, #c9a84c);
             font-size: 0.6rem;
         }
+        .pendientes-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px; }
+        .pendiente-card {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 16px;
+            padding: 12px 14px;
+        }
+        .pendiente-card h4 { color: var(--dc-gold, #c9a84c); font-size: 0.6rem; margin-bottom: 8px; letter-spacing: 1px; }
+        .pendiente-lista { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+        .pendiente-lista li { color: var(--dc-text-muted, #888); font-size: 0.55rem; }
+        .historial-card {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 16px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+        }
+        .historial-card h4 { color: var(--dc-gold, #c9a84c); font-size: 0.62rem; margin-bottom: 8px; letter-spacing: 1px; }
+        .historial-lista { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+        .historial-lista li { color: var(--dc-text-muted, #888); font-size: 0.55rem; }
     </style>
 </head>
 <body class="dc-app dc-ux dc-ux-skin m-root-legacy jugador-hub">
@@ -285,52 +327,23 @@
             </div>
         </div>
 
-        <!-- Mismo panel jugador que index.html (vista completa) -->
-        <div class="bienvenida" id="bienvenida-box">
-            <div class="bienvenida-avatar" id="jug-avatar">&#128100;</div>
-            <div style="flex: 1">
-                <div class="bienvenida-nombre" id="jug-nombre">INVITADO</div>
-                <div class="bienvenida-sub" id="jug-sub">Identifícate para acceder a tu perfil</div>
+        <div class="progreso-card">
+            <div class="progreso-top">
+                <div>
+                    <div class="progreso-nombre" id="prog-nombre">INVITADO</div>
+                    <div class="progreso-meta" id="prog-nivel">Nivel — · Categoría —</div>
+                </div>
+                <button id="btn-identificar" type="button" onclick="mostrarFormIdentificacion()" style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: #c9a84c; border-radius: 12px; padding: 8px 14px; font-size: 0.45rem; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; cursor: pointer; flex-shrink: 0;">ENTRAR</button>
+                <button id="btn-salir" type="button" onclick="cerrarSesionJugador()" style="display: none; background: rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.2); color: #e74c3c; border-radius: 12px; padding: 8px 14px; font-size: 0.45rem; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; cursor: pointer; flex-shrink: 0;">SALIR</button>
             </div>
-            <button
-                id="btn-identificar"
-                type="button"
-                onclick="mostrarFormIdentificacion()"
-                style="
-                    background: rgba(212, 175, 55, 0.1);
-                    border: 1px solid rgba(212, 175, 55, 0.3);
-                    color: #c9a84c;
-                    border-radius: 12px;
-                    padding: 8px 14px;
-                    font-size: 0.45rem;
-                    font-family: 'Arial Black', sans-serif;
-                    letter-spacing: 1px;
-                    cursor: pointer;
-                    flex-shrink: 0;
-                "
-            >
-                ENTRAR
-            </button>
-            <button
-                id="btn-salir"
-                type="button"
-                onclick="cerrarSesionJugador()"
-                style="
-                    display: none;
-                    background: rgba(231, 76, 60, 0.08);
-                    border: 1px solid rgba(231, 76, 60, 0.2);
-                    color: #e74c3c;
-                    border-radius: 12px;
-                    padding: 8px 14px;
-                    font-size: 0.45rem;
-                    font-family: 'Arial Black', sans-serif;
-                    letter-spacing: 1px;
-                    cursor: pointer;
-                    flex-shrink: 0;
-                "
-            >
-                SALIR
-            </button>
+            <div class="progreso-grid">
+                <div class="progreso-kpi"><small>Promedio actual</small><b id="prog-promedio">0.000</b></div>
+                <div class="progreso-kpi"><small>Posición ranking</small><b id="prog-ranking">—</b></div>
+            </div>
+            <div class="progreso-bar-wrap">
+                <div class="progreso-bar-label">Progreso al siguiente nivel · <span id="prog-pct">60%</span></div>
+                <div class="progreso-bar-bg"><div class="progreso-bar" id="prog-bar"></div></div>
+            </div>
         </div>
 
         <div
@@ -455,66 +468,60 @@
                 </svg>
                 MI RANKING
             </a>
+            <a href="/mi_partida.html" class="rapida-btn r-neon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M4 5h16v14H4z" />
+                    <path d="M4 9h16" />
+                </svg>
+                MI PARTIDA
+            </a>
         </div>
 
-        <div class="seccion-label" style="margin-top: 18px">📋 MI CUENTA</div>
-
-        <a href="/perfil.html" class="menu-lista-item">
-            <span class="mli-icon">👤</span>
-            <div class="mli-info">
-                <div class="mli-titulo">MI PERFIL</div>
-                <div class="mli-desc">Estadísticas, promedio y nivel</div>
+        <div class="seccion-label" style="margin-top: 18px">⏳ PENDIENTES</div>
+        <div class="pendientes-grid">
+            <div class="pendiente-card">
+                <h4>Retos recibidos</h4>
+                <ul id="pendientes-retos" class="pendiente-lista"><li>Sin retos pendientes.</li></ul>
             </div>
-            <span class="mli-arrow">›</span>
-        </a>
-
-        <a href="/historial.html" class="menu-lista-item">
-            <span class="mli-icon">📊</span>
-            <div class="mli-info">
-                <div class="mli-titulo">HISTORIAL</div>
-                <div class="mli-desc">Tus partidas y resultados</div>
+            <div class="pendiente-card">
+                <h4>Torneos abiertos</h4>
+                <ul id="pendientes-torneos" class="pendiente-lista"><li>Sin torneos abiertos.</li></ul>
             </div>
-            <span class="mli-arrow">›</span>
-        </a>
+        </div>
 
-        <a href="/ranking.html" class="menu-lista-item">
-            <span class="mli-icon">🏆</span>
-            <div class="mli-info">
-                <div class="mli-titulo">RANKING DEL CLUB</div>
-                <div class="mli-desc">Tu posición frente a otros jugadores</div>
+        <div class="seccion-label" id="sec-perfil" style="margin-top: 18px">👤 MI PERFIL</div>
+        <div class="perfil-card" id="bienvenida-box">
+            <div class="bienvenida">
+                <div class="bienvenida-avatar" id="jug-avatar">&#128100;</div>
+                <div style="flex: 1">
+                    <div class="bienvenida-nombre" id="jug-nombre">INVITADO</div>
+                    <div class="bienvenida-sub" id="jug-sub">Identifícate para acceder a tu perfil</div>
+                </div>
+                <a href="/perfil.html" class="rapida-btn r-oro" style="padding:10px 12px; font-size:0.45rem;">EDITAR</a>
             </div>
-            <span class="mli-arrow">›</span>
-        </a>
-
-        <div class="seccion-label" style="margin-top: 18px">🎯 TORNEOS</div>
-
-        <a href="/apps/organizador/inscripciones.html" class="menu-lista-item">
-            <span class="mli-icon">📋</span>
-            <div class="mli-info">
-                <div class="mli-titulo">INSCRIBIRME A TORNEO</div>
-                <div class="mli-desc">Torneos oficiales del club</div>
+            <div class="perfil-stats">
+                <div class="perfil-stat"><small>Promedio</small><b id="stat-promedio">0.000</b></div>
+                <div class="perfil-stat"><small>Ranking</small><b id="stat-ranking">—</b></div>
+                <div class="perfil-stat"><small>Duelos jugados</small><b id="stat-duelos">0</b></div>
+                <div class="perfil-stat"><small>Torneos</small><b id="stat-torneos">0</b></div>
             </div>
-            <span class="mli-arrow">›</span>
-        </a>
+        </div>
 
-        <a href="/torneo_amigos.html" class="menu-lista-item">
-            <span class="mli-icon">👥</span>
-            <div class="mli-info">
-                <div class="mli-titulo">TORNEO AMIGOS</div>
-                <div class="mli-desc">Hasta 8 jugadores, formato libre</div>
-            </div>
-            <span class="mli-arrow">›</span>
-        </a>
-
-        <div class="seccion-label" style="margin-top: 18px">🪪 CLUB</div>
-        <a href="/index.html" class="menu-lista-item">
-            <span class="mli-icon">🏠</span>
-            <div class="mli-info">
-                <div class="mli-titulo">INSCRIBIRME A UN CLUB</div>
-                <div class="mli-desc">Afíliate a un club de billar</div>
-            </div>
-            <span class="mli-arrow">›</span>
-        </a>
+        <div class="seccion-label" style="margin-top: 18px">🕒 ÚLTIMAS 20 PARTIDAS</div>
+        <div class="historial-card">
+            <h4>Historial reciente</h4>
+            <ul id="ultimas-partidas-list" class="historial-lista">
+                <li>Sin partidas registradas.</li>
+            </ul>
+            <a href="/historial.html" class="menu-lista-item" style="margin-bottom:0;">
+                <span class="mli-icon">📊</span>
+                <div class="mli-info">
+                    <div class="mli-titulo">VER TODO</div>
+                    <div class="mli-desc">Historial completo</div>
+                </div>
+                <span class="mli-arrow">›</span>
+            </a>
+        </div>
     </div>
 
     <script src="/Version.js"></script>
@@ -673,12 +680,21 @@
                         ? cat.nombre + ' · PROMEDIO ' + (u.promedio || 0).toFixed(3)
                         : 'Promedio: ' + (u.promedio || 0);
                     document.getElementById('jug-avatar').innerText = cat ? cat.emoji : '🟡';
+                    document.getElementById('prog-nombre').innerText = u.nombre;
+                    document.getElementById('prog-nivel').innerText = 'Nivel ' + (u.nivel_num || 1) + ' · Categoría ' + (cat ? cat.nombre : 'Inicial');
+                    document.getElementById('prog-promedio').innerText = (u.promedio || 0).toFixed(3);
+                    document.getElementById('prog-ranking').innerText = u.ranking_pos != null ? ('#' + u.ranking_pos) : '—';
+                    document.getElementById('stat-promedio').innerText = (u.promedio || 0).toFixed(3);
+                    document.getElementById('stat-ranking').innerText = u.ranking_pos != null ? ('#' + u.ranking_pos) : '—';
+                    document.getElementById('stat-duelos').innerText = String(u.duelos_jugados || 0);
+                    document.getElementById('stat-torneos').innerText = String(u.torneos_jugados || 0);
                     document.getElementById('btn-identificar').style.display = 'none';
                     document.getElementById('btn-salir').style.display = 'block';
                 }
             } catch (e) {}
-            cargarRankingMini();
             cargarRetosPreview();
+            cargarPendientesTorneos();
+            cargarUltimasPartidas();
         }
 
         function cargarRetosPreview() {
@@ -726,33 +742,19 @@
                     var j2u = (r.j2 || '').toUpperCase();
                     return pend && (j2u === miNombre || r.tipo_reto === 'abierto');
                 });
-                var badge = document.getElementById('badge-retos-pendientes');
-                var preview = document.getElementById('retos-preview');
-                if (badge) {
-                    if (pendientes.length > 0) {
-                        badge.style.display = 'block';
-                        badge.textContent = pendientes.length + ' PENDIENTE' + (pendientes.length > 1 ? 'S' : '');
-                    } else {
-                        badge.style.display = 'none';
-                    }
+                var ul = document.getElementById('pendientes-retos');
+                if (!ul) return;
+                if (!pendientes.length) {
+                    ul.innerHTML = '<li>Sin retos pendientes.</li>';
+                    return;
                 }
-                if (preview) {
-                    if (lista.length === 0) {
-                        preview.textContent = 'Sin retos activos · Sé el primero en desafiar';
-                    } else {
-                        var ultimo = pickUltimoReto(lista);
-                        preview.textContent =
-                            '⚔️ ' +
-                            (ultimo.j1 || '?') +
-                            ' vs ' +
-                            (ultimo.j2 || 'ABIERTO') +
-                            ' · ' +
-                            (ultimo.modalidad || '3 Bandas') +
-                            ' · ' +
-                            (ultimo.meta1 || '?') +
-                            ' pts';
-                    }
-                }
+                ul.innerHTML = pendientes
+                    .slice(0, 5)
+                    .map(function (r) {
+                        var ultimo = pickUltimoReto([r]) || r;
+                        return '<li>⚔️ ' + (ultimo.j1 || '?') + ' vs ' + (ultimo.j2 || 'ABIERTO') + ' · ' + (ultimo.modalidad || '3 Bandas') + '</li>';
+                    })
+                    .join('');
             }
             (async function () {
                 var cid = clubIdJugador();
@@ -772,6 +774,59 @@
                 } catch (e) {}
                 pintarRetosLista(Object.values(retos));
             })();
+        }
+
+        async function cargarPendientesTorneos() {
+            var ul = document.getElementById('pendientes-torneos');
+            if (!ul) return;
+            ul.innerHTML = '<li>Cargando torneos...</li>';
+            try {
+                var api = await import('/js/api/torneo-api.js');
+                var r = await api.listTorneos();
+                if (r.error) throw r.error;
+                var list = (r.data || []).filter(function (t) {
+                    var st = String(t.estado || '').toUpperCase();
+                    return st !== 'FINALIZADO' && st !== 'CANCELADO' && st !== 'CERRADO';
+                });
+                if (!list.length) {
+                    ul.innerHTML = '<li>Sin torneos abiertos.</li>';
+                    return;
+                }
+                ul.innerHTML = list.slice(0, 5).map(function (t) {
+                    return '<li>🏆 ' + (t.nombre || 'Torneo') + ' · ' + (t.modalidad || '3 Bandas') + '</li>';
+                }).join('');
+            } catch (e) {
+                ul.innerHTML = '<li>Sin torneos abiertos.</li>';
+            }
+        }
+
+        async function cargarUltimasPartidas() {
+            var ul = document.getElementById('ultimas-partidas-list');
+            if (!ul) return;
+            ul.innerHTML = '<li>Cargando historial...</li>';
+            try {
+                var u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+                if (!u || !u.id) {
+                    ul.innerHTML = '<li>Sin partidas registradas.</li>';
+                    return;
+                }
+                var jm = await import('/js/api/jugador-api.js');
+                var r = await jm.listPartidasPorJugador(u.id, 20);
+                if (r.error) throw r.error;
+                var list = r.data || [];
+                if (!list.length) {
+                    ul.innerHTML = '<li>Sin partidas registradas.</li>';
+                    return;
+                }
+                ul.innerHTML = list.map(function (p) {
+                    var prom = parseFloat(p.promedio || 0);
+                    var rival = p.rival_nombre || 'Entrenamiento';
+                    var fecha = p.created_at ? new Date(p.created_at).toLocaleDateString('es-CO') : '—';
+                    return '<li>' + fecha + ' · vs ' + rival + ' · Prom: ' + prom.toFixed(3) + '</li>';
+                }).join('');
+            } catch (e) {
+                ul.innerHTML = '<li>Sin partidas registradas.</li>';
+            }
         }
 
         function cargarRankingMini() {
@@ -859,7 +914,7 @@
             <span class="bottom-nav__icon">🏠</span>
             <span>Inicio</span>
         </a>
-        <a class="bottom-nav__item" href="/apps/organizador/organizador.html">
+        <a class="bottom-nav__item" href="/apps/organizador/torneos.html">
             <span class="bottom-nav__icon">🏆</span>
             <span>Torneos</span>
         </a>
@@ -871,7 +926,7 @@
             <span class="bottom-nav__icon">📊</span>
             <span>Ranking</span>
         </a>
-        <a class="bottom-nav__item" href="/perfil.html">
+        <a class="bottom-nav__item" href="#sec-perfil">
             <span class="bottom-nav__icon">👤</span>
             <span>Perfil</span>
         </a>
