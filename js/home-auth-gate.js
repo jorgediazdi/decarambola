@@ -1,30 +1,44 @@
 /**
- * Home raíz: si hay sesión, redirige según profiles.role; si no, marca invitado y deja el formulario.
+ * Home raíz: solo redirige si getUser() válido y profiles.role está en HOME_ROLE_PATH.
+ * Sin sesión real o sin rol en BD → queda en home con dc-home-guest (sin redirect).
  */
 import { supabase } from '/js/supabase-client.js';
-import { getRole } from '/js/auth-manager.js';
 import { HOME_ROLE_PATH, redirectHomeByProfileRole } from '/js/home-role-redirect.js';
 
 (async function () {
   try {
-    console.log('[AuthGate] checking session...');
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    console.log('[AuthGate] session:', session);
-    console.log('[AuthGate] isGuest flag:', window.__dcHomeIsGuest);
-    if (session?.user) {
-      const { data: rol, error } = await getRole();
-      if (error) {
-        console.warn('[home-auth-gate] getRole:', error);
-      }
-      const roleArg = rol || 'jugador';
-      const r = roleArg && HOME_ROLE_PATH[roleArg] ? String(roleArg) : 'jugador';
-      const destino = HOME_ROLE_PATH[r];
-      console.log('[AuthGate] redirecting to:', destino);
-      redirectHomeByProfileRole(roleArg);
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    const user = userData && userData.user ? userData.user : null;
+    if (userErr || !user) {
+      document.body.classList.add('dc-home-guest');
+      window.__dcHomeIsGuest = true;
+      window.__dcHomeAuthPending = false;
       return;
     }
+
+    const { data: profile, error: pErr } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (pErr || !profile || profile.role == null || String(profile.role).trim() === '') {
+      document.body.classList.add('dc-home-guest');
+      window.__dcHomeIsGuest = true;
+      window.__dcHomeAuthPending = false;
+      return;
+    }
+
+    const roleStr = String(profile.role);
+    if (!HOME_ROLE_PATH[roleStr]) {
+      document.body.classList.add('dc-home-guest');
+      window.__dcHomeIsGuest = true;
+      window.__dcHomeAuthPending = false;
+      return;
+    }
+
+    redirectHomeByProfileRole(roleStr);
+    return;
   } catch (e) {
     console.warn('[home-auth-gate]', e);
   }
