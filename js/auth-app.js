@@ -7,8 +7,7 @@ import {
   signOut,
   signUp,
   requestPasswordReset,
-  getSession,
-  getRole
+  getSession
 } from '/js/auth-manager.js';
 
 function humanAuthError(err) {
@@ -24,25 +23,29 @@ function humanAuthError(err) {
 }
 
 async function redirectAfterLogin() {
-  const { data: role, error } = await getRole();
-  console.log('DEBUG role:', role);
-  console.log('DEBUG error:', error);
-  if (error) {
-    console.log('DEBUG: hay error, va a jugador');
-    window.location.href = '/jugador/';
+  const { data: sess } = await supabase.auth.getSession();
+  const user = sess && sess.session && sess.session.user;
+  if (!user) {
+    window.location.replace('/jugador/index.html');
     return;
   }
-  var r = role || 'jugador';
-  console.log('DEBUG r final:', r);
-  if (r === 'superadmin') {
-    window.location.href = '/admin/';
-  } else if (r === 'club_admin') {
-    window.location.href = '/apps/club/sala/';
-  } else if (r === 'operador') {
-    window.location.href = '/apps/club/sala/operacion.html';
-  } else {
-    window.location.href = '/jugador/';
+  const { data: row, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (error || !row || !row.role) {
+    window.location.replace('/jugador/index.html');
+    return;
   }
+  var r = String(row.role);
+  var paths = {
+    jugador: '/jugador/index.html',
+    organizador: '/apps/organizador/organizador.html',
+    superadmin: '/admin/index.html',
+    club_admin: '/apps/club/sala/mesas.html',
+  };
+  window.location.replace(paths[r] || '/jugador/index.html');
 }
 
 var elMsg = document.getElementById('msg');
@@ -156,7 +159,6 @@ document.getElementById('btn-up').onclick = async function () {
   clearMsg();
   var email = (elEmail.value || '').trim();
   var password = elPass.value || '';
-  var clubCodigo = (document.getElementById('club-codigo') && document.getElementById('club-codigo').value || '').trim();
   if (!email || !password) {
     showMsg('Escribí correo y contraseña para crear la cuenta.', false);
     return;
@@ -166,7 +168,7 @@ document.getElementById('btn-up').onclick = async function () {
     return;
   }
   this.disabled = true;
-  var r = await signUp(email, password, clubCodigo || undefined);
+  var r = await signUp(email, password);
   this.disabled = false;
   if (r.error) {
     showMsg(r.error.message || 'Error al registrarse', false);
@@ -178,7 +180,7 @@ document.getElementById('btn-up').onclick = async function () {
       {
         id: u.id,
         role: 'jugador',
-        club_id: clubCodigo || null
+        club_id: null
       },
       { onConflict: 'id' }
     );

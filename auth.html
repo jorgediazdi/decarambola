@@ -115,6 +115,22 @@
   </style>
 </head>
 <body class="dc-app dc-ux dc-ux-skin">
+  <script>
+    (function () {
+      try {
+        [
+          'session_rol',
+          'club_activo',
+          'organizador_clubes',
+          'club_admin',
+          'mi_perfil',
+          'session_inicio',
+          'session_ultimo_act',
+          'session_aviso_ts'
+        ].forEach(function (k) { localStorage.removeItem(k); });
+      } catch (_e) {}
+    })();
+  </script>
   <div class="stars" id="stars-bg" aria-hidden="true"></div>
   <div class="wrap dc-reveal">
     <h1>DeCarambola</h1>
@@ -146,27 +162,10 @@
         <label for="pass">Contraseña</label>
         <input id="pass" name="password" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
 
-        <div id="campo-club" style="display:none;margin-top:12px;">
-          <label for="club-codigo" style="font-size:0.8rem;color:#888;">
-            Código del club
-          </label>
-          <input id="club-codigo" type="text"
-            placeholder="Ej: MVIP-001"
-            autocomplete="off"
-            style="width:100%;margin-top:4px;">
-        </div>
         <div class="row">
           <button type="submit" class="btn-go" id="btn-in">Iniciar sesión</button>
           <button type="button" class="btn-sec" id="btn-up">Crear cuenta</button>
         </div>
-      <script>
-        document.getElementById('btn-up').addEventListener('mousedown', function(){
-            document.getElementById('campo-club').style.display = 'block';
-        });
-        document.getElementById('btn-in').addEventListener('mousedown', function(){
-            document.getElementById('campo-club').style.display = 'none';
-        });
-      </script>
       </form>
       <p style="margin:0 0 8px;font-size:0.68rem;color:#666;text-align:center;">
         <button type="button" id="btn-reset" style="background:none;border:none;color:#6cf;text-decoration:underline;cursor:pointer;font-size:inherit;padding:0;">
