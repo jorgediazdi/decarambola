@@ -197,15 +197,14 @@ if (!sess?.session) {
 <div class="stars" id="stars-bg" aria-hidden="true"></div>
 
 <div class="shell-ent dc-reveal">
-    <div class="dc-dash-back-row">
-        <a href="/index.html" class="btn-dash-dashboard"><span class="dc-dash-ico">←</span> Volver al dashboard</a>
-    </div>
-
     <div class="dc-premium-chassis shell-pad">
         <header class="hdr-ent" role="banner">
             <h1>Entrenamiento</h1>
             <p>Acá elegís <strong style="color:#8a8a8a;">qué pantalla abrir</strong>. Para practicar y <strong style="color:var(--oro);">sumar carambolas</strong> con promedio en vivo, usá <strong style="color:var(--neon);">Mi partida</strong>. <strong style="color:#8a8a8a;">Duelo móvil</strong> es para dos jugadores con marcador compartido.</p>
         </header>
+        <div class="dc-dash-back-row">
+            <a href="/jugador/index.html" class="btn-dash-dashboard"><span class="dc-dash-ico">←</span> MI ESPACIO</a>
+        </div>
 
         <div class="marcador-bloque" aria-hidden="true">
             <div class="lbl">Promedio de sesión (vista previa)</div>
@@ -215,15 +214,6 @@ if (!sess?.session) {
         </div>
 
         <a class="cta-sumar" href="/mi_partida.html">Sumar carambolas — Mi partida<span class="cta-line2">Teclado · bola grande · guardar sesión</span></a>
-
-        <p class="sec-title">Otras pantallas</p>
-        <nav class="grid-links" aria-label="Enlaces relacionados">
-            <a href="/jugador/">Menú jugador <span class="line2">Hub de la app (accesos rápidos)</span></a>
-            <a href="/duelo-tv.html">Duelo móvil <span class="line2">Dos jugadores · iniciar partida para ver marcador</span></a>
-            <a href="/apps/sensei/index.html">Sensei <span class="line2">Aprender billar con IA</span></a>
-            <a href="/perfil.html">Mi perfil <span class="line2">Datos y afiliación al club</span></a>
-            <a href="/club/">Portal del club <span class="line2">Personal del club (mesas, sede)</span></a>
-        </nav>
 
         <p class="note">Si en <strong>Duelo móvil</strong> no ves el formulario, <strong>bajá con el dedo</strong>: configuración e <strong>Iniciar partida</strong> están debajo del encabezado.</p>
     </div>

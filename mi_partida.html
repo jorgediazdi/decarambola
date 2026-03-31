@@ -193,6 +193,13 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;mi
 <script>
 var st={c:0,e:0,s:0,sm:0},nom='',doc='',prom=0;
 
+function dcSetMipartidaActiva(on) {
+  try {
+    if (on) localStorage.setItem('dc_mipartida_activa', '1');
+    else localStorage.removeItem('dc_mipartida_activa');
+  } catch (e) {}
+}
+
 function show(id){
   document.getElementById('p-ini').style.display=(id==='p-ini')?'flex':'none';
   document.getElementById('p-jue').style.display=(id==='p-jue')?'flex':'none';
@@ -260,6 +267,11 @@ function mostrarSplashMarca(onDone) {
 
 window.onload=function(){
   mostrarSplashMarca(function() {});
+  try {
+    if (localStorage.getItem('dc_mipartida_activa') === '1' && document.getElementById('p-ini').style.display === 'flex') {
+      localStorage.removeItem('dc_mipartida_activa');
+    }
+  } catch (e) {}
   try{
     var u=JSON.parse(localStorage.getItem('jugador_activo') || 'null');
     if(u&&u.nombre){
@@ -320,6 +332,7 @@ function iniciar(){
   document.getElementById('tnom').innerText=nom;
   document.getElementById('tsub').innerText=prom>0?'META: '+(prom*1.1).toFixed(3):'PRACTICA LIBRE';
   show('p-jue');
+  dcSetMipartidaActiva(true);
   ui();
 }
 
@@ -360,6 +373,7 @@ function fin(){
 }
 
 function resumen(){
+  dcSetMipartidaActiva(false);
   var p=st.e===0?0:parseFloat((st.c/st.e).toFixed(3));
   var cat=getCat(p);
   document.getElementById('rnom').innerText=nom;
@@ -374,6 +388,7 @@ function resumen(){
 }
 
 function guardar(){
+  dcSetMipartidaActiva(false);
   var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
   if (!jugActivo || !jugActivo.cedula) {
     alert('⚠️ Para guardar tu entrenamiento en el perfil debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
@@ -415,7 +430,7 @@ function guardar(){
   location.href='/jugador/';
 }
 
-function reiniciar(){st={c:0,e:0,s:0,sm:0};show('p-ini');}
+function reiniciar(){dcSetMipartidaActiva(false);st={c:0,e:0,s:0,sm:0};show('p-ini');}
 </script>
 <script src="whitelabel.js"></script>
 
