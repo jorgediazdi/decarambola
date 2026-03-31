@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar — DeCarambola</title>
+  <style>
+    :root { --oro: #d4af37; --fondo: #0b0b0b; --card: #14100a; --texto: #eaeaea; --muted: #888; --err: #e74c3c; --ok: #2eff70; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: var(--fondo);
+      color: var(--texto);
+    }
+    .wrap { width: 100%; max-width: 400px; }
+    h1 {
+      font-family: Georgia, serif;
+      font-style: italic;
+      color: var(--oro);
+      font-size: 1.35rem;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .sub { text-align: center; color: var(--muted); font-size: 0.75rem; margin-bottom: 24px; line-height: 1.4; }
+    .card {
+      background: linear-gradient(165deg, var(--card), #0a0806);
+      border: 1px solid rgba(212, 175, 55, 0.22);
+      border-radius: 18px;
+      padding: 22px 20px;
+    }
+    label { display: block; font-size: 0.65rem; letter-spacing: 0.12em; color: #666; margin-bottom: 6px; }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #2a2a2a;
+      background: #0a0a0a;
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 14px;
+    }
+    input:focus { outline: none; border-color: rgba(212, 175, 55, 0.45); }
+    button[type="submit"] {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--ok), #18b040);
+      color: #000;
+    }
+    button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
+    .msg { font-size: 0.8rem; padding: 12px; border-radius: 12px; margin-bottom: 14px; display: none; }
+    .msg.err { display: block; background: rgba(231, 76, 60, 0.12); border: 1px solid rgba(231, 76, 60, 0.35); color: #eaa; }
+    .msg.ok { display: block; background: rgba(46, 255, 112, 0.08); border: 1px solid rgba(46, 255, 112, 0.25); color: #8d8; }
+    .foot { margin-top: 16px; font-size: 0.7rem; color: #444; text-align: center; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>DeCarambola</h1>
+    <p class="sub">Iniciá sesión con correo y contraseña.</p>
+    <div class="card">
+      <div id="msg" class="msg" aria-live="polite"></div>
+      <form id="login-form" action="#" method="post" novalidate>
+        <label for="email">Correo</label>
+        <input id="email" name="email" type="email" autocomplete="email" required placeholder="tu@correo.com">
+
+        <label for="pass">Contraseña</label>
+        <input id="pass" name="password" type="password" autocomplete="current-password" required placeholder="Contraseña">
+
+        <button type="submit" id="btn-submit">Entrar</button>
+      </form>
+    </div>
+    <p class="foot">Página de prueba aislada (<code>login.html</code>). Sesión compartida con el mismo proyecto Supabase.</p>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
+
+    var elForm = document.getElementById('login-form');
+    var elMsg = document.getElementById('msg');
+    var elEmail = document.getElementById('email');
+    var elPass = document.getElementById('pass');
+    var elBtn = document.getElementById('btn-submit');
+
+    function showMsg(text, ok) {
+      elMsg.className = 'msg ' + (ok ? 'ok' : 'err');
+      elMsg.textContent = text;
+    }
+    function clearMsg() {
+      elMsg.className = 'msg';
+      elMsg.textContent = '';
+    }
+
+    function nextUrl() {
+      try {
+        var q = new URLSearchParams(window.location.search);
+        var n = (q.get('next') || '').trim();
+        if (n && n.startsWith('/')) return n;
+      } catch (_e) {}
+      return '/jugador/index.html';
+    }
+
+    elForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      clearMsg();
+      var email = (elEmail.value || '').trim();
+      var password = elPass.value || '';
+      if (!email || !password) {
+        showMsg('Escribí correo y contraseña.', false);
+        return;
+      }
+      elBtn.disabled = true;
+      var r = await supabase.auth.signInWithPassword({ email: email, password: password });
+      elBtn.disabled = false;
+      if (r.error) {
+        showMsg(r.error.message || 'Error al iniciar sesión.', false);
+        return;
+      }
+      showMsg('Sesión iniciada. Redirigiendo…', true);
+      window.location.href = nextUrl();
+    });
+  </script>
+</body>
+</html>
