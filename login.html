@@ -98,6 +98,7 @@
       elMsg.className = 'msg';
       elMsg.textContent = '';
     }
+    function showError(msg) { showMsg(msg, false); }
 
     function nextUrl() {
       try {
@@ -120,22 +121,23 @@
       elBtn.disabled = true;
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       elBtn.disabled = false;
-      if (error) {
-        showMsg(error.message || 'Error al iniciar sesión.', false);
-        return;
-      }
-      console.log('[Login] user id:', data.user?.id);
-      console.log('[Login] user email:', data.user?.email);
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .maybeSingle();
-      console.log('[Login] profile result:', profileData);
-      console.log('[Login] profile error:', profileError);
-      console.log('[Login] role detectado:', profileData?.role);
-      showMsg('Sesión iniciada. Redirigiendo…', true);
-      window.location.href = nextUrl();
+      if (error) { showError('Email o contraseña incorrectos'); return; }
+
+      const userId = data.user.id;
+      const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+
+      const role = profile?.role;
+      const paths = {
+          jugador: '/jugador/index.html',
+          organizador: '/apps/organizador/organizador.html',
+          superadmin: '/admin/index.html',
+          club_admin: '/apps/club/sala/mesas.html'
+      };
+      window.location.replace(paths[role] || '/jugador/index.html');
     });
   </script>
 </body>
