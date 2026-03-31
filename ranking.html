@@ -1,392 +1,227 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script type="module">
+      import { supabase } from '/js/supabase-client.js';
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess?.session) {
+        window.location.replace('/auth.html?next=' + encodeURIComponent(window.location.pathname));
+      }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#0b0b0b">
     <title>Ranking — DeCarambola</title>
     <link rel="stylesheet" href="/css/dc-system.css">
-    <script src="/js/dc-nav.js" defer></script>
-    <style>
-        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
-        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
-
-        /* HEADER */
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; position:sticky; top:0; z-index:50; display:flex; flex-direction:column; align-items:stretch; gap:10px; }
-        .header-top-rk { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; width:100%; }
-        .header-main { display:flex; align-items:center; gap:10px; }
-        .header-logo {
-            width:52px; height:52px;
-            border-radius:50%;
-            overflow:hidden;
-            display:flex; align-items:center; justify-content:center;
-            background:#111;
-            border:1px solid #222;
-        }
-        .header-tit { color:var(--oro); font-size:1.1rem; letter-spacing:3px; }
-        .header-sub { color:#333; font-size: 0.65rem; letter-spacing:2px; margin-top:2px; }
-        .btn-hdr { background:none; border:1px solid var(--g1); color:#444; padding:7px 14px; border-radius:10px; font-size:0.5rem; cursor:pointer; letter-spacing:1px; font-family:'Arial Black',sans-serif; text-decoration:none; }
-
-        .wrap { width:95vw; max-width:500px; padding-top:14px; padding-bottom:100px; }
-
-        /* PODIO TOP 3 */
-        .podio { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px; }
-        .podio-card { border-radius:18px; padding:14px 8px 12px; text-align:center; position:relative; overflow:hidden; cursor:pointer; }
-        .podio-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:18px 18px 0 0; }
-
-        /* ORO */
-        .pod-1 { background:linear-gradient(160deg,#1a1400,#0a0800); border:1px solid rgba(212,175,55,0.5); order:2; }
-        .pod-1::before { background:linear-gradient(90deg,#4a3000,var(--oro),#fff9c4,var(--oro),#4a3000); }
-        /* PLATA */
-        .pod-2 { background:linear-gradient(160deg,#141414,#0a0a0a); border:1px solid rgba(192,192,192,0.3); order:1; }
-        .pod-2::before { background:linear-gradient(90deg,#333,#c0c0c0,#fff,#c0c0c0,#333); }
-        /* BRONCE */
-        .pod-3 { background:linear-gradient(160deg,#140e00,#0a0800); border:1px solid rgba(205,127,50,0.3); order:3; }
-        .pod-3::before { background:linear-gradient(90deg,#3a2000,#cd7f32,#f0b060,#cd7f32,#3a2000); }
-
-        .pod-corona { font-size:1.4rem; line-height:1; margin-bottom:6px; display:block; }
-        .pod-av { width:46px; height:46px; border-radius:50%; margin:0 auto 6px; display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:900; }
-        .pod-1 .pod-av { background:radial-gradient(circle at 35% 35%,#fff9c4,#d4af37,#6a4a00); box-shadow:0 0 14px rgba(212,175,55,0.5); color:#000; }
-        .pod-2 .pod-av { background:radial-gradient(circle at 35% 35%,#f0f0f0,#c0c0c0,#606060); box-shadow:0 0 10px rgba(192,192,192,0.3); color:#000; }
-        .pod-3 .pod-av { background:radial-gradient(circle at 35% 35%,#f0c080,#cd7f32,#6a3a00); box-shadow:0 0 10px rgba(205,127,50,0.3); color:#000; }
-
-        .pod-nom { font-size:0.5rem; letter-spacing:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; display:block; }
-        .pod-1 .pod-nom { color:var(--oro); }
-        .pod-2 .pod-nom { color:#c0c0c0; }
-        .pod-3 .pod-nom { color:#cd7f32; }
-        .pod-prom { font-family:'Courier New',monospace; font-size:0.9rem; display:block; }
-        .pod-1 .pod-prom { color:var(--oro); }
-        .pod-2 .pod-prom { color:#c0c0c0; }
-        .pod-3 .pod-prom { color:#cd7f32; }
-        .pod-cat { font-size:0.38rem; color:#444; letter-spacing:1px; display:block; margin-top:2px; }
-
-        /* KPI */
-        .kpi-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
-        .kpi { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:10px 8px; text-align:center; }
-        .kpi b { color:var(--neon); font-size:1.2rem; display:block; font-family:'Courier New',monospace; line-height:1; }
-        .kpi small { color:#333; font-size: 0.6rem; letter-spacing:1px; margin-top:3px; display:block; }
-
-        /* FILTROS */
-        .filtros { display:flex; gap:6px; margin-bottom:10px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
-        .filtros::-webkit-scrollbar { display:none; }
-        .filtro-btn { background:var(--g3); border:1px solid var(--g1); color:#444; padding:7px 14px; border-radius:20px; font-size:0.5rem; cursor:pointer; white-space:nowrap; font-family:'Arial Black',sans-serif; transition:0.2s; flex-shrink:0; display:flex; align-items:center; gap:5px; }
-        .filtro-btn.activo { background:rgba(212,175,55,0.1); color:var(--oro); border-color:rgba(212,175,55,0.4); }
-        .filtro-ico { font-size:0.8rem; line-height:1; }
-
-        /* SECCIÓN TÍTULO */
-        .sec-tit { font-size: 0.65rem; color:#333; letter-spacing:3px; margin:18px 0 10px; border-left:3px solid var(--g1); padding-left:10px; }
-
-        /* FILA */
-        .fila { display:flex; align-items:center; background:var(--g3); border:1px solid var(--g1); border-radius:16px; padding:11px 14px; margin-bottom:8px; gap:10px; cursor:pointer; transition:0.15s; position:relative; overflow:hidden; }
-        .fila:active { transform:scale(0.99); }
-
-        /* POSICIÓN BADGE */
-        .pos-badge { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'Courier New',monospace; font-size:0.7rem; font-weight:900; flex-shrink:0; background:#111; color:#333; border:1px solid #1a1a1a; }
-
-        /* AVATAR */
-        .av { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.9rem; font-weight:900; flex-shrink:0; background:linear-gradient(135deg,#1a1a00,#2a2000); border:1.5px solid rgba(212,175,55,0.2); color:#664; }
-
-        /* INFO */
-        .jug-info { flex:1; min-width:0; }
-        .jug-nom { font-size:0.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .jug-det { margin-top:4px; display:flex; align-items:center; gap:5px; }
-
-        /* CATEGORIA PILL */
-        .cat-pill { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:8px; font-size:0.38rem; letter-spacing:1px; border:1px solid; }
-
-        .jug-prom { font-size:1rem; font-family:'Courier New',monospace; flex-shrink:0; }
-
-        /* PARTIDAS */
-        .part-badge { font-size:0.38rem; color:#333; background:#111; border:1px solid #1a1a1a; border-radius:6px; padding:2px 6px; flex-shrink:0; }
-
-        /* EMPTY */
-        .empty { text-align:center; padding:50px 20px; }
-        .empty p { color:#333; font-size:0.65rem; line-height:2.2; letter-spacing:1px; }
-
-        /* NAV */
-        .nav-bottom { position:fixed; bottom:0; left:0; right:0; background:linear-gradient(transparent,#000 40%); padding:10px 15px 20px; display:flex; justify-content:center; gap:10px; }
-        .btn-nav { flex:1; max-width:160px; padding:12px; background:var(--g3); border:1px solid var(--g1); color:#666; border-radius:14px; font-size:0.55rem; text-align:center; text-decoration:none; font-family:'Arial Black',sans-serif; letter-spacing:1px; display:flex; align-items:center; justify-content:center; gap:6px; }
-        .btn-nav:active { border-color:var(--oro); color:var(--oro); }
-        .nav-ico { font-size:1rem; line-height:1; }
-    </style>
-    <link rel="stylesheet" href="/css/ux-shell.css">
     <link rel="stylesheet" href="/css/bottom-nav.css">
+    <style>
+        :root { --oro:#d4af37; --bg:#0b0b0b; --surface:#111; --border:#222; --txt:#ececec; --muted:#888; --blue:#3ea6ff; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:var(--bg); color:var(--txt); font-family:Arial, sans-serif; min-height:100vh; }
+        .header { position:sticky; top:0; z-index:20; background:#090909; border-bottom:1px solid var(--border); padding:14px 16px; }
+        .header h1 { font-size:0.95rem; color:var(--oro); letter-spacing:0.08em; margin-bottom:10px; font-family:'Arial Black',Arial,sans-serif; }
+        .btn-back { display:inline-block; text-decoration:none; color:var(--oro); border:1px solid rgba(212,175,55,.35); border-radius:10px; padding:8px 12px; font-size:.7rem; font-family:'Arial Black',Arial,sans-serif; letter-spacing:.05em; }
+        .wrap { max-width:680px; margin:0 auto; padding:14px 14px 92px; }
+        .tabs, .cats { display:flex; gap:8px; overflow:auto; scrollbar-width:none; margin-bottom:10px; }
+        .tabs::-webkit-scrollbar, .cats::-webkit-scrollbar { display:none; }
+        .tab, .cat { border:1px solid var(--border); background:#0f0f0f; color:#9d9d9d; border-radius:999px; padding:8px 12px; font-size:.68rem; white-space:nowrap; cursor:pointer; font-family:'Arial Black',Arial,sans-serif; letter-spacing:.04em; }
+        .tab.active, .cat.active { color:var(--oro); border-color:rgba(212,175,55,.45); background:rgba(212,175,55,.08); }
+        .meta { color:var(--muted); font-size:.72rem; margin:0 2px 12px; }
+        .podio { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+        .pod-card { border:1px solid var(--border); background:var(--surface); border-radius:14px; padding:10px 8px; text-align:center; }
+        .pod-medal { font-size:1.1rem; }
+        .pod-name { margin-top:4px; font-size:.72rem; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .pod-prom { margin-top:3px; font-family:'Courier New',monospace; color:var(--oro); font-weight:700; }
+        .list { display:flex; flex-direction:column; gap:8px; }
+        .row { border:1px solid var(--border); background:var(--surface); border-radius:14px; padding:10px 12px; display:grid; grid-template-columns:34px 1fr auto; gap:10px; align-items:center; }
+        .pos { width:30px; height:30px; border-radius:8px; border:1px solid #2a2a2a; display:flex; align-items:center; justify-content:center; font-family:'Courier New',monospace; font-weight:700; color:#b7b7b7; background:#0b0b0b; }
+        .name { font-size:.78rem; color:#fff; font-weight:700; }
+        .sub { margin-top:3px; font-size:.66rem; color:var(--muted); }
+        .prom { font-family:'Courier New',monospace; font-size:1rem; color:var(--oro); font-weight:700; }
+        .empty { border:1px dashed #2a2a2a; border-radius:14px; padding:28px 16px; color:#888; text-align:center; font-size:.8rem; }
+        .loading, .error { padding:18px 2px; font-size:.78rem; color:#888; }
+        .error { color:#ff9c9c; }
+        .cat-chip { margin-top:4px; display:inline-block; font-size:.6rem; border:1px solid #2b2b2b; border-radius:999px; padding:3px 8px; color:#aaa; }
+    </style>
 </head>
-<body class="dc-app dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
+<body>
+    <header class="header">
+        <h1>RANKING</h1>
+        <a class="btn-back" href="/jugador/index.html">← MI ESPACIO</a>
+    </header>
 
-
-<div class="header">
-    <div class="header-top-rk">
-        <div class="header-main">
-            <div class="header-logo" id="hdr-logo-ranking"></div>
-            <div>
-                <div class="header-tit">&#128200; RANKING</div>
-                <div class="header-sub" id="lbl-sede">TODOS LOS JUGADORES · PROMEDIO OFICIAL</div>
-            </div>
+    <main class="wrap">
+        <div class="tabs" id="scope-tabs">
+            <button class="tab active" data-scope="club">MI CLUB</button>
+            <button class="tab" data-scope="ciudad">MI CIUDAD</button>
+            <button class="tab" data-scope="pais">MI PAÍS</button>
+            <button class="tab" data-scope="global">GLOBAL</button>
         </div>
-    </div>
-    <div class="hdr-top-nav" style="max-width:640px;margin:0 auto;padding:0 18px;">
-        <a href="/index.html" class="btn-nav-home">← Inicio</a>
-    </div>
-</div>
+        <div class="cats" id="cat-tabs">
+            <button class="cat active" data-cat="TODOS">TODOS</button>
+            <button class="cat" data-cat="ÉLITE">ÉLITE</button>
+            <button class="cat" data-cat="MAESTRO">MAESTRO</button>
+            <button class="cat" data-cat="PRIMERA">PRIMERA</button>
+            <button class="cat" data-cat="SEGUNDA">SEGUNDA</button>
+            <button class="cat" data-cat="TERCERA">TERCERA</button>
+        </div>
+        <div class="meta" id="meta">Cargando ranking...</div>
+        <section class="podio" id="podio"></section>
+        <section class="list" id="list"></section>
+    </main>
 
-<div class="wrap dc-reveal">
+    <nav class="bottom-nav" aria-label="Navegación inferior">
+      <a class="bottom-nav__item" href="/index.html"><span class="bottom-nav__icon">🏠</span><span>Inicio</span></a>
+      <a class="bottom-nav__item" href="/apps/organizador/torneos.html"><span class="bottom-nav__icon">🏆</span><span>Torneos</span></a>
+      <a class="bottom-nav__item" href="/mi_partida.html"><span class="bottom-nav__icon">🎱</span><span>Jugar</span></a>
+      <a class="bottom-nav__item bottom-nav__item--active" href="/ranking.html"><span class="bottom-nav__icon">📊</span><span>Ranking</span></a>
+      <a class="bottom-nav__item" href="/perfil.html"><span class="bottom-nav__icon">👤</span><span>Perfil</span></a>
+    </nav>
 
-    <!-- PODIO TOP 3 -->
-    <div class="podio" id="podio" style="display:none;"></div>
+    <script type="module">
+      import { supabase } from '/js/supabase-client.js';
 
-    <!-- KPI -->
-    <div class="kpi-bar">
-        <div class="kpi"><b id="stat-total">0</b><small>JUGADORES</small></div>
-        <div class="kpi"><b id="stat-mejor">0.000</b><small>MEJOR PROM.</small></div>
-        <div class="kpi"><b id="stat-partidas">0</b><small>PARTIDAS</small></div>
-    </div>
+      var rows = [];
+      var scope = 'club';
+      var cat = 'TODOS';
+      var ctx = { club_id: null, ciudad: null, nacionalidad: null };
 
-    <!-- FILTROS CATEGORÍA -->
-    <div class="filtros">
-        <button class="filtro-btn activo" onclick="filtrar('todos',this)">
-            <span class="filtro-ico">&#127922;</span> TODOS
-        </button>
-        <button class="filtro-btn" onclick="filtrar('elite',this)">
-            <span class="filtro-ico">&#127942;</span> ÉLITE
-        </button>
-        <button class="filtro-btn" onclick="filtrar('maestro',this)">
-            <span class="filtro-ico">&#11088;</span> MAESTRO
-        </button>
-        <button class="filtro-btn" onclick="filtrar('primera',this)">
-            <span class="filtro-ico">&#129351;</span> PRIMERA
-        </button>
-        <button class="filtro-btn" onclick="filtrar('segunda',this)">
-            <span class="filtro-ico">&#129352;</span> SEGUNDA
-        </button>
-        <button class="filtro-btn" onclick="filtrar('tercera',this)">
-            <span class="filtro-ico">&#129353;</span> TERCERA
-        </button>
-    </div>
+      function esc(v) {
+        return String(v == null ? '' : v)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
 
-    <div class="sec-tit" id="sec-lista">CLASIFICACIÓN GENERAL</div>
-    <div id="contenido">
-        <div class="empty"><p>Cargando ranking...</p></div>
-    </div>
-</div>
+      function parsePerfil() {
+        try { return JSON.parse(localStorage.getItem('mi_perfil') || '{}'); }
+        catch (e) { return {}; }
+      }
 
-<div class="nav-bottom">
-    <a href="categorias.html" class="btn-nav"><span class="nav-ico">&#128202;</span> CATEGORÍAS</a>
-    <a href="index.html" class="btn-nav"><span class="nav-ico">&#127968;</span> INICIO</a>
-</div>
+      function catMatches(rowCat, selected) {
+        if (selected === 'TODOS') return true;
+        return String(rowCat || '').toUpperCase().trim() === selected;
+      }
 
-<script src="/Version.js"></script>
-<script src="/core.js"></script>
-<script>
-// Logo del club activo en header ranking
-window.addEventListener('load', function() {
-    var el = document.getElementById('hdr-logo-ranking');
-    if (el && typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) {
-        el.innerHTML = MasterVIP.getLogoHTML(52);
-    }
-});
-    var todos = [];
-var filtroActual = 'todos';
+      function scopeMatches(r) {
+        if (scope === 'global') return true;
+        if (scope === 'club') return !!ctx.club_id && String(r.club_id || '') === String(ctx.club_id);
+        if (scope === 'ciudad') return !!ctx.ciudad && String(r.ciudad || '').toUpperCase() === String(ctx.ciudad).toUpperCase();
+        if (scope === 'pais') return !!ctx.nacionalidad && String(r.nacionalidad || '').toUpperCase() === String(ctx.nacionalidad).toUpperCase();
+        return true;
+      }
 
-function mostrarBloqueoAfiliacion() {
-    var bloqueo = document.createElement('div');
-    bloqueo.id = 'bloqueo-afiliacion';
-    bloqueo.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;';
-    bloqueo.innerHTML = '<div style="font-size:4rem;margin-bottom:16px;">&#128200;</div>' +
-        '<div style="color:#d4af37;font-size:1.1rem;letter-spacing:2px;margin-bottom:8px;">AFILIACIÓN OBLIGATORIA</div>' +
-        '<p style="color:#888;font-size:0.8rem;max-width:320px;line-height:1.5;margin-bottom:24px;">Debes estar afiliado a un club para ver el ranking. Selecciona tu club en el menú principal.</p>' +
-        '<a href="index.html" style="display:inline-block;padding:16px 32px;background:linear-gradient(135deg,#d4af37,#a07800);color:#000;border-radius:16px;font-size:0.9rem;font-weight:bold;text-decoration:none;font-family:Arial Black,sans-serif;letter-spacing:2px;">IR AL INICIO</a>';
-    document.body.appendChild(bloqueo);
-}
+      function filtered() {
+        return rows
+          .filter(scopeMatches)
+          .filter(function (r) { return catMatches(r.categoria, cat); })
+          .sort(function (a, b) { return (parseFloat(b.promedio) || 0) - (parseFloat(a.promedio) || 0); });
+      }
 
-// Colores y emojis por categoría
-var CATS = {
-    'CLASE ÉLITE': { color:'#f1c40f', bg:'rgba(241,196,15,0.08)', border:'rgba(241,196,15,0.3)', ico:'&#127942;' },
-    'MAESTRO':     { color:'#d4af37', bg:'rgba(212,175,55,0.08)', border:'rgba(212,175,55,0.3)', ico:'&#11088;' },
-    'PRIMERA':     { color:'#c0c0c0', bg:'rgba(192,192,192,0.06)', border:'rgba(192,192,192,0.25)', ico:'&#129351;' },
-    'SEGUNDA':     { color:'#cd7f32', bg:'rgba(205,127,50,0.06)', border:'rgba(205,127,50,0.25)', ico:'&#129352;' },
-    'TERCERA':     { color:'#3498db', bg:'rgba(52,152,219,0.06)', border:'rgba(52,152,219,0.25)', ico:'&#129353;' },
-    'INICIACIÓN':  { color:'#555',    bg:'rgba(80,80,80,0.06)',    border:'rgba(80,80,80,0.2)',    ico:'&#127922;' }
-};
+      function render() {
+        var data = filtered();
+        var meta = document.getElementById('meta');
+        var pod = document.getElementById('podio');
+        var list = document.getElementById('list');
+        meta.textContent = data.length + ' jugadores';
+        if (!data.length) {
+          pod.innerHTML = '';
+          list.innerHTML = '<div class="empty">Sin jugadores para este filtro.</div>';
+          return;
+        }
 
-function getCatStyle(nombre) {
-    return CATS[nombre] || CATS['INICIACIÓN'];
-}
+        var medals = ['🥇', '🥈', '🥉'];
+        var top = data.slice(0, 3);
+        pod.innerHTML = top.map(function (r, i) {
+          var name = (r.alias && String(r.alias).trim()) ? r.alias : r.nombre;
+          return '<article class="pod-card">' +
+            '<div class="pod-medal">' + medals[i] + '</div>' +
+            '<div class="pod-name">' + esc(name || 'SIN NOMBRE') + '</div>' +
+            '<div class="pod-prom">' + (parseFloat(r.promedio) || 0).toFixed(3) + '</div>' +
+          '</article>';
+        }).join('');
 
-window.onload = async function() {
-    try { await MasterVIP.init();
-        SESSION.verificarAlCargar('jugador'); } catch(e) { console.warn('Init offline:', e); }
-    MasterVIP.applyDesign();
-    var _nombreSede = localStorage.getItem('wl_club_nombre') || 'GLOBAL';
-    if (!_nombreSede || _nombreSede === 'GLOBAL') {
-        mostrarBloqueoAfiliacion();
-        return;
-    }
-    document.getElementById('lbl-sede').innerText = _nombreSede;
-    cargar();
-};
-
-function cargar() {
-    var hist = MasterVIP._get('ranking_historico_club', []);
-    var jugs = MasterVIP.getJugadores();
-
-    var res = {};
-    hist.forEach(function(p) {
-        var n = p.nombre.toUpperCase().trim();
-        if (!res[n]) res[n] = { nombre: n, suma: 0, total: 0, partidas: 0 };
-        res[n].suma += parseFloat(p.promedio) || 0;
-        res[n].total++;
-        res[n].partidas++;
-    });
-    jugs.forEach(function(j) {
-        var n = j.nombre.toUpperCase().trim();
-        if (!res[n]) res[n] = { nombre: n, suma: j.promedio || 0, total: 1, partidas: 0 };
-    });
-
-    todos = Object.values(res)
-        .filter(function(j) { return j.total > 0; })
-        .map(function(j) { return { nombre: j.nombre, promedio: j.suma / j.total, partidas: j.partidas }; })
-        .sort(function(a, b) { return b.promedio - a.promedio; });
-
-    document.getElementById('stat-total').innerText = todos.length;
-    document.getElementById('stat-mejor').innerText = todos.length > 0 ? todos[0].promedio.toFixed(3) : '0.000';
-    document.getElementById('stat-partidas').innerText = hist.length > 0 ? Math.floor(hist.length / 2) : 0;
-
-    renderPodio(todos.slice(0, 3));
-    renderizar(todos);
-}
-
-function renderPodio(top) {
-    if (top.length < 1) return;
-    var podio = document.getElementById('podio');
-    podio.style.display = 'grid';
-    var orden = [top[1], top[0], top[2]]; // plata-oro-bronce visualmente
-    var clases = ['pod-2', 'pod-1', 'pod-3'];
-    var coronas = ['&#129352;', '&#127942;', '&#129353;'];
-    var html = '';
-    for (var i = 0; i < 3; i++) {
-        var j = orden[i];
-        if (!j) { html += '<div></div>'; continue; }
-        var cat = MasterVIP.getCategoria(j.promedio);
-        var ini = j.nombre.trim()[0];
-        var foto = MasterVIP.getFoto(j.nombre);
-        var avHtml = foto
-            ? '<img src="' + foto + '" style="width:46px;height:46px;border-radius:50%;object-fit:cover;">'
-            : ini;
-        html += '<div class="podio-card ' + clases[i] + '" onclick="irPerfil(\'' + encodeURIComponent(j.nombre) + '\')">' +
-            '<span class="pod-corona">' + coronas[i] + '</span>' +
-            '<div class="pod-av">' + avHtml + '</div>' +
-            '<span class="pod-nom">' + j.nombre + '</span>' +
-            '<span class="pod-prom">' + j.promedio.toFixed(3) + '</span>' +
-            '<span class="pod-cat">' + cat.emoji + ' ' + cat.nombre + '</span>' +
-        '</div>';
-    }
-    podio.innerHTML = html;
-}
-
-function filtrar(tipo, btn) {
-    filtroActual = tipo;
-    document.querySelectorAll('.filtro-btn').forEach(function(b) { b.classList.remove('activo'); });
-    btn.classList.add('activo');
-    var rangos = {
-        todos:    function(p) { return true; },
-        elite:    function(p) { return p >= 1.1; },
-        maestro:  function(p) { return p >= 0.9 && p < 1.1; },
-        primera:  function(p) { return p >= 0.7 && p < 0.9; },
-        segunda:  function(p) { return p >= 0.5 && p < 0.7; },
-        tercera:  function(p) { return p >= 0.35 && p < 0.5; }
-    };
-    var filtrados = tipo === 'todos' ? todos : todos.filter(function(j) { return rangos[tipo](j.promedio); });
-    document.getElementById('sec-lista').innerText = tipo === 'todos' ? 'CLASIFICACIÓN GENERAL' : 'FILTRO: ' + tipo.toUpperCase();
-    renderizar(filtrados);
-}
-
-function renderizar(lista) {
-    var cont = document.getElementById('contenido');
-    if (!lista.length) {
-        cont.innerHTML = '<div class="empty"><p>SIN JUGADORES<br>EN ESTA CATEGORÍA</p></div>';
-        return;
-    }
-    // Ocultar podio si se filtra
-    document.getElementById('podio').style.display = filtroActual === 'todos' ? 'grid' : 'none';
-
-    var html = '';
-    // Saltar top 3 si es vista "todos" (ya están en podio)
-    var desde = filtroActual === 'todos' ? 3 : 0;
-    for (var i = desde; i < lista.length; i++) {
-        html += filaHTML(lista[i], i + 1);
-    }
-    cont.innerHTML = html || '<div class="empty"><p>EL TOP 3 ESTÁ EN EL PODIO</p></div>';
-}
-
-function filaHTML(j, pos) {
-    var cat = MasterVIP.getCategoria(j.promedio);
-    var cs = getCatStyle(cat.nombre);
-    var ini = j.nombre.trim()[0];
-    var foto = MasterVIP.getFoto(j.nombre);
-    var avHtml = foto
-        ? '<img src="' + foto + '" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
-        : '<div class="av">' + ini + '</div>';
-
-    return '<div class="fila" onclick="irPerfil(\'' + encodeURIComponent(j.nombre) + '\')">' +
-        '<div class="pos-badge">' + pos + '</div>' +
-        avHtml +
-        '<div class="jug-info">' +
-            '<div class="jug-nom">' + j.nombre + '</div>' +
-            '<div class="jug-det">' +
-                '<span class="cat-pill" style="color:' + cs.color + ';background:' + cs.bg + ';border-color:' + cs.border + ';">' +
-                    cs.ico + ' ' + cat.nombre +
-                '</span>' +
+        list.innerHTML = data.map(function (r, i) {
+          var name = (r.alias && String(r.alias).trim()) ? r.alias : r.nombre;
+          return '<article class="row">' +
+            '<div class="pos">' + (i + 1) + '</div>' +
+            '<div>' +
+              '<div class="name">' + esc(name || 'SIN NOMBRE') + '</div>' +
+              '<div class="sub">' + esc(r.ciudad || '—') + ' · ' + esc(r.club || '—') + '</div>' +
+              '<div class="cat-chip">' + esc(r.categoria || 'SIN CATEGORÍA') + '</div>' +
             '</div>' +
-        '</div>' +
-        '<div class="part-badge">' + (j.partidas || 0) + ' PART.</div>' +
-        '<div class="jug-prom" style="color:' + cs.color + ';">' + j.promedio.toFixed(3) + '</div>' +
-    '</div>';
-}
+            '<div class="prom">' + (parseFloat(r.promedio) || 0).toFixed(3) + '</div>' +
+          '</article>';
+        }).join('');
+      }
 
-function irPerfil(nombreEnc) {
-    window.location.href = 'perfil.html?jugador=' + nombreEnc;
-}
-</script>
-<script src="/whitelabel.js"></script>
+      function bindTabs() {
+        document.getElementById('scope-tabs').addEventListener('click', function (ev) {
+          var t = ev.target.closest('.tab');
+          if (!t) return;
+          scope = t.getAttribute('data-scope');
+          Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (x) {
+            x.classList.toggle('active', x === t);
+          });
+          render();
+        });
+        document.getElementById('cat-tabs').addEventListener('click', function (ev) {
+          var t = ev.target.closest('.cat');
+          if (!t) return;
+          cat = t.getAttribute('data-cat');
+          Array.prototype.forEach.call(document.querySelectorAll('.cat'), function (x) {
+            x.classList.toggle('active', x === t);
+          });
+          render();
+        });
+      }
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
+      async function loadRows() {
+        var list = document.getElementById('list');
+        list.innerHTML = '<div class="loading">Cargando datos desde Supabase...</div>';
+        const { data, error } = await supabase
+          .from('jugadores')
+          .select('nombre,alias,promedio,categoria,club_id,club,ciudad,nacionalidad,foto_url,partidas,victorias');
+        if (error) {
+          list.innerHTML = '<div class="error">Error al cargar ranking: ' + esc(error.message || error) + '</div>';
+          return;
+        }
+        rows = (data || []).map(function (r) {
+          return {
+            nombre: r.nombre || '',
+            alias: r.alias || '',
+            promedio: parseFloat(r.promedio) || 0,
+            categoria: r.categoria || '',
+            club_id: r.club_id,
+            club: r.club || '',
+            ciudad: r.ciudad || '',
+            nacionalidad: r.nacionalidad || '',
+            foto_url: r.foto_url || null,
+            partidas: r.partidas || 0,
+            victorias: r.victorias || 0
+          };
+        });
+        render();
+      }
 
-<nav class="bottom-nav" aria-label="Navegación inferior">
-  <a class="bottom-nav__item" href="/index.html">
-    <span class="bottom-nav__icon">🏠</span>
-    <span>Inicio</span>
-  </a>
-  <a class="bottom-nav__item" href="/apps/organizador/organizador.html">
-    <span class="bottom-nav__icon">🏆</span>
-    <span>Torneos</span>
-  </a>
-  <a class="bottom-nav__item" href="/apps/club/sala/mesas.html">
-    <span class="bottom-nav__icon">🎱</span>
-    <span>Jugar</span>
-  </a>
-  <a class="bottom-nav__item bottom-nav__item--active" href="/ranking.html">
-    <span class="bottom-nav__icon">📊</span>
-    <span>Ranking</span>
-  </a>
-  <a class="bottom-nav__item" href="/perfil.html">
-    <span class="bottom-nav__icon">👤</span>
-    <span>Perfil</span>
-  </a>
-</nav>
+      function initContext() {
+        var p = parsePerfil();
+        ctx.club_id = p.club_id || null;
+        ctx.ciudad = p.ciudad || p.ciudad_nombre || null;
+        ctx.nacionalidad = p.nacionalidad || p.pais || null;
+
+        if (!ctx.club_id) {
+          scope = 'global';
+          Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (x) {
+            x.classList.toggle('active', x.getAttribute('data-scope') === 'global');
+          });
+        }
+      }
+
+      bindTabs();
+      initContext();
+      loadRows();
+    </script>
 </body>
 </html>
