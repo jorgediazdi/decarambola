@@ -14,14 +14,16 @@ if (!sess?.session) {
 <meta name="theme-color" content="#d4af37">
 <title>Reto Caserito — DeCarambola</title>
 <link rel="stylesheet" href="/css/dc-system.css">
+<link rel="stylesheet" href="/css/ux-shell.css">
 <link rel="stylesheet" href="/css/bottom-nav.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; padding-bottom: 84px; }
-.wrap { max-width: 520px; margin: 0 auto; padding: 18px; }
-.head { margin-bottom: 14px; }
-.head h1 { color: #d4af37; font-size: 1rem; letter-spacing: 0.08em; }
-.head p { color: #777; font-size: 0.78rem; margin-top: 4px; }
+body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; padding-bottom: 92px; }
+.header { position: sticky; top: 0; z-index: 20; background: rgba(9, 9, 9, 0.92); border-bottom: 1px solid #222; padding: 14px 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.header h1 { font-size: 0.95rem; color: #d4af37; letter-spacing: 0.08em; margin: 0; font-family: 'Arial Black', Arial, sans-serif; }
+.btn-back { display: inline-block; text-decoration: none; color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 10px; padding: 8px 12px; font-size: 0.7rem; font-family: 'Arial Black', Arial, sans-serif; letter-spacing: 0.05em; }
+.wrap { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 18px; }
+.reto-lead { color: #777; font-size: 0.78rem; margin-bottom: 14px; }
 .steps { display: flex; gap: 8px; margin-bottom: 12px; }
 .step-dot { flex: 1; text-align: center; padding: 8px; border-radius: 999px; border: 1px solid #2a2a2a; color: #666; font-size: 0.62rem; }
 .step-dot.on { border-color: #d4af37; color: #d4af37; background: rgba(212, 175, 55, 0.1); }
@@ -62,12 +64,14 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
 @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
 </style>
 </head>
-<body class="dc-ux dc-ux-skin">
+<body class="dc-app dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+<header class="header">
+  <a href="/jugador/index.html" class="btn-back">← MI ESPACIO</a>
+  <h1>RETO CASERITO</h1>
+</header>
 <div class="wrap">
-  <div class="head">
-    <h1>🤜 Reto Caserito</h1>
-    <p>Crea, comparte y juega tu reto en 3 pasos.</p>
-  </div>
+  <p class="reto-lead">Crea, comparte y juega tu reto en 3 pasos.</p>
 
   <div class="steps">
     <div class="step-dot on" id="dot1">1 · CONFIGURA</div>
@@ -162,6 +166,14 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   </section>
 </div>
 
+<nav class="bottom-nav" aria-label="Navegación inferior">
+  <a class="bottom-nav__item" href="/index.html"><span class="bottom-nav__icon">🏠</span><span>Inicio</span></a>
+  <a class="bottom-nav__item" href="/apps/organizador/torneos.html"><span class="bottom-nav__icon">🏆</span><span>Torneos</span></a>
+  <a class="bottom-nav__item" href="/duelo-tv.html?modo=movil"><span class="bottom-nav__icon">🎱</span><span>Jugar</span></a>
+  <a class="bottom-nav__item" href="/ranking.html"><span class="bottom-nav__icon">📊</span><span>Ranking</span></a>
+  <a class="bottom-nav__item" href="/perfil.html"><span class="bottom-nav__icon">👤</span><span>Perfil</span></a>
+</nav>
+
 <script>
 (function () {
   var estado = { tipo: 'publico', codigo: null };
@@ -235,6 +247,19 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   var minDate = new Date();
   var pad = function (n) { return String(n).padStart(2, '0'); };
   $('fecha').min = minDate.getFullYear() + '-' + pad(minDate.getMonth() + 1) + '-' + pad(minDate.getDate());
+})();
+</script>
+<script>
+(function () {
+  var bg = document.getElementById('stars-bg');
+  if (!bg) return;
+  for (var i = 0; i < 80; i++) {
+    var s = document.createElement('div');
+    s.className = 'star';
+    var sz = Math.random() * 2 + 0.5;
+    s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+    bg.appendChild(s);
+  }
 })();
 </script>
 </body>

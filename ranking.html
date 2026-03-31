@@ -13,15 +13,16 @@
     <meta name="theme-color" content="#0b0b0b">
     <title>Ranking — DeCarambola</title>
     <link rel="stylesheet" href="/css/dc-system.css">
+    <link rel="stylesheet" href="/css/ux-shell.css">
     <link rel="stylesheet" href="/css/bottom-nav.css">
     <style>
         :root { --oro:#d4af37; --bg:#0b0b0b; --surface:#111; --border:#222; --txt:#ececec; --muted:#888; --blue:#3ea6ff; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body { background:var(--bg); color:var(--txt); font-family:Arial, sans-serif; min-height:100vh; }
-        .header { position:sticky; top:0; z-index:20; background:#090909; border-bottom:1px solid var(--border); padding:14px 16px; }
-        .header h1 { font-size:0.95rem; color:var(--oro); letter-spacing:0.08em; margin-bottom:10px; font-family:'Arial Black',Arial,sans-serif; }
+        .header { position:sticky; top:0; z-index:20; background:rgba(9,9,9,.92); border-bottom:1px solid var(--border); padding:14px 16px; display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
+        .header h1 { font-size:0.95rem; color:var(--oro); letter-spacing:0.08em; margin:0; font-family:'Arial Black',Arial,sans-serif; }
         .btn-back { display:inline-block; text-decoration:none; color:var(--oro); border:1px solid rgba(212,175,55,.35); border-radius:10px; padding:8px 12px; font-size:.7rem; font-family:'Arial Black',Arial,sans-serif; letter-spacing:.05em; }
-        .wrap { max-width:680px; margin:0 auto; padding:14px 14px 92px; }
+        .wrap { position:relative; z-index:1; max-width:680px; margin:0 auto; padding:14px 14px 92px; }
         .tabs, .cats { display:flex; gap:8px; overflow:auto; scrollbar-width:none; margin-bottom:10px; }
         .tabs::-webkit-scrollbar, .cats::-webkit-scrollbar { display:none; }
         .tab, .cat { border:1px solid var(--border); background:#0f0f0f; color:#9d9d9d; border-radius:999px; padding:8px 12px; font-size:.68rem; white-space:nowrap; cursor:pointer; font-family:'Arial Black',Arial,sans-serif; letter-spacing:.04em; }
@@ -44,10 +45,11 @@
         .cat-chip { margin-top:4px; display:inline-block; font-size:.6rem; border:1px solid #2b2b2b; border-radius:999px; padding:3px 8px; color:#aaa; }
     </style>
 </head>
-<body>
+<body class="dc-app dc-ux dc-ux-skin m-root-legacy">
+    <div class="stars" id="stars-bg" aria-hidden="true"></div>
     <header class="header">
+        <a href="/jugador/index.html" class="btn-back">← MI ESPACIO</a>
         <h1>RANKING</h1>
-        <a class="btn-back" href="/jugador/index.html">← MI ESPACIO</a>
     </header>
 
     <main class="wrap">
@@ -73,7 +75,7 @@
     <nav class="bottom-nav" aria-label="Navegación inferior">
       <a class="bottom-nav__item" href="/index.html"><span class="bottom-nav__icon">🏠</span><span>Inicio</span></a>
       <a class="bottom-nav__item" href="/apps/organizador/torneos.html"><span class="bottom-nav__icon">🏆</span><span>Torneos</span></a>
-      <a class="bottom-nav__item" href="/mi_partida.html"><span class="bottom-nav__icon">🎱</span><span>Jugar</span></a>
+      <a class="bottom-nav__item" href="/duelo-tv.html?modo=movil"><span class="bottom-nav__icon">🎱</span><span>Jugar</span></a>
       <a class="bottom-nav__item bottom-nav__item--active" href="/ranking.html"><span class="bottom-nav__icon">📊</span><span>Ranking</span></a>
       <a class="bottom-nav__item" href="/perfil.html"><span class="bottom-nav__icon">👤</span><span>Perfil</span></a>
     </nav>
@@ -222,6 +224,19 @@
       bindTabs();
       initContext();
       loadRows();
+    </script>
+    <script>
+    (function () {
+      var bg = document.getElementById('stars-bg');
+      if (!bg) return;
+      for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+      }
+    })();
     </script>
 </body>
 </html>
