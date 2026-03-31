@@ -3,15 +3,19 @@
 <head>
 <script type="module">
 import { supabase } from '/js/supabase-client.js';
-import { getRole } from '/js/auth-manager.js';
 
-const { data: sess } = await supabase.auth.getSession();
-if (!sess?.session) {
-  window.location.replace('/auth.html?next=' + encodeURIComponent(window.location.pathname));
-}
-const { data: rol } = await getRole();
-if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
-  window.location.replace('/jugador/index.html');
+const { data: { session } } = await supabase.auth.getSession();
+if (!session) {
+  window.location.replace('/index.html');
+} else {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .single();
+  if (error || !profile || profile.role !== 'organizador') {
+    window.location.replace('/index.html');
+  }
 }
 </script>
 <meta charset="UTF-8">
@@ -52,20 +56,6 @@ body {
     border-radius:10px; padding:5px 14px;
     font-size:0.54rem; letter-spacing:2px; color:#555; white-space:nowrap;
 }
-.header-actions {
-    display:flex; flex-direction:column; align-items:flex-end; gap:6px;
-    width:100%;
-}
-.btn-hdr {
-    background:rgba(10,10,10,0.95); border:1px solid var(--borde); color:#888;
-    padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
-    text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
-    letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
-}
-.btn-hdr:hover, .btn-hdr:focus-visible {
-    border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none;
-}
-
 /* ═══ PROGRESS BAR ═══ */
 .prog-wrap {
     background:#080808; border-bottom:1px solid var(--borde);
@@ -494,13 +484,6 @@ body {
             <div class="h-sub">NUEVO EVENTO · DECARAMBOLA</div>
         </div>
         <div class="sede-chip" id="lbl-sede">GLOBAL</div>
-    </div>
-    <div class="header-actions">
-        <a href="torneos.html" class="btn-hdr">Torneos</a>
-        <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
-        <a href="control_torneo.html" class="btn-hdr">Control torneo</a>
-        <a href="/club/index.html" class="btn-hdr">Portal club</a>
-        <a href="/index.html" class="btn-hdr">Inicio app</a>
     </div>
 </div>
 

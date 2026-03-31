@@ -3,15 +3,19 @@
 <head>
     <script type="module">
 import { supabase } from '/js/supabase-client.js';
-import { getRole } from '/js/auth-manager.js';
 
-const { data: sess } = await supabase.auth.getSession();
-if (!sess?.session) {
-  window.location.replace('/auth.html?next=' + encodeURIComponent(window.location.pathname));
-}
-const { data: rol } = await getRole();
-if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
-  window.location.replace('/jugador/index.html');
+const { data: { session } } = await supabase.auth.getSession();
+if (!session) {
+  window.location.replace('/index.html');
+} else {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .single();
+  if (error || !profile || profile.role !== 'organizador') {
+    window.location.replace('/index.html');
+  }
 }
     </script>
     <meta charset="UTF-8">
@@ -24,14 +28,6 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
         body { background: var(--negro); color: #fff; font-family: 'Arial Black', sans-serif; margin: 0; padding: 0; }
         .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 15px 20px; position: sticky; top: 0; z-index: 50; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; width: 100%; }
-        .btn-hdr {
-            background: rgba(10,10,10,0.95); border: 1px solid #1a1a1a; color: #888;
-            padding: 8px 12px; border-radius: 10px; font-size: 0.52rem; cursor: pointer;
-            text-decoration: none; font-family: 'Arial Black', sans-serif; font-weight: 600;
-            letter-spacing: 0.06em; transition: border-color 0.15s, color 0.15s;
-        }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color: rgba(212,175,55,0.35); color: var(--oro); outline: none; }
         .header-titulo { color: var(--oro); font-size: 0.95rem; letter-spacing: 2px; }
         .bolsa-chip { background: #0a1a0a; border: 1px solid var(--neon); border-radius: 20px; padding: 6px 14px; text-align: center; }
         .bolsa-chip b { color: var(--neon); font-size: 0.9rem; display: block; line-height: 1; }
@@ -146,14 +142,6 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
                 <small>BOLSA</small>
                 <b id="lbl-bolsa">$ 0</b>
             </div>
-        </div>
-        <div class="header-actions">
-            <a href="organizador.html" class="btn-hdr">Panel organizador</a>
-            <a href="torneos.html" class="btn-hdr">Torneos</a>
-            <a href="torneo_crear.html" class="btn-hdr">Nuevo torneo</a>
-            <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
-            <a href="/club/index.html" class="btn-hdr">Portal club</a>
-            <a href="/index.html" class="btn-hdr">Inicio app</a>
         </div>
     </div>
     <div class="tabs">

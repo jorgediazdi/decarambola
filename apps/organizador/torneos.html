@@ -23,7 +23,7 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
 
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; position:sticky; top:0; z-index:50; }
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:flex-start; flex-wrap:wrap; gap:12px; position:sticky; top:0; z-index:50; }
         .header-nav-block { flex:1; min-width:200px; }
         .header-main { display:flex; align-items:center; gap:10px; }
         .header-logo {
@@ -36,15 +36,6 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
         }
         .header-tit { color:var(--oro); font-size:1.0rem; letter-spacing:3px; }
         .header-sub { color:#333; font-size: 0.6rem; letter-spacing:2px; margin-top:2px; }
-        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
-        .btn-hdr {
-            background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888;
-            padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
-            letter-spacing:0.06em; font-family:'Arial Black',sans-serif; text-decoration:none;
-            font-weight:600; transition:border-color 0.15s,color 0.15s;
-        }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
-
         .wrap { width:95vw; max-width:520px; padding-top:14px; padding-bottom:90px; }
 
         .sec-tit { font-size:0.65rem; color:#333; letter-spacing:3px; margin:16px 0 10px; border-left:3px solid var(--g1); padding-left:10px; }
@@ -265,14 +256,6 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
             </div>
         </div>
     </div>
-    <div class="header-actions">
-        <a href="organizador.html" class="btn-hdr">Panel organizador</a>
-        <a href="torneo_crear.html" class="btn-hdr">Nuevo torneo</a>
-        <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
-        <a href="control_torneo.html" class="btn-hdr">Control torneo</a>
-        <a href="/club/index.html" class="btn-hdr">Portal club</a>
-        <a href="/index.html" class="btn-hdr">Inicio app</a>
-    </div>
 </div>
 
 <div class="wrap">
@@ -298,6 +281,9 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
 
     <div class="sec-tit">TODOS LOS TORNEOS</div>
     <div id="lista-torneos"></div>
+
+    <div class="sec-tit" id="tit-pasados" style="display:none;">TORNEOS PASADOS</div>
+    <div id="lista-pasados"></div>
 </div>
 
 <div class="nav-bottom">
@@ -446,6 +432,14 @@ function setFiltroEstado(estado, btn) {
     aplicarFiltros();
 }
 
+/** Compare contra fecha_inicio (timestamptz Supabase) — sin fecha no se considera pasado. */
+function torneoFechaYaPaso(t) {
+    if (!t || !t.fecha_inicio) return false;
+    var ts = new Date(t.fecha_inicio).getTime();
+    if (isNaN(ts)) return false;
+    return ts < Date.now();
+}
+
 function aplicarFiltros() {
     var clubSel = document.getElementById('filtro-club').value || '';
     var ciudadSel = document.getElementById('filtro-ciudad').value || '';
@@ -461,37 +455,63 @@ function aplicarFiltros() {
     renderListas();
 }
 
+function sortTorneosLista(arr) {
+    return arr.slice().sort(function(a, b) {
+        var ordenEstado = { 'ABIERTO':0, 'EN_CURSO':1, 'FINALIZADO':2 };
+        var ea = ordenEstado[a.estado] ?? 3;
+        var eb = ordenEstado[b.estado] ?? 3;
+        if (ea !== eb) return ea - eb;
+        var da = a.fecha_inicio ? new Date(a.fecha_inicio).getTime() : 0;
+        var db = b.fecha_inicio ? new Date(b.fecha_inicio).getTime() : 0;
+        return db - da;
+    });
+}
+
 function renderListas() {
     var contDest = document.getElementById('lista-destacados');
     var contTodos = document.getElementById('lista-torneos');
+    var titPasados = document.getElementById('tit-pasados');
+    var contPasados = document.getElementById('lista-pasados');
     if (!contDest || !contTodos) return;
 
     if (!_torneosFiltrados.length) {
         contDest.innerHTML = '<div class="empty">No hay torneos disponibles en este momento.<br>Vuelve pronto o crea uno desde el panel organizador.</div>';
         contTodos.innerHTML = '';
+        if (titPasados) titPasados.style.display = 'none';
+        if (contPasados) contPasados.innerHTML = '';
         return;
     }
 
-    var torneosOrdenados = _torneosFiltrados.slice().sort(function(a, b) {
-        // Primero por estado (ABIERTO, EN_CURSO, FINALIZADO)
-        var ordenEstado = { 'ABIERTO':0, 'EN_CURSO':1, 'FINALIZADO':2 };
-        var ea = ordenEstado[a.estado] ?? 3;
-        var eb = ordenEstado[b.estado] ?? 3;
-        if (ea !== eb) return ea - eb;
-        // Luego por fecha de inicio descendente
-        var da = a.fecha_inicio ? new Date(a.fecha_inicio).getTime() : 0;
-        var db = b.fecha_inicio ? new Date(b.fecha_inicio).getTime() : 0;
-        return db - da;
-    });
+    var vigentes = _torneosFiltrados.filter(function (t) { return !torneoFechaYaPaso(t); });
+    var pasados = _torneosFiltrados.filter(function (t) { return torneoFechaYaPaso(t); });
 
-    var destacados = torneosOrdenados.filter(function(t){ return t.estado === 'ABIERTO'; }).slice(0, 3);
-    var resto = torneosOrdenados;
+    if (!vigentes.length) {
+        contDest.innerHTML = '<div class="empty">No hay torneos próximos con estos filtros.<br>Revisa TORNEOS PASADOS abajo o cambia el filtro.</div>';
+        contTodos.innerHTML = '';
+    } else {
+        var torneosOrdenados = sortTorneosLista(vigentes);
+        var destacados = torneosOrdenados.filter(function(t){ return t.estado === 'ABIERTO'; }).slice(0, 3);
+        var resto = torneosOrdenados;
+        contDest.innerHTML = destacados.length
+            ? destacados.map(function(t){ return tarjetaHTML(t); }).join('')
+            : '<div class="empty">No hay torneos destacados en este momento.</div>';
+        contTodos.innerHTML = resto.map(function(t){ return tarjetaHTML(t); }).join('');
+    }
 
-    contDest.innerHTML = destacados.length
-        ? destacados.map(function(t){ return tarjetaHTML(t); }).join('')
-        : '<div class="empty">No hay torneos destacados en este momento.</div>';
-
-    contTodos.innerHTML = resto.map(function(t){ return tarjetaHTML(t); }).join('');
+    if (titPasados && contPasados) {
+        if (pasados.length) {
+            titPasados.style.display = '';
+            var pasOrd = pasados.slice().sort(function (a, b) {
+                var da = a.fecha_inicio ? new Date(a.fecha_inicio).getTime() : 0;
+                var db = b.fecha_inicio ? new Date(b.fecha_inicio).getTime() : 0;
+                return db - da;
+            });
+            contPasados.innerHTML = pasOrd.map(function (t) { return tarjetaHTML(t); }).join('');
+        } else {
+            titPasados.style.display = 'none';
+            contPasados.innerHTML = '';
+        }
+    }
 }
 
 function tarjetaHTML(t) {
