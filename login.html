@@ -124,6 +124,16 @@
         showMsg(error.message || 'Error al iniciar sesión.', false);
         return;
       }
+      console.log('[Login] user id:', data.user?.id);
+      console.log('[Login] user email:', data.user?.email);
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .maybeSingle();
+      console.log('[Login] profile result:', profileData);
+      console.log('[Login] profile error:', profileError);
+      console.log('[Login] role detectado:', profileData?.role);
       showMsg('Sesión iniciada. Redirigiendo…', true);
       window.location.href = nextUrl();
     });
