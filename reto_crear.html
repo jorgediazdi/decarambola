@@ -13,829 +13,209 @@ if (!sess?.session) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#d4af37">
 <title>Reto Caserito — DeCarambola</title>
+<link rel="stylesheet" href="/css/dc-system.css">
+<link rel="stylesheet" href="/css/bottom-nav.css">
 <style>
-:root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --rojo:#e74c3c; --azul:#3498db; }
-* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; }
-
-/* ── HEADER ── */
-.header { background:#000; border-bottom:1px solid #111; padding:14px 16px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:10; }
-.header-top-reto { display:flex; align-items:center; gap:12px; width:100%; flex-wrap:wrap; }
-.header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
-.btn-hdr-nav {
-    background:rgba(10,10,10,0.95); border:1px solid #1a1a1a; color:#888;
-    padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
-    text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
-    letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; padding-bottom: 84px; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 18px; }
+.head { margin-bottom: 14px; }
+.head h1 { color: #d4af37; font-size: 1rem; letter-spacing: 0.08em; }
+.head p { color: #777; font-size: 0.78rem; margin-top: 4px; }
+.steps { display: flex; gap: 8px; margin-bottom: 12px; }
+.step-dot { flex: 1; text-align: center; padding: 8px; border-radius: 999px; border: 1px solid #2a2a2a; color: #666; font-size: 0.62rem; }
+.step-dot.on { border-color: #d4af37; color: #d4af37; background: rgba(212, 175, 55, 0.1); }
+.card { background: #111; border: 1px solid #232323; border-radius: 16px; padding: 14px; margin-bottom: 10px; }
+.card h2 { color: #d4af37; font-size: 0.78rem; letter-spacing: 0.06em; margin-bottom: 10px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 0.66rem; color: #888; margin-bottom: 5px; }
+.field input, .field select {
+  width: 100%;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  color: #fff;
+  padding: 10px;
+  font-size: 0.9rem;
 }
-.btn-hdr-nav:hover, .btn-hdr-nav:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
-.hdr-titulo { color:var(--oro); font-size:0.95rem; letter-spacing:3px; }
-.hdr-sub { color:#333; font-size:0.38rem; letter-spacing:2px; margin-top:2px; }
-/* Aviso de error suave (ej. falta cédula) */
-.aviso-cedula {
-    max-width:480px;
-    margin:4px auto 0;
-    padding:8px 10px;
-    background:rgba(231,76,60,0.08);
-    border:1px solid rgba(231,76,60,0.35);
-    border-radius:10px;
-    font-size:0.42rem;
-    color:#f3b2a7;
-    letter-spacing:1px;
-    line-height:1.7;
-    display:none;
+.toggle { display: flex; gap: 8px; margin-bottom: 10px; }
+.toggle button {
+  flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #2a2a2a;
+  background: #0a0a0a; color: #777; cursor: pointer; font-weight: 700; font-size: 0.7rem;
 }
-
-/* ── PASOS ── */
-.pasos { display:flex; align-items:center; justify-content:center; gap:0; padding:16px 24px 4px; }
-.paso-item { display:flex; flex-direction:column; align-items:center; gap:5px; flex:1; }
-.paso-num { width:30px; height:30px; border-radius:50%; border:2px solid #222; background:#0a0a0a; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:#444; transition:0.3s; position:relative; z-index:1; }
-.paso-num.activo { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.1); box-shadow:0 0 12px rgba(212,175,55,0.2); }
-.paso-num.done { border-color:var(--neon); color:var(--neon); background:rgba(46,255,112,0.08); }
-.paso-lbl { font-size:0.33rem; color:#444; letter-spacing:1px; text-align:center; }
-.paso-lbl.activo { color:var(--oro); }
-.paso-lbl.done { color:#555; }
-.paso-linea { flex:1; height:1px; background:#1a1a1a; margin-top:-16px; transition:0.3s; }
-.paso-linea.done { background:rgba(46,255,112,0.3); }
-
-/* ── PANTALLAS ── */
-.pantalla { display:none; padding:14px 16px 50px; max-width:480px; margin:0 auto; }
-.pantalla.activa { display:block; }
-
-/* ── CAMPOS ── */
-.campo { background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:14px 16px; margin-bottom:8px; }
-.campo label { display:block; color:#555; font-size:0.42rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
-.campo input, .campo select { width:100%; background:transparent; border:none; border-bottom:1px solid #1a1a1a; color:#fff; font-family:'Arial Black',sans-serif; font-size:1rem; padding:5px 0; outline:none; }
-.campo select option { background:#111; }
-.campo input::placeholder { color:#555; font-size:0.85rem; }
-.campo input[type="datetime-local"] { color:#fff; font-size:0.85rem; color-scheme:dark; }
-.campo input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter:invert(0.6); }
-
-/* ── TIPO DE RETO ── */
-.tipo-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
-.tipo-btn { padding:14px 10px; background:#0a0a0a; border:2px solid #1a1a1a; border-radius:16px; color:#555; font-family:'Arial Black',sans-serif; font-size:0.45rem; letter-spacing:1px; cursor:pointer; text-align:center; transition:0.2s; line-height:1.7; }
-.tipo-btn .tipo-ico { display:block; font-size:1.8rem; margin-bottom:4px; }
-.tipo-btn.on { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.07); }
-.tipo-desc { font-size:0.4rem; color:#444; letter-spacing:1px; text-align:center; margin-bottom:10px; padding:0 4px; }
-
-/* ── METAS ── */
-.metas-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-.hnd { background:rgba(212,175,55,0.05); border:1px solid rgba(212,175,55,0.12); border-radius:12px; padding:9px 14px; font-size:0.42rem; color:#888; letter-spacing:1px; text-align:center; margin-bottom:8px; display:none; }
-
-/* ── FORMATO ── */
-.fmt-row { display:flex; gap:6px; margin-bottom:8px; }
-.fmt-chip { flex:1; padding:10px 4px; background:#0a0a0a; border:1.5px solid #1a1a1a; border-radius:12px; color:#444; font-family:'Arial Black',sans-serif; font-size:0.38rem; letter-spacing:1px; text-align:center; cursor:pointer; transition:0.18s; line-height:1.5; }
-.fmt-chip .ico { display:block; font-size:1rem; margin-bottom:2px; }
-.fmt-chip.on { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.07); }
-
-/* ── SEPARADOR ── */
-.sep { display:flex; align-items:center; gap:10px; margin:12px 0 8px; }
-.sep-line { flex:1; height:1px; background:#1a1a1a; }
-.sep-txt { color:#333; font-size:0.38rem; letter-spacing:2px; white-space:nowrap; }
-
-/* ── FECHA / HORA ── */
-.fecha-card {
-    background:#0a0a0a; border:2px solid rgba(212,175,55,0.2);
-    border-radius:16px; padding:16px; margin-bottom:8px;
+.toggle button.on { border-color: #d4af37; color: #d4af37; background: rgba(212,175,55,0.1); }
+.btn {
+  width: 100%; border: none; border-radius: 12px; padding: 13px; font-weight: 800; cursor: pointer;
+  font-size: 0.8rem; letter-spacing: 0.04em; margin-top: 4px;
 }
-.fecha-card label { display:block; color:var(--oro); font-size:0.42rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; }
-.wo-nota {
-    background:rgba(231,76,60,0.06); border:1px solid rgba(231,76,60,0.15);
-    border-radius:12px; padding:10px 14px; margin-top:10px;
-    font-size:0.4rem; color:#888; letter-spacing:1px; line-height:1.8;
+.btn-gold { background: linear-gradient(135deg, #d4af37, #a07800); color: #111; }
+.btn-dark { background: #0a0a0a; border: 1px solid #2a2a2a; color: #bbb; }
+.hide { display: none !important; }
+.codigo {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.9rem; letter-spacing: 0.14em; text-align: center; color: #d4af37; margin: 6px 0 12px;
 }
-.wo-nota b { color:var(--rojo); }
-
-/* ── BOLSA ── */
-.bolsa-box { background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:16px; margin-bottom:8px; }
-.bolsa-box label { display:block; color:#555; font-size:0.42rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; }
-.bolsa-inp-row { display:flex; align-items:center; gap:8px; border-bottom:1px solid #1a1a1a; padding-bottom:10px; }
-.bolsa-prefix { color:#666; font-size:1.1rem; }
-.bolsa-inp { flex:1; background:transparent; border:none; color:#fff; font-family:'Arial Black',sans-serif; font-size:1.2rem; outline:none; padding:4px 0; }
-.bolsa-inp::placeholder { color:#333; }
-.bp { display:none; margin-top:12px; }
-.bp-fila { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-top:1px solid #0f0f0f; }
-.bp-fila:first-child { border-top:none; }
-.bp-lbl { font-size:0.4rem; color:#555; letter-spacing:1px; }
-.bp-val { font-family:'Courier New',monospace; font-size:0.9rem; color:#fff; }
-.bp-fila.gan .bp-lbl { color:var(--neon); }
-.bp-fila.gan .bp-val { color:var(--neon); font-size:1.3rem; font-weight:900; text-shadow:0 0 12px rgba(46,255,112,0.4); }
-
-/* ── PASO 2: CÓDIGO Y COMPARTIR ── */
-.codigo-box { background:linear-gradient(145deg,#0a0a0a,#050505); border:2px solid rgba(212,175,55,0.3); border-radius:24px; padding:28px 20px; text-align:center; margin-bottom:14px; box-shadow:0 0 40px rgba(212,175,55,0.06); }
-.codigo-pre { color:#555; font-size:0.42rem; letter-spacing:3px; margin-bottom:10px; }
-.codigo-val { font-family:'Courier New',monospace; font-size:2.8rem; font-weight:900; color:var(--oro); letter-spacing:6px; text-shadow:0 0 24px rgba(212,175,55,0.35); margin-bottom:6px; }
-.codigo-exp { color:#333; font-size:0.4rem; letter-spacing:1px; }
-.codigo-exp .exp-time { color:var(--rojo); }
-
-.resumen-card { background:#0a0a0a; border:1px solid #1a1a1a; border-radius:16px; padding:16px; margin-bottom:12px; }
-.rc-fila { display:flex; justify-content:space-between; align-items:center; padding:7px 0; }
-.rc-fila + .rc-fila { border-top:1px solid #0f0f0f; }
-.rc-lbl { font-size:0.4rem; color:#555; letter-spacing:1px; }
-.rc-val { font-size:0.42rem; color:#fff; letter-spacing:1px; }
-.rc-val.oro { color:var(--oro); font-size:0.55rem; }
-.rc-val.neon { color:var(--neon); font-size:0.65rem; font-weight:900; }
-.rc-val.rojo { color:var(--rojo); }
-
-.wa-btn { width:100%; padding:18px; margin-bottom:8px; background:linear-gradient(135deg,#25d366,#128c44); color:#fff; border:none; border-radius:18px; font-size:0.95rem; font-weight:900; font-family:'Arial Black',sans-serif; letter-spacing:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; }
-.wa-btn:active { transform:scale(0.97); }
-
-.espera-box { background:rgba(212,175,55,0.03); border:1px dashed rgba(212,175,55,0.15); border-radius:16px; padding:20px; text-align:center; margin-bottom:14px; }
-.espera-ico { font-size:2.2rem; margin-bottom:8px; }
-.espera-txt { color:#555; font-size:0.45rem; letter-spacing:2px; margin-bottom:4px; }
-.espera-sub { color:#333; font-size:0.38rem; letter-spacing:1px; }
-
-/* ── PASO 3: ACEPTADO ── */
-.acept-box { background:rgba(46,255,112,0.04); border:2px solid rgba(46,255,112,0.2); border-radius:24px; padding:28px 20px; text-align:center; margin-bottom:14px; }
-.countdown-box { background:#0a0a0a; border:1px solid var(--rojo); border-radius:16px; padding:16px; text-align:center; margin-bottom:14px; }
-.cd-lbl { font-size:0.42rem; color:#e88; letter-spacing:2px; margin-bottom:6px; }
-.cd-timer { font-family:'Courier New',monospace; font-size:2rem; color:var(--rojo); text-shadow:0 0 14px rgba(231,76,60,0.4); letter-spacing:3px; }
-.cd-sub { font-size:0.38rem; color:#555; letter-spacing:1px; margin-top:4px; }
-
-/* ── PANTALLA: RETO RECIBIDO ── */
-#p-recibido { padding-bottom:50px; }
-.reto-vs-box { display:flex; align-items:center; justify-content:center; gap:16px; padding:20px 16px 14px; }
-.rv-j { text-align:center; }
-.rv-nom { font-size:1rem; color:#fff; letter-spacing:2px; }
-.rv-lbl { font-size:0.38rem; color:#555; letter-spacing:2px; margin-top:3px; }
-.rv-vs { font-size:1.8rem; }
-.fecha-highlight { background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.25); border-radius:14px; padding:12px 16px; margin:0 16px 10px; display:flex; align-items:center; gap:10px; }
-.fh-ico { font-size:1.4rem; flex-shrink:0; }
-.fh-fecha { font-family:'Courier New',monospace; font-size:0.9rem; color:var(--oro); letter-spacing:1px; }
-.fh-sub { font-size:0.38rem; color:#666; letter-spacing:1px; margin-top:2px; }
-.wo-aviso { background:rgba(231,76,60,0.06); border:1px solid rgba(231,76,60,0.2); border-radius:12px; padding:10px 14px; margin:0 16px 10px; font-size:0.4rem; color:#888; letter-spacing:1px; line-height:1.8; text-align:center; }
-.wo-aviso b { color:var(--rojo); }
-.recibido-btns { padding:0 16px; }
-
-/* ── BOTONES COMUNES ── */
-.btn-pri { width:100%; padding:20px; background:linear-gradient(135deg,var(--oro),#a07800); color:#000; border:none; border-radius:20px; font-size:1rem; font-weight:900; font-family:'Arial Black',sans-serif; letter-spacing:2px; cursor:pointer; margin-bottom:8px; }
-.btn-pri:active { transform:scale(0.97); }
-.btn-neon { width:100%; padding:20px; background:linear-gradient(135deg,var(--neon),#18aa45); color:#000; border:none; border-radius:20px; font-size:1rem; font-weight:900; font-family:'Arial Black',sans-serif; letter-spacing:2px; cursor:pointer; margin-bottom:8px; }
-.btn-neon:active { transform:scale(0.97); }
-.btn-ghost { width:100%; padding:13px; background:none; border:1px solid #1a1a1a; border-radius:14px; color:#555; font-size:0.45rem; font-family:'Arial Black',sans-serif; letter-spacing:2px; cursor:pointer; margin-bottom:8px; }
-.btn-copy { width:100%; padding:13px; background:rgba(52,152,219,0.08); border:1px solid rgba(52,152,219,0.25); border-radius:14px; color:#3498db; font-size:0.45rem; font-family:'Arial Black',sans-serif; letter-spacing:2px; cursor:pointer; margin-bottom:8px; }
+.mini { color: #777; font-size: 0.72rem; text-align: center; margin-bottom: 10px; }
+@media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
 </style>
-    <link rel="stylesheet" href="/css/dc-system.css">
-    <link rel="stylesheet" href="css/ux-shell.css">
-    <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
-<body class="dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
+<body class="dc-ux dc-ux-skin">
+<div class="wrap">
+  <div class="head">
+    <h1>🤜 Reto Caserito</h1>
+    <p>Crea, comparte y juega tu reto en 3 pasos.</p>
+  </div>
 
+  <div class="steps">
+    <div class="step-dot on" id="dot1">1 · CONFIGURA</div>
+    <div class="step-dot" id="dot2">2 · COMPARTE</div>
+    <div class="step-dot" id="dot3">3 · LISTO</div>
+  </div>
 
-<!-- HEADER -->
-<div class="header">
-    <div class="header-top-reto">
-        <div style="flex:1;min-width:0;">
-            <div class="hdr-titulo" id="hdr-titulo">🤜 RETO CASERITO</div>
-            <div class="hdr-sub" id="hdr-sub">DESAFÍA A UN MAESTRO</div>
-        </div>
+  <section id="paso1" class="card">
+    <h2>Paso 1 — ¿Cómo jugamos?</h2>
+
+    <div class="field">
+      <label>Tipo de reto</label>
+      <div class="toggle">
+        <button type="button" id="tipo-publico" class="on">Abierto al club</button>
+        <button type="button" id="tipo-directo">A un jugador específico</button>
+      </div>
     </div>
-    <div class="hdr-top-nav" style="max-width:640px;margin:0 auto;padding:0 18px;">
-        <a href="/jugador/index.html" class="btn-nav-home">← MI ESPACIO</a>
+
+    <div class="field hide" id="rival-wrap">
+      <label for="rival">Jugador rival</label>
+      <input id="rival" type="text" placeholder="Nombre del rival">
     </div>
+
+    <div class="field">
+      <label for="modalidad">Modalidad</label>
+      <select id="modalidad">
+        <option value="3 bandas">3 bandas</option>
+        <option value="libre">Libre</option>
+        <option value="cinco pinos">Cinco pinos</option>
+        <option value="cuadro">Cuadro</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="meta1">Meta propia</label>
+        <input id="meta1" type="number" min="1" value="25">
+      </div>
+      <div class="field">
+        <label for="meta2">Meta rival</label>
+        <input id="meta2" type="number" min="1" value="25">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="formato">Formato</label>
+      <select id="formato">
+        <option value="Única">Única</option>
+        <option value="BO3">BO3</option>
+        <option value="BO5">BO5</option>
+        <option value="BO7">BO7</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="fecha">Fecha y hora</label>
+      <input id="fecha" type="datetime-local">
+    </div>
+
+    <div class="field">
+      <label for="bolsa">Bolsa opcional ($)</label>
+      <input id="bolsa" type="number" min="0" step="1000" placeholder="0">
+    </div>
+
+    <button class="btn btn-gold" id="btn-publicar">PUBLICAR RETO</button>
+  </section>
+
+  <section id="paso2" class="card hide">
+    <h2>Paso 2 — Comparte</h2>
+    <div class="codigo" id="codigo">DC-0000</div>
+    <div class="mini">Comparte este código o link para que acepten el reto.</div>
+    <button class="btn btn-gold" id="btn-wa">COMPARTIR WHATSAPP</button>
+    <button class="btn btn-dark" id="btn-copy">COPIAR LINK</button>
+    <button class="btn btn-dark" id="btn-next3">CONTINUAR</button>
+  </section>
+
+  <section id="paso3" class="card hide">
+    <h2>Paso 3 — ¡Listo!</h2>
+    <div class="mini">Cuando ambos estén listos, confirma y arranca la partida.</div>
+    <button class="btn btn-gold" id="btn-confirmar">CONFIRMAR PRESENCIA</button>
+    <button class="btn btn-dark" id="btn-iniciar">INICIAR RETO</button>
+  </section>
 </div>
 
-<div id="aviso-cedula" class="aviso-cedula">
-    Para crear retos debes haber entrado como <b>JUGADOR</b> con tu cédula.<br>
-    Ve al menú principal → <b>JUGADOR → ENTRAR</b> y vuelve a este reto.
-    <span style="color:#777;display:block;margin-top:2px;">(Así el club sabe quién es el retador)</span>
-</div>
-
-<!-- INDICADOR DE PASOS -->
-<div class="pasos" id="pasos-ind">
-    <div class="paso-item">
-        <div class="paso-num activo" id="pn1">1</div>
-        <div class="paso-lbl activo" id="pl1">CONFIGURA</div>
-    </div>
-    <div class="paso-linea" id="linea1"></div>
-    <div class="paso-item">
-        <div class="paso-num" id="pn2">2</div>
-        <div class="paso-lbl" id="pl2">PUBLICA</div>
-    </div>
-    <div class="paso-linea" id="linea2"></div>
-    <div class="paso-item">
-        <div class="paso-num" id="pn3">3</div>
-        <div class="paso-lbl" id="pl3">JUEGA</div>
-    </div>
-</div>
-
-
-<!-- ═══════════════════════════════════════
-     PASO 1 — CONFIGURAR EL RETO
-════════════════════════════════════════ -->
-<div class="pantalla activa" id="p-paso1">
-
-    <!-- Tu nombre -->
-    <div class="campo">
-        <label>Tu nombre</label>
-        <input type="text" id="r-n1" placeholder="¿QUIÉN HACE EL RETO?"
-            oninput="this.value=this.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g,'').toUpperCase()">
-    </div>
-
-    <!-- Tipo: público o directo -->
-    <div class="sep"><div class="sep-line"></div><span class="sep-txt">TIPO DE RETO</span><div class="sep-line"></div></div>
-    <div class="tipo-row">
-        <button class="tipo-btn on" id="tipo-pub" onclick="selTipo('publico',this)">
-            <span class="tipo-ico">📢</span>
-            ABIERTO AL CLUB
-        </button>
-        <button class="tipo-btn" id="tipo-dir" onclick="selTipo('directo',this)">
-            <span class="tipo-ico">🎯</span>
-            A UN JUGADOR
-        </button>
-    </div>
-    <div class="tipo-desc" id="tipo-desc">Cualquier maestro del club puede aceptar el reto</div>
-
-    <!-- Rival (solo si es directo) -->
-    <div id="campo-rival" style="display:none;">
-        <div class="campo">
-            <label>¿A quién retas?</label>
-            <input type="text" id="r-n2" placeholder="NOMBRE DEL RIVAL"
-                oninput="this.value=this.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g,'').toUpperCase()">
-        </div>
-    </div>
-
-    <!-- Metas -->
-    <div class="sep"><div class="sep-line"></div><span class="sep-txt">CONDICIONES</span><div class="sep-line"></div></div>
-    <div class="metas-row">
-        <div class="campo"><label>Tu meta</label><input type="number" id="r-m1" value="25" min="1" max="999" oninput="calcHnd()"></div>
-        <div class="campo"><label>Meta del rival</label><input type="number" id="r-m2" value="25" min="1" max="999" oninput="calcHnd()"></div>
-    </div>
-    <div class="hnd" id="hnd"></div>
-
-    <div class="campo">
-        <label>Modalidad</label>
-        <select id="r-modal">
-            <option value="3 Bandas">3 BANDAS</option>
-            <option value="Libre">LIBRE</option>
-            <option value="Cinco Pinos">CINCO PINOS</option>
-            <option value="Cuadro">CUADRO</option>
-        </select>
-    </div>
-    <div class="campo">
-        <label>Tiempo por entrada (seg)</label>
-        <input type="number" id="r-tiempo" value="40" min="10" max="120">
-    </div>
-
-    <!-- Formato -->
-    <div class="sep"><div class="sep-line"></div><span class="sep-txt">FORMATO</span><div class="sep-line"></div></div>
-    <div class="fmt-row">
-        <button class="fmt-chip on" onclick="selFmt(1,this)"><span class="ico">🟡</span>ÚNICA</button>
-        <button class="fmt-chip" onclick="selFmt(3,this)"><span class="ico">3️⃣</span>BO3</button>
-        <button class="fmt-chip" onclick="selFmt(5,this)"><span class="ico">5️⃣</span>BO5</button>
-        <button class="fmt-chip" onclick="selFmt(7,this)"><span class="ico">7️⃣</span>BO7</button>
-    </div>
-
-    <!-- Fecha y hora — VITAL -->
-    <div class="sep"><div class="sep-line"></div><span class="sep-txt">📅 FECHA Y HORA</span><div class="sep-line"></div></div>
-    <div class="fecha-card">
-        <label>⏰ Fecha y hora del reto</label>
-        <input type="datetime-local" id="r-fecha" oninput="actualizarExpiry()">
-        <div class="wo-nota">
-            <b>⚠️ REGLA W/O (Walkover)</b><br>
-            Si un jugador no se presenta en los <b>15 minutos</b> siguientes a la hora pactada,
-            el que sí llegó <b>gana automáticamente</b> el reto y la bolsa completa.
-            Ambos deben confirmar su llegada en la app.
-        </div>
-    </div>
-
-    <!-- Bolsa -->
-    <div class="sep"><div class="sep-line"></div><span class="sep-txt">💰 BOLSA</span><div class="sep-line"></div></div>
-    <div class="bolsa-box">
-        <label>Inscripción por jugador (opcional)</label>
-        <div class="bolsa-inp-row">
-            <span class="bolsa-prefix">$</span>
-            <input type="number" class="bolsa-inp" id="r-ins" placeholder="0" min="0" step="1000" oninput="calcBolsa()">
-        </div>
-        <div class="bp" id="bp">
-            <div class="bp-fila"><span class="bp-lbl">BOLSA TOTAL</span><span class="bp-val" id="bp-tot">$0</span></div>
-            <div class="bp-fila gan"><span class="bp-lbl">🏆 GANADOR SE LLEVA TODO</span><span class="bp-val" id="bp-gan">$0</span></div>
-            <div class="bp-fila"><span class="bp-lbl" style="color:#e74c3c;">🏳 W/O — INASISTENCIA</span><span class="bp-val" id="bp-wo" style="color:#e74c3c;font-size:0.75rem;">Ídem</span></div>
-        </div>
-    </div>
-
-    <button class="btn-pri" onclick="crearReto()">📢 PUBLICAR RETO →</button>
-    <button class="btn-ghost" onclick="location.href='index.html'">← CANCELAR</button>
-</div>
-
-
-<!-- ═══════════════════════════════════════
-     PASO 2 — PUBLICADO / ESPERANDO
-════════════════════════════════════════ -->
-<div class="pantalla" id="p-paso2">
-
-    <div class="codigo-box">
-        <div class="codigo-pre">CÓDIGO DEL RETO</div>
-        <div class="codigo-val" id="codigo-display">DC-XXXX</div>
-        <div class="codigo-exp">Expira: <span class="exp-time" id="codigo-exp-txt">—</span></div>
-    </div>
-
-    <div class="resumen-card" id="resumen-paso2"></div>
-
-    <!-- Compartir -->
-    <button class="wa-btn" onclick="compartirWA()">
-        <span style="font-size:1.4rem;">📱</span> ENVIAR POR WHATSAPP
-    </button>
-    <button class="btn-copy" onclick="copiarLink()">🔗 COPIAR LINK DEL RETO</button>
-
-    <div class="espera-box">
-        <div class="espera-ico">⏳</div>
-        <div class="espera-txt">ESPERANDO QUE ACEPTEN</div>
-        <div class="espera-sub">Comparte el código o el link con el club</div>
-    </div>
-
-    <button class="btn-pri" style="background:linear-gradient(135deg,#1c1c1c,#111);border:1px solid #2a2a2a;color:#777;" onclick="verificarAceptacion()">
-        🔄 VERIFICAR SI ACEPTARON
-    </button>
-    <button class="btn-ghost" onclick="irPaso1()">← EDITAR</button>
-</div>
-
-
-<!-- ═══════════════════════════════════════
-     PASO 3 — ACEPTADO — LISTO PARA JUGAR
-════════════════════════════════════════ -->
-<div class="pantalla" id="p-paso3">
-
-    <div class="acept-box">
-        <div style="font-size:3rem;margin-bottom:10px;">🤜🤛</div>
-        <div style="color:var(--neon);font-size:0.55rem;letter-spacing:3px;margin-bottom:6px;">RETO ACEPTADO</div>
-        <div style="color:#888;font-size:0.45rem;letter-spacing:1px;" id="p3-rival">El rival aceptó el reto</div>
-    </div>
-
-    <!-- Countdown a la hora del reto -->
-    <div class="countdown-box" id="countdown-box" style="display:none;">
-        <div class="cd-lbl">⏰ EL RETO COMIENZA EN</div>
-        <div class="cd-timer" id="cd-timer">--:--:--</div>
-        <div class="cd-sub">Asegúrate de llegar a tiempo · W/O en 15 min</div>
-    </div>
-
-    <div class="resumen-card" id="resumen-paso3"></div>
-
-    <button class="btn-neon" onclick="confirmarPresencia()" id="btn-confirmar">
-        ✅ CONFIRMAR MI LLEGADA
-    </button>
-    <div id="esperando-rival-box" style="display:none;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:16px;padding:16px;text-align:center;margin-bottom:8px;">
-        <div style="font-size:1.5rem;margin-bottom:6px;">⏳</div>
-        <div style="font-size:0.42rem;color:#555;letter-spacing:2px;">ESPERANDO QUE <span id="rival-nombre-espera" style="color:#888;">EL RIVAL</span> CONFIRME</div>
-    </div>
-    <button class="btn-pri" id="btn-jugar" style="display:none;" onclick="iniciarJuego()">⚡ INICIAR EL RETO</button>
-    <button class="btn-ghost" onclick="irPaso2()">← VOLVER</button>
-</div>
-
-
-<!-- ═══════════════════════════════════════
-     PANTALLA: RETO RECIBIDO (rival)
-════════════════════════════════════════ -->
-<div class="pantalla" id="p-recibido">
-
-    <div class="reto-vs-box">
-        <div class="rv-j">
-            <div class="rv-nom" id="rv-n1">—</div>
-            <div class="rv-lbl">⚪ RETADOR</div>
-        </div>
-        <div class="rv-vs">⚔️</div>
-        <div class="rv-j">
-            <div class="rv-nom" id="rv-n2">TÚ</div>
-            <div class="rv-lbl">🟡 RETADO</div>
-        </div>
-    </div>
-
-    <div class="fecha-highlight" id="rv-fecha-box">
-        <div class="fh-ico">📅</div>
-        <div>
-            <div class="fh-fecha" id="rv-fecha-txt">—</div>
-            <div class="fh-sub">HORA DEL RETO</div>
-        </div>
-    </div>
-
-    <div class="wo-aviso">
-        <b>⚠️ REGLA W/O:</b> Si no llegas en los <b>15 minutos</b> siguientes a la hora pactada,
-        pierdes el reto y la bolsa automáticamente.
-    </div>
-
-    <div style="padding:0 16px;margin-bottom:10px;">
-        <div class="resumen-card" id="rv-resumen"></div>
-    </div>
-
-    <div style="background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.12);border-radius:14px;padding:14px 16px;margin:0 16px 14px;font-size:0.42rem;color:#666;letter-spacing:1px;line-height:1.9;text-align:center;">
-        Al aceptar te comprometes a presentarte<br>
-        a la fecha y hora indicadas.<br>
-        <b style="color:var(--oro);">El ganador se lleva la bolsa completa.</b>
-    </div>
-
-    <div class="recibido-btns">
-        <button class="btn-neon" onclick="aceptarReto()">✅ ACEPTAR EL RETO</button>
-        <button class="btn-ghost" onclick="location.href='index.html'">✗ RECHAZAR</button>
-    </div>
-</div>
-
-
-<script>
-
-/* ════════════════════════════════
-   ESTADO GLOBAL
-════════════════════════════════ */
-var _bo     = 1;
-var _tipo   = 'publico';
-var _reto   = null;
-var _cdInterval = null;
-
-/* ── Tipo de reto ── */
-function selTipo(t, el) {
-    _tipo = t;
-    document.querySelectorAll('.tipo-btn').forEach(function(b){ b.classList.remove('on'); });
-    el.classList.add('on');
-    var desc = {
-        publico: 'Cualquier maestro del club puede aceptar el reto',
-        directo: 'Solo el jugador que nombras puede aceptar'
-    };
-    document.getElementById('tipo-desc').innerText = desc[t];
-    document.getElementById('campo-rival').style.display = t === 'directo' ? 'block' : 'none';
-}
-
-/* ── Formato ── */
-function selFmt(n, el) {
-    _bo = n;
-    document.querySelectorAll('.fmt-chip').forEach(function(b){ b.classList.remove('on'); });
-    el.classList.add('on');
-}
-
-/* ── Hándicap ── */
-function calcHnd() {
-    var m1 = parseInt(document.getElementById('r-m1').value)||0;
-    var m2 = parseInt(document.getElementById('r-m2').value)||0;
-    var c  = document.getElementById('hnd');
-    if (!m1 || !m2 || m1 === m2) { c.style.display='none'; return; }
-    c.style.display='block';
-    c.innerHTML = '⚖️ Diferencia de <b>'+Math.abs(m1-m2)+'</b> carambolas · ' +
-        'Tu meta: <b>'+m1+'</b> · Meta del rival: <b>'+m2+'</b>';
-}
-
-/* ── Bolsa ── */
-function calcBolsa() {
-    var ins = parseInt(document.getElementById('r-ins').value)||0;
-    if (ins <= 0) { document.getElementById('bp').style.display='none'; return; }
-    document.getElementById('bp').style.display='block';
-    var tot = ins*2;
-    var f = function(n){ return '$'+n.toLocaleString('es-CO'); };
-    document.getElementById('bp-tot').innerText = f(tot);
-    document.getElementById('bp-gan').innerText = f(tot);
-    document.getElementById('bp-wo').innerText  = f(tot) + ' al que sí llegó';
-}
-
-/* ── Actualizar texto de expiración ── */
-function actualizarExpiry() {
-    // La fecha del reto se muestra en el código
-}
-
-/* ── Generar código único ── */
-function genCodigo() {
-    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    var c = 'DC-';
-    for (var i=0; i<4; i++) c += chars[Math.floor(Math.random()*chars.length)];
-    return c;
-}
-
-/* ── Formatear fecha bonito ── */
-function fmtFecha(iso) {
-    if (!iso) return '—';
-    var d = new Date(iso);
-    var dias  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-    var meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    return dias[d.getDay()] + ' ' + d.getDate() + ' ' + meses[d.getMonth()] +
-           ' · ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-}
-
-/* ── Resumen HTML ── */
-var _fmtLbl = {1:'PARTIDA ÚNICA',3:'AL MEJOR DE 3',5:'AL MEJOR DE 5',7:'AL MEJOR DE 7'};
-function resumenHTML(r) {
-    var rival  = r.tipo_reto === 'directo' ? r.j2 : '<span style="color:#555;">ABIERTO AL CLUB</span>';
-    var bolsa  = r.inscripcion > 0
-        ? '<span class="rc-val neon">$'+r.bolsaGanador.toLocaleString('es-CO')+'</span>'
-        : '<span class="rc-val" style="color:#555;">SIN INSCRIPCIÓN</span>';
-    var fechaFmt = fmtFecha(r.fechaReto);
-    return '<div class="rc-fila"><span class="rc-lbl">RETADOR</span><span class="rc-val oro">'+r.j1+'</span></div>' +
-           '<div class="rc-fila"><span class="rc-lbl">RETADO</span>'+rival+'</div>' +
-           '<div class="rc-fila"><span class="rc-lbl">📅 FECHA Y HORA</span><span class="rc-val oro">'+fechaFmt+'</span></div>' +
-           '<div class="rc-fila"><span class="rc-lbl">MODALIDAD</span><span class="rc-val">'+r.modalidad+'</span></div>' +
-           '<div class="rc-fila"><span class="rc-lbl">FORMATO</span><span class="rc-val">'+_fmtLbl[r.bestOf]+'</span></div>' +
-           '<div class="rc-fila"><span class="rc-lbl">METAS</span><span class="rc-val">'+r.meta1+' vs '+r.meta2+'</span></div>' +
-           '<div class="rc-fila"><span class="rc-lbl">🏆 BOLSA AL GANADOR</span>'+bolsa+'</div>' +
-           '<div class="rc-fila"><span class="rc-lbl rojo">🏳 W/O INASISTENCIA (+15 min)</span><span class="rc-val rojo">Pierde el reto</span></div>';
-}
-
-/* ════════════════════════════════
-   PASO 1 → CREAR
-════════════════════════════════ */
-function crearReto() {
-    var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
-    if (!jugActivo || !jugActivo.cedula) {
-        var box = document.getElementById('aviso-cedula');
-        if (box) box.style.display = 'block';
-        return;
-    }
-    var n1 = document.getElementById('r-n1').value.trim().toUpperCase();
-    if (!n1) { alert('Ingresa tu nombre'); return; }
-
-    var fecha = document.getElementById('r-fecha').value;
-    if (!fecha) { alert('⏰ La fecha y hora del reto es obligatoria'); return; }
-
-    var fechaReto = new Date(fecha);
-    if (fechaReto < new Date()) { alert('⏰ La fecha debe ser en el futuro'); return; }
-
-    var n2 = '';
-    if (_tipo === 'directo') {
-        n2 = document.getElementById('r-n2').value.trim().toUpperCase();
-        if (!n2) { alert('Ingresa el nombre del rival'); return; }
-        if (n1 === n2) { alert('Los jugadores deben ser diferentes'); return; }
-    }
-
-    var ins = parseInt(document.getElementById('r-ins').value)||0;
-    var tot = ins*2;
-    var codigo = genCodigo();
-
-    _reto = {
-        codigo:       codigo,
-        estado:       'pendiente',  // pendiente | aceptado | jugando | terminado
-        tipo_reto:    _tipo,        // publico | directo
-        creado:       Date.now(),
-        fechaReto:    fecha,        // ISO string de la fecha del partido
-        woDeadline:   fechaReto.getTime() + 15*60*1000, // +15 min = W/O
-        j1:           n1,
-        j2:           n2 || '',     // vacío si es público
-        confirmJ1:    false,
-        confirmJ2:    false,
-        meta1:        parseInt(document.getElementById('r-m1').value)||25,
-        meta2:        parseInt(document.getElementById('r-m2').value)||25,
-        tiempoEntrada:parseInt(document.getElementById('r-tiempo').value)||40,
-        modalidad:    document.getElementById('r-modal').value,
-        bestOf:       _bo,
-        inscripcion:  ins,
-        bolsaTotal:   tot,
-        bolsaGanador: tot,
-        bolsaFee:     0
-    };
-
-    // Guardar
-    var retos = {};
-    try { retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES')||'{}'); } catch(e) {}
-    retos[codigo] = _reto;
-    localStorage.setItem('RETOS_PENDIENTES', JSON.stringify(retos));
-
-    irPaso2();
-}
-
-/* ════════════════════════════════
-   PASO 2 — PUBLICADO
-════════════════════════════════ */
-function irPaso1() { setPaso(1); }
-
-function irPaso2() {
-    if (!_reto) { irPaso1(); return; }
-    document.getElementById('codigo-display').innerText = _reto.codigo;
-    document.getElementById('codigo-exp-txt').innerText = fmtFecha(_reto.fechaReto) + ' (hora del reto)';
-    document.getElementById('resumen-paso2').innerHTML = resumenHTML(_reto);
-    setPaso(2);
-}
-
-function compartirWA() {
-    if (!_reto) return;
-    var r = _reto;
-    var fechaStr = fmtFecha(r.fechaReto);
-    var bolsaTxt = r.inscripcion > 0
-        ? '\n💰 Inscripción: *$'+r.inscripcion.toLocaleString('es-CO')+' c/u*\n🏆 Bolsa total: *$'+r.bolsaGanador.toLocaleString('es-CO')+' al ganador*'
-        : '';
-    var rival = r.tipo_reto === 'directo' && r.j2 ? '👊 *'+r.j2+'* — este reto es para ti!' : '👊 Abierto al club — ¿quién acepta?';
-    var link  = window.location.origin + window.location.pathname + '?reto=' + r.codigo;
-    var msg = '🟡 *RETO CASERITO · DeCarambola*\n' +
-              '━━━━━━━━━━━━━━━━━━\n' +
-              '🤜 Retador: *'+r.j1+'*\n' +
-              rival + '\n\n' +
-              '📅 Fecha: *'+fechaStr+'*\n' +
-              '🏓 Modalidad: *'+r.modalidad+'*\n' +
-              '🏆 Formato: *'+_fmtLbl[r.bestOf]+'*\n' +
-              '⚖️ Metas: *'+r.meta1+' vs '+r.meta2+'*' +
-              bolsaTxt + '\n\n' +
-              '⚠️ W/O a los 15 min de inasistencia\n\n' +
-              '👉 Acepta aquí: ' + link + '\n' +
-              '📌 Código: *' + r.codigo + '*';
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
-}
-
-function copiarLink() {
-    if (!_reto) return;
-    var link = window.location.origin + window.location.pathname + '?reto=' + _reto.codigo;
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(link).then(function(){ alert('✅ Link copiado'); });
-    } else {
-        prompt('Copia este link:', link);
-    }
-}
-
-function verificarAceptacion() {
-    if (!_reto) return;
-    var retos = {};
-    try { retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES')||'{}'); } catch(e) {}
-    var r = retos[_reto.codigo];
-    if (r && r.estado === 'aceptado') {
-        _reto = r;
-        irPaso3();
-    } else {
-        alert('⏳ Nadie ha aceptado aún.\n\nCódigo: ' + _reto.codigo + '\nCompártelo con el club.');
-    }
-}
-
-/* ════════════════════════════════
-   PASO 3 — ACEPTADO
-════════════════════════════════ */
-function irPaso3() {
-    if (!_reto) return;
-    var rival = _reto.j2 || 'El rival';
-    document.getElementById('p3-rival').innerText = rival + ' aceptó el reto';
-    document.getElementById('resumen-paso3').innerHTML = resumenHTML(_reto);
-    document.getElementById('rival-nombre-espera').innerText = rival.split(' ')[0];
-
-    // Mostrar countdown si la hora del reto está en el futuro
-    if (_reto.fechaReto) {
-        var ahora    = Date.now();
-        var horaReto = new Date(_reto.fechaReto).getTime();
-        if (horaReto > ahora) {
-            document.getElementById('countdown-box').style.display = 'block';
-            iniciarCountdown(horaReto);
-        }
-    }
-
-    setPaso(3);
-}
-
-function iniciarCountdown(horaReto) {
-    if (_cdInterval) clearInterval(_cdInterval);
-    _cdInterval = setInterval(function() {
-        var diff = horaReto - Date.now();
-        if (diff <= 0) {
-            clearInterval(_cdInterval);
-            document.getElementById('cd-timer').innerText = '¡HORA DEL RETO!';
-            document.getElementById('cd-timer').style.color = 'var(--neon)';
-            return;
-        }
-        var h = Math.floor(diff/3600000);
-        var m = Math.floor((diff%3600000)/60000);
-        var s = Math.floor((diff%60000)/1000);
-        document.getElementById('cd-timer').innerText =
-            h.toString().padStart(2,'0') + ':' +
-            m.toString().padStart(2,'0') + ':' +
-            s.toString().padStart(2,'0');
-    }, 1000);
-}
-
-function confirmarPresencia() {
-    if (!_reto) return;
-    _reto.confirmJ1 = true;
-
-    var retos = {};
-    try { retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES')||'{}'); } catch(e) {}
-    retos[_reto.codigo] = _reto;
-    localStorage.setItem('RETOS_PENDIENTES', JSON.stringify(retos));
-
-    document.getElementById('btn-confirmar').style.display = 'none';
-
-    if (_reto.confirmJ2) {
-        // Ambos confirmaron — iniciar
-        document.getElementById('btn-jugar').style.display = 'block';
-        document.getElementById('esperando-rival-box').style.display = 'none';
-    } else {
-        document.getElementById('esperando-rival-box').style.display = 'block';
-    }
-}
-
-function iniciarJuego() {
-    if (!_reto) return;
-    _reto.tipo = 'caserito';
-    localStorage.setItem('PARTIDA_ACTIVA', JSON.stringify(_reto));
-    location.href = 'duelo-tv.html';
-}
-
-/* ════════════════════════════════
-   PANTALLA RIVAL — ACEPTAR
-════════════════════════════════ */
-function mostrarRetoRecibido(codigo) {
-    var retos = {};
-    try { retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES')||'{}'); } catch(e) {}
-    var r = retos[codigo.toUpperCase()];
-
-    var card = document.getElementById('reto-card-rec');
-    if (!r) {
-        document.getElementById('rv-resumen').innerHTML = '<div style="text-align:center;color:#555;padding:20px;font-size:0.45rem;letter-spacing:2px;">RETO NO ENCONTRADO · CÓDIGO: '+codigo+'</div>';
-    } else {
-        _reto = r;
-        document.getElementById('rv-n1').innerText  = r.j1;
-        document.getElementById('rv-n2').innerText  = r.tipo_reto === 'directo' && r.j2 ? r.j2 : 'TÚ';
-        document.getElementById('rv-fecha-txt').innerText = fmtFecha(r.fechaReto);
-        document.getElementById('rv-resumen').innerHTML = resumenHTML(r);
-    }
-
-    // Ocultar pasos, mostrar pantalla rival
-    document.getElementById('pasos-ind').style.display = 'none';
-    document.querySelectorAll('.pantalla').forEach(function(p){ p.classList.remove('activa'); });
-    document.getElementById('p-recibido').classList.add('activa');
-    document.getElementById('hdr-titulo').innerText = '🤜🤛 RETO RECIBIDO';
-    document.getElementById('hdr-sub').innerText    = 'TE ESTÁN RETANDO';
-}
-
-function aceptarReto() {
-    if (!_reto) { alert('Reto no encontrado'); return; }
-
-    // Marcar como aceptado y guardar nombre del rival si era público
-    var nombreRival = prompt('¿Cuál es tu nombre?', '') || 'RIVAL';
-    _reto.j2     = nombreRival.trim().toUpperCase() || _reto.j2 || 'RIVAL';
-    _reto.estado = 'aceptado';
-    _reto.confirmJ2 = true;
-
-    var retos = {};
-    try { retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES')||'{}'); } catch(e) {}
-    retos[_reto.codigo] = _reto;
-    localStorage.setItem('RETOS_PENDIENTES', JSON.stringify(retos));
-
-    // Ir a jugar
-    _reto.tipo = 'caserito';
-    localStorage.setItem('PARTIDA_ACTIVA', JSON.stringify(_reto));
-    location.href = 'duelo-tv.html';
-}
-
-/* ════════════════════════════════
-   NAVEGACIÓN DE PASOS
-════════════════════════════════ */
-function setPaso(n) {
-    [1,2,3].forEach(function(i) {
-        document.getElementById('p-paso'+i).classList.toggle('activa', i===n);
-        var pn = document.getElementById('pn'+i);
-        var pl = document.getElementById('pl'+i);
-        pn.className = 'paso-num' + (i<n ? ' done' : i===n ? ' activo' : '');
-        pl.className = 'paso-lbl' + (i<n ? ' done' : i===n ? ' activo' : '');
-        if (i<3) document.getElementById('linea'+i).className = 'paso-linea'+(i<n?' done':'');
-    });
-    document.getElementById('p-recibido').classList.remove('activa');
-    var titulos = {1:'🤜 NUEVO RETO', 2:'📢 RETO PUBLICADO', 3:'⚡ LISTO PARA JUGAR'};
-    document.getElementById('hdr-titulo').innerText = titulos[n];
-}
-
-/* ── INIT ── */
-window.onload = function() {
-    console.log('boot ok');
-    // Fecha mínima: ahora + 5 minutos
-    var minDate = new Date(Date.now() + 5*60*1000);
-    var pad = function(n){ return n.toString().padStart(2,'0'); };
-    document.getElementById('r-fecha').min =
-        minDate.getFullYear()+'-'+pad(minDate.getMonth()+1)+'-'+pad(minDate.getDate())+
-        'T'+pad(minDate.getHours())+':'+pad(minDate.getMinutes());
-
-    // Detectar si viene con ?reto=CODIGO (rival aceptando)
-    var params = new URLSearchParams(window.location.search);
-    var codigo = params.get('reto');
-    if (codigo) {
-        mostrarRetoRecibido(codigo);
-    }
-    const ov = document.getElementById('session-aviso-overlay');
-    if (ov) ov.remove();
-};
-
-</script>
 <script>
 (function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
+  var estado = { tipo: 'publico', codigo: null };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function setStep(n) {
+    $('paso1').classList.toggle('hide', n !== 1);
+    $('paso2').classList.toggle('hide', n !== 2);
+    $('paso3').classList.toggle('hide', n !== 3);
+    $('dot1').classList.toggle('on', n === 1);
+    $('dot2').classList.toggle('on', n === 2);
+    $('dot3').classList.toggle('on', n === 3);
+  }
+
+  function genCodigo() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var out = 'DC-';
+    for (var i = 0; i < 4; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  $('tipo-publico').onclick = function () {
+    estado.tipo = 'publico';
+    $('tipo-publico').classList.add('on');
+    $('tipo-directo').classList.remove('on');
+    $('rival-wrap').classList.add('hide');
+  };
+  $('tipo-directo').onclick = function () {
+    estado.tipo = 'directo';
+    $('tipo-directo').classList.add('on');
+    $('tipo-publico').classList.remove('on');
+    $('rival-wrap').classList.remove('hide');
+  };
+
+  $('btn-publicar').onclick = function () {
+    var fecha = $('fecha').value;
+    if (!fecha) return alert('Define fecha y hora');
+    if (estado.tipo === 'directo' && !String($('rival').value || '').trim()) return alert('Ingresa el jugador rival');
+    estado.codigo = genCodigo();
+    $('codigo').textContent = estado.codigo;
+    setStep(2);
+  };
+
+  $('btn-wa').onclick = function () {
+    if (!estado.codigo) return;
+    var link = window.location.origin + window.location.pathname + '?reto=' + encodeURIComponent(estado.codigo);
+    var msg = '🟡 Reto Caserito\\nCódigo: ' + estado.codigo + '\\n' + link;
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  };
+
+  $('btn-copy').onclick = function () {
+    if (!estado.codigo) return;
+    var link = window.location.origin + window.location.pathname + '?reto=' + encodeURIComponent(estado.codigo);
+    if (navigator.clipboard) navigator.clipboard.writeText(link).then(function () { alert('Link copiado'); });
+    else prompt('Copia este link:', link);
+  };
+
+  $('btn-next3').onclick = function () { setStep(3); };
+  $('btn-confirmar').onclick = function () { alert('Presencia confirmada ✅'); };
+  $('btn-iniciar').onclick = function () { window.location.href = '/duelo-tv.html'; };
+
+  // mínima fecha permitida: ahora + 5 minutos
+  var minDate = new Date(Date.now() + 5 * 60 * 1000);
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  $('fecha').min = minDate.getFullYear() + '-' + pad(minDate.getMonth() + 1) + '-' + pad(minDate.getDate()) + 'T' + pad(minDate.getHours()) + ':' + pad(minDate.getMinutes());
 })();
 </script>
-
-<nav class="bottom-nav" aria-label="Navegación inferior">
-  <a class="bottom-nav__item" href="/index.html">
-    <span class="bottom-nav__icon">🏠</span>
-    <span>Inicio</span>
-  </a>
-  <a class="bottom-nav__item" href="/apps/organizador/organizador.html">
-    <span class="bottom-nav__icon">🏆</span>
-    <span>Torneos</span>
-  </a>
-  <a class="bottom-nav__item" href="/apps/club/sala/mesas.html">
-    <span class="bottom-nav__icon">🎱</span>
-    <span>Jugar</span>
-  </a>
-  <a class="bottom-nav__item" href="/ranking.html">
-    <span class="bottom-nav__icon">📊</span>
-    <span>Ranking</span>
-  </a>
-  <a class="bottom-nav__item" href="/perfil.html">
-    <span class="bottom-nav__icon">👤</span>
-    <span>Perfil</span>
-  </a>
-</nav>
 </body>
 </html>
