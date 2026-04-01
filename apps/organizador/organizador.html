@@ -133,8 +133,25 @@
             border: 1px solid rgba(201, 168, 76, 0.35);
             background: rgba(17, 17, 17, 0.9);
         }
-        .org-hero-sede { margin-top: 10px; font-size: 0.85rem; color: var(--color-text-muted, #888); }
-        .org-hero-sede strong { color: var(--color-gold-light, #e8c97a); font-weight: 600; }
+        .org-hero-club-title {
+            font-family: "Playfair Display", Georgia, serif;
+            font-weight: 600;
+            color: #c9a84c;
+            font-size: clamp(1.35rem, 4.5vw, 1.95rem);
+            line-height: 1.2;
+            margin: 0 0 10px;
+            letter-spacing: 0.02em;
+        }
+        .org-hero-greeting {
+            margin-top: 0;
+            font-size: 0.95rem;
+            color: var(--color-text-muted, #888);
+            line-height: 1.5;
+        }
+        .org-kpi .stat-card__value::after {
+            display: none !important;
+            content: none !important;
+        }
         .org-kpi .stat-card__value { font-size: 1.55rem; }
         .org-kpi .kpi-lbl {
             font-size: 0.65rem;
@@ -432,11 +449,11 @@
             <div class="hero-dashboard__glow" aria-hidden="true"></div>
             <div class="hero-dashboard__inner">
                 <div class="hero-dashboard__copy" style="width:100%;text-align:center">
-                    <h1 class="hero-dashboard__greeting">Bienvenido, Organizador</h1>
+                    <h1 class="org-hero-club-title" id="org-hero-club">—</h1>
+                    <p class="hero-dashboard__motivation org-hero-greeting" id="org-hero-greeting">Bienvenido</p>
                     <div class="hero-pill-row">
                         <span class="org-role-pill">ORGANIZADOR</span>
                     </div>
-                    <p class="org-hero-sede">La sede activa se muestra en el badge dorado de la cabecera.</p>
                 </div>
             </div>
         </section>
@@ -588,17 +605,36 @@
         MasterVIP.applyDesign();
 
         let nombreClub = localStorage.getItem('wl_club_nombre') || null;
+        var nombreOrg = 'Organizador';
         try {
           const { supabase } = await import('/js/supabase-client.js');
           const { getClubByIdOrCodigo } = await import('/js/api/club-api.js');
           const { data: sess } = await supabase.auth.getSession();
           const uid = sess && sess.session && sess.session.user ? sess.session.user.id : null;
           let clubKey = null;
+          try {
+            var mp = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+            if (mp.nombre_completo && String(mp.nombre_completo).trim()) {
+              nombreOrg = String(mp.nombre_completo).trim();
+            } else if (mp.nombre && String(mp.nombre).trim()) {
+              nombreOrg = String(mp.nombre).trim();
+            }
+          } catch (_m) {}
           if (uid) {
-            const pr = await supabase.from('profiles').select('club_id').eq('id', uid).maybeSingle();
+            const pr = await supabase.from('profiles').select('club_id, nombre_completo').eq('id', uid).maybeSingle();
             if (pr.data && pr.data.club_id != null && String(pr.data.club_id).trim()) {
               clubKey = String(pr.data.club_id).trim();
             }
+            if (pr.data && pr.data.nombre_completo && String(pr.data.nombre_completo).trim()) {
+              nombreOrg = String(pr.data.nombre_completo).trim();
+            }
+          }
+          var sessUser = sess && sess.session && sess.session.user;
+          if (sessUser && (!nombreOrg || nombreOrg === 'Organizador')) {
+            var meta = sessUser.user_metadata || {};
+            if (meta.full_name && String(meta.full_name).trim()) nombreOrg = String(meta.full_name).trim();
+            else if (meta.name && String(meta.name).trim()) nombreOrg = String(meta.name).trim();
+            else if (sessUser.email) nombreOrg = String(sessUser.email).split('@')[0];
           }
           if (!clubKey && uid) {
             const oc = await supabase
@@ -617,6 +653,13 @@
           }
         } catch (_e) {}
         document.getElementById('lbl-sede').innerText = nombreClub || 'SIN CONFIGURAR';
+        var elClubHero = document.getElementById('org-hero-club');
+        if (elClubHero) elClubHero.textContent = nombreClub || 'SIN CONFIGURAR';
+        var elGreet = document.getElementById('org-hero-greeting');
+        if (elGreet) {
+          var nom = (typeof nombreOrg !== 'undefined' && nombreOrg) ? nombreOrg : 'Organizador';
+          elGreet.textContent = 'Bienvenido, ' + nom;
+        }
 
         // Ajustar etiquetas por deporte (sin romper el diseño existente)
         const cfg = getConfigDeporte();
@@ -638,32 +681,36 @@
     };
 
     /* ══ KPIs ══ */
+    function _dcKpiNumText(v) {
+        if (v === '—' || v === null || v === undefined) return String(v);
+        return String(v).replace(/\/+$/, '').replace(/\s*\/\s*$/, '').trim();
+    }
     async function cargarKPIs() {
         const torneos   = MasterVIP.getTorneos();
         const jugadores = MasterVIP.getJugadores();
         const torneo    = MasterVIP.getTorneoActivo();
 
         const activos = torneos.filter(t => t.estado === 'EN_CURSO' || t.estado === 'ABIERTO').length;
-        document.getElementById('kpi-torneos').innerText     = torneos.length;
-        document.getElementById('kpi-torneos-sub').innerText = activos > 0 ? activos + ' en curso' : 'ninguno activo';
-        document.getElementById('kpi-jugadores').innerText   = jugadores.length;
+        document.getElementById('kpi-torneos').innerText     = _dcKpiNumText(torneos.length);
+        document.getElementById('kpi-torneos-sub').innerText = activos > 0 ? _dcKpiNumText(activos) + ' en curso' : 'ninguno activo';
+        document.getElementById('kpi-jugadores').innerText   = _dcKpiNumText(jugadores.length);
 
         const clubId = MasterVIP.getClubId();
         try {
             const jm = await import('/js/api/jugador-api.js');
             const pc = await jm.countPartidasForClub(clubId || null);
             document.getElementById('kpi-partidas').innerText =
-                pc.data != null && !pc.error ? String(pc.data) : '—';
+                pc.data != null && !pc.error ? _dcKpiNumText(pc.data) : '—';
         } catch (e) {
             document.getElementById('kpi-partidas').innerText = '—';
         }
 
         if (torneo) {
             const bolsa = MasterVIP.calcularBolsa(torneo);
-            document.getElementById('kpi-bolsa').innerText     = MasterVIP.formatearPesos(bolsa);
+            document.getElementById('kpi-bolsa').innerText     = _dcKpiNumText(MasterVIP.formatearPesos(bolsa));
             document.getElementById('kpi-bolsa-sub').innerText = torneo.nombre.substring(0, 20);
         } else {
-            document.getElementById('kpi-bolsa').innerText     = '$0';
+            document.getElementById('kpi-bolsa').innerText     = _dcKpiNumText('$0');
             document.getElementById('kpi-bolsa-sub').innerText = 'sin torneo activo';
         }
     }
