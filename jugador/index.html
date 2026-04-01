@@ -5,16 +5,20 @@
   import { getSession, getRole } from '/js/auth-manager.js';
   const s = await getSession();
   if (!s?.data?.user) {
-    window.location.replace('/auth.html?next=' +
-      encodeURIComponent(window.location.pathname));
-  }
-  const r = await getRole();
-  const rol = r?.data || '';
-  if (rol === 'club_admin') {
-    window.location.replace('/apps/club/');
-  }
-  if (rol === 'superadmin') {
-    window.location.replace('/admin/index.html');
+    const next = encodeURIComponent(
+      (window.location.pathname || '') + (window.location.search || '')
+    );
+    window.location.replace('/login.html?next=' + next);
+  } else {
+    const r = await getRole();
+    const rol = String(r?.data || '').trim();
+    if (rol === 'organizador') {
+      window.location.replace('/apps/organizador/organizador.html');
+    } else if (rol === 'club_admin') {
+      window.location.replace('/apps/club/sala/mesas.html');
+    } else if (rol === 'superadmin') {
+      window.location.replace('/admin/index.html');
+    }
   }
     </script>
     <meta charset="UTF-8">
