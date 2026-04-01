@@ -133,6 +133,18 @@
             border: 1px solid rgba(201, 168, 76, 0.35);
             background: rgba(17, 17, 17, 0.9);
         }
+        .org-hero-club-head { margin: 0 0 10px; }
+        #org-hero-logo {
+            display: none;
+            max-height: 80px;
+            width: auto;
+            object-fit: contain;
+            filter: brightness(1.1);
+            margin: 0 auto 10px;
+        }
+        @media (min-width: 768px) {
+            #org-hero-logo { margin-left: 0; margin-right: 0; }
+        }
         .org-hero-club-title {
             font-family: "Playfair Display", Georgia, serif;
             font-weight: 600;
@@ -449,7 +461,10 @@
             <div class="hero-dashboard__glow" aria-hidden="true"></div>
             <div class="hero-dashboard__inner">
                 <div class="hero-dashboard__copy" style="width:100%;text-align:center">
-                    <h1 class="org-hero-club-title" id="org-hero-club">—</h1>
+                    <div class="org-hero-club-head">
+                        <img id="org-hero-logo" alt="" style="display:none" decoding="async">
+                        <h1 class="org-hero-club-title" id="org-hero-club">—</h1>
+                    </div>
                     <p class="hero-dashboard__motivation org-hero-greeting" id="org-hero-greeting">Bienvenido</p>
                     <div class="hero-pill-row">
                         <span class="org-role-pill">ORGANIZADOR</span>
@@ -606,6 +621,7 @@
 
         let nombreClub = localStorage.getItem('wl_club_nombre') || null;
         var nombreOrg = 'Organizador';
+        var clubLogoUrl = null;
         try {
           const { supabase } = await import('/js/supabase-client.js');
           const { getClubByIdOrCodigo } = await import('/js/api/club-api.js');
@@ -650,11 +666,32 @@
           if (clubKey) {
             const g = await getClubByIdOrCodigo(clubKey);
             if (g.data && g.data.nombre) nombreClub = g.data.nombre;
+            if (g.data && g.data.logo_url != null && String(g.data.logo_url).trim()) {
+              clubLogoUrl = String(g.data.logo_url).trim();
+            }
           }
         } catch (_e) {}
         document.getElementById('lbl-sede').innerText = nombreClub || 'SIN CONFIGURAR';
         var elClubHero = document.getElementById('org-hero-club');
-        if (elClubHero) elClubHero.textContent = nombreClub || 'SIN CONFIGURAR';
+        var elClubLogo = document.getElementById('org-hero-logo');
+        var nomClubHero = nombreClub || 'SIN CONFIGURAR';
+        if (elClubLogo && elClubHero) {
+          if (clubLogoUrl) {
+            elClubLogo.src = clubLogoUrl;
+            elClubLogo.alt = nomClubHero;
+            elClubLogo.style.display = 'block';
+            elClubHero.style.display = 'none';
+            elClubHero.textContent = nomClubHero;
+          } else {
+            elClubLogo.removeAttribute('src');
+            elClubLogo.alt = '';
+            elClubLogo.style.display = 'none';
+            elClubHero.style.display = '';
+            elClubHero.textContent = nomClubHero;
+          }
+        } else if (elClubHero) {
+          elClubHero.textContent = nomClubHero;
+        }
         var elGreet = document.getElementById('org-hero-greeting');
         if (elGreet) {
           var nom = (typeof nombreOrg !== 'undefined' && nombreOrg) ? nombreOrg : 'Organizador';
