@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+        import { getSession, getRole } from '/js/auth-manager.js';
+
+        const next = encodeURIComponent(
+            (window.location.pathname || '') + (window.location.search || '')
+        );
+        const s = await getSession();
+        if (!s?.data?.user) {
+            window.location.replace('/login.html?next=' + next);
+        }
+        const r = await getRole();
+        const rol = String(r?.data || '').trim();
+        if (rol === 'organizador') {
+            window.location.replace('/apps/organizador/organizador.html');
+        }
+        if (rol === 'jugador') {
+            window.location.replace('/jugador/index.html');
+        }
+        if (rol !== 'club_admin' && rol !== 'superadmin') {
+            window.location.replace('/jugador/index.html');
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#c9a84c">
+    <title>Panel Club — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/index-v2.css">
+    <style>
+        .club-panel { background: #0a0a0a; }
+        .club-panel #stars-bg { display: none !important; }
+        .club-panel .home-main { max-width: 560px; }
+        .club-sede-pill {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #0a0a0a !important;
+            background: var(--color-gold, #c9a84c);
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .club-hero { min-height: 0; margin-bottom: 20px; }
+        .club-hero .hero-dashboard__inner { padding-top: 20px; padding-bottom: 22px; }
+        .club-hero .hero-pill-row { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        @media (min-width: 768px) {
+            .club-hero .hero-dashboard__copy { text-align: left !important; }
+            .club-hero .hero-pill-row { justify-content: flex-start; }
+        }
+        .club-role-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: #0a0a0a;
+            border: 1px solid rgba(201, 168, 76, 0.45);
+            background: #c9a84c;
+        }
+        .club-hero-club-head { margin: 0 0 10px; }
+        #club-hero-logo {
+            display: none;
+            max-height: 120px;
+            width: auto;
+            object-fit: contain;
+            filter: brightness(1.1);
+            margin: 0 auto 10px;
+        }
+        @media (min-width: 768px) {
+            #club-hero-logo { margin-left: 0; margin-right: 0; }
+        }
+        .club-hero-club-title {
+            font-family: "Playfair Display", Georgia, serif;
+            font-weight: 600;
+            color: #c9a84c;
+            font-size: clamp(1.35rem, 4.5vw, 1.95rem);
+            line-height: 1.2;
+            margin: 0 0 10px;
+            letter-spacing: 0.02em;
+        }
+        .club-hero-greeting {
+            margin-top: 0;
+            font-size: 0.95rem;
+            color: #c9a84c;
+            line-height: 1.5;
+            font-weight: 600;
+        }
+        .club-panel #club-main .dc-section__label {
+            color: #c9a84c;
+            text-transform: uppercase;
+        }
+        .club-panel #club-main .dc-section__title {
+            color: #f0f0f0 !important;
+            border-left: 3px solid #c9a84c;
+            padding-left: 12px;
+            margin-left: 0;
+        }
+        .club-kpi .stat-card__value {
+            font-size: 1.55rem;
+            color: #c9a84c !important;
+        }
+        .club-kpi .stat-card__value::after {
+            display: none !important;
+            content: none !important;
+        }
+        .club-panel .bottom-nav__item--active,
+        .club-panel .bottom-nav__item--active .bottom-nav__icon {
+            color: #c9a84c !important;
+        }
+        .club-kpi .kpi-lbl {
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            color: var(--color-text-muted, #888);
+            margin-top: 6px;
+        }
+        .club-kpi .kpi-sub {
+            font-size: 0.65rem;
+            color: var(--color-text-muted, #888);
+            margin-top: 4px;
+            letter-spacing: 0.04em;
+        }
+        .acciones-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+        .accion-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .accion-card:active { transform: scale(0.98); border-color: rgba(201, 168, 76, 0.35); }
+        .accion-ico { font-size: 1.75rem; }
+        .accion-nom { font-size: 0.62rem; color: #c9a84c; letter-spacing: 0.1em; font-weight: 700; }
+        .accion-det { font-size: 0.65rem; color: #666; letter-spacing: 0.03em; line-height: 1.35; }
+        .header-marca.offscreen {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        .club-stream-box {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 16px 14px;
+            margin-top: 12px;
+        }
+        .club-stream-box label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.62rem;
+            color: #888;
+            letter-spacing: 0.08em;
+        }
+        .club-stream-box input[type="checkbox"] { accent-color: #c9a84c; }
+        .club-obs-dock {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(201, 168, 76, 0.12);
+        }
+        .club-obs-dock.visible { display: block; }
+        .club-obs-status { font-size: 0.55rem; color: #888; letter-spacing: 1px; margin-bottom: 8px; text-align: center; }
+        .club-obs-status.on { color: #4caf7d; }
+        .club-obs-btn {
+            width: 100%;
+            padding: 9px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            background: #1a1a1a;
+            color: #c9a84c;
+            font-family: inherit;
+            margin-bottom: 6px;
+        }
+        .club-stream-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .club-stream-actions a {
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-decoration: none;
+            background: #0a0a0a;
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            color: #c9a84c;
+        }
+    </style>
+</head>
+<body class="dc-home-v2 club-panel">
+
+<div class="header-marca offscreen" aria-hidden="true">
+    <span>DeCarambola</span>
+    <small>PANEL CLUB</small>
+</div>
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+<header class="home-header home-header--user" aria-label="Cabecera principal">
+    <a class="home-header__brand" href="/index.html" aria-label="DeCarambola inicio">
+        <img src="/assets/logo-decarambola.svg" alt="DeCarambola" width="120" height="36">
+        <div class="home-header__titles">
+            <div class="home-header__title">DECARAMBOLA</div>
+            <div class="home-header__sub">Panel Club</div>
+        </div>
+    </a>
+    <div class="home-header__actions">
+        <div class="user-mini" aria-label="Administrador del club">
+            <div class="user-mini__avatar" id="club-header-avatar" aria-hidden="true">CA</div>
+            <div class="user-mini__text">
+                <div class="user-mini__name" id="club-header-name">Club admin</div>
+                <div class="user-mini__badge club-sede-pill" id="club-lbl-club">—</div>
+            </div>
+        </div>
+        <a class="btn-icon-gear" href="/perfil.html" title="Configuración y perfil" aria-label="Configuración">⚙️</a>
+    </div>
+</header>
+
+<main class="home-main" id="club-main">
+    <section class="hero-dashboard dc-section club-hero" aria-label="Bienvenida">
+        <div class="hero-dashboard__bg" aria-hidden="true"></div>
+        <div class="hero-dashboard__glow" aria-hidden="true"></div>
+        <div class="hero-dashboard__inner">
+            <div class="hero-dashboard__copy" style="width:100%;text-align:center">
+                <div class="club-hero-club-head">
+                    <img id="club-hero-logo" alt="" style="display:none" decoding="async">
+                    <h1 class="club-hero-club-title" id="club-hero-club">—</h1>
+                </div>
+                <p class="hero-dashboard__motivation club-hero-greeting" id="club-hero-greeting">Bienvenido</p>
+                <div class="hero-pill-row">
+                    <span class="club-role-pill">CLUB ADMIN</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="quick-stats dc-section club-kpi-wrap" aria-label="KPIs">
+        <div class="dc-section__label">Tu sede</div>
+        <h2 class="dc-section__title">Números clave</h2>
+        <div class="quick-stats__grid club-kpi">
+            <div class="stat-card kpi oro">
+                <div class="stat-card__value" id="kpi-mesas">0</div>
+                <div class="kpi-lbl stat-card__label">MESAS</div>
+                <div class="kpi-sub">activas en el salón</div>
+            </div>
+            <div class="stat-card kpi neon">
+                <div class="stat-card__value" id="kpi-jugadores">0</div>
+                <div class="kpi-lbl stat-card__label">JUGADORES</div>
+                <div class="kpi-sub">perfiles con tu club</div>
+            </div>
+            <div class="stat-card kpi azul">
+                <div class="stat-card__value" id="kpi-ingresos">$0</div>
+                <div class="kpi-lbl stat-card__label">INGRESOS HOY</div>
+                <div class="kpi-sub">mesas cerradas</div>
+            </div>
+            <div class="stat-card kpi rojo">
+                <div class="stat-card__value" id="kpi-torneos">0</div>
+                <div class="kpi-lbl stat-card__label">TORNEOS</div>
+                <div class="kpi-sub">abiertos o en curso</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dc-section" aria-label="Acciones rápidas">
+        <div class="dc-section__label">Operación</div>
+        <h2 class="dc-section__title">Acciones rápidas</h2>
+        <div class="acciones-grid">
+            <a href="/apps/club/sala/mesas.html" class="accion-card">
+                <div class="accion-ico">🎱</div>
+                <div class="accion-nom">SALÓN EN VIVO</div>
+                <div class="accion-det">Mesas y tiempos</div>
+            </a>
+            <a href="/apps/organizador/torneos.html" class="accion-card">
+                <div class="accion-ico">🏆</div>
+                <div class="accion-nom">TORNEOS</div>
+                <div class="accion-det">Muro y gestión</div>
+            </a>
+            <a href="/apps/club/sala/socios.html" class="accion-card">
+                <div class="accion-ico">👥</div>
+                <div class="accion-nom">SOCIOS</div>
+                <div class="accion-det">Base de jugadores</div>
+            </a>
+            <a href="/apps/club/sala/reportes.html" class="accion-card">
+                <div class="accion-ico">📊</div>
+                <div class="accion-nom">REPORTES</div>
+                <div class="accion-det">Cierre y salón</div>
+            </a>
+        </div>
+    </section>
+
+    <section id="sec-streaming" class="dc-section" hidden aria-hidden="true">
+        <div class="dc-section__label">Producción</div>
+        <h2 class="dc-section__title">Streaming &amp; pantallas</h2>
+        <p style="font-size:0.72rem;color:#666;line-height:1.45;margin-bottom:10px;">
+            Video IA activo para tu club. Enlazá OBS como en el salón en vivo o abrí modos TV / barman.
+        </p>
+        <div class="club-stream-box">
+            <label>
+                <input type="checkbox" id="club-obs-toggle" onchange="clubObsHandleToggle(this.checked)">
+                OBS ENLAZADO
+            </label>
+            <div id="club-obs-dock" class="club-obs-dock">
+                <div class="club-obs-status" id="club-obs-status-txt">OBS — sin conectar</div>
+                <button type="button" class="club-obs-btn" id="club-obs-btn-stream" onclick="clubObsToggleStream()">▶ INICIAR STREAM</button>
+            </div>
+            <div class="club-stream-actions">
+                <a href="/apps/club/sala/mesas.html?modo=tv">📺 MODO TV</a>
+                <a href="/apps/club/sala/mesas.html?modo=barman">🍸 MODO BARMAN</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<nav class="bottom-nav" aria-label="Navegación inferior">
+    <a class="bottom-nav__item bottom-nav__item--active" href="/apps/club/club.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🏠</span>
+        <span>Inicio</span>
+    </a>
+    <a class="bottom-nav__item" href="/apps/organizador/torneos.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🏆</span>
+        <span>Torneos</span>
+    </a>
+    <a class="bottom-nav__item" href="/apps/club/sala/mesas.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🎱</span>
+        <span>Jugar</span>
+    </a>
+    <a class="bottom-nav__item" href="/ranking.html">
+        <span class="bottom-nav__icon" aria-hidden="true">📊</span>
+        <span>Ranking</span>
+    </a>
+    <a class="bottom-nav__item" href="/perfil.html">
+        <span class="bottom-nav__icon" aria-hidden="true">👤</span>
+        <span>Perfil</span>
+    </a>
+</nav>
+
+<script src="/core.js"></script>
+<script src="/session.js"></script>
+<script>
+    function clubDashGetClubId() {
+        try {
+            var p = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+            if (p.club_id) return String(p.club_id).trim();
+            var c = JSON.parse(localStorage.getItem('club_activo') || 'null');
+            if (c && c.id) return String(c.id).trim();
+        } catch (e) {}
+        return null;
+    }
+
+    function clubDashIniciales(nombre) {
+        var s = String(nombre || '').trim();
+        if (!s) return 'CA';
+        var parts = s.split(/\s+/).filter(Boolean);
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return s.slice(0, 2).toUpperCase();
+    }
+
+    function clubDashEsHoyLocal(iso) {
+        if (!iso) return false;
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return false;
+        var now = new Date();
+        return (
+            d.getFullYear() === now.getFullYear() &&
+            d.getMonth() === now.getMonth() &&
+            d.getDate() === now.getDate()
+        );
+    }
+
+    var _clubObsCleanup = null;
+    var _clubObsStreaming = false;
+
+    function clubObsIsEnabled() {
+        return localStorage.getItem('dc_obs_enabled') === '1';
+    }
+
+    function clubObsSetStatus(txt, on) {
+        var el = document.getElementById('club-obs-status-txt');
+        var dock = document.getElementById('club-obs-dock');
+        if (!el || !dock) return;
+        el.textContent = txt;
+        el.className = 'club-obs-status' + (on ? ' on' : '');
+    }
+
+    function clubObsUpdateBtn() {
+        var btn = document.getElementById('club-obs-btn-stream');
+        if (!btn) return;
+        btn.textContent = _clubObsStreaming ? '⏹ DETENER STREAM' : '▶ INICIAR STREAM';
+    }
+
+    async function clubObsToggleStream() {
+        if (!window._obsClient) return;
+        try {
+            if (_clubObsStreaming) {
+                await window._obsClient.stopStream();
+                _clubObsStreaming = false;
+                clubObsSetStatus('OBS — stream detenido', false);
+            } else {
+                await window._obsClient.startStream();
+                _clubObsStreaming = true;
+                clubObsSetStatus('OBS — EN VIVO 🔴', true);
+            }
+            clubObsUpdateBtn();
+        } catch (e) {
+            clubObsSetStatus('OBS — error: ' + (e.message || e), false);
+        }
+    }
+
+    function clubObsHandleToggle(checked) {
+        if (checked) {
+            var pwd = prompt('Contraseña OBS WebSocket:');
+            if (!pwd) {
+                var chk = document.getElementById('club-obs-toggle');
+                if (chk) chk.checked = false;
+                return;
+            }
+            window.DC_OBS_PASSWORD = pwd;
+            localStorage.setItem('dc_obs_enabled', '1');
+            clubObsInitIfEnabled();
+        } else {
+            localStorage.removeItem('dc_obs_enabled');
+            window.DC_OBS_PASSWORD = '';
+            if (_clubObsCleanup) {
+                try { _clubObsCleanup(); } catch (e) {}
+                _clubObsCleanup = null;
+            }
+            if (window._obsClient) {
+                try { window._obsClient.disconnect(); } catch (e) {}
+            }
+            window._obsClient = null;
+            _clubObsStreaming = false;
+            var dock = document.getElementById('club-obs-dock');
+            if (dock) dock.classList.remove('visible');
+            clubObsSetStatus('OBS — sin conectar', false);
+            clubObsUpdateBtn();
+        }
+    }
+
+    async function clubObsInitIfEnabled() {
+        if (!clubObsIsEnabled()) return;
+        var dock = document.getElementById('club-obs-dock');
+        if (dock) dock.classList.add('visible');
+        clubObsSetStatus('OBS — conectando…', false);
+        var obsChk = document.getElementById('club-obs-toggle');
+        if (obsChk) obsChk.checked = true;
+        try {
+            var mod = await import('/js/obs-autostream.js');
+            window._obsClient = mod.createObsClient();
+            var clubId = clubDashGetClubId();
+            if (clubId && !_clubObsCleanup) {
+                _clubObsCleanup = mod.initObsAutostream(clubId, window._obsClient);
+            }
+            clubObsSetStatus('OBS — listo', false);
+        } catch (e) {
+            clubObsSetStatus('OBS — sin conexión', false);
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', function () {
+        clubObsInitIfEnabled();
+    });
+
+    window.addEventListener('load', async function () {
+        try {
+            await MasterVIP.init();
+            try {
+                SESSION.verificarAlCargar('organizador');
+            } catch (e) {}
+        } catch (e) {
+            console.warn('[club] init', e);
+        }
+        try {
+            MasterVIP.applyDesign();
+        } catch (e) {}
+
+        var nombreAdmin = 'Club admin';
+        var clubKey = clubDashGetClubId();
+        var nombreClub = null;
+        var logoUrl = null;
+        var videoIa = false;
+
+        try {
+            var supabaseMod = await import('/js/supabase-client.js');
+            var supabase = supabaseMod.supabase;
+            var getClubByIdOrCodigo = (await import('/js/api/club-api.js')).getClubByIdOrCodigo;
+            var listMesas = (await import('/js/api/club-api.js')).listMesas;
+
+            var sess = await supabase.auth.getSession();
+            var uid = sess && sess.data && sess.data.session && sess.data.session.user
+                ? sess.data.session.user.id
+                : null;
+
+            if (uid) {
+                var pr = await supabase
+                    .from('profiles')
+                    .select('club_id, nombre_completo')
+                    .eq('id', uid)
+                    .maybeSingle();
+                if (pr.data) {
+                    if (pr.data.nombre_completo && String(pr.data.nombre_completo).trim()) {
+                        nombreAdmin = String(pr.data.nombre_completo).trim();
+                    }
+                    if (pr.data.club_id != null && String(pr.data.club_id).trim()) {
+                        clubKey = String(pr.data.club_id).trim();
+                        try {
+                            var mp = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+                            mp.club_id = clubKey;
+                            localStorage.setItem('mi_perfil', JSON.stringify(mp));
+                        } catch (e) {}
+                    }
+                }
+            }
+
+            var su = sess && sess.data && sess.data.session && sess.data.session.user;
+            if (su && (!nombreAdmin || nombreAdmin === 'Club admin')) {
+                var meta = su.user_metadata || {};
+                if (meta.full_name && String(meta.full_name).trim()) nombreAdmin = String(meta.full_name).trim();
+                else if (meta.name && String(meta.name).trim()) nombreAdmin = String(meta.name).trim();
+                else if (su.email) nombreAdmin = String(su.email).split('@')[0];
+            }
+
+            if (clubKey) {
+                var g = await getClubByIdOrCodigo(clubKey);
+                if (g.data) {
+                    if (g.data.nombre) nombreClub = g.data.nombre;
+                    if (g.data.logo_url != null && String(g.data.logo_url).trim()) {
+                        logoUrl = String(g.data.logo_url).trim();
+                    }
+                    videoIa = g.data.video_ia_activo === true;
+                }
+
+                var mesasR = await listMesas(clubKey, { orderBy: 'numero' });
+                var nMesas = mesasR.data && !mesasR.error ? mesasR.data.length : 0;
+                document.getElementById('kpi-mesas').textContent = String(nMesas);
+
+                var cntJ = await supabase
+                    .from('profiles')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('club_id', clubKey);
+                document.getElementById('kpi-jugadores').textContent =
+                    !cntJ.error && cntJ.count != null ? String(cntJ.count) : '—';
+
+                var desde = new Date();
+                desde.setDate(desde.getDate() - 1);
+                desde.setHours(0, 0, 0, 0);
+                var histR = await supabase
+                    .from('mesas_historial')
+                    .select('costo_total, fin_sesion, inicio_sesion, created_at, estado')
+                    .eq('club_id', clubKey)
+                    .gte('created_at', desde.toISOString());
+                var ingresos = 0;
+                if (histR.data && !histR.error) {
+                    histR.data.forEach(function (row) {
+                        if (String(row.estado || '').toLowerCase() !== 'cerrada') return;
+                        var f = row.fin_sesion || row.inicio_sesion || row.created_at;
+                        if (clubDashEsHoyLocal(f)) {
+                            ingresos += parseFloat(row.costo_total) || 0;
+                        }
+                    });
+                }
+                document.getElementById('kpi-ingresos').textContent =
+                    '$' + Math.round(ingresos).toLocaleString('es-CO');
+
+                var torR = await supabase
+                    .from('torneos')
+                    .select('id')
+                    .eq('club_id', clubKey)
+                    .in('estado', ['ABIERTO', 'EN_CURSO']);
+                var nTor = torR.data && !torR.error ? torR.data.length : 0;
+                document.getElementById('kpi-torneos').textContent = String(nTor);
+            } else {
+                document.getElementById('kpi-mesas').textContent = '—';
+                document.getElementById('kpi-jugadores').textContent = '—';
+                document.getElementById('kpi-ingresos').textContent = '—';
+                document.getElementById('kpi-torneos').textContent = '—';
+            }
+
+            var elClubHero = document.getElementById('club-hero-club');
+            var elLogo = document.getElementById('club-hero-logo');
+            var nomHero = nombreClub || 'Tu club';
+            document.getElementById('club-lbl-club').textContent = nombreClub || 'Sin club asignado';
+            document.getElementById('club-header-name').textContent = nombreAdmin;
+            document.getElementById('club-header-avatar').textContent = clubDashIniciales(nombreAdmin);
+
+            if (elLogo && elClubHero) {
+                if (logoUrl) {
+                    elLogo.src = logoUrl;
+                    elLogo.alt = nomHero;
+                    elLogo.style.display = 'block';
+                    elClubHero.style.display = 'none';
+                    elClubHero.textContent = nomHero;
+                } else {
+                    elLogo.removeAttribute('src');
+                    elLogo.alt = '';
+                    elLogo.style.display = 'none';
+                    elClubHero.style.display = '';
+                    elClubHero.textContent = nomHero;
+                }
+            }
+
+            var gr = document.getElementById('club-hero-greeting');
+            if (gr) {
+                gr.textContent = nombreAdmin ? 'Bienvenido, ' + nombreAdmin : 'Bienvenido';
+            }
+
+            var secSt = document.getElementById('sec-streaming');
+            if (secSt && videoIa) {
+                secSt.hidden = false;
+                secSt.setAttribute('aria-hidden', 'false');
+            }
+        } catch (err) {
+            console.warn('[club] dashboard', err);
+        }
+    });
+</script>
+<script src="/whitelabel.js"></script>
+</body>
+</html>
