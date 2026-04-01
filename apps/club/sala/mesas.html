@@ -294,7 +294,7 @@
 
 <div id="barman-dock" style="display:none;">
     <a href="reservas_jugador.html" class="barman-dock-btn">📅 RESERVAS</a>
-    <a href="torneos.html" class="barman-dock-btn">🏆 TORNEOS</a>
+    <a href="/apps/organizador/torneos.html" class="barman-dock-btn">🏆 TORNEOS</a>
     <a href="?modo=tv" class="barman-dock-btn">📺 PANTALLA TV</a>
 </div>
 
@@ -312,13 +312,18 @@ import('/js/auth-manager.js').then(function (am) {
     return am.getSession().then(function (sr) {
         if (!sr || !sr.data || !sr.data.user) {
             var path = window.location.pathname + (window.location.search || '');
-            window.location.replace('/auth.html?next=' + encodeURIComponent(path));
+            window.location.replace('/login.html?next=' + encodeURIComponent(path));
             return Promise.reject({ _dcAuthRedirect: true });
         }
         return am.getRole();
     });
 }).then(function (rr) {
-    var rol = _dcSessionRolDesdePerfil(!rr || rr.error ? '' : rr.data);
+    var rawRol = !rr || rr.error ? '' : rr.data;
+    if (String(rawRol || '').trim() === 'organizador') {
+        window.location.replace('/apps/organizador/organizador.html');
+        return Promise.reject({ _dcAuthRedirect: true });
+    }
+    var rol = _dcSessionRolDesdePerfil(rawRol);
     if (rol === 'jugador') document.body.classList.add('salon-vista-jugador');
     var _tvParam = new URLSearchParams(window.location.search).get('modo');
     if (_tvParam === 'tv') {
@@ -1256,16 +1261,16 @@ window.__salaBoot = async function() {
         var rr = await auth.getRole();
         var rol = rr.error ? null : rr.data;
 
-        // superadmin no accede al salón
-        if (rol === 'superadmin') {
-            window.location.href = '/admin/index.html';
+        // club_admin y superadmin: acceso sin reserva
+        if (rol === 'club_admin' || rol === 'superadmin') return true;
+
+        // organizador: siempre a su panel (no opera salón aquí)
+        if (rol === 'organizador') {
+            window.location.replace('/apps/organizador/organizador.html');
             return false;
         }
 
-        // club_admin pasa sin restricción
-        if (rol === 'club_admin') return true;
-
-        // jugador: verificar reserva confirmada activa
+        // jugador u otros: verificar reserva confirmada activa
         var sr = await auth.getSession();
         var userId = (!sr.error && sr.data && sr.data.user) ? sr.data.user.id : null;
         if (!userId) {
