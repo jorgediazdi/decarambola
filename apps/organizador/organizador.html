@@ -709,8 +709,35 @@
         }
         MasterVIP.applyDesign();
 
-        // Nombre del club desde whitelabel
-        const nombreClub = localStorage.getItem('wl_club_nombre') || null;
+        let nombreClub = localStorage.getItem('wl_club_nombre') || null;
+        try {
+          const { supabase } = await import('/js/supabase-client.js');
+          const { getClubByIdOrCodigo } = await import('/js/api/club-api.js');
+          const { data: sess } = await supabase.auth.getSession();
+          const uid = sess && sess.session && sess.session.user ? sess.session.user.id : null;
+          let clubKey = null;
+          if (uid) {
+            const pr = await supabase.from('profiles').select('club_id').eq('id', uid).maybeSingle();
+            if (pr.data && pr.data.club_id != null && String(pr.data.club_id).trim()) {
+              clubKey = String(pr.data.club_id).trim();
+            }
+          }
+          if (!clubKey && uid) {
+            const oc = await supabase
+              .from('organizador_club')
+              .select('club_id')
+              .eq('organizador_id', uid)
+              .eq('estado', 'activo')
+              .limit(1);
+            if (oc.data && oc.data.length && oc.data[0].club_id != null && String(oc.data[0].club_id).trim()) {
+              clubKey = String(oc.data[0].club_id).trim();
+            }
+          }
+          if (clubKey) {
+            const g = await getClubByIdOrCodigo(clubKey);
+            if (g.data && g.data.nombre) nombreClub = g.data.nombre;
+          }
+        } catch (_e) {}
         document.getElementById('lbl-sede').innerText = nombreClub || 'SIN CONFIGURAR';
 
         // Ajustar etiquetas por deporte (sin romper el diseño existente)
