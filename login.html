@@ -90,6 +90,14 @@
     var elMsg = document.getElementById('msg');
     var elBtn = document.getElementById('btn-submit');
 
+    try {
+      var qs = new URLSearchParams(window.location.search);
+      if (qs.get('reset') === 'ok') {
+        elMsg.className = 'msg ok';
+        elMsg.textContent = 'Contraseña actualizada correctamente. Ya podés iniciar sesión.';
+      }
+    } catch (_e) {}
+
     function showMsg(text, ok) {
       elMsg.className = 'msg ' + (ok ? 'ok' : 'err');
       elMsg.textContent = text;
