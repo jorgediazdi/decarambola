@@ -10,250 +10,554 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#e74c3c">
-    <meta name="description" content="Backoffice DeCarambola — flujos de plataforma y soporte">
-    <title>Backoffice — DeCarambola</title>
-    <link rel="stylesheet" href="/css/dc-system.css">
-    <script src="/js/dc-nav.js" defer></script>
-    <link rel="stylesheet" href="../css/ux-shell.css">
-    <link rel="stylesheet" href="../css/hub-sections.css">
+    <meta name="theme-color" content="#c9a84c">
+    <meta name="description" content="Centro de control DeCarambola — superadmin">
+    <title>Centro de Control — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/index-v2.css">
     <style>
-        :root {
-            --text: #eaeaea;
-            --muted: #666;
-            --oro: #d4af37;
-            --rojo: #e74c3c;
-            --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            --font-d: 'Arial Black', Arial, sans-serif;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: var(--font);
-            font-size: 15px;
-            line-height: 1.5;
-            min-height: 100vh;
-            padding: calc(20px + env(safe-area-inset-top)) 18px calc(100px + env(safe-area-inset-bottom));
-        }
-        .hero {
-            max-width: 540px;
-            margin: 0 auto 20px;
-            text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(231, 76, 60, 0.25);
-        }
-        .hero-eyebrow {
+        .admin-panel { background: #0a0a0a; }
+        .admin-panel #stars-bg { display: none !important; }
+        .admin-panel .home-main { max-width: 560px; }
+        .admin-sede-pill {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
             font-size: 0.62rem;
-            letter-spacing: 0.28em;
-            color: var(--muted);
-            text-transform: uppercase;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #0a0a0a !important;
+            background: var(--color-gold, #c9a84c);
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .hero h1 {
-            font-family: var(--font-d);
-            font-size: 1.05rem;
-            letter-spacing: 0.2em;
-            color: var(--rojo);
-            margin: 12px 0 10px;
-            text-shadow: 0 0 24px rgba(231, 76, 60, 0.35);
+        .admin-hero { min-height: 0; margin-bottom: 20px; }
+        .admin-hero .hero-dashboard__inner { padding-top: 20px; padding-bottom: 22px; }
+        .admin-hero .hero-pill-row { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        @media (min-width: 768px) {
+            .admin-hero .hero-dashboard__copy { text-align: left !important; }
+            .admin-hero .hero-pill-row { justify-content: flex-start; }
         }
-        .hero p {
-            color: #777;
-            font-size: 0.78rem;
-            max-width: 400px;
-            margin: 0 auto;
-            line-height: 1.45;
-        }
-        .hero-nav {
-            margin-top: 16px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-        .hero-nav a {
+        .admin-role-pill {
             display: inline-flex;
             align-items: center;
-            padding: 10px 16px;
+            padding: 6px 14px;
             border-radius: 999px;
-            border: 1px solid rgba(231, 76, 60, 0.35);
-            background: linear-gradient(160deg, #140808, #0a0606);
-            color: var(--text);
-            font-size: 0.65rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-decoration: none;
-            transition: border-color 0.15s, box-shadow 0.15s;
-        }
-        .hero-nav a:hover, .hero-nav a:focus-visible {
-            border-color: rgba(231, 76, 60, 0.6);
-            box-shadow: 0 0 18px rgba(231, 76, 60, 0.12);
-            outline: none;
-        }
-        .flow-strip {
-            max-width: 540px;
-            margin: 0 auto 22px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            text-align: center;
-        }
-        @media (max-width: 380px) {
-            .flow-strip { grid-template-columns: 1fr; }
-        }
-        .flow-step {
-            padding: 12px 10px;
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(0, 0, 0, 0.35);
-        }
-        .flow-step strong {
-            display: block;
-            font-family: var(--font-d);
-            font-size: 0.55rem;
-            letter-spacing: 0.12em;
-            color: var(--oro);
-            margin-bottom: 6px;
-        }
-        .flow-step span {
             font-size: 0.68rem;
-            color: #888;
-            line-height: 1.35;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: #0a0a0a;
+            border: 1px solid rgba(201, 168, 76, 0.45);
+            background: #c9a84c;
         }
-        .note {
-            max-width: 540px;
-            margin: 0 auto 20px;
-            padding: 12px 14px;
-            font-size: 0.72rem;
-            line-height: 1.45;
-            color: #7a7a7a;
+        .admin-hero-title {
+            font-family: "Playfair Display", Georgia, serif;
+            font-weight: 600;
+            color: #c9a84c;
+            font-size: clamp(1.35rem, 4.5vw, 1.95rem);
+            line-height: 1.2;
+            margin: 0 0 10px;
+            letter-spacing: 0.02em;
+        }
+        .admin-hero-greeting {
+            margin-top: 0;
+            font-size: 0.95rem;
+            color: #c9a84c;
+            line-height: 1.5;
+            font-weight: 600;
+        }
+        .admin-panel #admin-main .dc-section__label {
+            color: #c9a84c;
+            text-transform: uppercase;
+        }
+        .admin-panel #admin-main .dc-section__title {
+            color: #f0f0f0 !important;
+            border-left: 3px solid #c9a84c;
+            padding-left: 12px;
+            margin-left: 0;
+        }
+        .admin-kpi .stat-card__value {
+            font-size: 1.55rem;
+            color: #c9a84c !important;
+        }
+        .admin-kpi .stat-card__value::after {
+            display: none !important;
+            content: none !important;
+        }
+        .admin-panel .bottom-nav__item--active,
+        .admin-panel .bottom-nav__item--active .bottom-nav__icon {
+            color: #c9a84c !important;
+        }
+        .admin-kpi .kpi-lbl {
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            color: var(--color-text-muted, #888);
+            margin-top: 6px;
+        }
+        .admin-kpi .kpi-sub {
+            font-size: 0.65rem;
+            color: var(--color-text-muted, #888);
+            margin-top: 4px;
+            letter-spacing: 0.04em;
+        }
+        .acciones-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+        .accion-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            background: rgba(0, 0, 0, 0.3);
+            padding: 16px 12px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
-        .note strong { color: #999; }
-        .note a { color: #d4af37; }
+        .accion-card:active { transform: scale(0.98); border-color: rgba(201, 168, 76, 0.35); }
+        .accion-ico { font-size: 1.75rem; }
+        .accion-nom { font-size: 0.62rem; color: #c9a84c; letter-spacing: 0.1em; font-weight: 700; }
+        .accion-det { font-size: 0.65rem; color: #666; letter-spacing: 0.03em; line-height: 1.35; }
+        .header-marca.offscreen {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        .admin-list-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+        }
+        .admin-list-card__tit { font-size: 0.82rem; color: #f0f0f0; font-weight: 600; }
+        .admin-list-card__sub { font-size: 0.65rem; color: #666; margin-top: 4px; letter-spacing: 0.03em; }
+        .admin-list-empty { text-align: center; padding: 18px 12px; color: #555; font-size: 0.72rem; letter-spacing: 0.04em; }
+        .admin-sec-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .admin-sec-head .dc-section__title { margin-bottom: 0; }
+        .sec-link {
+            font-size: 0.62rem;
+            letter-spacing: 0.08em;
+            color: #c9a84c;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .sec-link:hover { text-decoration: underline; }
+        .admin-staff-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            justify-content: center;
+            padding: 16px 12px;
+            border-top: 1px solid #1a1a1a;
+            margin-top: 8px;
+        }
+        .admin-staff-links a {
+            font-size: 0.62rem;
+            color: #888;
+            text-decoration: none;
+            letter-spacing: 0.04em;
+        }
+        .admin-staff-links a:hover { color: #c9a84c; }
     </style>
 </head>
-<body class="dc-app dc-ux dc-ux-skin">
+<body class="dc-home-v2 admin-panel">
+
+<div class="header-marca offscreen" aria-hidden="true">
+    <span>DeCarambola</span>
+    <small>CENTRO DE CONTROL</small>
+</div>
 
 <div class="stars" id="stars-bg" aria-hidden="true"></div>
 
-    <header class="hero dc-reveal">
-        <div class="hero-eyebrow">DeCarambola</div>
-        <h1>BACKOFFICE</h1>
-        <p>Herramientas de <strong style="color:#aaa;">plataforma</strong>: atender, reproducir y documentar — no es la lista de deseos del producto.</p>
-        <nav class="hero-nav" aria-label="Salir del backoffice">
-            <a href="../index.html">← Inicio público (apps)</a>
-            <a href="/auth.html">Cerrar sesión</a>
-        </nav>
-    </header>
-
-    <p class="note"><strong>Portal club:</strong> el menú se presenta en <strong>6 bloques plegables</strong>; <strong>las mismas pantallas siguen enlazadas</strong>. Si echas en falta algo: <a href="../club/index.html">club/index.html</a>.</p>
-
-    <div class="flow-strip dc-reveal" aria-label="Tu flujo en 3 pasos">
-        <div class="flow-step">
-            <strong>1 · BANDEJA</strong>
-            <span>Entrar a PQRS y gestionar contactos entrantes.</span>
+<header class="home-header home-header--user" aria-label="Cabecera principal">
+    <a class="home-header__brand" href="/index.html" aria-label="DeCarambola inicio">
+        <img src="/assets/logo-decarambola.svg" alt="DeCarambola" width="120" height="36">
+        <div class="home-header__titles">
+            <div class="home-header__title">DECARAMBOLA</div>
+            <div class="home-header__sub">Centro de Control</div>
         </div>
-        <div class="flow-step">
-            <strong>2 · REPRODUCIR</strong>
-            <span>Abrir jugador o club como el usuario para ver el fallo.</span>
+    </a>
+    <div class="home-header__actions">
+        <div class="user-mini" aria-label="Superadministrador">
+            <div class="user-mini__avatar" id="admin-header-avatar" aria-hidden="true">SA</div>
+            <div class="user-mini__text">
+                <div class="user-mini__name" id="admin-header-name">Superadmin</div>
+                <div class="user-mini__badge admin-sede-pill" id="admin-lbl-role">SUPERADMIN</div>
+            </div>
         </div>
-        <div class="flow-step">
-            <strong>3 · DOCUMENTAR</strong>
-            <span>Registrar en docs o checklist lo que toque desplegar.</span>
-        </div>
+        <a class="btn-icon-gear" href="/perfil.html" title="Configuración y perfil" aria-label="Configuración">⚙️</a>
     </div>
+</header>
 
-    <div class="dc-hub dc-hub--staff dc-reveal" id="admin-hub-main">
-        <p class="dc-hub-lead"><strong>3 áreas.</strong> Misma lógica que <a href="../jugador/index.html" style="color:#c98;">jugador</a> y <a href="../club/index.html" style="color:#c98;">club</a>: pocos bloques visibles, detalle dentro.</p>
-
-        <details class="dc-hub-fold" open>
-            <summary class="dc-hub-fold__sum">
-                <span class="dc-hub-fold__kbd">1</span>
-                <span class="dc-hub-fold__text">
-                    <span class="dc-hub-fold__title">Atención y calidad</span>
-                    <span class="dc-hub-fold__sub">Flujo diario del staff DeCarambola</span>
-                </span>
-                <span class="dc-hub-fold__count">2</span>
-                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
-            </summary>
-            <div class="dc-hub-fold__body">
-                <div class="grid">
-                    <a class="item" href="../pqrs_admin.html">
-                        <span class="item-main"><span class="item-title">Gestionar PQRS / contactos</span><span class="item-desc">Bandeja de mensajes y seguimiento</span></span>
-                        <span class="tag">PRINCIPAL</span>
-                    </a>
-                    <a class="item" href="/apps/sensei/index.html?contacto=1">
-                        <span class="item-main"><span class="item-title">Formulario de contacto (vista usuario)</span><span class="item-desc">Comprobar lo que ve el jugador o el club</span></span>
-                    </a>
+<main class="home-main" id="admin-main">
+    <section class="hero-dashboard dc-section admin-hero" aria-label="Bienvenida">
+        <div class="hero-dashboard__bg" aria-hidden="true"></div>
+        <div class="hero-dashboard__glow" aria-hidden="true"></div>
+        <div class="hero-dashboard__inner">
+            <div class="hero-dashboard__copy" style="width:100%;text-align:center">
+                <h1 class="admin-hero-title">Centro de Control</h1>
+                <p class="hero-dashboard__motivation admin-hero-greeting" id="admin-hero-greeting">Bienvenido</p>
+                <div class="hero-pill-row">
+                    <span class="admin-role-pill">SUPERADMIN</span>
                 </div>
             </div>
-        </details>
+        </div>
+    </section>
 
-        <details class="dc-hub-fold">
-            <summary class="dc-hub-fold__sum">
-                <span class="dc-hub-fold__kbd">2</span>
-                <span class="dc-hub-fold__text">
-                    <span class="dc-hub-fold__title">Auditar el producto</span>
-                    <span class="dc-hub-fold__sub">Mismas apps que usan club y jugador (QA)</span>
-                </span>
-                <span class="dc-hub-fold__count">3</span>
-                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
-            </summary>
-            <div class="dc-hub-fold__body">
-                <div class="grid">
-                    <a class="item" href="../jugador/index.html">
-                        <span class="item-main"><span class="item-title">App jugador</span><span class="item-desc">Hub de partida, perfil y torneos</span></span>
-                        <span class="tag">QA</span>
-                    </a>
-                    <a class="item" href="../club/index.html">
-                        <span class="item-main"><span class="item-title">Portal club</span><span class="item-desc">Salón, torneos, TV — por bloques</span></span>
-                        <span class="tag">QA</span>
-                    </a>
-                    <a class="item" href="/apps/sensei/index.html">
-                        <span class="item-main"><span class="item-title">Sensei</span><span class="item-desc">Asistente y aprendizaje</span></span>
-                    </a>
-                </div>
+    <section class="quick-stats dc-section admin-kpi-wrap" aria-label="KPIs">
+        <div class="dc-section__label">Plataforma</div>
+        <h2 class="dc-section__title">Números clave</h2>
+        <div class="quick-stats__grid admin-kpi">
+            <div class="stat-card kpi oro">
+                <div class="stat-card__value" id="kpi-clubes">0</div>
+                <div class="kpi-lbl stat-card__label">CLUBES</div>
+                <div class="kpi-sub">activos</div>
             </div>
-        </details>
-
-        <details class="dc-hub-fold">
-            <summary class="dc-hub-fold__sum">
-                <span class="dc-hub-fold__kbd">3</span>
-                <span class="dc-hub-fold__text">
-                    <span class="dc-hub-fold__title">Documentación en el repo</span>
-                    <span class="dc-hub-fold__sub">Referencia técnica (sin contraseñas)</span>
-                </span>
-                <span class="dc-hub-fold__count">6+</span>
-                <span class="dc-hub-fold__chev" aria-hidden="true"></span>
-            </summary>
-            <div class="dc-hub-fold__body">
-                <nav class="dc-hub-doc-links" aria-label="Documentación técnica">
-                    <a href="../docs/MAPA_ARCHIVOS_HTML.md">Mapa de todos los .html (nada oculto)</a>
-                    <a href="../docs/FLUJO_OPERATIVO_HUBS.md">Flujo operativo — hubs (jugador · club · admin)</a>
-                    <a href="../docs/INVENTARIO_ARQUITECTURA_ROLES.md">Inventario arquitectura y roles</a>
-                    <a href="../docs/QA_CHECKLIST_SUBIDA.md">QA checklist subida</a>
-                    <a href="../docs/SUPABASE_TABLAS.md">Supabase tablas</a>
-                    <a href="../docs/RLS_PRODUCCION.md">RLS producción</a>
-                    <a href="../docs/PASO_1_VERIFICAR_PQRS_SUPABASE.md">Verificar PQRS + Supabase</a>
-                </nav>
+            <div class="stat-card kpi neon">
+                <div class="stat-card__value" id="kpi-jugadores">0</div>
+                <div class="kpi-lbl stat-card__label">JUGADORES</div>
+                <div class="kpi-sub">rol jugador</div>
             </div>
-        </details>
-    </div>
+            <div class="stat-card kpi azul">
+                <div class="stat-card__value" id="kpi-torneos">0</div>
+                <div class="kpi-lbl stat-card__label">TORNEOS</div>
+                <div class="kpi-sub">abiertos / en curso</div>
+            </div>
+            <div class="stat-card kpi rojo">
+                <div class="stat-card__value" id="kpi-ingresos">$0</div>
+                <div class="kpi-lbl stat-card__label">INGRESOS HOY</div>
+                <div class="kpi-sub">salón (cerradas)</div>
+            </div>
+        </div>
+    </section>
 
+    <section class="dc-section" aria-label="Acciones rápidas">
+        <div class="dc-section__label">Administración</div>
+        <h2 class="dc-section__title">Acciones rápidas</h2>
+        <div class="acciones-grid">
+            <a href="/admin/clubes.html" class="accion-card">
+                <div class="accion-ico">🏢</div>
+                <div class="accion-nom">CLUBES</div>
+                <div class="accion-det">Gestión de sedes</div>
+            </a>
+            <a href="/admin/usuarios.html" class="accion-card">
+                <div class="accion-ico">👥</div>
+                <div class="accion-nom">USUARIOS</div>
+                <div class="accion-det">Cuentas y perfiles</div>
+            </a>
+            <a href="/admin/reportes.html" class="accion-card">
+                <div class="accion-ico">📊</div>
+                <div class="accion-nom">REPORTES</div>
+                <div class="accion-det">Métricas globales</div>
+            </a>
+            <a href="/admin/config.html" class="accion-card">
+                <div class="accion-ico">⚙️</div>
+                <div class="accion-nom">CONFIGURACIÓN</div>
+                <div class="accion-det">Ajustes plataforma</div>
+            </a>
+        </div>
+    </section>
+
+    <section class="dc-section" aria-label="Clubes recientes">
+        <div class="dc-section__label">Directorio</div>
+        <div class="admin-sec-head">
+            <h2 class="dc-section__title">Clubes recientes</h2>
+            <a class="sec-link" href="/admin/clubes.html">Ver todos</a>
+        </div>
+        <div id="zona-clubes-recientes"></div>
+    </section>
+
+    <section class="dc-section" aria-label="Solicitudes">
+        <div class="dc-section__label">Aprobaciones</div>
+        <div class="admin-sec-head">
+            <h2 class="dc-section__title">Solicitudes pendientes</h2>
+            <a class="sec-link" href="/apps/superadmin/solicitudes.html">Gestionar</a>
+        </div>
+        <div id="zona-solicitudes"></div>
+    </section>
+
+    <section class="dc-section" aria-label="Actividad">
+        <div class="dc-section__label">Operación</div>
+        <h2 class="dc-section__title">Actividad reciente</h2>
+        <div id="zona-actividad"></div>
+    </section>
+
+    <section class="dc-section" aria-label="Enlaces de staff">
+        <div class="dc-section__label">Staff</div>
+        <h2 class="dc-section__title">Atención y documentación</h2>
+        <p style="font-size:0.72rem;color:#666;line-height:1.5;margin-bottom:12px;">
+            Portal club en <a href="/club/index.html" style="color:#c9a84c;">club/index.html</a> · PQRS, QA y docs del repo.
+        </p>
+        <div class="admin-staff-links">
+            <a href="/pqrs_admin.html">PQRS / contactos</a>
+            <a href="/jugador/index.html">App jugador</a>
+            <a href="/club/index.html">Portal club</a>
+            <a href="/apps/sensei/index.html">Sensei</a>
+            <a href="/docs/MAPA_ARCHIVOS_HTML.md">Mapa HTML</a>
+            <a href="/docs/FLUJO_OPERATIVO_HUBS.md">Flujo hubs</a>
+        </div>
+    </section>
+</main>
+
+<nav class="bottom-nav" aria-label="Navegación inferior">
+    <a class="bottom-nav__item bottom-nav__item--active" href="/admin/index.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🏠</span>
+        <span>Inicio</span>
+    </a>
+    <a class="bottom-nav__item" href="/admin/clubes.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🏢</span>
+        <span>Clubes</span>
+    </a>
+    <a class="bottom-nav__item" href="/admin/usuarios.html">
+        <span class="bottom-nav__icon" aria-hidden="true">👥</span>
+        <span>Usuarios</span>
+    </a>
+    <a class="bottom-nav__item" href="/admin/reportes.html">
+        <span class="bottom-nav__icon" aria-hidden="true">📊</span>
+        <span>Reportes</span>
+    </a>
+    <a class="bottom-nav__item" href="/admin/config.html">
+        <span class="bottom-nav__icon" aria-hidden="true">⚙️</span>
+        <span>Config</span>
+    </a>
+</nav>
+
+<script src="/core.js"></script>
+<script src="/session.js"></script>
 <script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
+    function adminIniciales(nombre) {
+        var s = String(nombre || '').trim();
+        if (!s) return 'SA';
+        var parts = s.split(/\s+/).filter(Boolean);
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return s.slice(0, 2).toUpperCase();
     }
-})();
+
+    function adminEsHoyLocal(iso) {
+        if (!iso) return false;
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return false;
+        var now = new Date();
+        return (
+            d.getFullYear() === now.getFullYear() &&
+            d.getMonth() === now.getMonth() &&
+            d.getDate() === now.getDate()
+        );
+    }
+
+    function adminFmtFecha(iso) {
+        if (!iso) return '—';
+        try {
+            return new Date(iso).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' });
+        } catch (e) {
+            return '—';
+        }
+    }
+
+    window.addEventListener('load', async function () {
+        try {
+            await MasterVIP.init();
+            try {
+                SESSION.verificarAlCargar('superadmin');
+            } catch (e) {}
+        } catch (e) {
+            console.warn('[admin] init', e);
+        }
+        try {
+            MasterVIP.applyDesign();
+        } catch (e) {}
+
+        var nombreAdmin = 'Superadmin';
+        try {
+            var supabaseMod = await import('/js/supabase-client.js');
+            var supabase = supabaseMod.supabase;
+
+            var sess = await supabase.auth.getSession();
+            var uid = sess && sess.data && sess.data.session && sess.data.session.user
+                ? sess.data.session.user.id
+                : null;
+
+            if (uid) {
+                var pr = await supabase
+                    .from('profiles')
+                    .select('nombre_completo')
+                    .eq('id', uid)
+                    .maybeSingle();
+                if (pr.data && pr.data.nombre_completo && String(pr.data.nombre_completo).trim()) {
+                    nombreAdmin = String(pr.data.nombre_completo).trim();
+                }
+            }
+
+            var su = sess && sess.data && sess.data.session && sess.data.session.user;
+            if (su && (!nombreAdmin || nombreAdmin === 'Superadmin')) {
+                var meta = su.user_metadata || {};
+                if (meta.full_name && String(meta.full_name).trim()) nombreAdmin = String(meta.full_name).trim();
+                else if (meta.name && String(meta.name).trim()) nombreAdmin = String(meta.name).trim();
+                else if (su.email) nombreAdmin = String(su.email).split('@')[0];
+            }
+
+            document.getElementById('admin-header-name').textContent = nombreAdmin;
+            document.getElementById('admin-header-avatar').textContent = adminIniciales(nombreAdmin);
+            var gr = document.getElementById('admin-hero-greeting');
+            if (gr) {
+                gr.textContent = nombreAdmin ? 'Bienvenido, ' + nombreAdmin : 'Bienvenido';
+            }
+
+            var cClubs = await supabase
+                .from('clubs')
+                .select('id', { count: 'exact', head: true })
+                .eq('activo', true);
+            document.getElementById('kpi-clubes').textContent =
+                !cClubs.error && cClubs.count != null ? String(cClubs.count) : '—';
+
+            var cJug = await supabase
+                .from('profiles')
+                .select('id', { count: 'exact', head: true })
+                .eq('role', 'jugador');
+            document.getElementById('kpi-jugadores').textContent =
+                !cJug.error && cJug.count != null ? String(cJug.count) : '—';
+
+            var cTor = await supabase
+                .from('torneos')
+                .select('id', { count: 'exact', head: true })
+                .in('estado', ['ABIERTO', 'EN_CURSO']);
+            document.getElementById('kpi-torneos').textContent =
+                !cTor.error && cTor.count != null ? String(cTor.count) : '—';
+
+            var desde = new Date();
+            desde.setDate(desde.getDate() - 1);
+            desde.setHours(0, 0, 0, 0);
+            var histR = await supabase
+                .from('mesas_historial')
+                .select('costo_total, fin_sesion, inicio_sesion, created_at, estado')
+                .gte('created_at', desde.toISOString());
+            var ingresos = 0;
+            if (histR.data && !histR.error) {
+                histR.data.forEach(function (row) {
+                    if (String(row.estado || '').toLowerCase() !== 'cerrada') return;
+                    var f = row.fin_sesion || row.inicio_sesion || row.created_at;
+                    if (adminEsHoyLocal(f)) {
+                        ingresos += parseFloat(row.costo_total) || 0;
+                    }
+                });
+            }
+            document.getElementById('kpi-ingresos').textContent =
+                '$' + Math.round(ingresos).toLocaleString('es-CO');
+
+            var recClubs = await supabase
+                .from('clubs')
+                .select('nombre, codigo, created_at')
+                .order('created_at', { ascending: false })
+                .limit(5);
+            var zc = document.getElementById('zona-clubes-recientes');
+            if (recClubs.data && recClubs.data.length && !recClubs.error) {
+                zc.innerHTML = recClubs.data
+                    .map(function (c) {
+                        return (
+                            '<div class="admin-list-card">' +
+                            '<div class="admin-list-card__tit">' +
+                            (c.nombre || 'Sin nombre') +
+                            '</div>' +
+                            '<div class="admin-list-card__sub">' +
+                            (c.codigo || '—') +
+                            ' · ' +
+                            adminFmtFecha(c.created_at) +
+                            '</div></div>'
+                        );
+                    })
+                    .join('');
+            } else {
+                zc.innerHTML = '<div class="admin-list-empty">Sin clubes o sin permiso de lectura.</div>';
+            }
+
+            var sol = await supabase
+                .from('solicitudes_config_club')
+                .select('id, nombre_club, created_at, estado')
+                .eq('estado', 'pendiente')
+                .order('created_at', { ascending: false })
+                .limit(5);
+            var zs = document.getElementById('zona-solicitudes');
+            if (sol.data && sol.data.length && !sol.error) {
+                zs.innerHTML = sol.data
+                    .map(function (s) {
+                        return (
+                            '<div class="admin-list-card">' +
+                            '<div class="admin-list-card__tit">' +
+                            (s.nombre_club || 'Solicitud') +
+                            '</div>' +
+                            '<div class="admin-list-card__sub">Pendiente · ' +
+                            adminFmtFecha(s.created_at) +
+                            '</div></div>'
+                        );
+                    })
+                    .join('');
+            } else {
+                zs.innerHTML = '<div class="admin-list-empty">No hay solicitudes pendientes.</div>';
+            }
+
+            var act = await supabase
+                .from('mesas_historial')
+                .select('club_id, mesa_id, costo_total, fin_sesion, created_at, estado')
+                .order('created_at', { ascending: false })
+                .limit(5);
+            var za = document.getElementById('zona-actividad');
+            if (act.data && act.data.length && !act.error) {
+                za.innerHTML = act.data
+                    .map(function (a) {
+                        var st = String(a.estado || '—');
+                        var m = a.mesa_id != null ? 'Mesa ' + a.mesa_id : 'Mesa';
+                        var c = a.club_id != null ? String(a.club_id).slice(0, 12) : '—';
+                        return (
+                            '<div class="admin-list-card">' +
+                            '<div class="admin-list-card__tit">' +
+                            m +
+                            ' · ' +
+                            st +
+                            '</div>' +
+                            '<div class="admin-list-card__sub">Club ' +
+                            c +
+                            (a.costo_total != null ? ' · $' + Math.round(parseFloat(a.costo_total) || 0) : '') +
+                            ' · ' +
+                            adminFmtFecha(a.fin_sesion || a.created_at) +
+                            '</div></div>'
+                        );
+                    })
+                    .join('');
+            } else {
+                za.innerHTML = '<div class="admin-list-empty">Sin actividad reciente en salón.</div>';
+            }
+        } catch (err) {
+            console.warn('[admin] datos', err);
+            document.getElementById('kpi-clubes').textContent = '—';
+            document.getElementById('kpi-jugadores').textContent = '—';
+            document.getElementById('kpi-torneos').textContent = '—';
+            document.getElementById('kpi-ingresos').textContent = '—';
+        }
+    });
 </script>
+<script src="/whitelabel.js"></script>
 </body>
 </html>
