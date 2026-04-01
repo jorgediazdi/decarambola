@@ -129,14 +129,14 @@
             font-size: 0.68rem;
             font-weight: 700;
             letter-spacing: 0.14em;
-            color: var(--color-gold-light, #e8c97a);
-            border: 1px solid rgba(201, 168, 76, 0.35);
-            background: rgba(17, 17, 17, 0.9);
+            color: #0a0a0a;
+            border: 1px solid rgba(201, 168, 76, 0.45);
+            background: #c9a84c;
         }
         .org-hero-club-head { margin: 0 0 10px; }
         #org-hero-logo {
             display: none;
-            max-height: 80px;
+            max-height: 120px;
             width: auto;
             object-fit: contain;
             filter: brightness(1.1);
@@ -157,14 +157,32 @@
         .org-hero-greeting {
             margin-top: 0;
             font-size: 0.95rem;
-            color: var(--color-text-muted, #888);
+            color: #c9a84c;
             line-height: 1.5;
+            font-weight: 600;
+        }
+        .org-panel #org-main .dc-section__label {
+            color: #c9a84c;
+            text-transform: uppercase;
+        }
+        .org-panel #org-main .dc-section__title {
+            color: #f0f0f0 !important;
+            border-left: 3px solid #c9a84c;
+            padding-left: 12px;
+            margin-left: 0;
+        }
+        .org-kpi .stat-card__value {
+            font-size: 1.55rem;
+            color: #c9a84c !important;
         }
         .org-kpi .stat-card__value::after {
             display: none !important;
             content: none !important;
         }
-        .org-kpi .stat-card__value { font-size: 1.55rem; }
+        .org-panel .bottom-nav__item--active,
+        .org-panel .bottom-nav__item--active .bottom-nav__icon {
+            color: #c9a84c !important;
+        }
         .org-kpi .kpi-lbl {
             font-size: 0.65rem;
             letter-spacing: 0.14em;
@@ -610,6 +628,13 @@
         return CONFIG_DEPORTE[dep] || CONFIG_DEPORTE.billar;
     }
 
+    function _dcNombreSaludoOrg(n) {
+        if (n == null) return '';
+        var s = String(n).trim();
+        if (!s) return '';
+        return s.replace(/\s+organizador\s*$/i, '').trim();
+    }
+
     window.onload = async function () {
         try {
             await MasterVIP.init();
@@ -694,8 +719,9 @@
         }
         var elGreet = document.getElementById('org-hero-greeting');
         if (elGreet) {
-          var nom = (typeof nombreOrg !== 'undefined' && nombreOrg) ? nombreOrg : 'Organizador';
-          elGreet.textContent = 'Bienvenido, ' + nom;
+          var nomRaw = (typeof nombreOrg !== 'undefined' && nombreOrg) ? nombreOrg : 'Organizador';
+          var nom = _dcNombreSaludoOrg(nomRaw);
+          elGreet.textContent = nom ? ('Bienvenido, ' + nom) : 'Bienvenido';
         }
 
         // Ajustar etiquetas por deporte (sin romper el diseño existente)
