@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+      import { getSession, getRole } from '/js/auth-manager.js';
+      const s = await getSession();
+      if (!s?.data?.user) window.location.replace('/login.html');
+      const r = await getRole();
+      if (r?.data !== 'superadmin') window.location.replace('/login.html');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#c9a84c">
+    <meta name="description" content="Usuarios — Centro de control DeCarambola">
+    <title>Usuarios — Centro de Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/index-v2.css">
+    <style>
+        .admin-panel { background: #0a0a0a; }
+        .admin-panel #stars-bg { display: none !important; }
+        .admin-panel .home-main { max-width: 560px; }
+        .admin-sede-pill {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #0a0a0a !important;
+            background: var(--color-gold, #c9a84c);
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .admin-hero { min-height: 0; margin-bottom: 20px; }
+        .admin-hero .hero-dashboard__inner { padding-top: 20px; padding-bottom: 22px; }
+        .admin-hero .hero-pill-row { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        @media (min-width: 768px) {
+            .admin-hero .hero-dashboard__copy { text-align: left !important; }
+            .admin-hero .hero-pill-row { justify-content: flex-start; }
+        }
+        .admin-role-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: #0a0a0a;
+            border: 1px solid rgba(201, 168, 76, 0.45);
+            background: #c9a84c;
+        }
+        .admin-hero-title {
+            font-family: "Playfair Display", Georgia, serif;
+            font-weight: 600;
+            color: #c9a84c;
+            font-size: clamp(1.35rem, 4.5vw, 1.95rem);
+            line-height: 1.2;
+            margin: 0 0 10px;
+            letter-spacing: 0.02em;
+        }
+        .admin-hero-greeting {
+            margin-top: 0;
+            font-size: 0.95rem;
+            color: #c9a84c;
+            line-height: 1.5;
+            font-weight: 600;
+        }
+        .admin-panel #admin-main .dc-section__label {
+            color: #c9a84c;
+            text-transform: uppercase;
+        }
+        .admin-panel #admin-main .dc-section__title {
+            color: #f0f0f0 !important;
+            border-left: 3px solid #c9a84c;
+            padding-left: 12px;
+            margin-left: 0;
+        }
+        .admin-kpi .stat-card__value {
+            font-size: 1.55rem;
+            color: #c9a84c !important;
+        }
+        .admin-kpi .stat-card__value::after {
+            display: none !important;
+            content: none !important;
+        }
+        .admin-panel .bottom-nav__item--active,
+        .admin-panel .bottom-nav__item--active .bottom-nav__icon {
+            color: #c9a84c !important;
+        }
+        .admin-kpi .kpi-lbl {
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            color: var(--color-text-muted, #888);
+            margin-top: 6px;
+        }
+        .admin-kpi .kpi-sub {
+            font-size: 0.65rem;
+            color: var(--color-text-muted, #888);
+            margin-top: 4px;
+            letter-spacing: 0.04em;
+        }
+        .header-marca.offscreen {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        .admin-list-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+        }
+        .admin-list-card__tit { font-size: 0.82rem; color: #f0f0f0; font-weight: 600; }
+        .admin-list-card__sub { font-size: 0.65rem; color: #666; margin-top: 4px; letter-spacing: 0.03em; }
+        .admin-list-empty { text-align: center; padding: 18px 12px; color: #555; font-size: 0.72rem; letter-spacing: 0.04em; }
+        .admin-search {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #1a1a1a;
+            background: #111;
+            color: #f0f0f0;
+            font-family: inherit;
+            font-size: 0.9rem;
+            margin-bottom: 14px;
+        }
+        .admin-search:focus {
+            outline: none;
+            border-color: rgba(201, 168, 76, 0.45);
+        }
+        .role-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            margin-top: 8px;
+        }
+        .role-pill--jugador { background: #2a2a2a; color: #bbb; border: 1px solid #333; }
+        .role-pill--organizador { background: #1a2744; color: #7eb8ff; border: 1px solid #2a3f66; }
+        .role-pill--club_admin { background: #14261a; color: #7dcea0; border: 1px solid #1f3d28; }
+        .role-pill--superadmin { background: #c9a84c; color: #0a0a0a; border: 1px solid rgba(201, 168, 76, 0.5); }
+        .role-pill--default { background: #2a2a2a; color: #999; border: 1px solid #333; }
+    </style>
+</head>
+<body class="dc-home-v2 admin-panel">
+
+<div class="header-marca offscreen" aria-hidden="true">
+    <span>DeCarambola</span>
+    <small>CENTRO DE CONTROL</small>
+</div>
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+<header class="home-header home-header--user" aria-label="Cabecera principal">
+    <a class="home-header__brand" href="/index.html" aria-label="DeCarambola inicio">
+        <img src="/assets/logo-decarambola.svg" alt="DeCarambola" width="120" height="36">
+        <div class="home-header__titles">
+            <div class="home-header__title">DECARAMBOLA</div>
+            <div class="home-header__sub">Centro de Control</div>
+        </div>
+    </a>
+    <div class="home-header__actions">
+        <div class="user-mini" aria-label="Superadministrador">
+            <div class="user-mini__avatar" id="admin-header-avatar" aria-hidden="true">SA</div>
+            <div class="user-mini__text">
+                <div class="user-mini__name" id="admin-header-name">Superadmin</div>
+                <div class="user-mini__badge admin-sede-pill" id="admin-lbl-role">SUPERADMIN</div>
+            </div>
+        </div>
+        <a class="btn-icon-gear" href="/perfil.html" title="Configuración y perfil" aria-label="Configuración">⚙️</a>
+    </div>
+</header>
+
+<main class="home-main" id="admin-main">
+    <section class="hero-dashboard dc-section admin-hero" aria-label="Bienvenida">
+        <div class="hero-dashboard__bg" aria-hidden="true"></div>
+        <div class="hero-dashboard__glow" aria-hidden="true"></div>
+        <div class="hero-dashboard__inner">
+            <div class="hero-dashboard__copy" style="width:100%;text-align:center">
+                <p class="admin-hero-title" role="heading" aria-level="1">Usuarios</p>
+                <p class="hero-dashboard__motivation admin-hero-greeting" id="admin-hero-greeting">Directorio</p>
+                <div class="hero-pill-row">
+                    <span class="admin-role-pill">SUPERADMIN</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="quick-stats dc-section admin-kpi-wrap" aria-label="KPIs plataforma">
+        <div class="dc-section__label">Plataforma</div>
+        <h2 class="dc-section__title">Números clave</h2>
+        <div class="quick-stats__grid admin-kpi">
+            <div class="stat-card kpi oro">
+                <div class="stat-card__value" id="kpi-total">0</div>
+                <div class="kpi-lbl stat-card__label">TOTAL</div>
+                <div class="kpi-sub">usuarios</div>
+            </div>
+            <div class="stat-card kpi neon">
+                <div class="stat-card__value" id="kpi-jugadores">0</div>
+                <div class="kpi-lbl stat-card__label">JUGADORES</div>
+                <div class="kpi-sub">rol jugador o sin rol</div>
+            </div>
+            <div class="stat-card kpi azul">
+                <div class="stat-card__value" id="kpi-organizadores">0</div>
+                <div class="kpi-lbl stat-card__label">ORGANIZADORES</div>
+                <div class="kpi-sub">rol organizador</div>
+            </div>
+            <div class="stat-card kpi rojo">
+                <div class="stat-card__value" id="kpi-club-admin">0</div>
+                <div class="kpi-lbl stat-card__label">CLUB ADMIN</div>
+                <div class="kpi-sub">rol club_admin</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dc-section" aria-label="Directorio de usuarios">
+        <div class="dc-section__label">Directorio</div>
+        <h2 class="dc-section__title">Perfiles</h2>
+        <label class="header-marca offscreen" for="buscar-usuario">Buscar por nombre o email</label>
+        <input type="search" id="buscar-usuario" class="admin-search" placeholder="Buscar por nombre o email…" autocomplete="off">
+        <div id="zona-usuarios"></div>
+    </section>
+</main>
+
+<nav class="bottom-nav" aria-label="Navegación inferior">
+    <a class="bottom-nav__item" href="/admin/index.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🏠</span>
+        <span>Inicio</span>
+    </a>
+    <a class="bottom-nav__item" href="/admin/clubes.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🏢</span>
+        <span>Clubes</span>
+    </a>
+    <a class="bottom-nav__item bottom-nav__item--active" href="/admin/usuarios.html">
+        <span class="bottom-nav__icon" aria-hidden="true">👥</span>
+        <span>Usuarios</span>
+    </a>
+    <a class="bottom-nav__item" href="/admin/reportes.html">
+        <span class="bottom-nav__icon" aria-hidden="true">📊</span>
+        <span>Reportes</span>
+    </a>
+    <a class="bottom-nav__item" href="/admin/config.html">
+        <span class="bottom-nav__icon" aria-hidden="true">⚙️</span>
+        <span>Config</span>
+    </a>
+</nav>
+
+<script>
+(function () {
+    function adminIniciales(nombre) {
+        var s = String(nombre || '').trim();
+        if (!s) return 'SA';
+        var parts = s.split(/\s+/).filter(Boolean);
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return s.slice(0, 2).toUpperCase();
+    }
+
+    function fmtFecha(iso) {
+        if (!iso) return '—';
+        try {
+            return new Date(iso).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' });
+        } catch (e) {
+            return '—';
+        }
+    }
+
+    function esc(s) {
+        if (s == null) return '';
+        var d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
+    }
+
+    function rolePillClass(role) {
+        var r = String(role || '').toLowerCase();
+        if (r === 'organizador') return 'role-pill role-pill--organizador';
+        if (r === 'club_admin') return 'role-pill role-pill--club_admin';
+        if (r === 'superadmin') return 'role-pill role-pill--superadmin';
+        if (r === 'jugador' || !r) return 'role-pill role-pill--jugador';
+        return 'role-pill role-pill--default';
+    }
+
+    function roleLabel(role) {
+        var r = String(role || '').trim();
+        if (!r) return 'jugador';
+        return r;
+    }
+
+    var allProfiles = [];
+
+    function renderLista(filter) {
+        var z = document.getElementById('zona-usuarios');
+        if (!z) return;
+        var q = String(filter || '').trim().toLowerCase();
+        var rows = allProfiles;
+        if (q) {
+            rows = allProfiles.filter(function (p) {
+                var n = String(p.nombre_completo || '').toLowerCase();
+                var u = String(p.username || '').toLowerCase();
+                var e = String(p.email || '').toLowerCase();
+                return n.indexOf(q) !== -1 || u.indexOf(q) !== -1 || e.indexOf(q) !== -1;
+            });
+        }
+        if (!rows.length) {
+            z.innerHTML = '<div class="admin-list-empty">Sin resultados.</div>';
+            return;
+        }
+        z.innerHTML = rows.map(function (p) {
+            var tit = (p.nombre_completo && String(p.nombre_completo).trim()) ||
+                (p.username && String(p.username).trim()) || 'Sin nombre';
+            var clubLine = p.club_id != null && String(p.club_id).trim()
+                ? 'Club: ' + esc(String(p.club_id).trim())
+                : 'Sin club asignado';
+            return (
+                '<div class="admin-list-card">' +
+                '<div class="admin-list-card__tit">' + esc(tit) + '</div>' +
+                '<span class="' + rolePillClass(p.role) + '">' + esc(roleLabel(p.role)) + '</span>' +
+                '<div class="admin-list-card__sub">' + esc(clubLine) + ' · ' + fmtFecha(p.updated_at) + '</div>' +
+                '</div>'
+            );
+        }).join('');
+    }
+
+    window.addEventListener('load', async function () {
+        try {
+            var supabaseMod = await import('/js/supabase-client.js');
+            var supabase = supabaseMod.supabase;
+            await supabase.auth.refreshSession();
+
+            var sess = await supabase.auth.getSession();
+            var su = sess && sess.data && sess.data.session && sess.data.session.user
+                ? sess.data.session.user : null;
+            var uid = su ? su.id : null;
+            if (!su || !uid) {
+                var gu = await supabase.auth.getUser();
+                if (gu && gu.data && gu.data.user) {
+                    su = gu.data.user;
+                    uid = su.id;
+                }
+            }
+
+            var nombreSaludo = '';
+            if (uid) {
+                var pr = await supabase.from('profiles').select('nombre_completo').eq('id', uid).maybeSingle();
+                if (!pr.error && pr.data && pr.data.nombre_completo != null) {
+                    var nc = String(pr.data.nombre_completo).trim();
+                    if (nc) nombreSaludo = nc;
+                }
+            }
+            if (!nombreSaludo && su) {
+                var meta = su.user_metadata || {};
+                if (meta.full_name != null && String(meta.full_name).trim()) {
+                    nombreSaludo = String(meta.full_name).trim();
+                } else if (su.email) {
+                    nombreSaludo = String(su.email).split('@')[0] || '';
+                }
+            }
+            var nombreHeader = nombreSaludo || 'Superadmin';
+            document.getElementById('admin-header-name').textContent = nombreHeader;
+            document.getElementById('admin-header-avatar').textContent = adminIniciales(nombreHeader);
+            var gr = document.getElementById('admin-hero-greeting');
+            if (gr) gr.textContent = nombreSaludo ? 'Bienvenido, ' + nombreSaludo : 'Directorio de cuentas';
+
+            var cAll = await supabase.from('profiles').select('id', { count: 'exact', head: true });
+            document.getElementById('kpi-total').textContent =
+                !cAll.error && cAll.count != null ? String(cAll.count) : '—';
+
+            var cJug = await supabase
+                .from('profiles')
+                .select('id', { count: 'exact', head: true })
+                .or('role.eq.jugador,role.is.null');
+            document.getElementById('kpi-jugadores').textContent =
+                !cJug.error && cJug.count != null ? String(cJug.count) : '—';
+
+            var cOrg = await supabase
+                .from('profiles')
+                .select('id', { count: 'exact', head: true })
+                .eq('role', 'organizador');
+            document.getElementById('kpi-organizadores').textContent =
+                !cOrg.error && cOrg.count != null ? String(cOrg.count) : '—';
+
+            var cClub = await supabase
+                .from('profiles')
+                .select('id', { count: 'exact', head: true })
+                .eq('role', 'club_admin');
+            document.getElementById('kpi-club-admin').textContent =
+                !cClub.error && cClub.count != null ? String(cClub.count) : '—';
+
+            var listR = await supabase
+                .from('profiles')
+                .select('id, nombre_completo, username, role, club_id, updated_at, email')
+                .order('updated_at', { ascending: false })
+                .limit(100);
+
+            if (listR.error) {
+                document.getElementById('zona-usuarios').innerHTML =
+                    '<div class="admin-list-empty">No se pudo cargar el directorio.</div>';
+                console.warn('[admin/usuarios]', listR.error);
+                return;
+            }
+            allProfiles = listR.data || [];
+            renderLista('');
+
+            var inp = document.getElementById('buscar-usuario');
+            if (inp) {
+                inp.addEventListener('input', function () {
+                    renderLista(inp.value);
+                });
+            }
+        } catch (err) {
+            console.warn('[admin/usuarios]', err);
+        }
+    });
+})();
+</script>
+</body>
+</html>
