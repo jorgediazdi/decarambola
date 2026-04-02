@@ -892,8 +892,7 @@ var estado = {
 };
 
 window.onload = function() {
-    try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
-    try { MasterVIP.applyDesign(); } catch(e){}
+    try { if (typeof MasterVIP !== 'undefined') MasterVIP.applyDesign(); } catch(e) {}
     var sede = MasterVIP.getSede();
     document.getElementById('lbl-sede').innerText = sede.nombre !== 'GLOBAL' ? sede.nombre : 'GLOBAL';
     var hoy = new Date().toISOString().split('T')[0];

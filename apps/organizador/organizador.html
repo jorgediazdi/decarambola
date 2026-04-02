@@ -637,8 +637,7 @@
 
     window.onload = async function () {
         try {
-            await MasterVIP.init();
-            SESSION.verificarAlCargar('organizador');
+            if (typeof MasterVIP !== 'undefined') await MasterVIP.init();
         } catch(e) {
             console.warn('Init offline:', e);
         }

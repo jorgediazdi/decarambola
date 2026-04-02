@@ -335,10 +335,9 @@ import('/js/auth-manager.js').then(function (am) {
         countdownSegundos = 20;
         window._dcBarmanMode = true;
     }
-    try { SESSION.verificarAlCargar(rol); } catch (e) {}
 }).catch(function (e) {
     if (e && e._dcAuthRedirect) return;
-    try { SESSION.verificarAlCargar('jugador'); } catch (e2) {}
+    console.warn('[sala] gate error', e);
 });
 
 var salonConfig = null;

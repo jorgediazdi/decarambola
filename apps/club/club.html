@@ -499,10 +499,7 @@
 
     window.addEventListener('load', async function () {
         try {
-            await MasterVIP.init();
-            try {
-                SESSION.verificarAlCargar('organizador');
-            } catch (e) {}
+            if (typeof MasterVIP !== 'undefined') await MasterVIP.init();
         } catch (e) {
             console.warn('[club] init', e);
         }
