@@ -177,6 +177,44 @@
   .sk { background:linear-gradient(90deg,#1a1a1a 25%,#222 50%,#1a1a1a 75%);background-size:200% 100%;animation:shim 1.4s infinite;border-radius:6px;display:inline-block; }
   @keyframes shim { 0%{background-position:200% 0}100%{background-position:-200% 0} }
   .hidden { display:none!important; }
+
+@media (min-width: 768px) {
+  .wrap {
+    max-width: 520px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .kpi-grid { gap: 12px; }
+  .kpi-val { font-size: 1.6rem; }
+  .acc-grid { gap: 12px; }
+  .acc { padding: 18px 10px 14px; }
+  .acc-lbl { font-size: .52rem; }
+  .hero-nombre { font-size: 1.5rem; }
+  .hero-prom-val { font-size: 1.6rem; }
+}
+
+@media (min-width: 1024px) {
+  .wrap {
+    max-width: 640px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .kpi { padding: 18px 12px; }
+  .kpi-val { font-size: 1.8rem; }
+  .kpi-lbl { font-size: .58rem; }
+  .acc-grid { gap: 14px; }
+  .acc { padding: 20px 12px 16px; gap: 10px; }
+  .acc-lbl { font-size: .55rem; }
+  .hero { padding: 24px 24px 20px; }
+  .hero-nombre { font-size: 1.7rem; }
+  .hero-prom-val { font-size: 1.8rem; }
+  .nav-item { padding: 16px 18px; }
+  .nav-titulo { font-size: .7rem; }
+  .nav-desc { font-size: .62rem; }
+  .rank-card, .hist-card { padding: 18px 20px; }
+  .bnav { max-width: 640px; left: 50%; transform: translateX(-50%); border-radius: 16px 16px 0 0; border-left: 1px solid var(--dc-border); border-right: 1px solid var(--dc-border); }
+}
 </style>
 </head>
 <body>
