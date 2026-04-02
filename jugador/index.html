@@ -388,8 +388,35 @@ function renderIcos() {
 
 async function init() {
   renderIcos();
+
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) { sinSesion(); return; }
+
+  if (!session) {
+    const recovered = await new Promise((resolve) => {
+      let done = false;
+      let subscription;
+      const finish = (val) => {
+        if (done) return;
+        done = true;
+        if (subscription) subscription.unsubscribe();
+        resolve(val);
+      };
+      const { data } = supabase.auth.onAuthStateChange((_event, sess) => {
+        if (sess) finish(sess);
+      });
+      subscription = data.subscription;
+      setTimeout(() => finish(null), 2000);
+    });
+    if (!recovered) {
+      sinSesion();
+      return;
+    }
+    const uid = recovered.user.id;
+    await cargarPerfil(uid);
+    await Promise.all([cargarKPIs(uid), cargarRanking(uid), cargarHistorial(uid), cargarPendientes(uid), cargarPartidaActiva(uid)]);
+    return;
+  }
+
   const uid = session.user.id;
   await cargarPerfil(uid);
   await Promise.all([cargarKPIs(uid), cargarRanking(uid), cargarHistorial(uid), cargarPendientes(uid), cargarPartidaActiva(uid)]);
