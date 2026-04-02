@@ -7,7 +7,7 @@
 
   const s = await getSession();
   if (!s?.data?.user) {
-    window.location.replace('/auth.html?next=' +
+    window.location.replace('/login.html?next=' +
       encodeURIComponent(window.location.pathname));
   }
   const r = await getRole();

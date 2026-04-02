@@ -4,9 +4,9 @@
     <script type="module">
       import { getSession, getRole } from '/js/auth-manager.js';
       const s = await getSession();
-      if (!s?.data) window.location.replace('/auth.html');
+      if (!s?.data?.user) window.location.replace('/login.html');
       const r = await getRole();
-      if (r?.data !== 'superadmin') window.location.replace('/auth.html');
+      if (r?.data !== 'superadmin') window.location.replace('/login.html');
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -379,10 +379,7 @@
 
     window.addEventListener('load', async function () {
         try {
-            await MasterVIP.init();
-            try {
-                SESSION.verificarAlCargar('superadmin');
-            } catch (e) {}
+            if (typeof MasterVIP !== 'undefined') await MasterVIP.init();
         } catch (e) {
             console.warn('[admin] init', e);
         }

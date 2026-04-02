@@ -77,10 +77,10 @@ export async function requireAuth() {
   try {
     const { data, error } = await getSession();
     if (error || !data) {
-      window.location.href = '/auth.html';
+      window.location.href = '/login.html';
     }
   } catch (e) {
-    window.location.href = '/auth.html';
+    window.location.href = '/login.html';
   }
 }
 
@@ -115,7 +115,7 @@ export async function signUp(email, password, clubId) {
 export async function requestPasswordReset(email) {
   try {
     const { data, error } = await supabase.auth.resetPasswordForEmail(String(email || '').trim(), {
-      redirectTo: window.location.origin + '/auth.html'
+      redirectTo: window.location.origin + '/reset-password.html'
     });
     return wrap(data, error);
   } catch (e) {
