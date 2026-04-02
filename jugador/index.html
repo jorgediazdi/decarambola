@@ -11,13 +11,19 @@
         window.location.replace('/login.html?next=' + next);
       } else {
         const r = await getRole();
-        const rol = String(r?.data || '').trim();
-        if (rol === 'organizador') {
-          window.location.replace('/apps/organizador/organizador.html');
-        } else if (rol === 'club_admin') {
-          window.location.replace('/apps/club/club.html');
-        } else if (rol === 'superadmin') {
-          window.location.replace('/admin/index.html');
+        // getRole() → { data: string, error } (auth-manager.js): data es String(profiles.role)
+        // o 'jugador' si role es null/vacío. Valores reales en DB: jugador | organizador | club_admin | superadmin (minúsculas).
+        if (r?.error) {
+          /* sin lectura de rol fiable: no redirigir por rol */
+        } else {
+          const rol = String(r?.data ?? '').trim().toLowerCase();
+          if (rol === 'organizador') {
+            window.location.replace('/apps/organizador/organizador.html');
+          } else if (rol === 'club_admin') {
+            window.location.replace('/apps/club/club.html');
+          } else if (rol === 'superadmin') {
+            window.location.replace('/admin/index.html');
+          }
         }
       }
     </script>
