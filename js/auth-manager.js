@@ -88,10 +88,10 @@ export async function requireRole(role) {
   try {
     const r = await getRole();
     if (r.error || !r.data || r.data !== role) {
-      window.location.href = '/auth.html';
+      window.location.href = '/login.html';
     }
   } catch (e) {
-    window.location.href = '/auth.html';
+    window.location.href = '/login.html';
   }
 }
 
