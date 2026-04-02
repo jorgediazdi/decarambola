@@ -2,31 +2,24 @@
 <html lang="es">
 <head>
     <script type="module">
-      import { getSession, getRole } from '/js/auth-manager.js';
+      import { supabase } from '/js/supabase-client.js';
       document.body.style.visibility = 'hidden';
-      const s = await getSession();
-      if (!s?.data?.user) {
-        const next = encodeURIComponent(
-          (window.location.pathname || '') + (window.location.search || '')
-        );
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
         window.location.replace('/login.html?next=' + next);
       } else {
-        const r = await getRole();
-        // getRole() → { data: string, error } (auth-manager.js): data es String(profiles.role)
-        // o 'jugador' si role es null/vacío. Valores reales en DB: jugador | organizador | club_admin | superadmin (minúsculas).
-        if (r?.error) {
-          document.body.style.visibility = 'visible';
+        const uid = session.user.id;
+        const { data: p } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
+        const rol = String(p?.role ?? '').trim().toLowerCase();
+        if (rol === 'organizador') {
+          window.location.replace('/apps/organizador/organizador.html');
+        } else if (rol === 'club_admin') {
+          window.location.replace('/apps/club/club.html');
+        } else if (rol === 'superadmin') {
+          window.location.replace('/admin/index.html');
         } else {
-          const rol = String(r?.data ?? '').trim().toLowerCase();
-          if (rol === 'organizador') {
-            window.location.replace('/apps/organizador/organizador.html');
-          } else if (rol === 'club_admin') {
-            window.location.replace('/apps/club/club.html');
-          } else if (rol === 'superadmin') {
-            window.location.replace('/admin/index.html');
-          } else {
-            document.body.style.visibility = 'visible';
-          }
+          document.body.style.visibility = 'visible';
         }
       }
     </script>
