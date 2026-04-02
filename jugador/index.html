@@ -2,964 +2,544 @@
 <html lang="es">
 <head>
     <script type="module">
-  import { getSession, getRole } from '/js/auth-manager.js';
-  const s = await getSession();
-  if (!s?.data?.user) {
-    const next = encodeURIComponent(
-      (window.location.pathname || '') + (window.location.search || '')
-    );
-    window.location.replace('/login.html?next=' + next);
-  } else {
-    const r = await getRole();
-    const rol = String(r?.data || '').trim();
-    if (rol === 'organizador') {
-      window.location.replace('/apps/organizador/organizador.html');
-    } else if (rol === 'club_admin') {
-      window.location.replace('/apps/club/club.html');
-    } else if (rol === 'superadmin') {
-      window.location.replace('/admin/index.html');
-    }
+      import { getSession, getRole } from '/js/auth-manager.js';
+      const s = await getSession();
+      if (!s?.data?.user) {
+        const next = encodeURIComponent(
+          (window.location.pathname || '') + (window.location.search || '')
+        );
+        window.location.replace('/login.html?next=' + next);
+      } else {
+        const r = await getRole();
+        const rol = String(r?.data || '').trim();
+        if (rol === 'organizador') {
+          window.location.replace('/apps/organizador/organizador.html');
+        } else if (rol === 'club_admin') {
+          window.location.replace('/apps/club/club.html');
+        } else if (rol === 'superadmin') {
+          window.location.replace('/admin/index.html');
+        }
+      }
+    </script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>DeCarambola — Jugador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/css/index-v2.css" />
+<link rel="stylesheet" href="/css/dc-system.css" />
+<style>
+  :root {
+    --dc-bg:           #0a0a0a;
+    --dc-surface:      #111111;
+    --dc-border:       rgba(201,168,76,0.12);
+    --dc-border-hover: rgba(201,168,76,0.32);
+    --dc-gold:         #c9a84c;
+    --dc-gold-dim:     rgba(201,168,76,0.50);
+    --dc-gold-glow:    rgba(201,168,76,0.07);
+    --dc-text:         #f0f0f0;
+    --dc-muted:        #888888;
+    --dc-subtle:       #4a4a4a;
+    --dc-font:         "DM Sans", sans-serif;
+    --dc-display:      "Playfair Display", Georgia, serif;
+    --dc-blue:         #5dade2;
+    --dc-blue-bg:      rgba(52,152,219,0.09);
+    --dc-green:        #27ae60;
+    --dc-red:          #e74c3c;
+    --r:               18px;
+    --r-sm:            12px;
+    --safe-b:          env(safe-area-inset-bottom, 0px);
   }
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#c9a84c">
-    <meta name="description" content="App jugador DeCarambola — partida, perfil, torneos">
-    <title>App jugador — DeCarambola</title>
-    <link rel="stylesheet" href="/css/dc-system.css">
-    <script src="/js/dc-nav.js" defer></script>
-    <link rel="stylesheet" href="/css/ux-shell.css">
-    <link rel="stylesheet" href="/css/bottom-nav.css">
-    <style>
-        /* App jugador — dc-system (dorado único, sin neón/azul/rojo de acento) */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body.dc-app.dc-ux.dc-ux-skin.jugador-hub {
-            font-family: var(--dc-font-body, "DM Sans", system-ui, sans-serif) !important;
-        }
-        #stars-bg.stars,
-        .stars#stars-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            background: radial-gradient(ellipse at 50% 0%, #12100a 0%, var(--dc-bg, #0a0a0a) 70%);
-        }
-        body.dc-ux-skin .star {
-            position: absolute;
-            background: #fff;
-            border-radius: 50%;
-            animation: twinkle 3s infinite alternate;
-        }
-        @keyframes twinkle {
-            0% { opacity: 0.1; }
-            100% { opacity: 0.7; }
-        }
-        .jug-hub-wrap {
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 0 18px 40px;
-            position: relative;
-            z-index: 12;
-        }
-        .hdr-top-nav {
-            width: 100%;
-            background: var(--dc-bg, #0a0a0a);
-            border-bottom: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-            padding: 12px 16px;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-        .jug-club-brand {
-            display: none;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 16px;
-            margin-bottom: 16px;
-            border-radius: 16px;
-            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-            background: var(--dc-surface, #111111);
-        }
-        .jug-club-brand img {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            object-fit: contain;
-            background: var(--dc-surface, #111111);
-            border: 2px solid var(--dc-border-hover, rgba(201, 168, 76, 0.3));
-            flex-shrink: 0;
-        }
-        .jug-club-label {
-            font-size: 0.42rem;
-            color: var(--dc-text-subtle, #555);
-            letter-spacing: 0.18em;
-            display: block;
-            margin-bottom: 4px;
-        }
-        .jug-club-nombre {
-            font-size: 0.72rem;
-            color: var(--dc-gold, #c9a84c);
-            letter-spacing: 0.06em;
-        }
-        body.jugador-hub .jug-nav-fold {
-            border-color: var(--dc-border, rgba(201, 168, 76, 0.12));
-            background: var(--dc-surface, #111111);
-        }
-        body.jugador-hub .jug-nav-fold[open] > summary {
-            border-bottom-color: var(--dc-border, rgba(201, 168, 76, 0.12));
-            color: var(--dc-text-muted, #888);
-        }
-        .progreso-card {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: var(--dc-surface, #111111);
-            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-            border-radius: 16px;
-            padding: 14px 18px;
-            margin-bottom: 16px;
-        }
-        .progreso-top { width: 100%; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
-        .progreso-nombre { color: var(--dc-gold, #c9a84c); font-size: 0.8rem; letter-spacing: 1px; }
-        .progreso-meta { color: var(--dc-text-muted, #888); font-size: 0.5rem; }
-        .progreso-grid { width: 100%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        .progreso-kpi { background: var(--dc-surface2, #1a1a1a); border: 1px solid var(--dc-border, rgba(201,168,76,0.12)); border-radius: 12px; padding: 10px 12px; }
-        .progreso-kpi small { display: block; color: var(--dc-text-subtle, #555); font-size: 0.42rem; letter-spacing: 1px; }
-        .progreso-kpi b { color: var(--dc-text, #f0f0f0); font-size: 0.68rem; }
-        .progreso-bar-wrap { width: 100%; }
-        .progreso-bar-label { color: var(--dc-text-muted, #888); font-size: 0.45rem; margin-bottom: 4px; }
-        .progreso-bar-bg { width: 100%; height: 8px; border-radius: 999px; background: #1a1a1a; overflow: hidden; border: 1px solid rgba(201, 168, 76, 0.2); }
-        .progreso-bar { height: 100%; background: linear-gradient(90deg, #a07800, #d4af37); width: 60%; }
-        .perfil-card {
-            background: var(--dc-surface, #111111);
-            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-            border-radius: 16px;
-            padding: 14px 18px;
-            margin-bottom: 16px;
-        }
-        .perfil-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
-        .perfil-stat { background: var(--dc-surface2, #1a1a1a); border: 1px solid var(--dc-border, rgba(201,168,76,0.12)); border-radius: 12px; padding: 10px 12px; }
-        .perfil-stat small { display:block; color: var(--dc-text-subtle, #555); font-size: 0.42rem; letter-spacing: 1px; }
-        .perfil-stat b { color: var(--dc-text, #f0f0f0); font-size: 0.65rem; }
-        .bienvenida-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--dc-surface2, #1a1a1a);
-            border: 2px solid var(--dc-border-hover, rgba(201, 168, 76, 0.3));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-        .bienvenida-nombre {
-            color: var(--dc-gold, #c9a84c);
-            font-size: 0.85rem;
-            letter-spacing: 1px;
-            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
-        }
-        .bienvenida-sub {
-            color: var(--dc-text-muted, #888);
-            font-size: 0.4rem;
-            margin-top: 3px;
-        }
-        .seccion-label {
-            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
-            font-size: 0.6rem;
-            color: var(--dc-text-muted, #888);
-            letter-spacing: 3px;
-            margin-bottom: 10px;
-            padding-left: 4px;
-        }
-        .rapidas-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-        .rapida-btn {
-            border-radius: 16px;
-            padding: 16px 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.5rem;
-            letter-spacing: 1px;
-            font-weight: 600;
-            background: var(--dc-surface, #111111);
-            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-            color: var(--dc-gold, #c9a84c);
-        }
-        .rapida-btn:active {
-            transform: scale(0.95);
-            border-color: var(--dc-border-hover, rgba(201, 168, 76, 0.3));
-        }
-        .rapida-btn.r-neon,
-        .rapida-btn.r-oro,
-        .rapida-btn.r-rojo {
-            background: rgba(201, 168, 76, 0.06);
-            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-            color: var(--dc-gold, #c9a84c);
-        }
-        .rapida-btn.r-partida-activo {
-            background: rgba(52, 152, 219, 0.14);
-            border-color: rgba(52, 152, 219, 0.45);
-            color: #5dade2;
-        }
-        .menu-lista-item {
-            background: var(--dc-surface, #111111);
-            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-            border-radius: 16px;
-            padding: 15px 18px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-        }
-        .menu-lista-item:active {
-            transform: scale(0.98);
-            border-color: var(--dc-border-hover, rgba(201, 168, 76, 0.3));
-        }
-        .mli-icon { flex-shrink: 0; }
-        .mli-info { flex: 1; }
-        .mli-titulo {
-            font-size: 0.6rem;
-            color: #c9a84c;
-            letter-spacing: 1px;
-            margin-bottom: 3px;
-        }
-        .menu-lista-item .mli-titulo {
-            color: #c9a84c !important;
-        }
-        .mli-desc {
-            font-size: 0.6rem;
-            color: var(--dc-text-muted, #888);
-        }
-        .mli-arrow {
-            color: var(--dc-text-subtle, #555);
-            font-size: 0.9rem;
-        }
-        .ranking-mini {
-            background: var(--dc-surface, #111111);
-            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-            border-radius: 18px;
-            padding: 16px 18px;
-            margin-bottom: 10px;
-        }
-        .ranking-mini-titulo {
-            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
-            color: var(--dc-gold, #c9a84c);
-            font-size: 0.65rem;
-            letter-spacing: 2px;
-            margin-bottom: 12px;
-        }
-        .ranking-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 0;
-            border-bottom: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-        }
-        .ranking-row:last-child { border: none; }
-        .ranking-pos {
-            color: var(--dc-text-subtle, #555);
-            font-size: 0.6rem;
-            width: 16px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-        .ranking-nombre {
-            flex: 1;
-            color: var(--dc-text, #f0f0f0);
-            font-size: 0.55rem;
-        }
-        .ranking-cat {
-            color: var(--dc-text-muted, #888);
-            font-size: 0.38rem;
-            display: block;
-            margin-top: 2px;
-        }
-        .ranking-prom {
-            font-family: var(--dc-font-mono, "JetBrains Mono", monospace);
-            color: var(--dc-gold, #c9a84c);
-            font-size: 0.6rem;
-        }
-        .pendientes-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px; }
-        .pendiente-card {
-            background: var(--dc-surface, #111111);
-            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-            border-radius: 16px;
-            padding: 12px 14px;
-        }
-        .pendiente-card h4 { color: var(--dc-gold, #c9a84c); font-size: 0.6rem; margin-bottom: 8px; letter-spacing: 1px; }
-        .pendiente-lista { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-        .pendiente-lista li { color: var(--dc-text-muted, #888); font-size: 0.55rem; }
-        .historial-card {
-            background: var(--dc-surface, #111111);
-            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
-            border-radius: 16px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-        }
-        .historial-card h4 { color: var(--dc-gold, #c9a84c); font-size: 0.62rem; margin-bottom: 8px; letter-spacing: 1px; }
-        .historial-lista { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-        .historial-lista li { color: var(--dc-text-muted, #888); font-size: 0.55rem; }
-    </style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--dc-bg);
+    color: var(--dc-text);
+    font-family: var(--dc-font);
+    font-size: 14px;
+    min-height: 100vh;
+    overscroll-behavior-y: contain;
+    -webkit-font-smoothing: antialiased;
+  }
+  #stars { position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(1px 1px at 12% 18%, rgba(201,168,76,.30) 0%,transparent 100%),
+      radial-gradient(1px 1px at 70% 7%,  rgba(201,168,76,.22) 0%,transparent 100%),
+      radial-gradient(1px 1px at 88% 32%, rgba(201,168,76,.18) 0%,transparent 100%),
+      radial-gradient(1px 1px at 28% 58%, rgba(201,168,76,.14) 0%,transparent 100%),
+      radial-gradient(1px 1px at 52% 80%, rgba(201,168,76,.16) 0%,transparent 100%),
+      radial-gradient(1px 1px at 4%  88%, rgba(201,168,76,.10) 0%,transparent 100%); }
+  .wrap { position:relative;z-index:1;max-width:420px;margin:0 auto;padding:0 16px calc(80px + var(--safe-b)) 16px; }
+  .hdr { display:flex;align-items:center;justify-content:space-between;padding:16px 0 10px; }
+  .hdr-left { display:flex;flex-direction:column;gap:2px; }
+  .hdr-titulo { font-family:var(--dc-display);font-size:1.05rem;color:var(--dc-gold);letter-spacing:.4px;line-height:1; }
+  .hdr-sub { font-size:.55rem;color:var(--dc-subtle);letter-spacing:2px;text-transform:uppercase; }
+  .hdr-avatar { width:36px;height:36px;border-radius:50%;background:var(--dc-gold-glow);border:1.5px solid var(--dc-border);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--dc-gold);font-weight:600;cursor:pointer;transition:border-color .2s;flex-shrink:0; }
+  .hdr-avatar:active { border-color:var(--dc-gold); }
+  .hero { background:#0f0f0b;border:1px solid var(--dc-border);border-radius:var(--r);padding:18px 18px 16px;margin:4px 0 12px;position:relative;overflow:hidden; }
+  .hero::after { content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.06) 0%,transparent 70%); }
+  .hero-top { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px; }
+  .hero-nombre { font-family:var(--dc-display);font-size:1.25rem;color:var(--dc-text);line-height:1.2; }
+  .hero-nombre em { font-style:normal;color:var(--dc-gold); }
+  .hero-meta { font-size:.58rem;color:var(--dc-muted);letter-spacing:1.2px;text-transform:uppercase;margin-top:5px; }
+  .hero-prom { background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.22);border-radius:10px;padding:7px 11px;text-align:center;flex-shrink:0; }
+  .hero-prom-val { font-size:1.35rem;font-weight:600;color:var(--dc-gold);line-height:1; }
+  .hero-prom-lbl { font-size:.44rem;color:var(--dc-subtle);letter-spacing:1px;text-transform:uppercase;margin-top:3px; }
+  .nivel-labels { display:flex;justify-content:space-between;font-size:.52rem;color:var(--dc-subtle);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px; }
+  .nivel-bg { background:rgba(255,255,255,.05);border-radius:4px;height:3px;overflow:hidden; }
+  .nivel-fill { height:100%;background:var(--dc-gold);border-radius:4px;transition:width .9s ease;width:0%; }
+  .sin-sesion { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r);padding:32px 24px;text-align:center;margin:12px 0;display:none; }
+  .sin-sesion.show { display:block; }
+  .ss-icono { display:flex;justify-content:center;margin-bottom:14px;color:var(--dc-gold);opacity:.7; }
+  .ss-titulo { font-family:var(--dc-display);font-size:1.1rem;color:var(--dc-gold);margin-bottom:8px; }
+  .ss-desc { font-size:.62rem;color:var(--dc-muted);line-height:1.6;margin-bottom:20px; }
+  .ss-btn { display:inline-block;background:rgba(201,168,76,.10);border:1px solid rgba(201,168,76,.30);color:var(--dc-gold);border-radius:10px;padding:11px 28px;font-size:.6rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:var(--dc-font);text-decoration:none; }
+  .partida-activa { background:var(--dc-blue-bg);border:1px solid rgba(52,152,219,.28);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:none; }
+  .partida-activa.show { display:block; }
+  .pa-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:10px; }
+  .pa-lbl { font-size:.55rem;color:var(--dc-blue);letter-spacing:1.5px;text-transform:uppercase;font-weight:600; }
+  .pa-dot { width:6px;height:6px;border-radius:50%;background:var(--dc-blue);animation:pulso 1.4s ease-in-out infinite; }
+  @keyframes pulso { 0%,100%{opacity:1}50%{opacity:.25} }
+  .pa-body { display:flex;align-items:center;gap:12px; }
+  .pa-info { flex:1; }
+  .pa-rival { font-size:.68rem;color:var(--dc-text);font-weight:500; }
+  .pa-mesa { font-size:.52rem;color:var(--dc-muted);margin-top:2px; }
+  .pa-score { font-size:1.4rem;font-weight:700;color:var(--dc-blue);flex-shrink:0; }
+  .pa-btn { display:block;width:100%;background:rgba(52,152,219,.12);border:1px solid rgba(52,152,219,.35);color:var(--dc-blue);border-radius:var(--r-sm);padding:9px;font-size:.56rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;text-decoration:none;text-align:center;font-family:var(--dc-font);margin-top:10px; }
+  .kpi-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px; }
+  .kpi { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r-sm);padding:12px 8px;text-align:center; }
+  .kpi-val { font-size:1.3rem;font-weight:600;color:var(--dc-gold);line-height:1;margin-bottom:4px; }
+  .kpi-val.g { color:var(--dc-green); }
+  .kpi-val.b { color:var(--dc-blue); }
+  .kpi-lbl { font-size:.5rem;color:var(--dc-subtle);letter-spacing:1.2px;text-transform:uppercase; }
+  .sec { font-family:var(--dc-display);font-size:.6rem;color:var(--dc-gold-dim);letter-spacing:2.5px;text-transform:uppercase;margin:16px 0 9px; }
+  .acc-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px; }
+  .acc { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r-sm);padding:14px 6px 11px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:border-color .18s,background .18s;text-decoration:none;-webkit-tap-highlight-color:transparent;color:var(--dc-gold); }
+  .acc:active { transform:scale(.95);border-color:var(--dc-border-hover);background:rgba(201,168,76,.05); }
+  .acc.activo { background:var(--dc-blue-bg);border-color:rgba(52,152,219,.38);color:var(--dc-blue); }
+  .acc-lbl { font-size:.46rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;text-align:center; }
+  .nav-lista { display:flex;flex-direction:column;gap:8px;margin-bottom:12px; }
+  .nav-item { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r);padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .18s;text-decoration:none;-webkit-tap-highlight-color:transparent; }
+  .nav-item:active { transform:scale(.98);border-color:var(--dc-border-hover); }
+  .nav-ico { width:34px;height:34px;border-radius:10px;background:var(--dc-gold-glow);border:1px solid var(--dc-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--dc-gold); }
+  .nav-info { flex:1; }
+  .nav-titulo { font-size:.62rem;color:var(--dc-gold);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:3px; }
+  .nav-desc { font-size:.56rem;color:var(--dc-muted); }
+  .nav-arrow { color:var(--dc-subtle);font-size:.9rem; }
+  .nav-badge { background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.22);border-radius:10px;padding:3px 8px;font-size:.5rem;color:var(--dc-gold);font-weight:600;display:none; }
+  .nav-badge.show { display:block; }
+  .nav-badge.azul { background:var(--dc-blue-bg);border-color:rgba(52,152,219,.30);color:var(--dc-blue); }
+  .rank-card { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r);padding:15px 16px;margin-bottom:12px; }
+  .rank-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:13px; }
+  .rank-titulo { font-family:var(--dc-display);font-size:.68rem;color:var(--dc-gold);letter-spacing:2px;text-transform:uppercase; }
+  .rank-link { font-size:.52rem;color:var(--dc-subtle);letter-spacing:1px;text-transform:uppercase;text-decoration:none; }
+  .rank-row { display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--dc-border); }
+  .rank-row:last-child { border:none;padding-bottom:0; }
+  .rank-pos { font-size:.58rem;color:var(--dc-subtle);width:16px;text-align:center;flex-shrink:0;font-weight:600; }
+  .rank-pos.or { color:#f0c040; }
+  .rank-pos.pl { color:#aaa; }
+  .rank-pos.br { color:#cd7f32; }
+  .rank-av { width:26px;height:26px;border-radius:50%;background:var(--dc-gold-glow);border:1px solid var(--dc-border);display:flex;align-items:center;justify-content:center;font-size:.52rem;color:var(--dc-gold);font-weight:600;flex-shrink:0; }
+  .rank-av.yo { background:rgba(201,168,76,.16);border-color:rgba(201,168,76,.42); }
+  .rank-nombre { flex:1;font-size:.58rem;color:var(--dc-text); }
+  .rank-cat { font-size:.44rem;color:var(--dc-subtle);display:block;margin-top:2px; }
+  .yo-tag { font-size:.42rem;color:var(--dc-gold);background:rgba(201,168,76,.10);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle; }
+  .rank-prom { font-size:.6rem;color:var(--dc-gold);font-weight:600;flex-shrink:0; }
+  .hist-card { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r);padding:15px 16px;margin-bottom:12px; }
+  .hist-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:12px; }
+  .hist-titulo { font-family:var(--dc-display);font-size:.68rem;color:var(--dc-gold);letter-spacing:2px;text-transform:uppercase; }
+  .hist-row { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--dc-border); }
+  .hist-row:last-child { border:none;padding-bottom:0; }
+  .hist-res { width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:700;letter-spacing:.5px;flex-shrink:0; }
+  .hist-res.W { background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.28);color:var(--dc-green); }
+  .hist-res.L { background:rgba(231,76,60,.10);border:1px solid rgba(231,76,60,.22);color:var(--dc-red); }
+  .hist-res.E { background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.20);color:var(--dc-gold); }
+  .hist-info { flex:1; }
+  .hist-rival { font-size:.58rem;color:var(--dc-text);font-weight:500; }
+  .hist-fecha { font-size:.48rem;color:var(--dc-subtle);margin-top:2px; }
+  .hist-score { font-size:.62rem;color:var(--dc-muted);font-weight:600;flex-shrink:0; }
+  .bnav { position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--dc-border);display:flex;padding:8px 0 calc(8px + var(--safe-b)) 0;z-index:100; }
+  .bn { flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;text-decoration:none;-webkit-tap-highlight-color:transparent;padding:5px 4px;transition:opacity .18s;color:var(--dc-subtle); }
+  .bn:active { opacity:.5; }
+  .bn.on { color:var(--dc-gold); }
+  .bn-lbl { font-size:.44rem;letter-spacing:1px;text-transform:uppercase;font-weight:600; }
+  .reveal { animation:fadeUp .38s ease both; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none} }
+  .sk { background:linear-gradient(90deg,#1a1a1a 25%,#222 50%,#1a1a1a 75%);background-size:200% 100%;animation:shim 1.4s infinite;border-radius:6px;display:inline-block; }
+  @keyframes shim { 0%{background-position:200% 0}100%{background-position:-200% 0} }
+  .hidden { display:none!important; }
+</style>
 </head>
-<body class="dc-app dc-ux dc-ux-skin m-root-legacy jugador-hub">
-    <div class="stars" id="stars-bg" aria-hidden="true"></div>
+<body>
+<div id="stars" aria-hidden="true"></div>
+<div class="wrap reveal">
 
-    <div class="jug-hub-wrap dc-reveal">
-        <div class="jug-club-brand" id="jugador-club-brand" style="display: none">
-            <img id="wl-jugador-logo" alt="" />
-            <div>
-                <span class="jug-club-label">TU CLUB (AFILIACIÓN)</span>
-                <span id="wl-jugador-nombre" class="jug-club-nombre"></span>
-            </div>
-        </div>
-
-        <div class="progreso-card">
-            <div class="progreso-top">
-                <div>
-                    <div class="progreso-nombre" id="prog-nombre">INVITADO</div>
-                    <div class="progreso-meta" id="prog-nivel">Nivel — · Categoría —</div>
-                </div>
-                <button id="btn-identificar" type="button" onclick="mostrarFormIdentificacion()" style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: #c9a84c; border-radius: 12px; padding: 8px 14px; font-size: 0.45rem; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; cursor: pointer; flex-shrink: 0;">ENTRAR</button>
-                <button id="btn-salir" type="button" onclick="cerrarSesionJugador()" style="display: none; background: rgba(231, 76, 60, 0.08); border: 1px solid rgba(231, 76, 60, 0.2); color: #e74c3c; border-radius: 12px; padding: 8px 14px; font-size: 0.45rem; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; cursor: pointer; flex-shrink: 0;">SALIR</button>
-            </div>
-            <div class="progreso-grid">
-                <div class="progreso-kpi"><small>Promedio actual</small><b id="prog-promedio">0.000</b></div>
-                <div class="progreso-kpi"><small>Posición ranking</small><b id="prog-ranking">—</b></div>
-            </div>
-            <div class="progreso-bar-wrap">
-                <div class="progreso-bar-label">Progreso al siguiente nivel · <span id="prog-pct">60%</span></div>
-                <div class="progreso-bar-bg"><div class="progreso-bar" id="prog-bar"></div></div>
-            </div>
-        </div>
-
-        <div
-            id="form-identificacion"
-            style="display: none; background: #0a0a0a; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 18px; padding: 20px; margin-bottom: 16px"
-        >
-            <div style="color: #c9a84c; font-size: 0.5rem; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Arial Black', sans-serif">🟡 IDENTIFICACIÓN DEL JUGADOR</div>
-            <div style="color: #555; font-size: 0.5rem; letter-spacing: 1px; margin-bottom: 6px">CÉDULA O PASAPORTE</div>
-            <input
-                id="inp-cedula"
-                type="text"
-                placeholder="Ej: 1234567890"
-                style="
-                    width: 100%;
-                    background: transparent;
-                    border: none;
-                    border-bottom: 1px solid #333;
-                    color: #fff;
-                    font-family: 'Courier New', monospace;
-                    font-size: 1.2rem;
-                    padding: 8px 0;
-                    outline: none;
-                    letter-spacing: 3px;
-                    text-align: center;
-                    box-sizing: border-box;
-                "
-                oninput="this.value=this.value.replace(/[^0-9A-Za-z]/g,'')"
-                onkeydown="if(event.key==='Enter') buscarJugadorPorCedula()"
-            />
-            <div style="color: #333; font-size: 0.4rem; margin-top: 6px; text-align: center">Extranjeros ingresan número de pasaporte</div>
-            <div style="display: flex; gap: 10px; margin-top: 14px">
-                <button
-                    type="button"
-                    onclick="buscarJugadorPorCedula()"
-                    style="
-                        flex: 1;
-                        padding: 12px;
-                        background: rgba(212, 175, 55, 0.15);
-                        border: 1px solid rgba(212, 175, 55, 0.4);
-                        color: #c9a84c;
-                        border-radius: 14px;
-                        font-size: 0.5rem;
-                        font-family: 'Arial Black', sans-serif;
-                        letter-spacing: 2px;
-                        cursor: pointer;
-                    "
-                >
-                    ENTRAR &#8594;
-                </button>
-                <button
-                    type="button"
-                    onclick="document.getElementById('form-identificacion').style.display='none'"
-                    style="padding: 12px 16px; background: #111; border: 1px solid #222; color: #555; border-radius: 14px; font-size: 0.5rem; cursor: pointer; letter-spacing: 1px"
-                >
-                    CANCELAR
-                </button>
-            </div>
-            <div id="msg-cedula" style="margin-top: 10px; font-size: 0.48rem; text-align: center; letter-spacing: 1px; display: none"></div>
-            <button
-                id="btn-registrar-nuevo"
-                type="button"
-                onclick="registrarNuevoJugador()"
-                style="
-                    display: none;
-                    width: 100%;
-                    margin-top: 10px;
-                    padding: 12px;
-                    background: rgba(52, 152, 219, 0.15);
-                    border: 1px solid rgba(52, 152, 219, 0.4);
-                    color: #3498db;
-                    border-radius: 14px;
-                    font-size: 0.5rem;
-                    font-family: 'Arial Black', sans-serif;
-                    letter-spacing: 2px;
-                    cursor: pointer;
-                "
-            >
-                ✚ REGISTRARME COMO NUEVO JUGADOR
-            </button>
-        </div>
-
-        <div class="seccion-label">⚡ ACCIONES RÁPIDAS</div>
-        <div class="rapidas-grid">
-            <a href="/reto_crear.html" class="rapida-btn r-neon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <circle cx="7" cy="7" r="3" />
-                    <circle cx="17" cy="17" r="3" />
-                    <line x1="7" y1="10" x2="17" y2="14" />
-                </svg>
-                CREAR RETO
-            </a>
-            <a href="/mi_partida.html" class="rapida-btn r-neon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 8v4l3 3" />
-                </svg>
-                ENTRENAMIENTO
-            </a>
-            <a href="/apps/club/sala/reservas_jugador.html" class="rapida-btn r-oro">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-                RESERVAR MESA
-            </a>
-            <a href="/torneo_amigos.html" class="rapida-btn r-oro">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                TORNEO CASUAL
-            </a>
-            <a href="/ranking.html" class="rapida-btn r-oro">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <line x1="6" y1="20" x2="6" y2="10" />
-                    <line x1="12" y1="20" x2="12" y2="6" />
-                    <line x1="18" y1="20" x2="18" y2="13" />
-                </svg>
-                MI RANKING
-            </a>
-            <a href="/duelo-tv.html?modo=movil" id="rapida-mi-partida" class="rapida-btn r-neon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <path d="M4 5h16v14H4z" />
-                    <path d="M4 9h16" />
-                </svg>
-                <span id="rapida-mi-partida-lbl">MI PARTIDA</span>
-            </a>
-        </div>
-
-        <div class="seccion-label" style="margin-top: 18px">⏳ PENDIENTES</div>
-        <div class="pendientes-grid">
-            <div class="pendiente-card">
-                <h4>Retos recibidos</h4>
-                <ul id="pendientes-retos" class="pendiente-lista"><li>Sin retos pendientes.</li></ul>
-            </div>
-            <div class="pendiente-card">
-                <h4>Torneos abiertos</h4>
-                <ul id="pendientes-torneos" class="pendiente-lista"><li>Sin torneos abiertos.</li></ul>
-            </div>
-        </div>
-
-        <div class="seccion-label" id="sec-perfil" style="margin-top: 18px">👤 MI PERFIL</div>
-        <div class="perfil-card" id="bienvenida-box">
-            <div class="bienvenida">
-                <div class="bienvenida-avatar" id="jug-avatar">&#128100;</div>
-                <div style="flex: 1">
-                    <div class="bienvenida-nombre" id="jug-nombre">INVITADO</div>
-                    <div class="bienvenida-sub" id="jug-sub">Identifícate para acceder a tu perfil</div>
-                </div>
-                <a href="/perfil.html" class="rapida-btn r-oro" style="padding:10px 12px; font-size:0.45rem;">EDITAR</a>
-            </div>
-            <div class="perfil-stats">
-                <div class="perfil-stat"><small>Promedio</small><b id="stat-promedio">0.000</b></div>
-                <div class="perfil-stat"><small>Ranking</small><b id="stat-ranking">—</b></div>
-                <div class="perfil-stat"><small>Duelos jugados</small><b id="stat-duelos">0</b></div>
-                <div class="perfil-stat"><small>Torneos</small><b id="stat-torneos">0</b></div>
-            </div>
-        </div>
-
-        <div class="seccion-label" style="margin-top: 18px">🕒 ÚLTIMAS 20 PARTIDAS</div>
-        <div class="historial-card">
-            <h4>Historial reciente</h4>
-            <ul id="ultimas-partidas-list" class="historial-lista">
-                <li>Sin partidas registradas.</li>
-            </ul>
-            <a href="/historial.html" class="menu-lista-item" style="margin-bottom:0;">
-                <span class="mli-icon">📊</span>
-                <div class="mli-info">
-                    <div class="mli-titulo">VER TODO</div>
-                    <div class="mli-desc">Historial completo</div>
-                </div>
-                <span class="mli-arrow">›</span>
-            </a>
-        </div>
+  <header class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-titulo">DeCarambola</div>
+      <div class="hdr-sub">Sensei Billar</div>
     </div>
+    <div class="hdr-avatar" id="btn-avatar"><span id="hdr-ini">?</span></div>
+  </header>
 
-    <script src="/Version.js"></script>
-    <script src="/core.js"></script>
-    <script src="/session.js"></script>
-    <script src="/whitelabel.js"></script>
-    <script>
-        (function () {
-            var bg = document.getElementById('stars-bg');
-            if (!bg) return;
-            for (var i = 0; i < 80; i++) {
-                var s = document.createElement('div');
-                s.className = 'star';
-                var sz = Math.random() * 2 + 0.5;
-                s.style.cssText =
-                    'width:' +
-                    sz +
-                    'px;height:' +
-                    sz +
-                    'px;top:' +
-                    Math.random() * 100 +
-                    '%;left:' +
-                    Math.random() * 100 +
-                    '%;animation-delay:' +
-                    Math.random() * 3 +
-                    's;animation-duration:' +
-                    (2 + Math.random() * 3) +
-                    's;';
-                bg.appendChild(s);
-            }
-        })();
+  <div class="partida-activa" id="card-partida">
+    <div class="pa-head">
+      <span class="pa-lbl">Partida en curso</span>
+      <div class="pa-dot"></div>
+    </div>
+    <div class="pa-body">
+      <div class="pa-info">
+        <div class="pa-rival" id="pa-rival">vs —</div>
+        <div class="pa-mesa"  id="pa-mesa">Mesa —</div>
+      </div>
+      <div class="pa-score" id="pa-score">0 - 0</div>
+    </div>
+    <a href="/jugador/partida.html" class="pa-btn">Continuar partida</a>
+  </div>
 
-        async function buscarJugadorPorCedula() {
-            var cedula = (document.getElementById('inp-cedula').value || '').trim();
-            if (!cedula || cedula.length < 5) {
-                mostrarMsgCedula('Ingresa una cédula válida', '#e74c3c');
-                return;
-            }
-            mostrarMsgCedula('Buscando...', '#d4af37');
-            try {
-                var jm = await import('/js/api/jugador-api.js');
-                var r = await jm.getJugadorByCedula(cedula);
-                if (r.error) throw r.error;
-                var jug = r.data;
-                if (jug) {
-                    localStorage.setItem('jugador_activo', JSON.stringify(jug));
-                    localStorage.setItem(
-                        'mi_perfil',
-                        JSON.stringify({
-                            nombre: jug.nombre,
-                            cedula: jug.cedula,
-                            promedio: jug.promedio || 0,
-                            club: jug.club_id,
-                            carambolas: jug.carambolas || 0,
-                            entradas: jug.entradas || 0
-                        })
-                    );
-                    document.getElementById('form-identificacion').style.display = 'none';
-                    await cargarDatosJugador();
-                    mostrarMsgCedula('', '#d4af37');
-                } else {
-                    mostrarMsgCedula('No encontrado. ¿Nuevo jugador?', '#3498db');
-                    document.getElementById('btn-registrar-nuevo').style.display = 'block';
-                }
-            } catch (e) {
-                var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-                if (perfil.cedula === cedula) {
-                    localStorage.setItem('jugador_activo', JSON.stringify(perfil));
-                    document.getElementById('form-identificacion').style.display = 'none';
-                    await cargarDatosJugador();
-                } else {
-                    mostrarMsgCedula('Sin conexión. Cédula no reconocida offline.', '#e74c3c');
-                }
-            }
-        }
+  <div class="hero" id="hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-nombre"><em id="h-nombre">Invitado</em></div>
+        <div class="hero-meta" id="h-meta">Categoría · Nivel —</div>
+      </div>
+      <div class="hero-prom">
+        <div class="hero-prom-val" id="h-prom">—</div>
+        <div class="hero-prom-lbl">Promedio</div>
+      </div>
+    </div>
+    <div class="nivel-labels">
+      <span id="h-cat">—</span>
+      <span id="h-pct">0%</span>
+    </div>
+    <div class="nivel-bg"><div class="nivel-fill" id="h-barra"></div></div>
+  </div>
 
-        function mostrarMsgCedula(txt, color) {
-            var el = document.getElementById('msg-cedula');
-            if (!el) return;
-            el.style.display = txt ? 'block' : 'none';
-            el.style.color = color || '#d4af37';
-            el.innerText = txt;
-        }
+  <div class="sin-sesion" id="sin-sesion">
+    <div class="ss-icono" id="ss-ico"></div>
+    <div class="ss-titulo">Identificate para jugar</div>
+    <div class="ss-desc">Inicia sesión para ver tu perfil, historial de partidas y posición en el ranking.</div>
+    <a href="/login.html" class="ss-btn">Iniciar sesión</a>
+  </div>
 
-        async function registrarNuevoJugador() {
-            var cedula = (document.getElementById('inp-cedula').value || '').trim();
-            var nombre = (prompt('Tu nombre completo:') || '').trim().toUpperCase();
-            if (!nombre) return;
-            var clubId = localStorage.getItem('wl_club_id') || null;
-            var nac = cedula.match(/^[0-9]+$/) ? 'CO' : 'EXT';
-            try {
-                var jm = await import('/js/api/jugador-api.js');
-                var r = await jm.insertJugador({
-                    nombre: nombre,
-                    cedula: cedula,
-                    club_id: clubId,
-                    nacionalidad: nac,
-                    promedio: 0,
-                    carambolas: 0,
-                    entradas: 0
-                });
-                if (r.error) throw r.error;
-                var jug = r.data;
-                if (!jug) throw new Error('Sin fila insertada');
-                localStorage.setItem('jugador_activo', JSON.stringify(jug));
-                localStorage.setItem('mi_perfil', JSON.stringify({ nombre: jug.nombre, cedula: jug.cedula, promedio: 0, club: clubId }));
-                document.getElementById('form-identificacion').style.display = 'none';
-                document.getElementById('btn-registrar-nuevo').style.display = 'none';
-                await cargarDatosJugador();
-            } catch (e) {
-                mostrarMsgCedula('Error al registrar. Intenta de nuevo.', '#e74c3c');
-            }
-        }
+  <div class="kpi-grid" id="kpis">
+    <div class="kpi"><div class="kpi-val"   id="k-partidas">—</div><div class="kpi-lbl">Partidas</div></div>
+    <div class="kpi"><div class="kpi-val g" id="k-victorias">—</div><div class="kpi-lbl">Victorias</div></div>
+    <div class="kpi"><div class="kpi-val b" id="k-torneos">—</div><div class="kpi-lbl">Torneos</div></div>
+  </div>
 
-        function cerrarSesionJugador() {
-            localStorage.removeItem('jugador_activo');
-            document.getElementById('jug-nombre').innerText = 'INVITADO';
-            document.getElementById('jug-sub').innerText = 'Identifícate para acceder a tu perfil';
-            document.getElementById('jug-avatar').innerText = '👤';
-            document.getElementById('btn-identificar').style.display = 'block';
-            document.getElementById('btn-salir').style.display = 'none';
-        }
+  <p class="sec">Acciones rápidas</p>
+  <div class="acc-grid">
+    <a href="/jugador/reserva.html" class="acc" id="acc-reservar">
+      <span id="ico-reservar"></span><span class="acc-lbl">Reservar</span>
+    </a>
+    <a href="/jugador/retos.html" class="acc" id="acc-retar">
+      <span id="ico-retar"></span><span class="acc-lbl">Retar</span>
+    </a>
+    <a href="/jugador/torneos.html" class="acc" id="acc-torneos">
+      <span id="ico-trofeo-acc"></span><span class="acc-lbl">Torneos</span>
+    </a>
+    <a href="/jugador/partida.html" class="acc" id="acc-jugar">
+      <span id="ico-jugar"></span><span class="acc-lbl">Jugar</span>
+    </a>
+  </div>
 
-        function mostrarFormIdentificacion() {
-            var u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
-            if (u && u.cedula) {
-                cerrarSesionJugador();
-                return;
-            }
-            document.getElementById('form-identificacion').style.display = 'block';
-            setTimeout(function () {
-                document.getElementById('inp-cedula').focus();
-            }, 100);
-        }
+  <p class="sec">Top del club</p>
+  <div class="rank-card">
+    <div class="rank-head">
+      <span class="rank-titulo">Ranking</span>
+      <a href="/jugador/ranking.html" class="rank-link">Ver todo →</a>
+    </div>
+    <div id="ranking-lista">
+      <div class="rank-row">
+        <span class="rank-pos">—</span>
+        <div class="rank-av"></div>
+        <div style="flex:1"><span class="sk" style="width:80px;height:10px"></span></div>
+        <span class="sk" style="width:30px;height:10px"></span>
+      </div>
+    </div>
+  </div>
 
-        async function cargarDatosJugador() {
-            if (!localStorage.getItem('jugador_activo')) {
-                try {
-                    var jm = await import('/js/api/jugador-api.js');
-                    var session = await import('/js/auth-manager.js');
-                    var s = await session.getSession();
-                    if (s?.data?.user?.id) {
-                        var r = await jm.getJugadorById(s.data.user.id);
-                        if (r?.data) {
-                            localStorage.setItem('jugador_activo', JSON.stringify(r.data));
-                        }
-                    }
-                } catch (e) {}
-            }
-            try {
-                var u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
-                if (u && u.nombre) {
-                    document.getElementById('jug-nombre').innerText = u.nombre;
-                    var cat = typeof MasterVIP !== 'undefined' ? MasterVIP.getCategoria(u.promedio || 0) : null;
-                    document.getElementById('jug-sub').innerText = cat
-                        ? cat.nombre + ' · PROMEDIO ' + (u.promedio || 0).toFixed(3)
-                        : 'Promedio: ' + (u.promedio || 0);
-                    document.getElementById('jug-avatar').innerText = cat ? cat.emoji : '🟡';
-                    document.getElementById('prog-nombre').innerText = u.nombre;
-                    document.getElementById('prog-nivel').innerText = 'Nivel ' + (u.nivel_num || 1) + ' · Categoría ' + (cat ? cat.nombre : 'Inicial');
-                    document.getElementById('prog-promedio').innerText = (u.promedio || 0).toFixed(3);
-                    document.getElementById('prog-ranking').innerText = u.ranking_pos != null ? ('#' + u.ranking_pos) : '—';
-                    document.getElementById('stat-promedio').innerText = (u.promedio || 0).toFixed(3);
-                    document.getElementById('stat-ranking').innerText = u.ranking_pos != null ? ('#' + u.ranking_pos) : '—';
-                    document.getElementById('stat-duelos').innerText = String(u.duelos_jugados || 0);
-                    document.getElementById('stat-torneos').innerText = String(u.torneos_jugados || 0);
-                    document.getElementById('btn-identificar').style.display = 'none';
-                    document.getElementById('btn-salir').style.display = 'block';
-                }
-            } catch (e) {}
-            cargarRetosPreview();
-            cargarPendientesTorneos();
-            cargarUltimasPartidas();
-        }
+  <p class="sec">Mi actividad</p>
+  <div class="nav-lista">
+    <a href="/jugador/historial.html" class="nav-item">
+      <div class="nav-ico" id="ico-historial"></div>
+      <div class="nav-info"><div class="nav-titulo">Historial de partidas</div><div class="nav-desc">Partidas registradas y estadísticas</div></div>
+      <span class="nav-arrow">›</span>
+    </a>
+    <a href="/jugador/torneos.html" class="nav-item">
+      <div class="nav-ico" id="ico-mis-torneos"></div>
+      <div class="nav-info"><div class="nav-titulo">Mis torneos</div><div class="nav-desc" id="nd-torneos">Inscripciones activas</div></div>
+      <span class="nav-badge azul" id="b-torneos">0</span>
+      <span class="nav-arrow">›</span>
+    </a>
+    <a href="/jugador/retos.html" class="nav-item">
+      <div class="nav-ico" id="ico-mis-retos"></div>
+      <div class="nav-info"><div class="nav-titulo">Retos pendientes</div><div class="nav-desc" id="nd-retos">Sin retos activos</div></div>
+      <span class="nav-badge" id="b-retos">0</span>
+      <span class="nav-arrow">›</span>
+    </a>
+    <a href="/jugador/reservas.html" class="nav-item">
+      <div class="nav-ico" id="ico-mis-reservas"></div>
+      <div class="nav-info"><div class="nav-titulo">Mis reservas</div><div class="nav-desc" id="nd-reservas">Sin reservas próximas</div></div>
+      <span class="nav-arrow">›</span>
+    </a>
+  </div>
 
-        function cargarRetosPreview() {
-            function clubIdJugador() {
-                var wl = localStorage.getItem('wl_club_id');
-                if (wl) return wl;
-                try {
-                    var p = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-                    if (p.club || p.club_id) return p.club || p.club_id;
-                } catch (e) {}
-                try {
-                    var u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
-                    if (u && (u.club_id || u.club)) return u.club_id || u.club;
-                } catch (e2) {}
-                return null;
-            }
-            function mapRetoRow(row) {
-                return {
-                    j1: row.j1 || row.retador_nombre || row.jugador_1 || '',
-                    j2: row.j2 || row.rival_nombre || row.jugador_2 || '',
-                    estado: row.estado,
-                    modalidad: row.modalidad || '3 Bandas',
-                    meta1: row.meta1 != null ? row.meta1 : row.meta,
-                    tipo_reto: (row.tipo_reto || row.tipo || 'directo').toLowerCase(),
-                    created_at: row.created_at || null
-                };
-            }
-            function pickUltimoReto(lista) {
-                if (!lista.length) return null;
-                var conFecha = lista.filter(function (x) { return x.created_at; });
-                if (conFecha.length) {
-                    conFecha.sort(function (a, b) {
-                        return new Date(b.created_at) - new Date(a.created_at);
-                    });
-                    return conFecha[0];
-                }
-                return lista[lista.length - 1];
-            }
-            function pintarRetosLista(lista) {
-                var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-                var miNombre = (perfil.nombre || '').toUpperCase();
-                var pendientes = lista.filter(function (r) {
-                    var st = String(r.estado || '').toUpperCase();
-                    var pend = st === 'PENDIENTE' || st === 'PENDING';
-                    var j2u = (r.j2 || '').toUpperCase();
-                    return pend && (j2u === miNombre || r.tipo_reto === 'abierto');
-                });
-                var ul = document.getElementById('pendientes-retos');
-                if (!ul) return;
-                if (!pendientes.length) {
-                    ul.innerHTML = '<li>Sin retos pendientes.</li>';
-                    return;
-                }
-                ul.innerHTML = pendientes
-                    .slice(0, 5)
-                    .map(function (r) {
-                        var ultimo = pickUltimoReto([r]) || r;
-                        return '<li>⚔️ ' + (ultimo.j1 || '?') + ' vs ' + (ultimo.j2 || 'ABIERTO') + ' · ' + (ultimo.modalidad || '3 Bandas') + '</li>';
-                    })
-                    .join('');
-            }
-            (async function () {
-                var cid = clubIdJugador();
-                if (cid) {
-                    try {
-                        var jm = await import('/js/api/jugador-api.js');
-                        var r = await jm.listRetosByClubId(cid, 100);
-                        if (!r.error && r.data && r.data.length) {
-                            pintarRetosLista(r.data.map(mapRetoRow));
-                            return;
-                        }
-                    } catch (e) {}
-                }
-                var retos = {};
-                try {
-                    retos = JSON.parse(localStorage.getItem('RETOS_PENDIENTES') || '{}');
-                } catch (e) {}
-                pintarRetosLista(Object.values(retos));
-            })();
-        }
+  <p class="sec">Últimas partidas</p>
+  <div class="hist-card">
+    <div class="hist-head">
+      <span class="hist-titulo">Recientes</span>
+      <a href="/jugador/historial.html" class="rank-link">Ver todo →</a>
+    </div>
+    <div id="historial">
+      <p style="font-size:.58rem;color:var(--dc-subtle);text-align:center;padding:14px 0">Cargando…</p>
+    </div>
+  </div>
 
-        async function cargarPendientesTorneos() {
-            var ul = document.getElementById('pendientes-torneos');
-            if (!ul) return;
-            ul.innerHTML = '<li>Cargando torneos...</li>';
-            try {
-                var api = await import('/js/api/torneo-api.js');
-                var r = await api.listTorneos();
-                if (r.error) throw r.error;
-                var list = (r.data || []).filter(function (t) {
-                    var st = String(t.estado || '').toUpperCase();
-                    return st !== 'FINALIZADO' && st !== 'CANCELADO' && st !== 'CERRADO';
-                });
-                if (!list.length) {
-                    ul.innerHTML = '<li>Sin torneos abiertos.</li>';
-                    return;
-                }
-                ul.innerHTML = list.slice(0, 5).map(function (t) {
-                    return '<li>🏆 ' + (t.nombre || 'Torneo') + ' · ' + (t.modalidad || '3 Bandas') + '</li>';
-                }).join('');
-            } catch (e) {
-                ul.innerHTML = '<li>Sin torneos abiertos.</li>';
-            }
-        }
+</div>
 
-        async function cargarUltimasPartidas() {
-            var ul = document.getElementById('ultimas-partidas-list');
-            if (!ul) return;
-            ul.innerHTML = '<li>Cargando historial...</li>';
-            try {
-                var u = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
-                if (!u || !u.id) {
-                    ul.innerHTML = '<li>Sin partidas registradas.</li>';
-                    return;
-                }
-                var jm = await import('/js/api/jugador-api.js');
-                var r = await jm.listPartidasPorJugador(u.id, 20);
-                if (r.error) throw r.error;
-                var list = r.data || [];
-                if (!list.length) {
-                    ul.innerHTML = '<li>Sin partidas registradas.</li>';
-                    return;
-                }
-                ul.innerHTML = list.map(function (p) {
-                    var prom = parseFloat(p.promedio || 0);
-                    var rival = p.rival_nombre || 'Entrenamiento';
-                    var fecha = p.created_at ? new Date(p.created_at).toLocaleDateString('es-CO') : '—';
-                    return '<li>' + fecha + ' · vs ' + rival + ' · Prom: ' + prom.toFixed(3) + '</li>';
-                }).join('');
-            } catch (e) {
-                ul.innerHTML = '<li>Sin partidas registradas.</li>';
-            }
-        }
+<nav class="bnav">
+  <a href="/jugador/index.html"   class="bn on"><span id="bni-inicio"></span><span class="bn-lbl">Inicio</span></a>
+  <a href="/jugador/torneos.html" class="bn"><span id="bni-torneos"></span><span class="bn-lbl">Torneos</span></a>
+  <a href="/jugador/ranking.html" class="bn"><span id="bni-ranking"></span><span class="bn-lbl">Ranking</span></a>
+  <a href="/jugador/retos.html"   class="bn"><span id="bni-retos"></span><span class="bn-lbl">Retos</span></a>
+  <a href="/jugador/perfil.html"  class="bn"><span id="bni-perfil"></span><span class="bn-lbl">Perfil</span></a>
+</nav>
 
-        function cargarRankingMini() {
-            function pintarRankingMini(lista) {
-                var medallas = ['🥇', '🥈', '🥉', '4', '5'];
-                var cat_fn =
-                    typeof MasterVIP !== 'undefined' ? MasterVIP.getCategoria.bind(MasterVIP) : function (p) { return { nombre: '' }; };
-                var el = document.getElementById('ranking-mini-lista');
-                if (!el) return;
-                el.innerHTML = lista
-                    .map(function (j, i) {
-                        return (
-                            '<div class="ranking-row">' +
-                            '<div class="ranking-pos">' +
-                            medallas[i] +
-                            '</div>' +
-                            '<div class="ranking-nombre">' +
-                            j.nombre +
-                            '<span class="ranking-cat">' +
-                            cat_fn(j.promedio).nombre +
-                            '</span></div>' +
-                            '<div class="ranking-prom">' +
-                            j.promedio.toFixed(3) +
-                            '</div></div>'
-                        );
-                    })
-                    .join('');
-            }
-            (async function () {
-                var club = localStorage.getItem('wl_club_id');
-                if (club) {
-                    try {
-                        var jm = await import('/js/api/jugador-api.js');
-                        var r = await jm.listRankingClubTop(club, 5);
-                        if (!r.error && r.data && r.data.length) {
-                            var lista = r.data
-                                .map(function (row) {
-                                    return {
-                                        nombre: row.nombre || row.jugador_nombre || row.jugador || '',
-                                        promedio: parseFloat(row.promedio) || 0
-                                    };
-                                })
-                                .filter(function (x) { return x.nombre; });
-                            if (lista.length) {
-                                pintarRankingMini(lista);
-                                return;
-                            }
-                        }
-                    } catch (e) {}
-                }
-                try {
-                    var h = JSON.parse(localStorage.getItem('ranking_historico_club') || '[]');
-                    if (!h.length) return;
-                    var map = {};
-                    h.forEach(function (r) {
-                        var n = r.nombre;
-                        if (!map[n]) map[n] = [];
-                        map[n].push(parseFloat(r.promedio) || 0);
-                    });
-                    var lista = Object.entries(map)
-                        .map(function (entry) {
-                            var n = entry[0];
-                            var ps = entry[1];
-                            return { nombre: n, promedio: ps.reduce(function (a, b) { return a + b; }, 0) / ps.length };
-                        })
-                        .sort(function (a, b) {
-                            return b.promedio - a.promedio;
-                        })
-                        .slice(0, 5);
-                    pintarRankingMini(lista);
-                } catch (e) {}
-            })();
-        }
+<script src="/js/dc-icons.js"></script>
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
 
-        function syncRapidaMiPartida() {
-            var a = document.getElementById('rapida-mi-partida');
-            var lbl = document.getElementById('rapida-mi-partida-lbl');
-            if (!a || !lbl) return;
-            var on = false;
-            try {
-                on = localStorage.getItem('dc_mipartida_activa') === '1';
-            } catch (e) {}
-            a.classList.toggle('r-partida-activo', on);
-            lbl.textContent = on ? 'PARTIDA EN CURSO' : 'MI PARTIDA';
-        }
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
-        window.addEventListener('storage', function (ev) {
-            if (ev.key === 'dc_mipartida_activa') syncRapidaMiPartida();
-        });
+function renderIcos() {
+  document.getElementById('ico-reservar').innerHTML     = IC.mesa(24);
+  document.getElementById('ico-retar').innerHTML        = IC.reto(24);
+  document.getElementById('ico-trofeo-acc').innerHTML   = IC.trofeo(24);
+  document.getElementById('ico-jugar').innerHTML        = IC.taco(24);
+  document.getElementById('ico-historial').innerHTML    = IC.tacoYbola(20);
+  document.getElementById('ico-mis-torneos').innerHTML  = IC.trofeo(20);
+  document.getElementById('ico-mis-retos').innerHTML    = IC.reto(20);
+  document.getElementById('ico-mis-reservas').innerHTML = IC.mesa(20);
+  document.getElementById('bni-inicio').innerHTML       = IC.taco(22);
+  document.getElementById('bni-torneos').innerHTML      = IC.trofeo(22);
+  document.getElementById('bni-ranking').innerHTML      = IC.ranking(22);
+  document.getElementById('bni-retos').innerHTML        = IC.reto(22);
+  document.getElementById('bni-perfil').innerHTML       = IC.perfil(22);
+  document.getElementById('ss-ico').innerHTML           = IC.tacoYbola(48);
+}
 
-        window.addEventListener('pageshow', function () {
-            syncRapidaMiPartida();
-        });
+async function init() {
+  renderIcos();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { sinSesion(); return; }
+  const uid = session.user.id;
+  await cargarPerfil(uid);
+  await Promise.all([cargarKPIs(uid), cargarRanking(uid), cargarHistorial(uid), cargarPendientes(uid), cargarPartidaActiva(uid)]);
+}
 
-        window.addEventListener('load', async function () {
-            try {
-                if (typeof MasterVIP !== 'undefined') MasterVIP.applyDesign?.();
-            } catch (e) {}
-            await cargarDatosJugador();
-            syncRapidaMiPartida();
-        });
-    </script>
+function sinSesion() {
+  document.getElementById('hero').style.display = 'none';
+  document.getElementById('kpis').style.display = 'none';
+  document.getElementById('sin-sesion').classList.add('show');
+}
 
-    <nav class="bottom-nav" aria-label="Navegación inferior">
-        <a class="bottom-nav__item bottom-nav__item--active" href="/index.html">
-            <span class="bottom-nav__icon">🏠</span>
-            <span>Inicio</span>
-        </a>
-        <a class="bottom-nav__item" href="/apps/organizador/torneos.html">
-            <span class="bottom-nav__icon">🏆</span>
-            <span>Torneos</span>
-        </a>
-        <a class="bottom-nav__item" href="/mi_partida.html">
-            <span class="bottom-nav__icon">🎱</span>
-            <span>Jugar</span>
-        </a>
-        <a class="bottom-nav__item" href="/ranking.html">
-            <span class="bottom-nav__icon">📊</span>
-            <span>Ranking</span>
-        </a>
-        <a class="bottom-nav__item" href="#sec-perfil">
-            <span class="bottom-nav__icon">👤</span>
-            <span>Perfil</span>
-        </a>
-    </nav>
+async function cargarPerfil(uid) {
+  const { data: p } = await supabase.from('profiles').select('nombre_completo, role').eq('id', uid).maybeSingle();
+  if (!p) return;
+  const role = p.role;
+  if (role && String(role).trim() && role !== 'jugador') {
+    window.location.href = '/login.html';
+    return;
+  }
+  const nombre = (p.nombre_completo && String(p.nombre_completo).trim()) || 'Jugador';
+  const parts = nombre.split(/\s+/).filter(Boolean);
+  const ini = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : (nombre.slice(0, 2).toUpperCase() || '?');
+  const hace7 = new Date();
+  hace7.setDate(hace7.getDate() - 7);
+  const partR = await supabase
+    .from('partidas')
+    .select('jugador1_id, jugador2_id, promedio_j1, promedio_j2')
+    .or(`jugador1_id.eq.${uid},jugador2_id.eq.${uid}`)
+    .gte('created_at', hace7.toISOString());
+  let prom = '—';
+  let sum = 0;
+  let cnt = 0;
+  const jugadas = partR.data && !partR.error ? partR.data.length : 0;
+  if (partR.data && !partR.error) {
+    partR.data.forEach(function (row) {
+      const esJ1 = row.jugador1_id === uid;
+      const pr = esJ1 ? row.promedio_j1 : row.promedio_j2;
+      if (pr != null && parseFloat(pr) > 0) {
+        sum += parseFloat(pr);
+        cnt++;
+      }
+    });
+    if (cnt > 0) prom = (sum / cnt).toFixed(2);
+  }
+  const metaPartidas = 5;
+  const pct = Math.min(100, Math.round((jugadas / metaPartidas) * 100));
+  document.getElementById('h-nombre').textContent = nombre;
+  document.getElementById('h-meta').textContent = 'Jugador · Actividad reciente';
+  document.getElementById('h-prom').textContent = prom;
+  document.getElementById('h-cat').textContent = 'Esta semana';
+  document.getElementById('h-pct').textContent = pct + '%';
+  document.getElementById('hdr-ini').textContent = ini;
+  setTimeout(function () { document.getElementById('h-barra').style.width = pct + '%'; }, 300);
+}
+
+async function cargarKPIs(uid) {
+  const [{ count: total }, { count: wins }, { count: torn }] = await Promise.all([
+    supabase.from('partidas').select('*', { count: 'exact', head: true }).or(`jugador1_id.eq.${uid},jugador2_id.eq.${uid}`),
+    supabase.from('partidas').select('*', { count: 'exact', head: true }).eq('ganador_id', uid),
+    supabase.from('inscripciones').select('*', { count: 'exact', head: true }).eq('jugador_id', uid).eq('estado', 'ACTIVO'),
+  ]);
+  document.getElementById('k-partidas').textContent = total ?? 0;
+  document.getElementById('k-victorias').textContent = wins ?? 0;
+  document.getElementById('k-torneos').textContent = torn ?? 0;
+  if (torn != null && torn > 0) {
+    const b = document.getElementById('b-torneos');
+    b.textContent = torn;
+    b.classList.add('show');
+    document.getElementById('nd-torneos').textContent = torn + ' inscripción' + (torn > 1 ? 'es' : '') + ' activa' + (torn > 1 ? 's' : '');
+  }
+}
+
+async function cargarRanking(miId) {
+  const topR = await supabase
+    .from('partidas')
+    .select('jugador1_id, jugador2_id, promedio_j1, promedio_j2')
+    .order('created_at', { ascending: false })
+    .limit(100);
+  const cont = document.getElementById('ranking-lista');
+  if (!topR.data || topR.error || !topR.data.length) {
+    cont.innerHTML = '<p style="font-size:.58rem;color:var(--dc-subtle);text-align:center;padding:12px 0">Sin datos aún</p>';
+    return;
+  }
+  const pm = {};
+  topR.data.forEach(function (p) {
+    if (p.jugador1_id && p.promedio_j1 != null && parseFloat(p.promedio_j1) > 0) {
+      if (!pm[p.jugador1_id]) pm[p.jugador1_id] = [];
+      pm[p.jugador1_id].push(parseFloat(p.promedio_j1));
+    }
+    if (p.jugador2_id && p.promedio_j2 != null && parseFloat(p.promedio_j2) > 0) {
+      if (!pm[p.jugador2_id]) pm[p.jugador2_id] = [];
+      pm[p.jugador2_id].push(parseFloat(p.promedio_j2));
+    }
+  });
+  const sorted = Object.keys(pm)
+    .map(function (id) {
+      const arr = pm[id];
+      const avg = arr.reduce(function (a, b) { return a + b; }, 0) / arr.length;
+      return { id: id, avg: avg };
+    })
+    .sort(function (a, b) { return b.avg - a.avg; })
+    .slice(0, 5);
+  if (!sorted.length) {
+    cont.innerHTML = '<p style="font-size:.58rem;color:var(--dc-subtle);text-align:center;padding:12px 0">Sin datos aún</p>';
+    return;
+  }
+  const ids = sorted.map(function (x) { return x.id; });
+  const nomR = await supabase.from('profiles').select('id, nombre_completo').in('id', ids);
+  const nomMap = {};
+  if (nomR.data && !nomR.error) {
+    nomR.data.forEach(function (row) {
+      nomMap[row.id] = row.nombre_completo || '—';
+    });
+  }
+  const cls = ['or', 'pl', 'br', '', ''];
+  cont.innerHTML = sorted.map(function (r, i) {
+    const nom = nomMap[r.id] || '—';
+    const parts = String(nom).trim().split(/\s+/).filter(Boolean);
+    const ini = parts.length >= 2
+      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+      : (String(nom).slice(0, 2).toUpperCase() || '?');
+    const yo = r.id === miId;
+    const prom = r.avg.toFixed(2);
+    return '<div class="rank-row">' +
+      '<span class="rank-pos ' + cls[i] + '">' + (i + 1) + '</span>' +
+      '<div class="rank-av ' + (yo ? 'yo' : '') + '">' + esc(ini) + '</div>' +
+      '<div class="rank-nombre">' + esc(nom) + (yo ? '<span class="yo-tag">TÚ</span>' : '') +
+      '<span class="rank-cat">—</span></div>' +
+      '<span class="rank-prom">' + esc(prom) + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+async function cargarHistorial(uid) {
+  const { data: rows } = await supabase
+    .from('partidas')
+    .select('id,ganador_id,jugador1_id,jugador2_id,promedio_j1,promedio_j2,created_at,pj1:profiles!jugador1_id(nombre_completo),pj2:profiles!jugador2_id(nombre_completo)')
+    .or(`jugador1_id.eq.${uid},jugador2_id.eq.${uid}`)
+    .order('created_at', { ascending: false })
+    .limit(5);
+  const cont = document.getElementById('historial');
+  if (!rows?.length) {
+    cont.innerHTML = '<p style="font-size:.58rem;color:var(--dc-subtle);text-align:center;padding:14px 0">Sin partidas registradas</p>';
+    return;
+  }
+  cont.innerHTML = rows.map(function (p) {
+    const soyJ1 = p.jugador1_id === uid;
+    const rp = soyJ1 ? p.pj2 : p.pj1;
+    const rival = (rp && rp.nombre_completo && String(rp.nombre_completo).trim()) ? rp.nombre_completo : 'Rival';
+    const misP = soyJ1 ? (p.promedio_j1 ?? '—') : (p.promedio_j2 ?? '—');
+    const rivP = soyJ1 ? (p.promedio_j2 ?? '—') : (p.promedio_j1 ?? '—');
+    const res = p.ganador_id === uid ? 'W' : (p.ganador_id ? 'L' : 'E');
+    const lbl = res === 'W' ? 'V' : (res === 'L' ? 'D' : 'E');
+    const fecha = new Date(p.created_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+    return '<div class="hist-row">' +
+      '<div class="hist-res ' + res + '">' + lbl + '</div>' +
+      '<div class="hist-info"><div class="hist-rival">vs ' + esc(rival) + '</div><div class="hist-fecha">' + esc(fecha) + '</div></div>' +
+      '<span class="hist-score">' + esc(String(misP)) + ' - ' + esc(String(rivP)) + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+async function cargarPendientes(uid) {
+  const { count, error } = await supabase
+    .from('retos')
+    .select('*', { count: 'exact', head: true })
+    .eq('retado_id', uid)
+    .eq('estado', 'pendiente');
+  if (error || count == null || count <= 0) return;
+  const b = document.getElementById('b-retos');
+  b.textContent = String(count);
+  b.classList.add('show');
+  document.getElementById('nd-retos').textContent = count + ' reto' + (count > 1 ? 's' : '') + ' pendiente' + (count > 1 ? 's' : '');
+}
+
+async function cargarPartidaActiva(uid) {
+  const { data: p, error } = await supabase
+    .from('partidas')
+    .select('id,jugador1_id,jugador2_id,promedio_j1,promedio_j2,mesa,pj1:profiles!jugador1_id(nombre_completo),pj2:profiles!jugador2_id(nombre_completo)')
+    .or(`jugador1_id.eq.${uid},jugador2_id.eq.${uid}`)
+    .eq('estado', 'en_curso')
+    .limit(1)
+    .maybeSingle();
+  if (error || !p) return;
+  const soyJ1 = p.jugador1_id === uid;
+  const rp = soyJ1 ? p.pj2 : p.pj1;
+  const rival = (rp && rp.nombre_completo && String(rp.nombre_completo).trim()) ? rp.nombre_completo : 'Rival';
+  const misP = soyJ1 ? (p.promedio_j1 ?? 0) : (p.promedio_j2 ?? 0);
+  const rivP = soyJ1 ? (p.promedio_j2 ?? 0) : (p.promedio_j1 ?? 0);
+  document.getElementById('pa-rival').textContent = 'vs ' + rival;
+  document.getElementById('pa-mesa').textContent = p.mesa != null ? 'Mesa ' + p.mesa : 'Mesa —';
+  document.getElementById('pa-score').textContent = misP + ' - ' + rivP;
+  document.getElementById('card-partida').classList.add('show');
+  document.getElementById('acc-jugar').classList.add('activo');
+}
+
+document.getElementById('btn-avatar').addEventListener('click', () => { window.location.href = '/jugador/perfil.html'; });
+document.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
