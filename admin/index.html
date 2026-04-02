@@ -216,7 +216,7 @@
         <div class="hero-dashboard__glow" aria-hidden="true"></div>
         <div class="hero-dashboard__inner">
             <div class="hero-dashboard__copy" style="width:100%;text-align:center">
-                <h1 class="admin-hero-title">Centro de Control</h1>
+                <p class="admin-hero-title" role="heading" aria-level="1">DeCarambola</p>
                 <p class="hero-dashboard__motivation admin-hero-greeting" id="admin-hero-greeting">Bienvenido</p>
                 <div class="hero-pill-row">
                     <span class="admin-role-pill">SUPERADMIN</span>
@@ -386,10 +386,6 @@
         } catch (e) {
             console.warn('[admin] init', e);
         }
-        try {
-            MasterVIP.applyDesign();
-        } catch (e) {}
-
         var nombreAdmin = 'Superadmin';
         try {
             var supabaseMod = await import('/js/supabase-client.js');
@@ -425,6 +421,9 @@
             if (gr) {
                 gr.textContent = nombreAdmin ? 'Bienvenido, ' + nombreAdmin : 'Bienvenido';
             }
+
+            var heroMarca = document.querySelector('.admin-hero-title');
+            if (heroMarca) heroMarca.textContent = 'DeCarambola';
 
             var cClubs = await supabase
                 .from('clubs')
@@ -556,8 +555,9 @@
             document.getElementById('kpi-torneos').textContent = '—';
             document.getElementById('kpi-ingresos').textContent = '—';
         }
+        var heroMarcaCatch = document.querySelector('.admin-hero-title');
+        if (heroMarcaCatch) heroMarcaCatch.textContent = 'DeCarambola';
     });
 </script>
-<script src="/whitelabel.js"></script>
 </body>
 </html>
