@@ -3,6 +3,7 @@
 <head>
     <script type="module">
       import { getSession, getRole } from '/js/auth-manager.js';
+      document.body.style.visibility = 'hidden';
       const s = await getSession();
       if (!s?.data?.user) {
         const next = encodeURIComponent(
@@ -14,7 +15,7 @@
         // getRole() → { data: string, error } (auth-manager.js): data es String(profiles.role)
         // o 'jugador' si role es null/vacío. Valores reales en DB: jugador | organizador | club_admin | superadmin (minúsculas).
         if (r?.error) {
-          /* sin lectura de rol fiable: no redirigir por rol */
+          document.body.style.visibility = 'visible';
         } else {
           const rol = String(r?.data ?? '').trim().toLowerCase();
           if (rol === 'organizador') {
@@ -23,6 +24,8 @@
             window.location.replace('/apps/club/club.html');
           } else if (rol === 'superadmin') {
             window.location.replace('/admin/index.html');
+          } else {
+            document.body.style.visibility = 'visible';
           }
         }
       }
@@ -177,6 +180,7 @@
 </style>
 </head>
 <body>
+<div id="auth-check" style="display:none"></div>
 <div id="stars" aria-hidden="true"></div>
 <div class="wrap reveal">
 
