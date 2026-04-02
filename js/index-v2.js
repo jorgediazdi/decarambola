@@ -83,7 +83,7 @@
         }
         var html = "";
         torneos.forEach(function (t) {
-            var d = daysUntil(t.fecha_limite);
+            var d = daysUntil(t.fecha_limite || t.fecha_inicio);
             var cerrado = t.estado === "CERRADO" || t.estado === "cerrado" || t.cupos_disponibles <= 0;
             var inscrito = inscritosIds && inscritosIds.indexOf(t.id) !== -1;
             var urgency = d != null && d >= 0
@@ -335,7 +335,7 @@
 
         // Torneos públicos
         var torR = await supabase.from('torneos')
-            .select('id, nombre, estado, fecha_inicio, cupo_maximo, cupos_disponibles')
+            .select('id, nombre, estado, fecha_inicio, fecha_limite, cupo_maximo, cupos_disponibles')
             .in('estado', ['ABIERTO', 'EN_CURSO'])
             .order('fecha_inicio', { ascending: true })
             .limit(5);
