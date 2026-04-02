@@ -454,6 +454,14 @@
                     logoUrl = String(g.data.logo_url).trim();
                 }
             }
+            if (!clubUuid && clubKey) {
+                var _cr = await supabase.from('clubs').select('id').eq('codigo', clubKey).maybeSingle();
+                if (_cr.data && _cr.data.id) clubUuid = _cr.data.id;
+            }
+            if (!clubUuid && clubKey && ctIsUuid(clubKey)) {
+                var _cr2 = await supabase.from('clubs').select('id').eq('id', clubKey).maybeSingle();
+                if (_cr2.data && _cr2.data.id) clubUuid = _cr2.data.id;
+            }
 
             document.getElementById('ct-lbl-club').textContent = nombreClub || clubKey || '—';
 
@@ -544,12 +552,19 @@
             }
 
             var estados = ctEstadosActivos();
-            var qClub = clubKey;
+            var qClubUuid = clubUuid;
 
+            if (!qClubUuid) {
+                document.getElementById('ct-kpi-activos').textContent = '—';
+                document.getElementById('ct-kpi-inscritos').textContent = '—';
+                document.getElementById('ct-kpi-ingresos-mesas').textContent = '—';
+                document.getElementById('ct-lista-torneos').innerHTML =
+                    '<div class="ct-list-empty">No se pudo resolver el UUID del club para listar torneos.</div>';
+            } else {
             var torActivos = await supabase
                 .from('torneos')
                 .select('id')
-                .eq('club_id', qClub)
+                .eq('club_id', qClubUuid)
                 .in('estado', estados);
 
             var idsActivos = [];
@@ -572,7 +587,7 @@
             }
             document.getElementById('ct-kpi-inscritos').textContent = torActivos.error ? '—' : String(totalIns);
 
-            var torClub = await supabase.from('torneos').select('id').eq('club_id', qClub);
+            var torClub = await supabase.from('torneos').select('id').eq('club_id', qClubUuid);
             var idsClub = [];
             if (torClub.data && !torClub.error) {
                 idsClub = torClub.data.map(function (r) {
@@ -603,7 +618,7 @@
             var lista = await supabase
                 .from('torneos')
                 .select('*')
-                .eq('club_id', qClub)
+                .eq('club_id', qClubUuid)
                 .order('created_at', { ascending: false });
 
             var zona = document.getElementById('ct-lista-torneos');
@@ -655,6 +670,7 @@
                         );
                     })
                     .join('');
+            }
             }
         } catch (err) {
             console.warn('[club torneos]', err);
