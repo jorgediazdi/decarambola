@@ -386,15 +386,27 @@
         } catch (e) {
             console.warn('[admin] init', e);
         }
-        var nombreAdmin = 'Superadmin';
+        var nombreSaludo = '';
         try {
             var supabaseMod = await import('/js/supabase-client.js');
             var supabase = supabaseMod.supabase;
 
+            await supabase.auth.refreshSession();
+
             var sess = await supabase.auth.getSession();
-            var uid = sess && sess.data && sess.data.session && sess.data.session.user
-                ? sess.data.session.user.id
-                : null;
+            var su =
+                sess && sess.data && sess.data.session && sess.data.session.user
+                    ? sess.data.session.user
+                    : null;
+            var uid = su ? su.id : null;
+
+            if (!su || !uid) {
+                var gu = await supabase.auth.getUser();
+                if (gu && gu.data && gu.data.user) {
+                    su = gu.data.user;
+                    uid = su.id;
+                }
+            }
 
             if (uid) {
                 var pr = await supabase
@@ -402,24 +414,29 @@
                     .select('nombre_completo')
                     .eq('id', uid)
                     .maybeSingle();
-                if (pr.data && pr.data.nombre_completo && String(pr.data.nombre_completo).trim()) {
-                    nombreAdmin = String(pr.data.nombre_completo).trim();
+                if (!pr.error && pr.data && pr.data.nombre_completo != null) {
+                    var nc = String(pr.data.nombre_completo).trim();
+                    if (nc) nombreSaludo = nc;
                 }
             }
 
-            var su = sess && sess.data && sess.data.session && sess.data.session.user;
-            if (su && (!nombreAdmin || nombreAdmin === 'Superadmin')) {
+            if (!nombreSaludo && su) {
                 var meta = su.user_metadata || {};
-                if (meta.full_name && String(meta.full_name).trim()) nombreAdmin = String(meta.full_name).trim();
-                else if (meta.name && String(meta.name).trim()) nombreAdmin = String(meta.name).trim();
-                else if (su.email) nombreAdmin = String(su.email).split('@')[0];
+                if (meta.full_name != null && String(meta.full_name).trim()) {
+                    nombreSaludo = String(meta.full_name).trim();
+                } else if (meta.name != null && String(meta.name).trim()) {
+                    nombreSaludo = String(meta.name).trim();
+                } else if (su.email) {
+                    nombreSaludo = String(su.email).split('@')[0] || '';
+                }
             }
 
-            document.getElementById('admin-header-name').textContent = nombreAdmin;
-            document.getElementById('admin-header-avatar').textContent = adminIniciales(nombreAdmin);
+            var nombreHeader = nombreSaludo || 'Superadmin';
+            document.getElementById('admin-header-name').textContent = nombreHeader;
+            document.getElementById('admin-header-avatar').textContent = adminIniciales(nombreHeader);
             var gr = document.getElementById('admin-hero-greeting');
             if (gr) {
-                gr.textContent = nombreAdmin ? 'Bienvenido, ' + nombreAdmin : 'Bienvenido';
+                gr.textContent = nombreSaludo ? 'Bienvenido, ' + nombreSaludo : 'Bienvenido';
             }
 
             var heroMarca = document.querySelector('.admin-hero-title');
@@ -435,14 +452,14 @@
             var cJug = await supabase
                 .from('profiles')
                 .select('id', { count: 'exact', head: true })
-                .eq('role', 'jugador');
+                .or('role.eq.jugador,role.is.null');
             document.getElementById('kpi-jugadores').textContent =
                 !cJug.error && cJug.count != null ? String(cJug.count) : '—';
 
             var cTor = await supabase
                 .from('torneos')
                 .select('id', { count: 'exact', head: true })
-                .in('estado', ['ABIERTO', 'EN_CURSO']);
+                .in('estado', ['ABIERTO', 'EN_CURSO', 'abierto', 'en_curso']);
             document.getElementById('kpi-torneos').textContent =
                 !cTor.error && cTor.count != null ? String(cTor.count) : '—';
 
@@ -456,7 +473,8 @@
             var ingresos = 0;
             if (histR.data && !histR.error) {
                 histR.data.forEach(function (row) {
-                    if (String(row.estado || '').toLowerCase() !== 'cerrada') return;
+                    var est = String(row.estado || '').toLowerCase();
+                    if (est !== 'cerrada' && est !== 'closed') return;
                     var f = row.fin_sesion || row.inicio_sesion || row.created_at;
                     if (adminEsHoyLocal(f)) {
                         ingresos += parseFloat(row.costo_total) || 0;
