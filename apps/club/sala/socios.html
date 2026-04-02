@@ -123,7 +123,6 @@ async function cargarSocios() {
 }
 
 window.__salaBoot = function() {
-    try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
     cargarSocios();
 };
 </script>

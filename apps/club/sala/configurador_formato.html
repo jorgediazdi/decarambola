@@ -1320,11 +1320,7 @@ window.__salaBoot = function() { setJug(48); };
 </script>
 <script src="/core.js"></script>
 <script>
-(function(){
-    if (typeof SESSION !== 'undefined') {
-        try { SESSION.verificarAlCargar('organizador'); SESSION.iniciar('organizador'); } catch(e) {}
-    }
-})();
+// guard moderno en <head>
 </script>
 <script src="/whitelabel.js"></script>
 
