@@ -399,14 +399,14 @@ function sinSesion() {
 }
 
 async function cargarPerfil(uid) {
-  const { data: p } = await supabase.from('profiles').select('display_name, role').eq('id', uid).maybeSingle();
+  const { data: p } = await supabase.from('profiles').select('nombre_completo, role').eq('id', uid).maybeSingle();
   if (!p) return;
   const role = p.role;
   if (role && String(role).trim() && role !== 'jugador') {
     window.location.href = '/login.html';
     return;
   }
-  const nombre = (p.display_name && String(p.display_name).trim()) || 'Jugador';
+  const nombre = (p.nombre_completo && String(p.nombre_completo).trim()) || 'Jugador';
   const parts = nombre.split(/\s+/).filter(Boolean);
   const ini = parts.length >= 2
     ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
