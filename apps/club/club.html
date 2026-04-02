@@ -276,7 +276,7 @@
             <div class="stat-card kpi oro">
                 <div class="stat-card__value" id="kpi-mesas">0</div>
                 <div class="kpi-lbl stat-card__label">MESAS</div>
-                <div class="kpi-sub">activas en el salón</div>
+                <div class="kpi-sub">ocupadas / total</div>
             </div>
             <div class="stat-card kpi neon">
                 <div class="stat-card__value" id="kpi-jugadores">0</div>
@@ -567,8 +567,13 @@
                 }
 
                 var mesasR = await listMesas(clubKey, { orderBy: 'numero' });
-                var nMesas = mesasR.data && !mesasR.error ? mesasR.data.length : 0;
-                document.getElementById('kpi-mesas').textContent = String(nMesas);
+                var todasMesas = mesasR.data && !mesasR.error ? mesasR.data : [];
+                var nTotal = todasMesas.length;
+                var nOcupadas = todasMesas.filter(function(m) {
+                    return String(m.estado || '').toLowerCase() === 'ocupada';
+                }).length;
+                document.getElementById('kpi-mesas').textContent =
+                    nTotal > 0 ? String(nOcupadas) + ' / ' + String(nTotal) : '0';
 
                 var cntJ = await supabase
                     .from('profiles')
