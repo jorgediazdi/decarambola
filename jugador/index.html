@@ -1,28 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <script type="module">
-      import { supabase } from '/js/supabase-client.js';
-      document.body.style.visibility = 'hidden';
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        const next = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.replace('/login.html?next=' + next);
-      } else {
-        const uid = session.user.id;
-        const { data: p } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
-        const rol = String(p?.role ?? '').trim().toLowerCase();
-        if (rol === 'organizador') {
-          window.location.replace('/apps/organizador/organizador.html');
-        } else if (rol === 'club_admin') {
-          window.location.replace('/apps/club/club.html');
-        } else if (rol === 'superadmin') {
-          window.location.replace('/admin/index.html');
-        } else {
-          document.body.style.visibility = 'visible';
-        }
-      }
-    </script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>DeCarambola — Jugador</title>
@@ -382,37 +360,36 @@ function renderIcos() {
 async function init() {
   renderIcos();
 
-  const { data: { session } } = await supabase.auth.getSession();
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'INITIAL_SESSION') {
+      // Quitar el hide ahora que ya sabemos el estado real
+      document.getElementById('body-hide')?.remove();
 
-  if (!session) {
-    const recovered = await new Promise((resolve) => {
-      let done = false;
-      let subscription;
-      const finish = (val) => {
-        if (done) return;
-        done = true;
-        if (subscription) subscription.unsubscribe();
-        resolve(val);
-      };
-      const { data } = supabase.auth.onAuthStateChange((_event, sess) => {
-        if (sess) finish(sess);
-      });
-      subscription = data.subscription;
-      setTimeout(() => finish(null), 2000);
-    });
-    if (!recovered) {
-      sinSesion();
-      return;
+      if (!session) {
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.replace('/login.html?next=' + next);
+        return;
+      }
+
+      const uid = session.user.id;
+      const { data: p } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
+      const rol = String(p?.role ?? '').trim().toLowerCase();
+
+      if (rol === 'organizador') { window.location.replace('/apps/organizador/organizador.html'); return; }
+      if (rol === 'club_admin')  { window.location.replace('/apps/club/club.html'); return; }
+      if (rol === 'superadmin')  { window.location.replace('/admin/index.html'); return; }
+
+      // Es jugador — cargar datos
+      await cargarPerfil(uid);
+      await Promise.all([
+        cargarKPIs(uid),
+        cargarRanking(uid),
+        cargarHistorial(uid),
+        cargarPendientes(uid),
+        cargarPartidaActiva(uid),
+      ]);
     }
-    const uid = recovered.user.id;
-    await cargarPerfil(uid);
-    await Promise.all([cargarKPIs(uid), cargarRanking(uid), cargarHistorial(uid), cargarPendientes(uid), cargarPartidaActiva(uid)]);
-    return;
-  }
-
-  const uid = session.user.id;
-  await cargarPerfil(uid);
-  await Promise.all([cargarKPIs(uid), cargarRanking(uid), cargarHistorial(uid), cargarPendientes(uid), cargarPartidaActiva(uid)]);
+  });
 }
 
 function sinSesion() {
