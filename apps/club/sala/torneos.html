@@ -345,7 +345,7 @@
     }
 
     function ctEstadosActivos() {
-        return ['ABIERTO', 'EN_CURSO', 'abierto', 'en_curso'];
+        return ['ABIERTO', 'EN_CURSO'];
     }
 
     function ctFmtMoney(n) {
@@ -587,39 +587,43 @@
             }
             document.getElementById('ct-kpi-inscritos').textContent = torActivos.error ? '—' : String(totalIns);
 
-            var torClub = await supabase.from('torneos').select('id').eq('club_id', qClubUuid);
-            var idsClub = [];
-            if (torClub.data && !torClub.error) {
-                idsClub = torClub.data.map(function (r) {
-                    return r.id;
-                });
-            }
-
-            var sumMesas = 0;
-            if (idsClub.length && !torClub.error) {
-                var cob = await supabase
-                    .from('torneo_mesas')
-                    .select('costo_mesas')
-                    .eq('aprobado_club', true)
-                    .in('torneo_id', idsClub);
-                if (cob.data && !cob.error) {
-                    cob.data.forEach(function (row) {
-                        sumMesas += parseFloat(row.costo_mesas) || 0;
-                    });
-                } else if (cob.error) {
-                    document.getElementById('ct-kpi-ingresos-mesas').textContent = '—';
-                    sumMesas = null;
-                }
-            }
-            if (sumMesas !== null) {
-                document.getElementById('ct-kpi-ingresos-mesas').textContent = ctFmtMoney(sumMesas);
-            }
+            // Usamos la lista completa de torneos del club que ya se carga abajo (lista)
+            // idsClub se construye después de cargar lista — ver paso siguiente
 
             var lista = await supabase
                 .from('torneos')
                 .select('*')
                 .eq('club_id', qClubUuid)
                 .order('created_at', { ascending: false });
+
+            var idsLista = [];
+            if (lista.data && !lista.error) {
+                idsLista = lista.data.map(function (r) {
+                    return r.id;
+                });
+            }
+
+            let mesasError = false;
+            var sumMesas = 0;
+            if (idsLista.length) {
+                var cob = await supabase
+                    .from('torneo_mesas')
+                    .select('costo_mesas')
+                    .eq('aprobado_club', true)
+                    .in('torneo_id', idsLista);
+                if (cob.data && !cob.error) {
+                    cob.data.forEach(function (row) {
+                        sumMesas += parseFloat(row.costo_mesas) || 0;
+                    });
+                } else if (cob.error) {
+                    mesasError = true;
+                }
+            }
+            if (mesasError) {
+                document.getElementById('ct-kpi-ingresos-mesas').textContent = '—';
+            } else {
+                document.getElementById('ct-kpi-ingresos-mesas').textContent = ctFmtMoney(sumMesas);
+            }
 
             var zona = document.getElementById('ct-lista-torneos');
             if (lista.error || !lista.data) {
