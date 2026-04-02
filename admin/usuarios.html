@@ -233,8 +233,8 @@
     <section class="dc-section" aria-label="Directorio de usuarios">
         <div class="dc-section__label">Directorio</div>
         <h2 class="dc-section__title">Perfiles</h2>
-        <label class="header-marca offscreen" for="buscar-usuario">Buscar por nombre o email</label>
-        <input type="search" id="buscar-usuario" class="admin-search" placeholder="Buscar por nombre o email…" autocomplete="off">
+        <label class="header-marca offscreen" for="buscar-usuario">Buscar por nombre o rol</label>
+        <input type="search" id="buscar-usuario" class="admin-search" placeholder="Buscar por nombre o rol…" autocomplete="off">
         <div id="zona-usuarios"></div>
     </section>
 </main>
@@ -315,9 +315,8 @@
         if (q) {
             rows = allProfiles.filter(function (p) {
                 var n = String(p.nombre_completo || '').toLowerCase();
-                var u = String(p.username || '').toLowerCase();
-                var e = String(p.email || '').toLowerCase();
-                return n.indexOf(q) !== -1 || u.indexOf(q) !== -1 || e.indexOf(q) !== -1;
+                var rol = String(p.role || '').toLowerCase();
+                return n.indexOf(q) !== -1 || rol.indexOf(q) !== -1;
             });
         }
         if (!rows.length) {
@@ -325,8 +324,7 @@
             return;
         }
         z.innerHTML = rows.map(function (p) {
-            var tit = (p.nombre_completo && String(p.nombre_completo).trim()) ||
-                (p.username && String(p.username).trim()) || 'Sin nombre';
+            var tit = (p.nombre_completo && String(p.nombre_completo).trim()) || 'Sin nombre';
             var clubLine = p.club_id != null && String(p.club_id).trim()
                 ? 'Club: ' + esc(String(p.club_id).trim())
                 : 'Sin club asignado';
@@ -407,7 +405,7 @@
 
             var listR = await supabase
                 .from('profiles')
-                .select('id, nombre_completo, username, role, club_id, updated_at, email')
+                .select('id, nombre_completo, role, club_id, updated_at')
                 .order('updated_at', { ascending: false })
                 .limit(100);
 
