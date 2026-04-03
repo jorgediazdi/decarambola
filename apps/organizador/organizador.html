@@ -748,7 +748,9 @@
         return String(v).replace(/\/+$/, '').replace(/\s*\/\s*$/, '').trim();
     }
     async function cargarKPIs() {
-        const torneos   = MasterVIP.getTorneos();
+        const torneos   = MasterVIP.getTorneos().filter(t =>
+          t.tipo !== 'torneo_amigos' && t.formato !== 'amigos'
+        );
         const jugadores = MasterVIP.getJugadores();
         const torneo    = MasterVIP.getTorneoActivo();
 
