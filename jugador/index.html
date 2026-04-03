@@ -93,7 +93,7 @@
   .kpi-val.b { color:var(--dc-blue); }
   .kpi-lbl { font-size:.5rem;color:var(--dc-subtle);letter-spacing:1.2px;text-transform:uppercase; }
   .sec { font-family:var(--dc-display);font-size:.6rem;color:var(--dc-gold-dim);letter-spacing:2.5px;text-transform:uppercase;margin:16px 0 9px; }
-  .acc-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px; }
+  .acc-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px; }
   .acc { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r-sm);padding:14px 6px 11px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:border-color .18s,background .18s;text-decoration:none;-webkit-tap-highlight-color:transparent;color:var(--dc-gold); }
   .acc:active { transform:scale(.95);border-color:var(--dc-border-hover);background:rgba(201,168,76,.05); }
   .acc.activo { background:var(--dc-blue-bg);border-color:rgba(52,152,219,.38);color:var(--dc-blue); }
@@ -251,7 +251,7 @@
 
   <p class="sec">Acciones rápidas</p>
   <div class="acc-grid">
-    <a href="/jugador/reserva.html" class="acc" id="acc-reservar">
+    <a href="/jugador/reservas.html" class="acc" id="acc-reservar">
       <span id="ico-reservar"></span><span class="acc-lbl">Reservar</span>
     </a>
     <a href="/jugador/retos.html" class="acc" id="acc-retar">
@@ -262,6 +262,12 @@
     </a>
     <a href="/jugador/partida.html" class="acc" id="acc-jugar">
       <span id="ico-jugar"></span><span class="acc-lbl">Jugar</span>
+    </a>
+    <a href="/jugador/mi_partida.html" class="acc" id="acc-mi-partida">
+      <span id="ico-mi-partida-acc"></span><span class="acc-lbl">Mi partida</span>
+    </a>
+    <a href="/jugador/entrenamiento.html" class="acc" id="acc-entrenar">
+      <span id="ico-entrenamiento-acc"></span><span class="acc-lbl">Entrenar</span>
     </a>
   </div>
 
@@ -283,9 +289,19 @@
 
   <p class="sec">Mi actividad</p>
   <div class="nav-lista">
+    <a href="/jugador/mi_partida.html" class="nav-item">
+      <div class="nav-ico" id="ico-mi-partida"></div>
+      <div class="nav-info"><div class="nav-titulo">Mi partida</div><div class="nav-desc">Marcador, guardar sesión, carambolas</div></div>
+      <span class="nav-arrow">›</span>
+    </a>
     <a href="/jugador/historial.html" class="nav-item">
       <div class="nav-ico" id="ico-historial"></div>
       <div class="nav-info"><div class="nav-titulo">Historial de partidas</div><div class="nav-desc">Partidas registradas y estadísticas</div></div>
+      <span class="nav-arrow">›</span>
+    </a>
+    <a href="/jugador/entrenamiento.html" class="nav-item">
+      <div class="nav-ico" id="ico-entrenamiento"></div>
+      <div class="nav-info"><div class="nav-titulo">Entrenamiento</div><div class="nav-desc">Rutina y práctica guiada</div></div>
       <span class="nav-arrow">›</span>
     </a>
     <a href="/jugador/torneos.html" class="nav-item">
@@ -345,7 +361,11 @@ function renderIcos() {
   document.getElementById('ico-retar').innerHTML        = IC.reto(24);
   document.getElementById('ico-trofeo-acc').innerHTML   = IC.trofeo(24);
   document.getElementById('ico-jugar').innerHTML        = IC.taco(24);
+  document.getElementById('ico-mi-partida-acc').innerHTML = IC.tacoYbola(24);
+  document.getElementById('ico-entrenamiento-acc').innerHTML = IC.taco(24);
+  document.getElementById('ico-mi-partida').innerHTML   = IC.tacoYbola(20);
   document.getElementById('ico-historial').innerHTML    = IC.tacoYbola(20);
+  document.getElementById('ico-entrenamiento').innerHTML = IC.taco(20);
   document.getElementById('ico-mis-torneos').innerHTML  = IC.trofeo(20);
   document.getElementById('ico-mis-retos').innerHTML    = IC.reto(20);
   document.getElementById('ico-mis-reservas').innerHTML = IC.mesa(20);

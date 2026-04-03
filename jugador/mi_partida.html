@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Mi partida — DeCarambola</title>
+<style>
+  body { margin: 0; min-height: 100vh; background: #0a0a0a; color: #888; font-family: "DM Sans", system-ui, sans-serif; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+</style>
+<style id="body-hide">body { visibility: hidden; }</style>
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
+
+supabase.auth.onAuthStateChange(function (event, session) {
+  if (event !== 'INITIAL_SESSION') return;
+  document.getElementById('body-hide')?.remove();
+  if (!session) {
+    window.location.replace('/login.html?next=' + encodeURIComponent(window.location.pathname + window.location.search));
+    return;
+  }
+  window.location.replace('/mi_partida.html');
+});
+</script>
+</head>
+<body>
+  <p>Cargando Mi partida…</p>
+</body>
+</html>
