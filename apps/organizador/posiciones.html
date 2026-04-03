@@ -3,66 +3,87 @@
 <head>
     <script type="module">
 import { supabase } from '/js/supabase-client.js';
-import { getRole } from '/js/auth-manager.js';
 
-const { data: sess } = await supabase.auth.getSession();
-if (!sess?.session) {
-  window.location.replace('/login.html?next=' + encodeURIComponent(window.location.pathname));
+async function iniciarPosiciones(session) {
+  if (!session?.user) {
+    window.location.href = '/login.html';
+    return;
+  }
+  const uid = session.user.id;
+  const { data: prof, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', uid)
+    .maybeSingle();
+  const rol = !error && prof?.role ? String(prof.role) : 'jugador';
+  if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
+    window.location.replace('/jugador/index.html');
+  }
 }
-const { data: rol } = await getRole();
-if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
-  window.location.replace('/jugador/index.html');
-}
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'INITIAL_SESSION') {
+    if (!session) window.location.href = '/login.html';
+    else iniciarPosiciones(session);
+  }
+});
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#c9a84c">
     <title>Posiciones — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
-:root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; --borde:#1a1a1a; --card:#0a0a0a; }
+:root { --oro:#c9a84c; --negro:#0a0a0a; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; --borde:#1a1a1a; --borde-oro:rgba(201,168,76,0.15); }
         * { box-sizing: border-box; }
-        body { background: var(--negro); color: #fff; font-family: 'Arial Black', sans-serif; margin: 0; padding: 0; }
-        .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 15px 20px; position: sticky; top: 0; z-index: 50; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+        body.page-pos { background: var(--negro); color: #f0f0f0; font-family: "DM Sans", system-ui, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        .org-panel #stars-bg { display: none !important; }
+        .lbl-ico { display: inline-flex; align-items: center; color: var(--oro); margin-right: 8px; }
+        .lbl-ico svg { display: block; }
+        .header { background: #0a0a0a; border-bottom: 1px solid var(--borde-oro); padding: 15px 20px; position: sticky; top: 0; z-index: 50; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; width: 100%; }
         .btn-hdr {
-            background: rgba(10,10,10,0.95); border: 1px solid #1a1a1a; color: #888;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--borde-oro); color: rgba(255,255,255,0.55);
             padding: 8px 12px; border-radius: 10px; font-size: 0.52rem; cursor: pointer;
-            text-decoration: none; font-family: 'Arial Black', sans-serif; font-weight: 600;
+            text-decoration: none; font-family: "DM Sans", system-ui, sans-serif; font-weight: 600;
             letter-spacing: 0.06em; transition: border-color 0.15s, color 0.15s;
         }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color: rgba(212,175,55,0.35); color: var(--oro); outline: none; }
-        .header-titulo { color: var(--oro); font-size: 1.1rem; letter-spacing: 2px; }
-        .header-sub { color: #333; font-size: 0.55rem; margin-top: 5px; letter-spacing: 1px; }
-        .fase-badge { background: rgba(52,152,219,0.15); border: 1px solid rgba(52,152,219,0.3); color: var(--azul); padding: 6px 12px; border-radius: 15px; font-size: 0.5rem; letter-spacing: 1px; }
-        .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde); position: sticky; top: 118px; z-index: 40; }
-        .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: #444; font-size: 0.65rem; font-family: 'Arial Black', sans-serif; letter-spacing: 2px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color: rgba(201,168,76,0.35); color: var(--oro); outline: none; }
+        .header-titulo { font-family: "Playfair Display", Georgia, serif; font-weight: 600; color: var(--oro); font-size: clamp(1rem, 3.5vw, 1.2rem); letter-spacing: 0.06em; }
+        .header-sub { color: rgba(255,255,255,0.45); font-size: 0.65rem; margin-top: 5px; letter-spacing: 0.08em; font-weight: 500; }
+        .fase-badge { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25); color: var(--oro); padding: 6px 12px; border-radius: 12px; font-size: 0.5rem; letter-spacing: 0.08em; font-weight: 600; }
+        .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde-oro); position: sticky; top: 118px; z-index: 40; }
+        .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 0.65rem; font-family: "DM Sans", system-ui, sans-serif; font-weight: 600; letter-spacing: 0.08em; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
         .tab-btn.activa { color: var(--oro); border-bottom-color: var(--oro); }
         .contenido { padding: 15px; max-width: 600px; margin: 0 auto; padding-bottom: 120px; }
         .clasificacion-info { background: rgba(46,255,112,0.05); border: 1px solid rgba(46,255,112,0.2); border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
         .clasificacion-icon { font-size: 1.5rem; }
         .clasificacion-texto { flex: 1; font-size: 0.5rem; color: var(--neon); letter-spacing: 1px; }
         .clasificacion-numero { font-size: 1.2rem; font-weight: 900; color: var(--neon); }
-        .tabla-container { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 16px; overflow: hidden; }
-        .tabla-titulo { padding: 14px 16px; background: #050505; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; gap: 10px; }
+        .tabla-container { background: rgba(255,255,255,0.03); border: 1px solid var(--borde-oro); border-radius: 12px; overflow: hidden; }
+        .tabla-titulo { padding: 14px 16px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--borde-oro); display: flex; align-items: center; gap: 10px; }
         .tabla-titulo-icon { font-size: 1rem; }
-        .tabla-titulo-txt { font-size: 0.55rem; letter-spacing: 2px; color: #666; }
+        .tabla-titulo-txt { font-family: "Playfair Display", Georgia, serif; font-size: 0.65rem; letter-spacing: 0.1em; color: var(--oro); font-weight: 600; }
         .tabla-grupo { color: var(--oro); font-size: 0.6rem; margin-left: auto; }
         .tabla-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .tabla-posiciones { width: 100%; min-width: 500px; border-collapse: collapse; }
-        .tabla-posiciones th { background: #0f0f0f; color: #444; font-size: 0.4rem; letter-spacing: 1px; padding: 10px 6px; text-align: center; border-bottom: 1px solid #1a1a1a; }
+        .tabla-posiciones thead th { background: rgba(201,168,76,0.08); color: #c9a84c; font-family: "Playfair Display", Georgia, serif; font-weight: 600; font-size: 0.5rem; letter-spacing: 0.06em; padding: 10px 6px; text-align: center; border-bottom: 1px solid var(--borde-oro); }
         .tabla-posiciones th:first-child { text-align: center; width: 35px; }
         .tabla-posiciones th:nth-child(2) { text-align: left; min-width: 100px; }
-        .tabla-posiciones td { padding: 12px 6px; text-align: center; border-bottom: 1px solid #111; font-size: 0.55rem; color: #888; }
+        .tabla-posiciones tbody td { padding: 12px 6px; text-align: center; border-bottom: 1px solid rgba(201,168,76,0.08); font-size: 0.55rem; color: rgba(255,255,255,0.75); }
         .tabla-posiciones tr:last-child td { border-bottom: none; }
-        .tabla-posiciones tr.clasifica { background: rgba(46,255,112,0.03); }
+        .tabla-posiciones tr.rank-1 td { background: rgba(201,168,76,0.12); }
+        .tabla-posiciones tr.rank-1 .jugador-nombre { color: #c9a84c; font-weight: 700; }
+        .tabla-posiciones tr.rank-2 td { background: rgba(255,255,255,0.04); }
+        .tabla-posiciones tr.rank-3 td { background: rgba(255,255,255,0.02); }
+        .tabla-posiciones tr.rank-rest td { background: transparent; }
         .tabla-posiciones tr.clasifica td:first-child { border-left: 3px solid var(--neon); }
-        .tabla-posiciones tr.lider { background: rgba(212,175,55,0.05); }
-        .tabla-posiciones tr.lider td:first-child { border-left: 3px solid var(--oro); }
         .tabla-posiciones tr.eliminado { opacity: 0.4; }
-        .pos-num { font-weight: 900; font-size: 0.7rem; color: #555; }
-        .pos-num.top { color: var(--neon); }
-        .pos-num.lider { color: var(--oro); }
+        .pos-num { font-weight: 600; font-size: 0.7rem; color: rgba(255,255,255,0.5); }
+        .pos-num.top3 { color: #c9a84c; font-weight: 700; }
         .jugador-cell { display: flex; align-items: center; gap: 8px; text-align: left; }
         .jugador-avatar { width: 28px; height: 28px; border-radius: 50%; background: #1a1a1a; border: 1px solid #2a2a2a; display: flex; align-items: center; justify-content: center; font-size: 0.4rem; font-weight: 900; color: #555; flex-shrink: 0; }
         .jugador-nombre { color: #ddd; font-size: 0.55rem; }
@@ -72,48 +93,49 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
         .stat-perdidas { color: var(--rojo); }
         .stat-prom { font-family: 'Courier New', monospace; color: #aaa; font-weight: 700; }
         .stat-pts { font-size: 0.75rem; font-weight: 900; color: var(--oro); }
-        .leyenda { display: flex; gap: 20px; padding: 14px 16px; background: #050505; border-top: 1px solid #1a1a1a; flex-wrap: wrap; }
-        .leyenda-item { display: flex; align-items: center; gap: 6px; font-size: 0.4rem; color: #555; }
+        .leyenda { display: flex; gap: 20px; padding: 14px 16px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--borde-oro); flex-wrap: wrap; }
+        .leyenda-item { display: flex; align-items: center; gap: 6px; font-size: 0.45rem; color: rgba(255,255,255,0.45); font-weight: 500; }
         .leyenda-color { width: 12px; height: 12px; border-radius: 3px; }
         .leyenda-color.clasifica { background: rgba(46,255,112,0.2); border-left: 3px solid var(--neon); }
-        .leyenda-color.lider { background: rgba(212,175,55,0.2); border-left: 3px solid var(--oro); }
+        .leyenda-color.lider { background: rgba(201,168,76,0.2); border-left: 3px solid var(--oro); }
         .leyenda-color.elimina { background: rgba(255,255,255,0.05); opacity: 0.4; }
-        .org-panel { background: linear-gradient(135deg, #1a1000, #0a0800); border: 1px solid rgba(212,175,55,0.3); border-radius: 16px; padding: 20px; margin-top: 20px; }
+        .org-panel { background: rgba(255,255,255,0.03); border: 1px solid var(--borde-oro); border-radius: 12px; padding: 16px; margin-top: 20px; }
         .org-titulo { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
         .org-titulo-icon { font-size: 1.2rem; }
-        .org-titulo-txt { font-size: 0.55rem; letter-spacing: 2px; color: var(--oro); }
-        .org-badge { background: var(--oro); color: #000; font-size: 0.4rem; padding: 3px 8px; border-radius: 8px; margin-left: auto; }
-        .org-sugerencia { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; margin-bottom: 15px; }
-        .org-sugerencia-lbl { font-size: 0.4rem; color: #555; letter-spacing: 1px; margin-bottom: 8px; }
-        .org-sugerencia-txt { font-size: 0.55rem; color: var(--neon); }
+        .org-titulo-txt { font-family: "Playfair Display", Georgia, serif; font-size: 0.65rem; letter-spacing: 0.08em; color: var(--oro); font-weight: 600; }
+        .org-badge { background: var(--oro); color: #0a0a0a; font-size: 0.45rem; padding: 4px 8px; border-radius: 8px; margin-left: auto; font-weight: 700; }
+        .org-sugerencia { background: rgba(0,0,0,0.2); border: 1px solid var(--borde-oro); border-radius: 10px; padding: 12px; margin-bottom: 15px; }
+        .org-sugerencia-lbl { font-size: 0.45rem; color: rgba(255,255,255,0.45); letter-spacing: 0.08em; margin-bottom: 8px; font-weight: 600; }
+        .org-sugerencia-txt { font-size: 0.55rem; color: var(--neon); font-weight: 500; }
         .org-clasificados { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
         .org-clasificado { background: rgba(46,255,112,0.1); border: 1px solid rgba(46,255,112,0.3); padding: 6px 12px; border-radius: 20px; font-size: 0.5rem; color: var(--neon); display: flex; align-items: center; gap: 6px; }
         .org-clasificado .pos { background: var(--neon); color: #000; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.4rem; font-weight: 900; }
         .org-acciones { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-org { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 0.55rem; font-weight: bold; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; cursor: pointer; transition: 0.15s; }
+        .btn-org { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 0.55rem; font-weight: 600; font-family: "DM Sans", system-ui, sans-serif; letter-spacing: 0.06em; cursor: pointer; transition: 0.15s; }
         .btn-org:active { transform: scale(0.97); }
-        .btn-org.primario { background: var(--neon); color: #000; }
-        .btn-org.secundario { background: #1a1a1a; color: #666; border: 1px solid #2a2a2a; }
-        .empty-state { text-align: center; padding: 60px 20px; color: #222; }
+        .btn-org.primario { background: var(--oro); color: #0a0a0a; }
+        .btn-org.secundario { background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.85); border: 1px solid var(--borde-oro); }
+        .empty-state { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.35); }
         .empty-state div { font-size: 3rem; margin-bottom: 15px; }
-        .empty-state p { font-size: 0.7rem; line-height: 1.8; }
-        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, #000 40%); padding: 10px 15px 20px; display: flex; gap: 8px; }
-        .btn-nav { flex: 1; padding: 13px 8px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; color: #777; font-size: 0.65rem; cursor: pointer; text-align: center; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
-        .btn-nav:active { border-color: var(--oro); color: var(--oro); }
+        .empty-state p { font-size: 0.7rem; line-height: 1.8; font-weight: 500; }
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(10,10,10,0.95) 40%); padding: 10px 15px 20px; display: flex; gap: 8px; }
+        .btn-nav { flex: 1; padding: 13px 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--borde-oro); border-radius: 12px; color: rgba(255,255,255,0.55); font-size: 0.6rem; cursor: pointer; text-align: center; font-family: "DM Sans", system-ui, sans-serif; font-weight: 600; letter-spacing: 0.06em; }
+        .btn-nav:active { border-color: rgba(201,168,76,0.35); color: var(--oro); }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
 <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
-<body class="dc-ux dc-ux-skin m-root-legacy">
-
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
+<body class="dc-ux dc-ux-skin m-root-legacy org-panel page-pos">
 
     <div class="header">
         <div class="header-top">
             <div style="display:flex;align-items:center;gap:10px;">
                 <div id="club-logo-hdr"></div>
                 <div>
-                    <div class="header-titulo" id="lbl-torneo">POSICIONES</div>
+                    <div class="header-titulo" style="display:flex;align-items:center;gap:8px;">
+                        <span class="lbl-ico" id="ico-pos-h1" aria-hidden="true"></span>
+                        <span id="lbl-torneo">POSICIONES</span>
+                    </div>
                     <div class="header-sub" id="lbl-sub">FASE DE GRUPOS</div>
                 </div>
             </div>
@@ -150,6 +172,8 @@ var vistaActual = 'tabla';
 var esOrganizador = true;
 
 window.onload = async function() {
+    var ip = document.getElementById('ico-pos-h1');
+    if (ip && typeof DC !== 'undefined' && typeof DC.icon === 'function') ip.innerHTML = DC.icon('ranking', 22);
     try { if (typeof MasterVIP !== 'undefined') await MasterVIP.init(); } catch(e) { console.warn('Init offline:', e); }
     MasterVIP.applyDesign();
     var clubNom = localStorage.getItem('wl_club_nombre');
@@ -239,10 +263,10 @@ function renderTabla() {
     for (var i = 0; i < posiciones.length; i++) {
         var p = posiciones[i];
         var pos = i + 1;
-        var esLider = pos === 1;
         var clasifica = pos <= clasifican;
-        var rowClass = esLider ? 'lider' : (clasifica ? 'clasifica' : '');
-        var posClass = 'pos-num' + (esLider ? ' lider' : (clasifica ? ' top' : ''));
+        var rankKey = pos <= 3 ? String(pos) : 'rest';
+        var rowClass = 'rank-' + rankKey + (clasifica ? ' clasifica' : '');
+        var posClass = 'pos-num' + (pos <= 3 ? ' top3' : '');
         var inicial = p.nombre ? p.nombre.trim()[0].toUpperCase() : '?';
         var promedio = p.pj > 0 && p.ent > 0 ? (p.car / p.ent).toFixed(3) : parseFloat(p.promedio || 0).toFixed(3);
         
@@ -314,19 +338,14 @@ function confirmarYAvanzar() {
 }
 </script>
 <script src="/whitelabel.js"></script>
-
+<script src="/js/dc-icons.js"></script>
 <script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
+window.DC = window.DC || {};
+DC.icon = function (name, size) {
+    var s = size == null ? 18 : size;
+    if (typeof IC !== 'undefined' && typeof IC[name] === 'function') return IC[name](s);
+    return '';
+};
 </script>
 
 </body>
