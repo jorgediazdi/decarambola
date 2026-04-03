@@ -66,9 +66,7 @@
       .select('club_id, permisos, estado')
       .eq('organizador_id', uid)
       .eq('estado', 'activo');
-    if (error || !clubes || clubes.length === 0) {
-      window.location.replace('/sin-acceso.html');
-    } else {
+    if (!error && clubes && clubes.length > 0) {
       localStorage.setItem('organizador_clubes', JSON.stringify(clubes));
       if (clubes.length === 1) {
         _dcSetOrganizadorClubActivo(clubes[0].club_id);
@@ -83,6 +81,8 @@
           _dcMountOrganizadorClubSelector(clubes);
         }
       }
+    } else {
+      try { localStorage.removeItem('organizador_clubes'); } catch (_e3) {}
     }
   }
     </script>
