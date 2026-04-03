@@ -360,8 +360,11 @@ const MasterVIP = {
         localStorage.setItem('TORNEOS_LISTA', JSON.stringify(torneos));
         localStorage.setItem('TORNEO_ACTIVO_ID', torneo.id);
 
-        // Guardar en Supabase
-        const clubId = this.getClubId();
+        // Guardar en Supabase (club_id puede venir del formulario p. ej. torneo_crear tras leer profiles)
+        const clubId =
+            config && config.club_id != null && String(config.club_id).trim() !== ''
+                ? String(config.club_id).trim()
+                : this.getClubId() || null;
         const datosNube = {
             nombre: torneo.nombre,
             club_id: clubId || null,

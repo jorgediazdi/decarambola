@@ -933,6 +933,19 @@ body.tc-torneo-crear {
     </button>
     <button class="btn-back" onclick="irPaso(3)">&#8592; ATRÁS</button>
 
+    <div id="error-debug" style="
+     color:#ff4444; 
+     background:rgba(255,0,0,0.1);
+     border:1px solid #ff4444;
+     border-radius:8px;
+     padding:12px;
+     margin-top:12px;
+     font-size:12px;
+     font-family:monospace;
+     word-break:break-all;
+     min-height:20px;">
+   </div>
+
 </div>
 
 </div><!-- /wrap -->
@@ -1199,6 +1212,7 @@ function generarResumen() {
 
 /* ── CREAR ── */
 async function crearTorneo() {
+    function getClubId() { return MasterVIP.getClubId(); }
     var fmt = estado.formatoImportado;
     var cfg = {
         sede: estado.sitio, nombre: estado.nombre, fechaInicio: estado.fecha, modalidad: estado.modalidad,
@@ -1211,25 +1225,50 @@ async function crearTorneo() {
         formatoDetalle: fmt||null,
         reglas: fmt&&fmt.reglas ? fmt.reglas : {modo:'directo', metaDirecto:estado.meta, handicap:'no'}
     };
+    var session = null;
+    var supabaseClient = null;
+    try {
+        var _sb = await import('/js/supabase-client.js');
+        supabaseClient = _sb.supabase;
+        var _sr = await _sb.supabase.auth.getSession();
+        session = _sr.data && _sr.data.session ? _sr.data.session : null;
+    } catch (e0) {}
+    var clubId = getClubId();
+    if (!clubId && session && session.user && supabaseClient) {
+        const { data: perfil, error: perfilErr } = await supabaseClient
+            .from('profiles')
+            .select('club_id')
+            .eq('id', session.user.id)
+            .single();
+        if (perfilErr) console.error('[torneo_crear] profiles club_id:', perfilErr);
+        clubId = perfil && perfil.club_id != null && String(perfil.club_id).trim() !== ''
+            ? String(perfil.club_id).trim()
+            : null;
+    }
+    if (!clubId) {
+        document.getElementById('error-debug').textContent = 'Error: tu perfil no tiene club asignado. Contacta al admin.';
+        return;
+    }
+    cfg.club_id = clubId;
+    console.log('club_id:', clubId);
+    console.log('session uid:', session?.user?.id);
+    console.log('CFG:', JSON.stringify(cfg, null, 2));
     var torneo;
     try {
         torneo = await MasterVIP.crearTorneo(cfg);
-    } catch (e) {
-        console.error('[torneo_crear] crearTorneo MasterVIP:', e);
+    } catch (error) {
+        console.error('Error crearTorneo:', error);
+        document.getElementById('error-debug').textContent = 'ERROR: ' + JSON.stringify(error);
         showToast('Error al crear el torneo');
         return;
     }
+    console.log('Resultado crearTorneo:', torneo);
     try { localStorage.removeItem('FORMATO_TORNEO'); } catch(e){}
 
     /* Si el id sigue siendo temporal (T + timestamp), el insert en Supabase falló o no terminó: reintento con columnas de tabla `torneos` y club_id del perfil Auth */
     if (torneo && /^T\d+$/.test(String(torneo.id))) {
         try {
-            var auth = await import('/js/auth-manager.js');
-            var clubRes = await auth.getClubId();
-            var club_id = clubRes.data || null;
-            if (!club_id) {
-                console.error('[torneo_crear] insert Torneo Supabase: sin club_id en profiles (JWT). Detalle:', clubRes.error || clubRes);
-            }
+            var club_id = clubId;
             var api = await import('/js/api/torneo-api.js');
             var fi = torneo.fechaInicio ? String(torneo.fechaInicio).trim() : '';
             var fecha_inicio = fi ? (fi.indexOf('T') >= 0 ? fi : fi + 'T12:00:00.000Z') : null;
@@ -1256,8 +1295,13 @@ async function crearTorneo() {
                 aprobado_club: true
             };
             var ir = await api.insertTorneo(payload);
+            var data = ir.data;
+            var error = ir.error;
+            console.log('Resultado reintento:', data, error);
             if (ir.error) {
                 console.error('[torneo_crear] insert Torneo Supabase:', ir.error);
+                document.getElementById('error-debug').textContent = 'ERROR: ' + JSON.stringify(ir.error);
+                return;
             } else if (ir.data && ir.data.id) {
                 torneo.id = ir.data.id;
                 var list = MasterVIP.getTorneos();
@@ -1270,9 +1314,13 @@ async function crearTorneo() {
             }
         } catch (e2) {
             console.error('[torneo_crear] insert Torneo Supabase:', e2);
+            document.getElementById('error-debug').textContent = 'ERROR: ' + JSON.stringify(e2);
+            return;
         }
         if (torneo && /^T\d+$/.test(String(torneo.id))) {
             console.error('[torneo_crear] El torneo no se guardó en Supabase (id local:', torneo.id, '). Revisa RLS, club_id y columnas.');
+            document.getElementById('error-debug').textContent = 'ERROR: ' + JSON.stringify({ mensaje: 'Torneo sin UUID en Supabase tras reintento', idLocal: torneo.id });
+            return;
         }
     }
 
