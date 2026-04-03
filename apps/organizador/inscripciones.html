@@ -3,81 +3,136 @@
 <head>
     <script type="module">
 import { supabase } from '/js/supabase-client.js';
-import { getRole } from '/js/auth-manager.js';
 
-const { data: sess } = await supabase.auth.getSession();
-if (!sess?.session) {
-  window.location.replace('/login.html?next=' + encodeURIComponent(window.location.pathname));
+async function iniciarInscripciones(session) {
+  if (!session?.user) {
+    window.location.href = '/login.html';
+    return;
+  }
+  const uid = session.user.id;
+  const { data: prof, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', uid)
+    .maybeSingle();
+  const rol = !error && prof?.role ? String(prof.role) : 'jugador';
+  if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
+    window.location.replace('/jugador/index.html');
+  }
 }
-const { data: rol } = await getRole();
-if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
-  window.location.replace('/jugador/index.html');
-}
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'INITIAL_SESSION') {
+    if (!session) window.location.href = '/login.html';
+    else iniciarInscripciones(session);
+  }
+});
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#c9a84c">
     <title>Inscripciones — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
+        :root {
+            --oro:#c9a84c;
+            --negro:#0a0a0a;
+            --neon:#2eff70;
+            --azul:#3498db;
+            --rojo:#e74c3c;
+            --g1:#1a1a1a;
+            --g2:#111;
+            --g3:#0a0a0a;
+            --borde-oro:rgba(201,168,76,0.15);
+        }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; }
+        body.page-ins {
+            background:var(--negro);
+            color:#f0f0f0;
+            font-family:"DM Sans",system-ui,sans-serif;
+            min-height:100vh;
+            -webkit-font-smoothing:antialiased;
+        }
+        .org-panel #stars-bg { display:none !important; }
+
+        .lbl-ico { display:inline-flex; align-items:center; justify-content:center; color:var(--oro); flex-shrink:0; vertical-align:middle; }
+        .lbl-ico svg { display:block; }
+        .lbl-ico--h1 { margin-right:8px; }
 
         /* HEADER */
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:16px 18px; position:sticky; top:0; z-index:50; display:flex; flex-direction:column; align-items:stretch; gap:12px; }
+        .header { width:100%; background:#0a0a0a; border-bottom:1px solid var(--borde-oro); padding:16px 18px; position:sticky; top:0; z-index:50; display:flex; flex-direction:column; align-items:stretch; gap:12px; }
         .header-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
         .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
         .btn-hdr {
-            background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888;
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--borde-oro);
+            color:#888;
             padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
-            text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
+            text-decoration:none; font-family:"DM Sans",system-ui,sans-serif; font-weight:600;
             letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
         }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
-        .header h1 { color:var(--oro); font-size:1.1rem; letter-spacing:3px; }
-        .header small { color:#333; font-size: 0.65rem; letter-spacing:2px; margin-top:4px; display:block; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(201,168,76,0.35); color:var(--oro); outline:none; }
+        .header h1 {
+            font-family:"Playfair Display",Georgia,serif;
+            font-weight:600;
+            color:var(--oro);
+            font-size:clamp(1rem,3.5vw,1.25rem);
+            letter-spacing:0.06em;
+            display:flex;
+            align-items:center;
+        }
+        .header small { color:#666; font-size:0.65rem; letter-spacing:0.12em; margin-top:4px; display:block; font-family:"DM Sans",system-ui,sans-serif; font-weight:500; }
         .cupo-badge {
-            background:rgba(46,255,112,0.1);
-            border:1px solid rgba(46,255,112,0.3);
-            color:var(--neon);
+            background:rgba(201,168,76,0.08);
+            border:1px solid rgba(201,168,76,0.25);
+            color:var(--oro);
             padding:6px 14px;
             border-radius:12px;
             font-size:0.55rem;
-            font-family:'Courier New',monospace;
+            font-family:ui-monospace,monospace;
+            font-weight:600;
         }
         .cupo-badge.lleno {
             background:rgba(231,76,60,0.1);
-            border-color:rgba(231,76,60,0.3);
+            border-color:rgba(231,76,60,0.35);
             color:var(--rojo);
         }
 
-        /* CONTENIDO */
         .contenido { padding:20px 15px 140px; max-width:500px; margin:0 auto; }
 
-        /* TORNEO INFO */
         .torneo-info {
-            background:linear-gradient(135deg, #1a1200, #0a0800);
-            border:1px solid rgba(212,175,55,0.3);
-            border-radius:18px;
-            padding:18px;
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--borde-oro);
+            border-radius:12px;
+            padding:16px;
             margin-bottom:20px;
             text-align:center;
         }
-        .torneo-nombre { color:var(--oro); font-size:0.9rem; letter-spacing:2px; margin-bottom:6px; }
-        .torneo-detalles { color:#555; font-size: 0.65rem; letter-spacing:1px; }
+        .torneo-nombre {
+            font-family:"Playfair Display",Georgia,serif;
+            font-weight:600;
+            color:var(--oro);
+            font-size:0.95rem;
+            letter-spacing:0.06em;
+            margin-bottom:6px;
+        }
+        .torneo-detalles { color:#888; font-size:0.65rem; letter-spacing:0.06em; }
 
-        /* FORMULARIO */
         .form-card {
-            background:var(--g3);
-            border:1px solid var(--g1);
-            border-radius:20px;
-            padding:20px;
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--borde-oro);
+            border-radius:12px;
+            padding:16px;
             margin-bottom:20px;
         }
         .form-titulo {
-            font-size:0.55rem;
+            font-family:"Playfair Display",Georgia,serif;
+            font-weight:600;
+            font-size:0.62rem;
             color:var(--oro);
-            letter-spacing:2px;
+            letter-spacing:0.12em;
             margin-bottom:16px;
             display:flex;
             align-items:center;
@@ -85,102 +140,106 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
         }
         .form-grupo { margin-bottom:14px; }
         .form-label {
-            font-size: 0.65rem;
-            color:#555;
-            letter-spacing:1px;
+            font-size:0.65rem;
+            color:#888;
+            letter-spacing:0.06em;
             margin-bottom:6px;
             display:block;
+            font-weight:600;
         }
         .form-input {
             width:100%;
-            background:var(--g2);
-            border:1px solid var(--g1);
+            background:rgba(0,0,0,0.25);
+            border:1px solid var(--borde-oro);
             border-radius:12px;
             padding:14px 16px;
             color:#fff;
             font-size:0.8rem;
-            font-family:'Arial Black',sans-serif;
+            font-family:"DM Sans",system-ui,sans-serif;
+            font-weight:500;
             outline:none;
         }
-        .form-input:focus { border-color:var(--oro); }
-        .form-input::placeholder { color:#333; }
+        .form-input:focus { border-color:rgba(201,168,76,0.45); }
+        .form-input::placeholder { color:#444; }
         .form-input.small { font-size:0.7rem; }
         select.form-input.inp-club-select,
         select.form-input#inp-club {
-            background: var(--g2);
-            border: 1px solid var(--g1);
-            border-radius: 12px;
-            color: #fff;
-            font-family: 'Arial Black', sans-serif;
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23555' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 32px;
+            background:rgba(0,0,0,0.25);
+            border:1px solid var(--borde-oro);
+            border-radius:12px;
+            color:#fff;
+            font-family:"DM Sans",system-ui,sans-serif;
+            cursor:pointer;
+            appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23c9a84c' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat:no-repeat;
+            background-position:right 12px center;
+            padding-right:32px;
         }
 
-        .form-row {
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:10px;
-        }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
         .btn-inscribir {
             width:100%;
             padding:16px;
-            background:var(--neon);
-            color:#000;
+            background:#c9a84c;
+            color:#0a0a0a;
             border:none;
-            border-radius:14px;
+            border-radius:12px;
             font-size:0.65rem;
-            font-family:'Arial Black',sans-serif;
-            letter-spacing:2px;
+            font-family:"DM Sans",system-ui,sans-serif;
+            font-weight:700;
+            letter-spacing:0.1em;
             cursor:pointer;
             transition:0.15s;
             margin-top:6px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
         }
+        .btn-inscribir .lbl-ico { color:#0a0a0a; opacity:0.9; }
         .btn-inscribir:active { transform:scale(0.97); }
         .btn-inscribir:disabled {
             background:#1a1a1a;
-            color:#333;
+            color:#555;
             cursor:not-allowed;
         }
 
-        /* BUSCAR JUGADOR */
         .buscar-section {
-            background:var(--g3);
-            border:1px solid var(--g1);
-            border-radius:16px;
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--borde-oro);
+            border-radius:12px;
             padding:16px;
             margin-bottom:20px;
         }
         .buscar-titulo {
-            font-size:0.5rem;
-            color:#555;
-            letter-spacing:2px;
+            font-family:"Playfair Display",Georgia,serif;
+            font-weight:600;
+            font-size:0.55rem;
+            color:var(--oro);
+            letter-spacing:0.1em;
             margin-bottom:12px;
+            display:flex;
+            align-items:center;
+            gap:8px;
         }
         .buscar-input {
             width:100%;
-            background:var(--g2);
-            border:1px solid var(--g1);
+            background:rgba(0,0,0,0.25);
+            border:1px solid var(--borde-oro);
             border-radius:12px;
             padding:12px 16px;
             color:#fff;
             font-size:0.75rem;
-            font-family:'Arial Black',sans-serif;
+            font-family:"DM Sans",system-ui,sans-serif;
             outline:none;
         }
-        .buscar-input:focus { border-color:var(--azul); }
-        .sugerencias {
-            margin-top:10px;
-            max-height:150px;
-            overflow-y:auto;
-        }
+        .buscar-input:focus { border-color:rgba(201,168,76,0.4); }
+        .sugerencias { margin-top:10px; max-height:150px; overflow-y:auto; }
         .sugerencia-item {
-            background:var(--g2);
-            border:1px solid var(--g1);
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--borde-oro);
             border-radius:10px;
             padding:10px 14px;
             margin-bottom:6px;
@@ -190,47 +249,46 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
             cursor:pointer;
             transition:0.15s;
         }
-        .sugerencia-item:active { border-color:var(--neon); }
+        .sugerencia-item:active { border-color:rgba(201,168,76,0.35); }
         .sug-avatar {
             width:32px; height:32px;
             border-radius:50%;
-            background:var(--g1);
+            background:var(--g2);
             display:flex;
             align-items:center;
             justify-content:center;
             font-size:0.5rem;
-            color:#555;
-            font-weight:900;
+            color:#888;
+            font-weight:700;
         }
         .sug-info { flex:1; }
-        .sug-nombre { font-size:0.6rem; color:#ddd; }
-        .sug-prom { font-size: 0.65rem; color:#555; font-family:'Courier New',monospace; }
-        .sug-add { color:var(--neon); font-size:1rem; }
+        .sug-nombre { font-size:0.6rem; color:#e8e8e8; }
+        .sug-prom { font-size:0.65rem; color:#666; font-family:ui-monospace,monospace; }
+        .sug-add { color:var(--oro); font-size:1rem; font-weight:700; }
 
-        /* LISTA INSCRITOS */
         .inscritos-section { margin-top:25px; }
-        .inscritos-header {
+        .inscritos-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+        .inscritos-titulo {
+            font-family:"Playfair Display",Georgia,serif;
+            font-weight:600;
+            font-size:0.58rem;
+            color:var(--oro);
+            letter-spacing:0.1em;
             display:flex;
             align-items:center;
-            justify-content:space-between;
-            margin-bottom:14px;
-        }
-        .inscritos-titulo {
-            font-size:0.55rem;
-            color:#555;
-            letter-spacing:2px;
+            gap:8px;
         }
         .inscritos-count {
             font-size:0.5rem;
-            color:var(--neon);
-            font-family:'Courier New',monospace;
+            color:rgba(201,168,76,0.85);
+            font-family:ui-monospace,monospace;
         }
 
         .inscrito-card {
-            background:var(--g3);
-            border:1px solid var(--g1);
-            border-radius:14px;
-            padding:12px 14px;
+            background:rgba(255,255,255,0.03);
+            border:1px solid rgba(201,168,76,0.15);
+            border-radius:12px;
+            padding:16px;
             margin-bottom:8px;
             display:flex;
             align-items:center;
@@ -239,128 +297,122 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
         .inscrito-pos {
             width:28px; height:28px;
             border-radius:50%;
-            background:var(--g2);
+            background:rgba(201,168,76,0.1);
+            border:1px solid rgba(201,168,76,0.2);
             display:flex;
             align-items:center;
             justify-content:center;
             font-size:0.55rem;
-            color:#444;
-            font-weight:900;
+            color:var(--oro);
+            font-weight:700;
         }
         .inscrito-avatar {
             width:38px; height:38px;
             border-radius:50%;
-            background:linear-gradient(135deg,#1a1a00,#2a2000);
-            border:1px solid rgba(212,175,55,0.25);
+            background:rgba(201,168,76,0.08);
+            border:1px solid rgba(201,168,76,0.22);
             display:flex;
             align-items:center;
             justify-content:center;
             font-size:0.55rem;
-            color:#664;
-            font-weight:900;
+            color:var(--oro);
+            font-weight:700;
         }
         .inscrito-info { flex:1; min-width:0; }
         .inscrito-nombre {
             font-size:0.7rem;
-            color:#ddd;
+            color:#eee;
             white-space:nowrap;
             overflow:hidden;
             text-overflow:ellipsis;
+            font-weight:600;
         }
         .inscrito-id {
             font-size:0.4rem;
-            color:#444;
-            font-family:'Courier New',monospace;
+            color:#666;
+            font-family:ui-monospace,monospace;
             margin-top:2px;
         }
         .inscrito-prom {
             font-size:0.8rem;
-            color:var(--neon);
-            font-family:'Courier New',monospace;
+            color:var(--oro);
+            font-family:ui-monospace,monospace;
+            font-weight:600;
         }
         .inscrito-quitar {
-            width:28px; height:28px;
+            width:30px; height:30px;
             border-radius:50%;
-            background:rgba(231,76,60,0.1);
-            border:1px solid rgba(231,76,60,0.3);
-            color:var(--rojo);
-            font-size:0.8rem;
+            background:transparent;
+            border:1px solid rgba(201,168,76,0.3);
+            color:rgba(201,168,76,0.7);
+            font-size:1rem;
+            line-height:1;
             cursor:pointer;
             display:flex;
             align-items:center;
             justify-content:center;
+            flex-shrink:0;
         }
-        .inscrito-quitar:active { background:rgba(231,76,60,0.2); }
+        .inscrito-quitar:active { background:rgba(201,168,76,0.08); }
 
-        /* ACCIONES TORNEO */
-        .acciones-torneo {
-            margin-top:25px;
-            padding-top:20px;
-            border-top:1px solid var(--g1);
-        }
+        .acciones-torneo { margin-top:25px; padding-top:20px; border-top:1px solid var(--borde-oro); }
         .btn-sorteo {
             width:100%;
             padding:18px;
-            background:var(--oro);
-            color:#000;
+            background:#c9a84c;
+            color:#0a0a0a;
             border:none;
-            border-radius:16px;
+            border-radius:12px;
             font-size:0.7rem;
-            font-family:'Arial Black',sans-serif;
-            letter-spacing:2px;
+            font-family:"DM Sans",system-ui,sans-serif;
+            font-weight:700;
+            letter-spacing:0.08em;
             cursor:pointer;
             transition:0.15s;
             margin-bottom:10px;
         }
         .btn-sorteo:active { transform:scale(0.97); }
-        .btn-sorteo:disabled {
-            background:#1a1a1a;
-            color:#333;
-            cursor:not-allowed;
-        }
+        .btn-sorteo:disabled { background:#1a1a1a; color:#555; cursor:not-allowed; }
         .btn-secundario {
             width:100%;
             padding:14px;
-            background:var(--g3);
-            color:#666;
-            border:1px solid var(--g1);
-            border-radius:14px;
+            background:transparent;
+            color:#888;
+            border:1px solid var(--borde-oro);
+            border-radius:12px;
             font-size:0.55rem;
-            font-family:'Arial Black',sans-serif;
-            letter-spacing:1px;
+            font-family:"DM Sans",system-ui,sans-serif;
+            font-weight:600;
+            letter-spacing:0.08em;
             cursor:pointer;
         }
-        .btn-secundario:active { border-color:var(--oro); color:var(--oro); }
+        .btn-secundario:active { border-color:rgba(201,168,76,0.4); color:var(--oro); }
 
-        /* EMPTY */
-        .empty {
-            text-align:center;
-            padding:40px 20px;
-            color:#333;
-        }
-        .empty-icon { font-size:2.5rem; margin-bottom:12px; }
-        .empty-txt { font-size:0.55rem; line-height:1.8; }
+        .empty { text-align:center; padding:40px 20px; color:#666; }
+        .empty-icon { font-size:2.5rem; margin-bottom:12px; opacity:0.85; }
+        .empty-txt { font-size:0.55rem; line-height:1.8; font-weight:500; }
 
-        /* NAV BOTTOM UNIFICADO */
         .nav-bottom {
             position:fixed; bottom:0; left:0; right:0;
             z-index:100;
-            background:linear-gradient(transparent, #000 40%);
+            background:linear-gradient(transparent, #0a0a0a 42%);
             padding:10px 15px 20px;
             display:flex; gap:8px;
         }
         .btn-nav {
             flex:1; padding:13px 8px;
-            background:#0f0f0f; border:1px solid #1a1a1a;
-            border-radius:14px; color:#777;
-            font-size: 0.65rem; cursor:pointer;
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--borde-oro);
+            border-radius:12px; color:#888;
+            font-size:0.62rem; cursor:pointer;
             text-align:center; text-decoration:none;
             display:block; transition:0.2s;
-            font-family:'Arial Black',sans-serif;
-            letter-spacing:1px;
+            font-family:"DM Sans",system-ui,sans-serif;
+            font-weight:600;
+            letter-spacing:0.06em;
         }
-        .btn-nav:active { border-color:var(--oro); color:var(--oro); }
-        .btn-nav.activo { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.1); }
+        .btn-nav:active { border-color:rgba(201,168,76,0.4); color:var(--oro); }
+        .btn-nav.activo { border-color:rgba(201,168,76,0.45); color:var(--oro); background:rgba(201,168,76,0.08); }
         .header-main { display:flex; align-items:center; gap:10px; }
         .header-logo {
             width:52px; height:52px;
@@ -368,43 +420,42 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
             overflow:hidden;
             display:flex; align-items:center; justify-content:center;
             background:#111;
-            border:1px solid #222;
+            border:1px solid rgba(201,168,76,0.2);
         }
 
-        /* TABS */
-        .tabs {
-            display:flex;
-            gap:8px;
-            margin-bottom:20px;
-        }
+        .tabs { display:flex; gap:8px; margin-bottom:20px; }
         .tab-btn {
             flex:1;
             padding:12px;
-            background:var(--g3);
-            border:1px solid var(--g1);
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--borde-oro);
             border-radius:12px;
-            color:#555;
-            font-size:0.5rem;
-            font-family:'Arial Black',sans-serif;
-            letter-spacing:1px;
+            color:#888;
+            font-size:0.52rem;
+            font-family:"DM Sans",system-ui,sans-serif;
+            font-weight:600;
+            letter-spacing:0.08em;
             cursor:pointer;
             text-align:center;
             transition:0.15s;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:6px;
         }
         .tab-btn.activo {
-            background:rgba(212,175,55,0.1);
-            border-color:var(--oro);
+            background:rgba(201,168,76,0.1);
+            border-color:rgba(201,168,76,0.35);
             color:var(--oro);
         }
         select.form-input { cursor:pointer; }
         .inp-wrap { position:relative; }
-        .btn-ver  { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:#555; cursor:pointer; font-size:1rem; padding:4px; }
+        .btn-ver { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:#888; cursor:pointer; font-size:1rem; padding:4px; }
     </style>
-    <meta name="theme-color" content="#d4af37">
     <link rel="stylesheet" href="/css/ux-shell.css">
 <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
-<body class="dc-ux dc-ux-skin">
+<body class="dc-ux dc-ux-skin page-ins org-panel">
 
 <div class="stars" id="stars-bg" aria-hidden="true"></div>
 
@@ -414,7 +465,7 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
         <div class="header-main">
             <div class="header-logo" id="hdr-logo-insc"></div>
             <div>
-                <h1>🎫 INSCRIPCIONES</h1>
+                <h1><span class="lbl-ico lbl-ico--h1" id="ico-h1-insc" aria-hidden="true"></span>INSCRIPCIONES</h1>
                 <small id="lbl-torneo">SELECCIONA UN TORNEO</small>
             </div>
         </div>
@@ -440,14 +491,14 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
 
     <!-- TABS -->
     <div class="tabs">
-        <button class="tab-btn activo" id="tab-nuevo" onclick="cambiarTab('nuevo')">➕ NUEVO</button>
-        <button class="tab-btn" id="tab-existente" onclick="cambiarTab('existente')">🔍 BUSCAR</button>
+        <button class="tab-btn activo" id="tab-nuevo" onclick="cambiarTab('nuevo')"><span class="lbl-ico" id="ico-tab-nuevo" aria-hidden="true"></span>NUEVO</button>
+        <button class="tab-btn" id="tab-existente" onclick="cambiarTab('existente')"><span class="lbl-ico" id="ico-tab-buscar" aria-hidden="true"></span>BUSCAR</button>
     </div>
 
     <!-- TAB: INSCRIBIR NUEVO -->
     <div id="panel-nuevo">
         <div class="form-card">
-            <div class="form-titulo">➕ INSCRIBIR JUGADOR NUEVO</div>
+            <div class="form-titulo"><span class="lbl-ico" id="ico-form-nuevo" aria-hidden="true"></span>INSCRIBIR JUGADOR NUEVO</div>
             
             <div class="form-grupo">
                 <label class="form-label">NOMBRE COMPLETO *</label>
@@ -502,7 +553,7 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
             </div>
             
             <button type="button" class="btn-inscribir" id="btn-inscribir" onclick="inscribirNuevo()">
-                🎫 INSCRIBIR JUGADOR
+                <span class="lbl-ico" id="ico-btn-inscribir" aria-hidden="true"></span>INSCRIBIR JUGADOR
             </button>
         </div>
     </div>
@@ -510,7 +561,7 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
     <!-- TAB: BUSCAR EXISTENTE -->
     <div id="panel-existente" style="display:none;">
         <div class="buscar-section">
-            <div class="buscar-titulo">🔍 BUSCAR JUGADOR REGISTRADO</div>
+            <div class="buscar-titulo"><span class="lbl-ico" id="ico-buscar-tit" aria-hidden="true"></span>BUSCAR JUGADOR REGISTRADO</div>
             <input type="text" class="buscar-input" id="inp-buscar" placeholder="Escribe el nombre..." oninput="buscarJugador()">
             <div class="sugerencias" id="sugerencias"></div>
         </div>
@@ -519,7 +570,7 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
     <!-- LISTA DE INSCRITOS -->
     <div class="inscritos-section">
         <div class="inscritos-header">
-            <span class="inscritos-titulo">📋 JUGADORES INSCRITOS</span>
+            <span class="inscritos-titulo"><span class="lbl-ico" id="ico-inscritos-tit" aria-hidden="true"></span>JUGADORES INSCRITOS</span>
             <span class="inscritos-count" id="inscritos-count">0 jugadores</span>
         </div>
         <div id="lista-inscritos">
@@ -610,14 +661,31 @@ function mostrarBloqueoAfiliacion() {
     bloqueo.id = 'bloqueo-afiliacion';
     bloqueo.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;';
     bloqueo.innerHTML = '<div style="font-size:4rem;margin-bottom:16px;">🟡</div>' +
-        '<div style="color:#d4af37;font-size:1.1rem;letter-spacing:2px;margin-bottom:8px;">AFILIACIÓN OBLIGATORIA</div>' +
-        '<p style="color:#888;font-size:0.8rem;max-width:340px;line-height:1.55;margin-bottom:20px;">' + texto + '</p>' +
-        '<a href="/index.html#afiliacion" style="display:inline-block;padding:16px 28px;background:linear-gradient(135deg,#d4af37,#a07800);color:#000;border-radius:16px;font-size:0.85rem;font-weight:bold;text-decoration:none;font-family:Arial Black,sans-serif;letter-spacing:1px;">IR AL MENÚ — CLUB</a>' +
+        '<div style="color:#c9a84c;font-size:1.1rem;letter-spacing:2px;margin-bottom:8px;font-family:Playfair Display,Georgia,serif;font-weight:600;">AFILIACIÓN OBLIGATORIA</div>' +
+        '<p style="color:#888;font-size:0.8rem;max-width:340px;line-height:1.55;margin-bottom:20px;font-family:DM Sans,system-ui,sans-serif;">' + texto + '</p>' +
+        '<a href="/index.html#afiliacion" style="display:inline-block;padding:16px 28px;background:#c9a84c;color:#0a0a0a;border-radius:12px;font-size:0.85rem;font-weight:700;text-decoration:none;font-family:DM Sans,system-ui,sans-serif;letter-spacing:0.06em;">IR AL MENÚ — CLUB</a>' +
         '<p style="margin-top:18px;"><a href="/index.html" style="color:#555;font-size:0.65rem;">Volver al inicio</a></p>';
     document.body.appendChild(bloqueo);
 }
 
 window.onload = async function() {
+    try {
+        if (typeof DC !== 'undefined' && typeof DC.icon === 'function') {
+            var _map = [
+                ['ico-h1-insc', 'trofeo', 22],
+                ['ico-tab-nuevo', 'perfil', 15],
+                ['ico-tab-buscar', 'ranking', 15],
+                ['ico-form-nuevo', 'perfil', 16],
+                ['ico-btn-inscribir', 'tacoYbola', 18],
+                ['ico-buscar-tit', 'ranking', 15],
+                ['ico-inscritos-tit', 'ranking', 15]
+            ];
+            for (var _j = 0; _j < _map.length; _j++) {
+                var _n = document.getElementById(_map[_j][0]);
+                if (_n) _n.innerHTML = DC.icon(_map[_j][1], _map[_j][2]);
+            }
+        }
+    } catch (_eI) {}
     try { await MasterVIP.init(); } catch(e) { console.warn('Init offline:', e); }
     // SESSION.verificarAlCargar eliminado — guard moderno en <head>
     MasterVIP.applyDesign();
@@ -748,7 +816,7 @@ function buscarJugador() {
     }
     
     if (encontrados.length === 0) {
-        contenedor.innerHTML = '<div style="color:#333;font-size:0.5rem;padding:10px;text-align:center;">No encontrado</div>';
+        contenedor.innerHTML = '<div style="color:#666;font-size:0.5rem;padding:10px;text-align:center;">No encontrado</div>';
         return;
     }
     
@@ -941,19 +1009,14 @@ function realizarSorteo() {
 }
 </script>
 <script src="/whitelabel.js"></script>
-
+<script src="/js/dc-icons.js"></script>
 <script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
+window.DC = window.DC || {};
+DC.icon = function (name, size) {
+    var s = size == null ? 18 : size;
+    if (typeof IC !== 'undefined' && typeof IC[name] === 'function') return IC[name](s);
+    return '';
+};
 </script>
 
 </body>
