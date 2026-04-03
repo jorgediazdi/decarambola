@@ -23,32 +23,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#c9a84c">
     <title>El Sensei del Billar — DeCarambola</title>
+    <link rel="stylesheet" href="/css/index-v2.css">
     <link rel="stylesheet" href="/css/dc-system.css">
     <script src="/js/dc-nav.js" defer></script>
     <style>
         :root { --oro: var(--dc-gold, #c9a84c); --negro: var(--dc-bg, #0a0a0a); }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:var(--negro); color:var(--dc-text,#f0f0f0); font-family:var(--dc-font-body,"DM Sans",system-ui,sans-serif); min-height:100vh; font-size:18px; }
-        .stars { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; background: radial-gradient(ellipse at 50% 0%, #0d0800 0%, #000 70%); }
-        .star { position:absolute; background:#fff; border-radius:50%; animation: twinkle 3s infinite alternate; }
-        @keyframes twinkle { 0%{opacity:0.1} 100%{opacity:0.7} }
-        .header { position:relative; z-index:10; background:linear-gradient(180deg,#0a0800,transparent); padding:20px; display:flex; flex-direction:column; align-items:stretch; gap:12px; }
-        .sensei-hdr-row { display:flex; align-items:center; gap:15px; width:100%; }
-        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
-        .header-actions .btn-hdr {
-            background:rgba(10,10,10,0.95); border:1px solid rgba(212,175,55,0.2); color:#888;
-            padding:10px 14px; border-radius:10px; font-size:clamp(11px, 3.1vw, 14px); cursor:pointer;
-            text-decoration:none; font-family:var(--dc-font-body,"DM Sans",sans-serif); font-weight:600;
-            letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+        .sensei-root.dc-app { background: #0a0a0a; font-size: 16px; }
+        .sensei-wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 0 16px 8px;
         }
-        .header-actions .btn-hdr:hover, .header-actions .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.45); color:var(--oro); outline:none; }
-        .back-btn { color:#888; font-size:0.9rem; text-decoration:none; padding:12px 16px; border:1px solid #333; border-radius:10px; letter-spacing:1px; }
-        .back-btn:hover { border-color:var(--oro); color:var(--oro); }
-        .header-info { flex:1; }
-        .header-titulo { color:var(--oro); font-size:1.4rem; letter-spacing:0.08em; font-family:var(--dc-font-display,"Playfair Display",Georgia,serif); font-style:italic; }
-        .header-sub { color:var(--dc-text-muted,#888); font-size:0.8rem; letter-spacing:2px; margin-top:3px; }
-        .contenido { position:relative; z-index:10; padding:15px 20px 40px; max-width:550px; margin:0 auto; }
-        .modalidad-selector { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; padding:8px; background:#0a0a0a; border-radius:14px; border:1px solid #1a1a1a; }
+        @media (min-width: 768px) {
+            .sensei-wrap { max-width: 520px; padding-left: 24px; padding-right: 24px; }
+        }
+        @media (min-width: 1024px) {
+            .sensei-wrap { max-width: 640px; padding-left: 32px; padding-right: 32px; }
+        }
+        .sensei-hdr {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 0 12px;
+            border-bottom: 1px solid var(--dc-border, rgba(201,168,76,0.12));
+            margin-bottom: 8px;
+        }
+        .sensei-hdr-main { flex: 1; min-width: 0; }
+        .sensei-hdr-titulo {
+            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
+            font-size: 1.05rem;
+            color: var(--dc-gold, #c9a84c);
+            letter-spacing: 0.4px;
+            line-height: 1.2;
+        }
+        .sensei-hdr-sub {
+            font-size: 0.55rem;
+            color: var(--dc-text-subtle, #4a4a4a);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .sensei-back {
+            flex-shrink: 0;
+            color: var(--dc-text-muted, #888);
+            font-size: 0.62rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            padding: 10px 14px;
+            border: 1px solid var(--dc-border, rgba(201,168,76,0.12));
+            border-radius: 10px;
+            font-family: var(--dc-font-body, "DM Sans", sans-serif);
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .sensei-back:hover, .sensei-back:focus-visible {
+            border-color: var(--dc-border-hover, rgba(201,168,76,0.32));
+            color: var(--dc-gold, #c9a84c);
+            outline: none;
+        }
+        .sensei-toplink {
+            display: block;
+            font-size: 0.58rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--dc-text-muted, #888);
+            text-decoration: none;
+            margin-top: 10px;
+            font-family: var(--dc-font-body, "DM Sans", sans-serif);
+        }
+        .sensei-toplink:hover { color: var(--dc-gold, #c9a84c); }
+        .contenido { position:relative; z-index:10; padding:12px 0 32px; max-width:none; margin:0; }
+        .modalidad-selector { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; padding:10px; background:var(--dc-surface,#111); border-radius:14px; border:1px solid var(--dc-border,rgba(201,168,76,0.12)); }
         .mod-btn {
             flex:1; min-width:calc(33.33% - 8px); min-height:48px;
             padding:14px 8px; background:transparent; border:none; border-radius:12px; color:#888;
@@ -58,21 +107,21 @@
         .mod-btn.activo { background:linear-gradient(135deg,#1a1200,#0f0a00); color:var(--oro); box-shadow:0 0 15px rgba(212,175,55,0.1); }
         .mod-btn:hover:not(.activo) { color:#888; }
         .menu-sensei { display:flex; flex-direction:column; gap:14px; }
-        .menu-item { display:flex; align-items:center; gap:16px; background:#0a0800; border:1px solid rgba(212,175,55,0.25); border-radius:18px; padding:20px; cursor:pointer; transition:0.2s; text-decoration:none; }
-        .menu-item:hover, .menu-item:active { border-color:rgba(212,175,55,0.5); background:linear-gradient(135deg,#120e00,#0a0800); transform:scale(1.01); }
-        .menu-icon { width:56px; height:56px; background:linear-gradient(135deg,#1a1200,#0f0a00); border:1px solid rgba(212,175,55,0.3); border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .menu-item { display:flex; align-items:center; gap:16px; background:var(--dc-surface,#111); border:1px solid var(--dc-border,rgba(201,168,76,0.12)); border-radius:18px; padding:18px 16px; cursor:pointer; transition:0.2s; text-decoration:none; }
+        .menu-item:hover, .menu-item:active { border-color:var(--dc-border-hover,rgba(201,168,76,0.32)); background:rgba(201,168,76,0.04); transform:scale(1.01); }
+        .menu-icon { width:56px; height:56px; background:rgba(201,168,76,0.06); border:1px solid var(--dc-border,rgba(201,168,76,0.15)); border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
         .menu-icon svg { width:28px; height:28px; stroke:var(--oro); stroke-width:1.5; fill:none; }
         .menu-texto { flex:1; }
-        .menu-titulo { color:var(--oro); font-size:1.1rem; letter-spacing:2px; margin-bottom:6px; }
+        .menu-titulo { font-family: var(--dc-font-display, "Playfair Display", Georgia, serif); color:var(--oro); font-size:1rem; letter-spacing:0.06em; margin-bottom:6px; }
         .menu-desc { color:var(--dc-text-muted,#888); font-size:0.9rem; letter-spacing:1px; line-height:1.5; font-family:var(--dc-font-body,"DM Sans",sans-serif); font-weight:normal; }
         .menu-arrow { color:#444; font-size:1.5rem; }
         .seccion { display:none; animation:fadeIn 0.3s ease; }
         .seccion.visible { display:block; }
         @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-        .tarjeta { background:#0a0800; border:1px solid rgba(212,175,55,0.25); border-radius:18px; overflow:hidden; }
-        .tarjeta-header { background:linear-gradient(135deg,#1a1200,#0a0800); padding:18px 20px; border-bottom:1px solid rgba(212,175,55,0.15); display:flex; align-items:center; gap:14px; }
+        .tarjeta { background:var(--dc-surface,#111); border:1px solid var(--dc-border,rgba(201,168,76,0.12)); border-radius:18px; overflow:hidden; }
+        .tarjeta-header { background:rgba(201,168,76,0.05); padding:18px 20px; border-bottom:1px solid var(--dc-border,rgba(201,168,76,0.12)); display:flex; align-items:center; gap:14px; }
         .tarjeta-header svg { width:26px; height:26px; stroke:var(--oro); stroke-width:1.5; fill:none; }
-        .tarjeta-header-texto { color:var(--oro); font-size:1.1rem; letter-spacing:2px; }
+        .tarjeta-header-texto { font-family: var(--dc-font-display, "Playfair Display", Georgia, serif); color:var(--oro); font-size:1rem; letter-spacing:0.06em; }
         .mensajes { height:320px; overflow-y:auto; padding:20px; background:#050400; }
         .mensaje { margin-bottom:16px; padding:16px 18px; border-radius:14px; max-width:90%; font-size:1rem; line-height:1.7; font-family:var(--dc-font-body,"DM Sans",sans-serif); font-weight:normal; }
         .mensaje.user { background:linear-gradient(135deg,#1a1200,#0f0a00); border:1px solid rgba(212,175,55,0.25); color:#ddd; margin-left:auto; }
@@ -171,8 +220,9 @@
         .modal-biblio-titulo {
             flex:1;
             color:var(--oro);
-            font-size:1.2rem;
-            letter-spacing:2px;
+            font-size:1.05rem;
+            letter-spacing:0.06em;
+            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
         }
         .modal-biblio-body {
             background:#0a0800;
@@ -258,8 +308,9 @@
         .loading { display:inline-block; width:20px; height:20px; border:2px solid var(--oro); border-radius:50%; border-top-color:transparent; animation:spin 1s linear infinite; }
         .loading-grande { width:45px; height:45px; border-width:3px; }
         @keyframes spin { to { transform:rotate(360deg); } }
-        .footer { position:relative; z-index:10; text-align:center; padding:25px; color:#333; font-size:0.8rem; letter-spacing:2px; }
-        .footer a { color:#444; text-decoration:none; }
+        .footer { position:relative; z-index:10; text-align:center; padding:24px 0 8px; color:var(--dc-text-subtle,#555); font-size:0.72rem; letter-spacing:0.12em; font-family: var(--dc-font-body, "DM Sans", sans-serif); }
+        .footer a { color:var(--dc-text-muted,#888); text-decoration:none; }
+        .footer a:hover { color: var(--dc-gold, #c9a84c); }
 
         /* Control de visibilidad por rol — Sensei */
         [data-dc-roles] { display: none; }
@@ -295,27 +346,19 @@
           margin-bottom: 8px;
         }
     </style>
-    <link rel="stylesheet" href="/css/ux-shell.css">
-<link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
-<body class="dc-app dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-    <div class="stars" id="stars"></div>
-    <div class="header">
-        <div class="sensei-hdr-row">
-            <a href="index.html" class="back-btn">◂ VOLVER</a>
-            <div class="header-info">
-                <div class="header-titulo">El Sensei del Billar</div>
-                <div class="header-sub">ACADEMIA · TUTORIALES · IA</div>
-            </div>
+<body class="dc-app sensei-root">
+<div class="sensei-wrap">
+    <header class="sensei-hdr" aria-label="Sensei">
+        <div class="sensei-hdr-main">
+            <div class="sensei-hdr-titulo">El Sensei del Billar</div>
+            <div class="sensei-hdr-sub">Academia · tutoriales · IA</div>
+            <a href="/index.html" class="sensei-toplink">← Inicio DeCarambola</a>
         </div>
-        <div class="hdr-top-nav" style="max-width:640px;margin:0 auto;padding:0 18px;">
-            <a href="/index.html" class="btn-nav-home">← Inicio</a>
-        </div>
-    </div>
+        <a href="index.html" class="sensei-back">Menú</a>
+    </header>
     <div class="contenido">
-        <p style="color:#666;font-size:clamp(12px,3.2vw,14px);letter-spacing:0.04em;margin-bottom:10px;line-height:1.45;font-family:var(--dc-font-body,"DM Sans",sans-serif);font-weight:600;">
+        <p style="color:var(--dc-text-muted,#888);font-size:clamp(12px,3.2vw,13px);letter-spacing:0.04em;margin-bottom:12px;line-height:1.5;font-family:var(--dc-font-body,"DM Sans",sans-serif);font-weight:500;">
             Elige modalidad del Sensei (afina las respuestas). Esto no es una “puerta de seguridad”: cualquiera con el enlace puede entrar a Sensei.
         </p>
         <div class="modalidad-selector">
@@ -635,6 +678,9 @@
         </section>
     </div>
 
+    <div class="footer"><a href="/index.html">DECARAMBOLA.COM</a></div>
+</div>
+
     <!-- MODAL BIBLIOTECA (Pantalla Completa) -->
     <div class="modal-biblio" id="modal-biblio">
         <div class="modal-biblio-content">
@@ -655,12 +701,7 @@
         </div>
     </div>
 
-    <div class="footer"><a href="/index.html">DECARAMBOLA.COM</a></div>
-
     <script>
-    // Estrellas
-    (function(){var c=document.getElementById('stars');for(var i=0;i<50;i++){var s=document.createElement('div');s.className='star';var z=Math.random()*1.5+0.5;s.style.cssText='width:'+z+'px;height:'+z+'px;left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;animation-delay:'+Math.random()*3+'s;';c.appendChild(s);}})();
-    
     var modalidadActual='tresbandas';
     var tipoAnalisis='jugada';
     var temaActualModal='';
@@ -1008,18 +1049,5 @@ const API="https://sensei-billar-api.onrender.com";
     </script>
 <script src="/whitelabel.js"></script>
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 </body>
 </html>
