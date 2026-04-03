@@ -2,33 +2,39 @@
 <html lang="es">
 <head>
 <script type="module">
-import { supabase } from '/js/supabase-client.js';
-import { getRole } from '/js/auth-manager.js';
+import { getSession, getRole } from '/js/auth-manager.js';
 
-const { data: sess } = await supabase.auth.getSession();
-if (!sess?.session) {
+const s = await getSession();
+if (!s?.data?.user) {
   window.location.replace('/login.html?next=' + encodeURIComponent(window.location.pathname));
 }
-const { data: rol } = await getRole();
+const r = await getRole();
+const rol = r?.data || '';
 if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
   window.location.replace('/jugador/index.html');
 }
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#d4af37">
-<title>DeCarambola — Crear Torneo</title>
+<meta name="theme-color" content="#c9a84c">
+<title>Crear torneo — Organizador — DeCarambola</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/index-v2.css">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 :root {
-    --oro:#d4af37; --neon:#2eff70; --rojo:#e74c3c; --azul:#3498db;
-    --bg:#080808; --card:#0f0f0f; --borde:#1a1a1a;
+    --oro:#c9a84c; --neon:#2eff70; --rojo:#e74c3c; --azul:#3498db;
+    --bg:#0a0a0a; --card:#111; --borde:#1a1a1a;
 }
 html { font-size:16px; }
-body {
-    background:var(--bg); color:#e0e0e0;
-    font-family:'Arial Black',Arial,sans-serif;
-    padding-bottom:130px;
+.tc-torneo-crear.org-panel { background: var(--bg); }
+.tc-torneo-crear.org-panel #stars-bg { display: none !important; }
+body.tc-torneo-crear {
+    background:var(--bg); color:#f0f0f0;
+    font-family:"DM Sans", system-ui, sans-serif;
+    padding-bottom: 88px;
 }
 
 /* ═══ HEADER ═══ */
