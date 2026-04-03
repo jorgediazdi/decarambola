@@ -3,133 +3,168 @@
 <head>
     <script type="module">
 import { supabase } from '/js/supabase-client.js';
-import { getRole } from '/js/auth-manager.js';
 
-const { data: sess } = await supabase.auth.getSession();
-if (!sess?.session) {
-  window.location.replace('/login.html?next=' + encodeURIComponent(window.location.pathname));
+async function iniciarControlTorneo(session) {
+  if (!session?.user) {
+    window.location.href = '/login.html';
+    return;
+  }
+  const uid = session.user.id;
+  const { data: prof, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', uid)
+    .maybeSingle();
+  const rol = !error && prof?.role ? String(prof.role) : 'jugador';
+  if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
+    window.location.replace('/jugador/index.html');
+  }
 }
-const { data: rol } = await getRole();
-if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
-  window.location.replace('/jugador/index.html');
-}
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'INITIAL_SESSION') {
+    if (!session) window.location.href = '/login.html';
+    else iniciarControlTorneo(session);
+  }
+});
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#c9a84c">
     <title>Control Torneo — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
-:root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; --borde:#1a1a1a; --card:#0a0a0a; }
+:root { --oro:#c9a84c; --negro:#0a0a0a; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; --borde:#1a1a1a; --borde-oro:rgba(201,168,76,0.15); --card:rgba(255,255,255,0.03); --verde-juego:#2ecc71; }
         * { box-sizing: border-box; }
-        body { background: var(--negro); color: #fff; font-family: 'Arial Black', sans-serif; margin: 0; padding: 0; }
-        .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 15px 20px; position: sticky; top: 0; z-index: 50; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+        body.page-ctrl { background: var(--negro); color: #f0f0f0; font-family: "DM Sans", system-ui, sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        .org-panel #stars-bg { display: none !important; }
+        .lbl-ico { display: inline-flex; align-items: center; justify-content: center; color: var(--oro); flex-shrink: 0; }
+        .lbl-ico svg { display: block; }
+        .header { background: #0a0a0a; border-bottom: 1px solid var(--borde-oro); padding: 15px 20px; position: sticky; top: 0; z-index: 50; display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; width: 100%; }
         .btn-hdr {
-            background: rgba(10,10,10,0.95); border: 1px solid #1a1a1a; color: #888;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--borde-oro); color: #888;
             padding: 8px 12px; border-radius: 10px; font-size: 0.52rem; cursor: pointer;
-            text-decoration: none; font-family: 'Arial Black', sans-serif; font-weight: 600;
+            text-decoration: none; font-family: "DM Sans", system-ui, sans-serif; font-weight: 600;
             letter-spacing: 0.06em; transition: border-color 0.15s, color 0.15s;
         }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color: rgba(212,175,55,0.35); color: var(--oro); outline: none; }
-        .header-titulo { color: var(--oro); font-size: 0.95rem; letter-spacing: 2px; }
-        .bolsa-chip { background: #0a1a0a; border: 1px solid var(--neon); border-radius: 20px; padding: 6px 14px; text-align: center; }
-        .bolsa-chip b { color: var(--neon); font-size: 0.9rem; display: block; line-height: 1; }
-        .bolsa-chip small { color: #333; font-size: 0.5rem; }
-        .header-sub { color: #333; font-size: 0.6rem; margin-top: 5px; letter-spacing: 1px; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color: rgba(201,168,76,0.35); color: var(--oro); outline: none; }
+        .hdr-title-row { display: flex; align-items: center; gap: 8px; }
+        .header-titulo { font-family: "Playfair Display", Georgia, serif; font-weight: 600; color: var(--oro); font-size: clamp(0.95rem, 3vw, 1.15rem); letter-spacing: 0.06em; }
+        .bolsa-chip { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25); border-radius: 12px; padding: 8px 14px; text-align: center; }
+        .bolsa-chip b { color: var(--oro); font-size: 0.9rem; display: block; line-height: 1; font-weight: 700; }
+        .bolsa-chip small { color: #666; font-size: 0.5rem; font-weight: 600; letter-spacing: 0.08em; }
+        .header-sub { color: #666; font-size: 0.6rem; margin-top: 5px; letter-spacing: 0.06em; font-weight: 500; }
         .contenido { padding: 20px 15px 100px; max-width: 500px; margin: 0 auto; }
         .ronda-bloque { margin-bottom: 30px; }
         .ronda-titulo { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
         .ronda-titulo-linea { flex: 1; height: 1px; background: #1a1a1a; }
-        .ronda-titulo-txt { color: var(--oro); font-size: 0.7rem; letter-spacing: 3px; white-space: nowrap; }
-        .ronda-titulo-badge { background: var(--oro); color: #000; font-size: 0.5rem; padding: 3px 10px; border-radius: 10px; white-space: nowrap; }
-        .partida-card { background: #0a0a0a; border: 2px solid #1a1a1a; border-radius: 20px; overflow: hidden; margin-bottom: 12px; transition: 0.3s; position: relative; }
-        .partida-card.en-juego { border-color: var(--neon); box-shadow: 0 0 20px rgba(46,255,112,0.1); animation: pulso-card 2s infinite; }
-        .partida-card.terminada { border-color: #222; opacity: 0.85; }
-        .partida-card.bye { border-color: var(--oro); background: #0f0d00; }
-        .partida-card.pendiente { border-color: #1a1a1a; }
-        .partida-card.esperando { border-color: var(--azul); }
-        @keyframes pulso-card { 0%,100% { box-shadow: 0 0 15px rgba(46,255,112,0.1); } 50% { box-shadow: 0 0 30px rgba(46,255,112,0.25); } }
-        .card-estado { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: #050505; border-bottom: 1px solid #111; }
-        .card-num { color: #222; font-size: 0.55rem; letter-spacing: 1px; }
-        .est-badge { font-size: 0.55rem; padding: 3px 10px; border-radius: 10px; font-weight: bold; letter-spacing: 1px; }
-        .est-pendiente { background: #111; color: #333; }
-        .est-esperando { background: rgba(52,152,219,0.15); color: var(--azul); border: 1px solid rgba(52,152,219,0.3); }
-        .est-en-juego { background: rgba(46,255,112,0.12); color: var(--neon); border: 1px solid rgba(46,255,112,0.3); }
-        .est-terminada { background: #111; color: #444; }
-        .est-bye { background: rgba(212,175,55,0.1); color: var(--oro); }
-        .jugador-row { display: flex; align-items: center; padding: 12px 14px; border-bottom: 1px solid #0f0f0f; transition: background 0.2s; gap: 10px; }
+        .ronda-titulo-txt { font-family: "Playfair Display", Georgia, serif; font-weight: 600; color: var(--oro); font-size: 0.72rem; letter-spacing: 0.12em; white-space: nowrap; }
+        .ronda-titulo-badge { background: var(--oro); color: #0a0a0a; font-size: 0.5rem; padding: 3px 10px; border-radius: 10px; white-space: nowrap; font-weight: 700; }
+        .partida-card { background: rgba(255,255,255,0.03); border: 1px solid var(--borde-oro); border-radius: 12px; overflow: hidden; margin-bottom: 12px; transition: 0.3s; position: relative; }
+        .partida-card.en-juego { border-color: var(--verde-juego); box-shadow: 0 0 20px rgba(46,204,113,0.12); animation: pulso-card 2s infinite; }
+        .partida-card.terminada { border-color: rgba(255,255,255,0.2); opacity: 0.92; }
+        .partida-card.bye { border-color: rgba(201,168,76,0.35); background: rgba(201,168,76,0.05); }
+        .partida-card.pendiente { border-color: var(--borde-oro); }
+        .partida-card.esperando { border-color: rgba(52,152,219,0.35); }
+        @keyframes pulso-card { 0%,100% { box-shadow: 0 0 15px rgba(46,204,113,0.12); } 50% { box-shadow: 0 0 28px rgba(46,204,113,0.22); } }
+        .card-estado { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--borde-oro); }
+        .card-num { color: #666; font-size: 0.55rem; letter-spacing: 0.06em; font-weight: 600; }
+        .est-badge { font-size: 0.55rem; padding: 4px 10px; border-radius: 10px; font-weight: 700; letter-spacing: 0.06em; border: 1px solid transparent; }
+        .est-pendiente { background: rgba(201,168,76,0.15); color: var(--oro); border-color: #c9a84c; }
+        .est-esperando { background: rgba(52,152,219,0.12); color: var(--azul); border: 1px solid rgba(52,152,219,0.35); }
+        .est-en-juego { background: rgba(46,204,113,0.15); color: var(--verde-juego); border: 1px solid #2ecc71; }
+        .est-terminada { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); border-color: rgba(255,255,255,0.2); }
+        .est-bye { background: rgba(201,168,76,0.12); color: var(--oro); border-color: rgba(201,168,76,0.35); }
+        .jugador-row { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--borde-oro); transition: background 0.2s; gap: 10px; }
         .jugador-row:last-of-type { border-bottom: none; }
-        .jugador-row.ganador { background: #0a1a0a; }
-        .jugador-row.perdedor { opacity: 0.4; }
-        .jugador-row.bye-row { background: #0f0d00; }
+        .jugador-row.ganador { background: rgba(201,168,76,0.06); }
+        .jugador-row.perdedor { opacity: 1; }
+        .jugador-row.perdedor .j-nombre { color: rgba(255,255,255,0.35); font-weight: 500; }
+        .jugador-row.perdedor .j-prom { color: rgba(255,255,255,0.3); }
+        .jugador-row.ganador .j-nombre { color: #c9a84c; font-weight: 700; }
+        .jugador-row.bye-row { background: rgba(201,168,76,0.06); }
         .j-corona { font-size: 1rem; flex-shrink: 0; width: 20px; }
-        .j-nombre { flex: 1; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .j-prom { font-size: 0.75rem; color: #444; font-family: 'Courier New', monospace; flex-shrink: 0; }
-        .j-pts { font-size: 1.4rem; font-weight: 900; color: var(--oro); flex-shrink: 0; min-width: 30px; text-align: right; }
-        .j-pts.winner { color: var(--oro); text-shadow: 0 0 10px rgba(212,175,55,0.5); }
-        .j-pts.loser { color: #333; }
+        .j-nombre { flex: 1; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+        .j-prom { font-size: 0.75rem; color: #888; font-family: ui-monospace, monospace; flex-shrink: 0; }
+        .j-pts { font-size: 1.4rem; font-weight: 800; color: var(--oro); flex-shrink: 0; min-width: 30px; text-align: right; font-family: ui-monospace, monospace; }
+        .j-pts.winner { color: #c9a84c; text-shadow: 0 0 12px rgba(201,168,76,0.35); }
+        .j-pts.loser { color: rgba(255,255,255,0.25); }
         .j-listo { font-size: 0.55rem; color: var(--azul); flex-shrink: 0; }
         .vs-divider { text-align: center; font-size: 0.6rem; color: #1a1a1a; padding: 3px 0; letter-spacing: 2px; }
-        .card-accion { padding: 10px 12px; background: #050505; border-top: 1px solid #111; }
-        .btn-card { width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 0.8rem; font-weight: bold; cursor: pointer; letter-spacing: 1px; transition: 0.15s; }
+        .card-accion { padding: 12px 16px; background: rgba(0,0,0,0.15); border-top: 1px solid var(--borde-oro); }
+        .btn-card { width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 0.78rem; font-weight: 700; cursor: pointer; letter-spacing: 0.08em; transition: 0.15s; font-family: "DM Sans", system-ui, sans-serif; }
         .btn-card:active { transform: scale(0.97); }
-        .btn-card.verde { background: var(--neon); color: #000; }
+        .btn-card.verde { background: #c9a84c; color: #0a0a0a; }
         .btn-card.azul { background: var(--azul); color: #fff; }
-        .btn-card.gris { background: #111; color: #333; cursor: default; }
+        .btn-card.gris { background: #1a1a1a; color: #555; cursor: default; }
         .conector { display: flex; justify-content: center; margin: -5px 0 20px; }
-        .conector-linea { width: 2px; height: 30px; background: linear-gradient(var(--oro), transparent); opacity: 0.3; }
-        .campeon-panel { background: linear-gradient(135deg, #1a1200, #0a0800); border: 2px solid var(--oro); border-radius: 25px; padding: 25px; text-align: center; margin: 20px 0; box-shadow: 0 0 40px rgba(212,175,55,0.2); }
+        .conector-linea { width: 2px; height: 30px; background: linear-gradient(#c9a84c, transparent); opacity: 0.45; }
+        .campeon-panel { background: rgba(255,255,255,0.03); border: 1px solid rgba(201,168,76,0.35); border-radius: 16px; padding: 24px; text-align: center; margin: 20px 0; box-shadow: 0 0 32px rgba(201,168,76,0.12); }
         .campeon-panel .trofeo { font-size: 3.5rem; display: block; margin-bottom: 10px; }
-        .campeon-panel .campeon-lbl { color: #444; font-size: 0.6rem; letter-spacing: 3px; margin-bottom: 8px; }
-        .campeon-panel .campeon-nombre { color: var(--oro); font-size: 2rem; text-shadow: 0 0 25px rgba(212,175,55,0.5); }
+        .campeon-panel .campeon-lbl { color: #888; font-size: 0.6rem; letter-spacing: 0.15em; margin-bottom: 8px; font-family: "DM Sans", system-ui, sans-serif; font-weight: 600; }
+        .campeon-panel .campeon-nombre { font-family: "Playfair Display", Georgia, serif; font-weight: 600; color: var(--oro); font-size: 1.85rem; text-shadow: 0 0 20px rgba(201,168,76,0.35); }
         .campeon-panel .bolsa-ganada { color: var(--neon); font-size: 1rem; margin-top: 8px; }
-        .empty-state { text-align: center; padding: 60px 20px; color: #222; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #666; }
         .empty-state div { font-size: 3rem; margin-bottom: 15px; }
-        .empty-state p { font-size: 0.8rem; line-height: 1.8; }
-        .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde); position: sticky; top: 118px; z-index: 40; }
-        .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: #444; font-size: 0.65rem; font-family: 'Arial Black', sans-serif; letter-spacing: 2px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
-        .tab-btn.activa { color: var(--oro); border-bottom-color: var(--oro); }
+        .empty-state p { font-size: 0.8rem; line-height: 1.8; font-weight: 500; }
+        .tabs { display: flex; background: #0a0a0a; border-bottom: 1px solid var(--borde-oro); position: sticky; top: 118px; z-index: 40; }
+        .tab-btn { flex: 1; padding: 13px 8px; background: none; border: none; color: #666; font-size: 0.62rem; font-family: "DM Sans", system-ui, sans-serif; font-weight: 600; letter-spacing: 0.1em; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
+        .tab-btn.activa { color: var(--oro); border-bottom-color: #c9a84c; }
         .lista-wrap { padding: 16px 15px 120px; max-width: 500px; margin: 0 auto; }
         .cuadro-outer { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding: 20px 16px 120px; min-height: calc(100vh - 130px); }
         .cuadro-inner { display: flex; align-items: stretch; gap: 0; min-height: 400px; }
         .col-ronda { display: flex; flex-direction: column; min-width: 148px; flex-shrink: 0; }
-        .col-header { text-align: center; padding: 8px 6px 12px; border-bottom: 1px solid var(--borde); margin-bottom: 0; flex-shrink: 0; }
-        .col-header-nom { font-size: 0.65rem; letter-spacing: 2px; color: var(--oro); }
-        .col-header-jugs { font-size: 0.38rem; color: #333; margin-top: 2px; }
+        .col-header { text-align: center; padding: 8px 6px 12px; border-bottom: 1px solid var(--borde-oro); margin-bottom: 0; flex-shrink: 0; }
+        .col-header-nom { font-family: "Playfair Display", Georgia, serif; font-weight: 600; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--oro); }
+        .col-header-jugs { font-size: 0.38rem; color: #666; margin-top: 2px; font-weight: 500; }
+        .col-ronda--actual .col-header { border-bottom-color: #c9a84c; }
+        .col-ronda--futura .col-header { border-bottom-color: rgba(201,168,76,0.2); }
         .col-slots { flex: 1; display: flex; flex-direction: column; justify-content: space-around; padding: 8px 5px; gap: 0; }
         .col-slot { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 3px 0; }
-        .cuadro-card { background: var(--card); border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; }
-        .cuadro-card.en-juego { border-color: rgba(46,255,112,0.5); }
-        .cuadro-card.terminada { border-color: #1f1f1f; }
-        .cuadro-card.pendiente { border-color: var(--borde); }
-        .cuadro-card.bye { border-color: rgba(212,175,55,0.2); }
-        .cc-jug { display: flex; align-items: center; gap: 5px; padding: 6px 8px; border-bottom: 1px solid var(--borde); min-height: 28px; }
+        .cuadro-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(201,168,76,0.2); border-radius: 12px; overflow: hidden; padding: 0; }
+        .cuadro-card--ronda-actual { border-color: #c9a84c; border-width: 1px; }
+        .cuadro-card--ronda-futura { border-color: rgba(201,168,76,0.2); }
+        .cuadro-card.en-juego { border-color: rgba(46,204,113,0.55); }
+        .cuadro-card.terminada { border-color: rgba(255,255,255,0.18); }
+        .cuadro-card.bye { border-color: rgba(201,168,76,0.35); }
+        .cc-jug { display: flex; align-items: center; gap: 5px; padding: 8px 10px; border-bottom: 1px solid var(--borde-oro); min-height: 28px; }
         .cc-jug:last-child { border-bottom: none; }
-        .cc-jug.ganador { background: rgba(212,175,55,0.05); }
-        .cc-jug.perdedor { opacity: 0.35; }
-        .cc-av { width: 18px; height: 18px; border-radius: 50%; background: #1a1a1a; border: 1px solid #2a2a2a; display: flex; align-items: center; justify-content:center; font-size: 0.38rem; font-weight: 900; color: #555; flex-shrink: 0; }
-        .cc-nom { flex: 1; font-size: 0.6rem; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .cc-pts { font-size: 0.52rem; font-family: 'Courier New', monospace; font-weight: 900; color: #fff; flex-shrink: 0; }
-        .cc-pts.top { color: var(--oro); }
-        .cc-live { position: absolute; top: 3px; right: 5px; font-size: 0.35rem; color: var(--neon); letter-spacing: 1px; }
+        .cc-jug.ganador { background: rgba(201,168,76,0.06); }
+        .cc-jug.ganador .cc-nom { color: #c9a84c; font-weight: 700; }
+        .cc-jug.perdedor .cc-nom { color: rgba(255,255,255,0.35); font-weight: 500; }
+        .cc-jug.perdedor .cc-pts { color: rgba(255,255,255,0.35); }
+        .cc-av { width: 18px; height: 18px; border-radius: 50%; background: rgba(0,0,0,0.35); border: 1px solid var(--borde-oro); display: flex; align-items: center; justify-content:center; font-size: 0.38rem; font-weight: 800; color: #888; flex-shrink: 0; }
+        .cc-nom { flex: 1; font-size: 0.6rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+        .cc-pts { font-size: 0.52rem; font-family: ui-monospace, monospace; font-weight: 800; color: #f0f0f0; flex-shrink: 0; }
+        .cc-pts.top { color: #c9a84c; }
+        .cc-live { position: absolute; top: 3px; right: 5px; font-size: 0.35rem; color: var(--verde-juego); letter-spacing: 1px; font-weight: 700; }
         .col-conector { width: 22px; flex-shrink: 0; display: flex; flex-direction: column; padding-top: 44px; }
         .con-grupo { flex: 1; display: flex; flex-direction: column; }
-        .con-top { flex: 1; border-right: 1px solid #2a2a2a; border-bottom: 1px solid #2a2a2a; }
-        .con-bot { flex: 1; border-right: 1px solid #2a2a2a; border-top: 1px solid #2a2a2a; }
-        .con-mid { height: 1px; background: #2a2a2a; margin-left: 0; }
+        .col-conector.conector-futuro .con-top,
+        .col-conector.conector-futuro .con-bot { border-color: #c9a84c; opacity: 0.4; }
+        .col-conector.conector-futuro .con-mid { background: #c9a84c; opacity: 0.4; }
+        .col-conector.conector-actual .con-top,
+        .col-conector.conector-actual .con-bot { border-color: #c9a84c; opacity: 1; }
+        .col-conector.conector-actual .con-mid { background: #c9a84c; opacity: 1; }
+        .con-top { flex: 1; border-right: 1px solid #c9a84c; border-bottom: 1px solid #c9a84c; }
+        .con-bot { flex: 1; border-right: 1px solid #c9a84c; border-top: 1px solid #c9a84c; }
+        .con-mid { height: 1px; background: #c9a84c; margin-left: 0; }
         .col-campeon { min-width: 110px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 44px 12px 12px; }
         .camp-trofeo { font-size: 2rem; margin-bottom: 8px; }
-        .camp-lbl { font-size: 0.38rem; letter-spacing: 2px; color: #444; margin-bottom: 6px; }
-        .camp-nom { font-size: 0.55rem; color: var(--oro); text-align: center; letter-spacing: 1px; }
-        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, #000 40%); padding: 10px 15px 20px; display: flex; gap: 8px; }
-        .btn-nav { flex: 1; padding: 13px 8px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 14px; color: #777; font-size: 0.65rem; cursor: pointer; text-align: center; text-decoration: none; display: block; transition: 0.2s; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
-        .btn-nav:active { border-color: var(--oro); color: var(--oro); }
+        .camp-lbl { font-size: 0.38rem; letter-spacing: 0.12em; color: #666; margin-bottom: 6px; font-weight: 600; }
+        .camp-nom { font-size: 0.55rem; color: #c9a84c; text-align: center; letter-spacing: 0.06em; font-weight: 700; }
+        .nav-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, #0a0a0a 42%); padding: 10px 15px 20px; display: flex; gap: 8px; }
+        .btn-nav { flex: 1; padding: 13px 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--borde-oro); border-radius: 12px; color: #888; font-size: 0.62rem; cursor: pointer; text-align: center; text-decoration: none; display: block; transition: 0.2s; font-family: "DM Sans", system-ui, sans-serif; font-weight: 600; letter-spacing: 0.06em; }
+        .btn-nav:active { border-color: rgba(201,168,76,0.4); color: var(--oro); }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
 <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
-<body class="dc-ux dc-ux-skin m-root-legacy">
+<body class="dc-ux dc-ux-skin m-root-legacy page-ctrl org-panel">
 
 <div class="stars" id="stars-bg" aria-hidden="true"></div>
 
@@ -138,7 +173,10 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
             <div style="display:flex;align-items:center;gap:10px;">
                 <div id="club-logo-hdr"></div>
                 <div>
-                    <div class="header-titulo" id="lbl-torneo">CONTROL</div>
+                    <div class="hdr-title-row">
+                        <span class="lbl-ico" id="ico-ctrl-hdr" aria-hidden="true"></span>
+                        <div class="header-titulo" id="lbl-torneo">CONTROL</div>
+                    </div>
                     <div class="header-sub" id="lbl-sub">CARGANDO...</div>
                 </div>
             </div>
@@ -176,9 +214,9 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
     </div>
     <!-- MODAL RESULTADO -->
     <div id="modal-resultado" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;padding:20px;">
-        <div style="background:#0a0a0a;border:2px solid var(--oro);border-radius:24px;width:100%;max-width:420px;overflow:hidden;">
-            <div style="background:#050505;padding:16px 20px;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:var(--oro);font-size:0.7rem;letter-spacing:3px;">📝 INGRESAR RESULTADO</span>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,168,76,0.25);border-radius:16px;width:100%;max-width:420px;overflow:hidden;">
+            <div style="background:rgba(0,0,0,0.25);padding:16px 20px;border-bottom:1px solid rgba(201,168,76,0.15);display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-family:Playfair Display,Georgia,serif;font-weight:600;color:var(--oro);font-size:0.68rem;letter-spacing:0.1em;">INGRESAR RESULTADO</span>
                 <button onclick="cerrarModal()" style="background:none;border:none;color:#555;font-size:1.2rem;cursor:pointer;">✕</button>
             </div>
             <div style="padding:20px;">
@@ -217,8 +255,8 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
                 <div id="modal-error" style="color:var(--rojo);font-size:0.65rem;text-align:center;min-height:18px;margin-bottom:12px;"></div>
 
                 <button id="btn-guardar-resultado" onclick="guardarResultado()"
-                    style="width:100%;padding:16px;background:linear-gradient(135deg,var(--oro),#a07800);border:none;border-radius:16px;color:#000;font-size:0.8rem;font-weight:900;font-family:'Arial Black',sans-serif;letter-spacing:2px;cursor:pointer;">
-                    ✅ GUARDAR RESULTADO
+                    style="width:100%;padding:16px;background:#c9a84c;border:none;border-radius:12px;color:#0a0a0a;font-size:0.8rem;font-weight:700;font-family:DM Sans,system-ui,sans-serif;letter-spacing:0.08em;cursor:pointer;">
+                    GUARDAR RESULTADO
                 </button>
             </div>
         </div>
@@ -236,6 +274,12 @@ var torneo = null;
 var vistaActual = 'lista';
 
 window.onload = async function() {
+    try {
+        if (typeof DC !== 'undefined' && typeof DC.icon === 'function') {
+            var ih = document.getElementById('ico-ctrl-hdr');
+            if (ih) ih.innerHTML = DC.icon('trofeo', 22);
+        }
+    } catch (_ic) {}
     try {
         if (typeof MasterVIP !== 'undefined') await MasterVIP.init();
     } catch(e) { console.warn('Init offline:', e); }
@@ -392,17 +436,19 @@ function dibujarCuadro() {
     if (!torneo || !torneo.rondas || !torneo.rondas.length) return;
     var totalRondas = MasterVIP.totalRondas((torneo.inscritos || []).length);
     var html = '';
-    for (var ri = 0; ri < torneo.rondas.length; ri++) {
+    var nR = torneo.rondas.length;
+    for (var ri = 0; ri < nR; ri++) {
         var ronda = torneo.rondas[ri];
         var partidas = (ronda && ronda.partidas) ? ronda.partidas : [];
         var nomRonda = MasterVIP.nombreRonda(totalRondas, ronda.numero);
-        html += '<div class="col-ronda"><div class="col-header"><div class="col-header-nom">' + nomRonda + '</div><div class="col-header-jugs">' + partidas.length * 2 + ' JUG.</div></div><div class="col-slots">';
+        html += '<div class="col-ronda' + (ri === nR - 1 ? ' col-ronda--actual' : ' col-ronda--futura') + '"><div class="col-header"><div class="col-header-nom">' + nomRonda + '</div><div class="col-header-jugs">' + partidas.length * 2 + ' JUG.</div></div><div class="col-slots">';
         for (var pi = 0; pi < partidas.length; pi++) {
-            html += '<div class="col-slot">' + buildCardCuadro(partidas[pi]) + '</div>';
+            html += '<div class="col-slot">' + buildCardCuadro(partidas[pi], ri, nR) + '</div>';
         }
         html += '</div></div>';
-        if (ri < torneo.rondas.length - 1) {
-            html += '<div class="col-conector">';
+        if (ri < nR - 1) {
+            var connCls = 'col-conector' + (ri === nR - 2 ? ' conector-actual' : ' conector-futuro');
+            html += '<div class="' + connCls + '">';
             for (var ci = 0; ci < partidas.length; ci += 2) {
                 html += '<div class="con-grupo"><div class="con-top"></div><div class="con-mid"></div><div class="con-bot"></div></div>';
             }
@@ -419,12 +465,13 @@ function dibujarCuadro() {
     document.getElementById('cuadro-contenido').innerHTML = html;
 }
 
-function buildCardCuadro(p) {
+function buildCardCuadro(p, ri, nR) {
     var cls = 'cuadro-card ';
     if (p.estado === 'TERMINADA') cls += 'terminada';
     else if (p.estado === 'EN_JUEGO') cls += 'en-juego';
     else if (p.estado === 'BYE') cls += 'bye';
     else cls += 'pendiente';
+    cls += (typeof ri === 'number' && typeof nR === 'number' && ri === nR - 1) ? 'cuadro-card--ronda-actual ' : 'cuadro-card--ronda-futura ';
     var term = p.estado === 'TERMINADA', g1 = p.ganador === p.j1, g2 = p.ganador === p.j2;
     var html = '<div class="' + cls + '" style="position:relative;">';
     if (p.estado === 'EN_JUEGO') html += '<div class="cc-live">● LIVE</div>';
@@ -556,7 +603,7 @@ function dibujarTablaFinal(cont) {
         var fase = esCampeon ? 'CAMPEÓN' : MasterVIP.nombreRonda(totalRondas, jf.rondaElim || 1);
         var promC = jf.promedio > 0 ? jf.promedio.toFixed(3) : '—';
         var promColor = jf.promedio >= 1.0 ? 'var(--neon)' : jf.promedio >= 0.7 ? 'var(--oro)' : '#888';
-        var rowBg = k === 0 ? 'rgba(212,175,55,0.04)' : k === 1 ? 'rgba(192,192,192,0.02)' : k === 2 ? 'rgba(205,127,50,0.02)' : 'transparent';
+        var rowBg = k === 0 ? 'rgba(201,168,76,0.06)' : k === 1 ? 'rgba(192,192,192,0.02)' : k === 2 ? 'rgba(205,127,50,0.02)' : 'transparent';
         var posColor = k === 0 ? 'var(--oro)' : k === 1 ? '#c0c0c0' : k === 2 ? '#cd7f32' : '#333';
 
         html += '<tr style="background:' + rowBg + ';border-bottom:1px solid #0f0f0f;">' +
@@ -680,7 +727,7 @@ async function guardarResultado() {
     } else {
         err.textContent = '❌ Error al guardar. Intenta de nuevo.';
         btn.disabled = false;
-        btn.textContent = '✅ GUARDAR RESULTADO';
+        btn.textContent = 'GUARDAR RESULTADO';
     }
 }
 
@@ -720,19 +767,14 @@ function copiarLinkArbitro(partidaIdEnc) {
 }
 </script>
 <script src="/whitelabel.js"></script>
-
+<script src="/js/dc-icons.js"></script>
 <script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
+window.DC = window.DC || {};
+DC.icon = function (name, size) {
+    var s = size == null ? 18 : size;
+    if (typeof IC !== 'undefined' && typeof IC[name] === 'function') return IC[name](s);
+    return '';
+};
 </script>
 
 </body>

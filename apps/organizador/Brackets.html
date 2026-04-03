@@ -1,29 +1,106 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script type="module">
+import { supabase } from '/js/supabase-client.js';
+
+async function iniciarBrackets(session) {
+  if (!session?.user) {
+    window.location.href = '/login.html';
+    return;
+  }
+  const uid = session.user.id;
+  const { data: prof, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', uid)
+    .maybeSingle();
+  const rol = !error && prof?.role ? String(prof.role) : 'jugador';
+  if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
+    window.location.replace('/jugador/index.html');
+  }
+}
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'INITIAL_SESSION') {
+    if (!session) window.location.href = '/login.html';
+    else iniciarBrackets(session);
+  }
+});
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#c9a84c">
     <title>Llaves — DeCarambola</title>
     <meta http-equiv="refresh" content="2;url=control_torneo.html?vista=cuadro">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/ux-shell.css">
     <style>
-        :root { --oro:#d4af37; }
-        .hdr-llaves { width:100%; background:#000; border-bottom:1px solid #1a1a1a; padding:14px 18px; position:sticky; top:0; z-index:50; display:flex; flex-direction:column; align-items:stretch; gap:10px; }
-        .hdr-llaves-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
-        .hdr-llaves-top h1 { color:var(--oro); font-size:0.95rem; letter-spacing:3px; font-family:'Arial Black',Arial,sans-serif; margin:0; }
-        .hdr-llaves-sub { color:#555; font-size:0.5rem; letter-spacing:1px; font-family:'Arial Black',Arial,sans-serif; }
-        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
-        .btn-hdr {
-            background:rgba(10,10,10,0.95); border:1px solid #1a1a1a; color:#888;
-            padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
-            text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
-            letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+        :root { --oro: #c9a84c; --borde-oro: rgba(201,168,76,0.15); --bg: #0a0a0a; }
+        body.page-llaves {
+            background: var(--bg);
+            color: #f0f0f0;
+            font-family: "DM Sans", system-ui, sans-serif;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
         }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
-        body.dc-ux-skin.m-root-legacy .dc-ux-layer { color:#9a9a9a; font-family:'Arial Black',Arial,sans-serif; }
-        body.dc-ux-skin.m-root-legacy .dc-ux-layer .sp { margin-top:20px; }
-        body.dc-ux-skin.m-root-legacy .dc-ux-layer a { color:#d4af37; }
+        .org-panel #stars-bg { display: none !important; }
+        .lbl-ico { display: inline-flex; align-items: center; justify-content: center; color: var(--oro); margin-right: 8px; vertical-align: middle; }
+        .lbl-ico svg { display: block; }
+        .hdr-llaves {
+            width: 100%;
+            background: var(--bg);
+            border-bottom: 1px solid var(--borde-oro);
+            padding: 14px 18px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .hdr-llaves-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .hdr-llaves-top h1 {
+            color: var(--oro);
+            font-size: clamp(0.95rem, 3vw, 1.15rem);
+            letter-spacing: 0.08em;
+            font-family: "Playfair Display", Georgia, serif;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        .hdr-llaves-sub { color: #888; font-size: 0.55rem; letter-spacing: 0.08em; font-weight: 500; margin: 6px 0 0; }
+        .header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; width: 100%; }
+        .btn-hdr {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--borde-oro);
+            color: #888;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.52rem;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: "DM Sans", system-ui, sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color: rgba(201,168,76,0.35); color: var(--oro); outline: none; }
+        body.dc-ux-skin.m-root-legacy .dc-ux-layer { color: #a8a8a8; font-family: "DM Sans", system-ui, sans-serif; font-weight: 500; }
+        body.dc-ux-skin.m-root-legacy .dc-ux-layer .sp { margin-top: 20px; }
+        body.dc-ux-skin.m-root-legacy .dc-ux-layer a { color: #c9a84c; font-weight: 600; }
+        .llaves-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--borde-oro);
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 420px;
+            margin: 16px auto;
+        }
     </style>
     <script>
         (function() {
@@ -31,16 +108,16 @@
             window.location.replace('control_torneo.html?vista=' + vista);
         })();
     </script>
-<link rel="stylesheet" href="/css/bottom-nav.css">
+    <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
-<body class="dc-ux dc-ux-skin m-root-legacy">
+<body class="dc-ux dc-ux-skin m-root-legacy page-llaves org-panel">
 
 <div class="stars" id="stars-bg" aria-hidden="true"></div>
 
 <header class="hdr-llaves" role="banner">
     <div class="hdr-llaves-top">
         <div>
-            <h1>🔀 LLAVES</h1>
+            <h1><span class="lbl-ico" id="ico-llaves-h1" aria-hidden="true"></span>LLAVES</h1>
             <p class="hdr-llaves-sub">Redirigiendo al cuadro del torneo…</p>
         </div>
     </div>
@@ -55,22 +132,22 @@
     </div>
 </header>
 
-<div class="dc-ux-layer" style="padding:24px 20px;text-align:center;">
+<div class="dc-ux-layer llaves-card" style="text-align:center;">
     <p>Redirigiendo a llaves del torneo…</p>
     <p class="sp">Si no carga, <a href="control_torneo.html?vista=cuadro">entra aquí a ver el cuadro</a>.</p>
 </div>
 
+<script src="/js/dc-icons.js"></script>
 <script>
+window.DC = window.DC || {};
+DC.icon = function (name, size) {
+    var s = size == null ? 18 : size;
+    if (typeof IC !== 'undefined' && typeof IC[name] === 'function') return IC[name](s);
+    return '';
+};
 (function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
+    var el = document.getElementById('ico-llaves-h1');
+    if (el && typeof DC.icon === 'function') el.innerHTML = DC.icon('trofeo', 22);
 })();
 </script>
 
