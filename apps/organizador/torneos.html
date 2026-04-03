@@ -336,12 +336,28 @@ window.onload = async function () {
     aplicarFiltros();
 };
 
+function _torneoEsOficialMuro(t) {
+    var tipo = String(t.tipo || '').trim().toLowerCase();
+    var fmt = String(t.formato || '').trim().toLowerCase();
+    if (tipo === 'torneo_amigos') return false;
+    if (fmt === 'amigos') return false;
+    return true;
+}
+
 async function cargarTorneos() {
     try {
-        var tmod = await import('/js/api/torneo-api.js');
-        var tmr = await tmod.listTorneosMuroPublico();
-        var rows = tmr.data;
-        if (rows && rows.length) {
+        var sup = await import('/js/supabase-client.js');
+        var supabase = sup.supabase;
+        var q = supabase
+            .from('torneos')
+            .select('id,nombre,codigo,club_id,modalidad,sistema,estado,fecha_inicio,inscripcion,cupo_max,visible_muro,ciudad,lugar_encuentro,tipo,formato,entrada_objetivo')
+            .order('fecha_inicio', { ascending: false })
+            .neq('tipo', 'torneo_amigos')
+            .neq('formato', 'amigos');
+        var res = await q;
+        var rows = res.data;
+        if (!res.error && rows && rows.length) {
+            rows = rows.filter(_torneoEsOficialMuro);
             _torneos = rows.map(function(t) {
                 return {
                     id: t.id,
@@ -357,6 +373,7 @@ async function cargarTorneos() {
                     visible_muro: t.visible_muro === true,
                     ciudad: t.ciudad || '',
                     lugar_encuentro: t.lugar_encuentro || '',
+                    entrada_objetivo: t.entrada_objetivo,
                     inscritos: [] // puede complementarse desde MasterVIP si se requiere
                 };
             });
@@ -369,7 +386,7 @@ async function cargarTorneos() {
     // Fallback: usar torneos ya presentes en MasterVIP (club actual)
     try {
         var listaLocal = MasterVIP.getTorneos();
-        _torneos = (listaLocal || []).map(function(t) {
+        _torneos = (listaLocal || []).filter(_torneoEsOficialMuro).map(function(t) {
             return {
                 id: t.id,
                 nombre: t.nombre || '',
