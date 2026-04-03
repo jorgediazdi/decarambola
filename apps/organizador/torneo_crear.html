@@ -571,13 +571,6 @@ body.tc-torneo-crear {
         </div>
         <div class="sede-chip" id="lbl-sede">GLOBAL</div>
     </div>
-    <div class="header-actions">
-        <a href="torneos.html" class="btn-hdr">Torneos</a>
-        <a href="inscripciones.html" class="btn-hdr">Inscripciones</a>
-        <a href="control_torneo.html" class="btn-hdr">Control torneo</a>
-        <a href="/club/index.html" class="btn-hdr">Portal club</a>
-        <a href="/index.html" class="btn-hdr">Inicio app</a>
-    </div>
 </div>
 
 <!-- PROGRESS BAR -->
@@ -958,6 +951,15 @@ body.tc-torneo-crear {
 </div>
 
 <script src="/core.js"></script>
+<script src="/js/dc-icons.js"></script>
+<script>
+window.DC = window.DC || {};
+DC.icon = function (name, size) {
+    var s = size == null ? 18 : size;
+    if (typeof IC !== 'undefined' && typeof IC[name] === 'function') return IC[name](s);
+    return '';
+};
+</script>
 <script>
 var estado = {
     paso:0, sitio:'', nombre:'', fecha:'', modalidad:'3 Bandas',
@@ -1219,16 +1221,6 @@ function showToast(msg) {
     t.innerHTML=msg; t.classList.add('show');
     setTimeout(function(){ t.classList.remove('show'); }, 2400);
 }
-</script>
-
-<script src="/js/dc-icons.js"></script>
-<script>
-window.DC = window.DC || {};
-DC.icon = function (name, size) {
-    var s = size == null ? 18 : size;
-    if (typeof IC !== 'undefined' && typeof IC[name] === 'function') return IC[name](s);
-    return '';
-};
 </script>
 
 </body>
