@@ -4,7 +4,7 @@
 <script type="module">
 import { supabase } from '/js/supabase-client.js';
 
-async function cargarOrganizador(session) {
+async function iniciarFormulario(session) {
   if (!session?.user) {
     window.location.href = '/login.html';
     return;
@@ -24,7 +24,7 @@ async function cargarOrganizador(session) {
 supabase.auth.onAuthStateChange((event, session) => {
   if (event === 'INITIAL_SESSION') {
     if (!session) window.location.href = '/login.html';
-    else cargarOrganizador(session);
+    else iniciarFormulario(session);
   }
 });
 </script>
@@ -121,20 +121,24 @@ body.tc-torneo-crear {
     box-shadow:0 0 18px rgba(201,168,76,0.45);
 }
 .prog-dot.hecho {
-    background:rgba(46,255,112,0.12); border-color:rgba(46,255,112,0.5); color:var(--neon);
+    background:rgba(201,168,76,0.18);
+    border-color:#c9a84c;
+    color:#c9a84c;
 }
 .prog-lbl {
     font-size:0.42rem; letter-spacing:1px; color:#333;
     text-align:center; white-space:nowrap; transition:0.3s; width:54px;
+    font-family:"DM Sans",system-ui,sans-serif;
+    font-weight:600;
 }
 .prog-lbl.activo { color:var(--oro); }
-.prog-lbl.hecho  { color:rgba(46,255,112,0.6); }
+.prog-lbl.hecho  { color:rgba(201,168,76,0.85); }
 .prog-linea {
     flex:1; height:2px; background:#181818;
     margin:14px 0 0; transition:background 0.4s;
     border-radius:2px;
 }
-.prog-linea.hecha { background:rgba(46,255,112,0.25); }
+.prog-linea.hecha { background:#c9a84c; }
 
 /* ═══ WRAP ═══ */
 .wrap { padding:24px 16px; max-width:580px; margin:0 auto; }
@@ -152,10 +156,12 @@ body.tc-torneo-crear {
     display:inline-flex; align-items:center; gap:10px;
     background:rgba(201,168,76,0.07); border:1px solid rgba(201,168,76,0.2);
     border-radius:30px; padding:8px 18px; margin-bottom:22px;
+    font-family:"Playfair Display", Georgia, serif;
 }
 .paso-num {
     width:26px; height:26px; border-radius:50%;
-    background:var(--oro); color:#000; font-size:0.72rem; font-weight:900;
+    background:var(--oro); color:#000; font-size:0.72rem; font-weight:700;
+    font-family:"Playfair Display", Georgia, serif;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
 .paso-lbl {
@@ -171,7 +177,7 @@ body.tc-torneo-crear {
     background:rgba(255,255,255,0.03);
     border:1px solid rgba(201,168,76,0.15);
     border-radius:12px;
-    padding:20px 18px;
+    padding:16px;
     margin-bottom:14px;
 }
 .card-lbl {
@@ -401,7 +407,7 @@ body.tc-torneo-crear {
     background:rgba(255,255,255,0.03);
     border:1px solid rgba(201,168,76,0.15);
     border-radius:12px;
-    padding:16px 18px;
+    padding:16px;
 }
 .dinero-lbl { font-size:0.58rem; letter-spacing:2px; color:#555; margin-bottom:8px; }
 .dinero-inp {
@@ -951,15 +957,6 @@ body.tc-torneo-crear {
     </a>
 </div>
 
-<script src="/js/dc-icons.js"></script>
-<script>
-window.DC = window.DC || {};
-DC.icon = function (name, size) {
-    var s = size == null ? 18 : size;
-    if (typeof IC !== 'undefined' && typeof IC[name] === 'function') return IC[name](s);
-    return '';
-};
-</script>
 <script src="/core.js"></script>
 <script>
 var estado = {
@@ -1222,6 +1219,16 @@ function showToast(msg) {
     t.innerHTML=msg; t.classList.add('show');
     setTimeout(function(){ t.classList.remove('show'); }, 2400);
 }
+</script>
+
+<script src="/js/dc-icons.js"></script>
+<script>
+window.DC = window.DC || {};
+DC.icon = function (name, size) {
+    var s = size == null ? 18 : size;
+    if (typeof IC !== 'undefined' && typeof IC[name] === 'function') return IC[name](s);
+    return '';
+};
 </script>
 
 </body>
