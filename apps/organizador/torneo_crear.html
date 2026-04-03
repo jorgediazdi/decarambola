@@ -1198,9 +1198,9 @@ function generarResumen() {
 }
 
 /* ── CREAR ── */
-function crearTorneo() {
+async function crearTorneo() {
     var fmt = estado.formatoImportado;
-    var torneo = MasterVIP.crearTorneo({
+    var cfg = {
         sede: estado.sitio, nombre: estado.nombre, fechaInicio: estado.fecha, modalidad: estado.modalidad,
         sistema: estado.sistema||(fmt?fmt.formatoId:'brackets'),
         cupoMax: estado.cupo, tiempoEntrada: estado.tiempo,
@@ -1210,8 +1210,72 @@ function crearTorneo() {
         dist1: estado.dist1, dist2: estado.dist2, dist3: estado.dist3,
         formatoDetalle: fmt||null,
         reglas: fmt&&fmt.reglas ? fmt.reglas : {modo:'directo', metaDirecto:estado.meta, handicap:'no'}
-    });
+    };
+    var torneo;
+    try {
+        torneo = await MasterVIP.crearTorneo(cfg);
+    } catch (e) {
+        console.error('[torneo_crear] crearTorneo MasterVIP:', e);
+        showToast('Error al crear el torneo');
+        return;
+    }
     try { localStorage.removeItem('FORMATO_TORNEO'); } catch(e){}
+
+    /* Si el id sigue siendo temporal (T + timestamp), el insert en Supabase falló o no terminó: reintento con columnas de tabla `torneos` y club_id del perfil Auth */
+    if (torneo && /^T\d+$/.test(String(torneo.id))) {
+        try {
+            var auth = await import('/js/auth-manager.js');
+            var clubRes = await auth.getClubId();
+            var club_id = clubRes.data || null;
+            if (!club_id) {
+                console.error('[torneo_crear] insert Torneo Supabase: sin club_id en profiles (JWT). Detalle:', clubRes.error || clubRes);
+            }
+            var api = await import('/js/api/torneo-api.js');
+            var fi = torneo.fechaInicio ? String(torneo.fechaInicio).trim() : '';
+            var fecha_inicio = fi ? (fi.indexOf('T') >= 0 ? fi : fi + 'T12:00:00.000Z') : null;
+            var payload = {
+                nombre: torneo.nombre,
+                club_id: club_id,
+                codigo: torneo.codigo,
+                sistema: torneo.sistema,
+                formato: torneo.sistema,
+                modalidad: torneo.modalidad,
+                cupo_max: torneo.cupoMax,
+                inscripcion: torneo.inscripcion,
+                base_club: torneo.baseClub,
+                pct_premios: torneo.pctPremios,
+                pct_fee: torneo.pctFee,
+                entrada_objetivo: torneo.entradaObjetivo,
+                tiempo_entrada: torneo.tiempoEntrada,
+                deporte: 'billar',
+                reglamento: torneo.reglamento || '',
+                estado: torneo.estado || 'ABIERTO',
+                fecha_inicio: fecha_inicio,
+                fecha_fin: null,
+                visible_muro: true,
+                aprobado_club: true
+            };
+            var ir = await api.insertTorneo(payload);
+            if (ir.error) {
+                console.error('[torneo_crear] insert Torneo Supabase:', ir.error);
+            } else if (ir.data && ir.data.id) {
+                torneo.id = ir.data.id;
+                var list = MasterVIP.getTorneos();
+                var idx = list.findIndex(function(t) { return t.codigo === torneo.codigo; });
+                if (idx >= 0) {
+                    list[idx].id = ir.data.id;
+                    localStorage.setItem('TORNEOS_LISTA', JSON.stringify(list));
+                    localStorage.setItem('TORNEO_ACTIVO_ID', ir.data.id);
+                }
+            }
+        } catch (e2) {
+            console.error('[torneo_crear] insert Torneo Supabase:', e2);
+        }
+        if (torneo && /^T\d+$/.test(String(torneo.id))) {
+            console.error('[torneo_crear] El torneo no se guardó en Supabase (id local:', torneo.id, '). Revisa RLS, club_id y columnas.');
+        }
+    }
+
     showToast('&#10003; Torneo creado · '+torneo.codigo);
     setTimeout(function(){ location.href='inscripciones.html'; }, 1200);
 }
