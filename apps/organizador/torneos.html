@@ -22,8 +22,18 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/index-v2.css">
     <style>
+        :root {
+            --color-gold: #c9a84c;
+            --color-text: #f0f0f0;
+            --color-text-muted: #888888;
+        }
         .org-panel { background: #0a0a0a; }
         .org-panel #stars-bg { display: none !important; }
+        .dc-home-v2.org-panel.org-page-torneos {
+            color: var(--color-text);
+            font-family: "DM Sans", system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
         .org-sede-pill {
             display: inline-block;
             margin-top: 4px;
@@ -46,21 +56,40 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
             color: #c9a84c !important;
         }
         .org-torneos-hero { min-height: 0; margin-bottom: 16px; }
-        .org-torneos-hero .hero-dashboard__inner { padding-top: 18px; padding-bottom: 18px; }
+        .org-torneos-hero .hero-dashboard__inner { padding-top: 20px; padding-bottom: 22px; }
+        .org-page-torneos .org-torneos-hero .hero-dashboard__copy {
+            width: 100%;
+            text-align: center;
+        }
+        .org-page-torneos .org-torneos-hero .hero-pill-row {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        @media (min-width: 768px) {
+            .org-page-torneos .org-torneos-hero .hero-dashboard__copy {
+                text-align: left !important;
+            }
+            .org-page-torneos .org-torneos-hero .hero-pill-row {
+                justify-content: flex-start;
+            }
+        }
         .org-torneos-hero-title {
             font-family: "Playfair Display", Georgia, serif;
             font-weight: 600;
-            color: #c9a84c;
-            font-size: clamp(1.35rem, 4.5vw, 1.85rem);
+            color: var(--color-gold, #c9a84c);
+            font-size: clamp(1.35rem, 4.5vw, 1.95rem);
             line-height: 1.2;
-            margin: 0 0 8px;
+            margin: 0 0 10px;
             letter-spacing: 0.02em;
         }
         .org-torneos-hero-sub {
-            font-size: 0.88rem;
-            color: #c9a84c;
+            font-size: 0.95rem;
+            color: var(--color-gold, #c9a84c);
             font-weight: 600;
-            line-height: 1.45;
+            line-height: 1.5;
             margin: 0 0 12px;
         }
         .org-torneos-logo-wrap {
@@ -105,7 +134,7 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
         .sec-btn {
             background: none;
             border: 1px solid rgba(201, 168, 76, 0.2);
-            color: #888;
+            color: var(--color-text-muted, #888);
             padding: 8px 14px;
             border-radius: 8px;
             font-size: 0.62rem;
@@ -121,11 +150,11 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
         }
         .sec-btn:hover, .sec-btn:focus-visible {
             border-color: rgba(201, 168, 76, 0.45);
-            color: #c9a84c;
+            color: var(--color-gold, #c9a84c);
             outline: none;
         }
         .sec-btn.oro {
-            background: #c9a84c;
+            background: var(--color-gold, #c9a84c);
             color: #0a0a0a !important;
             border-color: transparent;
         }
@@ -234,8 +263,8 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
             font-size: 0.55rem;
             padding: 4px 9px;
             border-radius: 999px;
-            border: 1px solid #333;
-            color: #777;
+            border: 1px solid #1a1a1a;
+            color: var(--color-text-muted, #888);
             letter-spacing: 0.08em;
             white-space: nowrap;
             font-family: "DM Sans", system-ui, sans-serif;
@@ -252,9 +281,9 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
             background: rgba(52, 152, 219, 0.08);
         }
         .tor-badge-estado.finalizado {
-            border-color: #222;
-            color: #555;
-            background: #050505;
+            border-color: #1a1a1a;
+            color: #666;
+            background: #0a0a0a;
         }
         .tor-detalles {
             display: flex;
@@ -340,6 +369,8 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
     <small>TORNEOS · MURO PÚBLICO</small>
 </div>
 
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
     <header class="home-header home-header--user" aria-label="Cabecera principal">
         <a class="home-header__brand" href="/index.html" aria-label="DeCarambola inicio">
             <img src="/assets/logo-decarambola.svg" alt="DeCarambola" width="120" height="36">
@@ -365,13 +396,13 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol
             <div class="hero-dashboard__bg" aria-hidden="true"></div>
             <div class="hero-dashboard__glow" aria-hidden="true"></div>
             <div class="hero-dashboard__inner">
-                <div class="hero-dashboard__copy" style="width:100%;text-align:center">
+                <div class="hero-dashboard__copy">
                     <div class="org-torneos-logo-wrap">
                         <div class="org-torneos-logo" id="hdr-logo-torneos"></div>
                     </div>
                     <h1 class="org-torneos-hero-title">Torneos</h1>
                     <p class="org-torneos-hero-sub" id="hdr-sub">Muro público de torneos activos</p>
-                    <div class="hero-pill-row org-hero-pill-row" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+                    <div class="hero-pill-row org-hero-pill-row">
                         <span class="org-role-pill--muted">MURO PÚBLICO</span>
                     </div>
                 </div>
