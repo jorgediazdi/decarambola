@@ -15,7 +15,8 @@ async function iniciarSensei(session) {
     .select('role')
     .eq('id', uid)
     .maybeSingle();
-  const rol = !error && prof?.role ? String(prof.role) : 'jugador';
+  const raw = !error && prof?.role != null && prof.role !== '' ? String(prof.role).trim() : '';
+  const rol = raw ? raw.toLowerCase().replace(/\s+/g, '_') : 'jugador';
   document.body.classList.add('rol-' + rol);
   window.DC_ROL = rol;
 }
@@ -369,24 +370,18 @@ supabase.auth.onAuthStateChange((event, session) => {
         .footer a { color:var(--dc-text-muted,#888); text-decoration:none; }
         .footer a:hover { color: var(--dc-gold, #c9a84c); }
 
-        /* Control de visibilidad por rol — Sensei */
-        [data-dc-roles] { display: none; }
-
-        .rol-jugador    [data-dc-roles*="jugador"]    { display: block; }
-        .rol-club_admin [data-dc-roles*="club_admin"] { display: block; }
-        .rol-superadmin [data-dc-roles*="superadmin"] { display: block; }
-
-        .rol-jugador    .menu-item[data-dc-roles*="jugador"],
-        .rol-club_admin .menu-item[data-dc-roles*="club_admin"],
-        .rol-superadmin .menu-item[data-dc-roles*="superadmin"] { display: flex; }
-
-        .rol-jugador    .seccion[data-dc-roles*="jugador"]:not(.visible),
-        .rol-club_admin .seccion[data-dc-roles*="club_admin"]:not(.visible),
-        .rol-superadmin .seccion[data-dc-roles*="superadmin"]:not(.visible) { display: none !important; }
-
-        .rol-jugador    .seccion.visible[data-dc-roles*="jugador"],
-        .rol-club_admin .seccion.visible[data-dc-roles*="club_admin"],
-        .rol-superadmin .seccion.visible[data-dc-roles*="superadmin"] { display: block !important; }
+        /* Paneles exclusivos: solo ocultar nodos que declaran rol en data-dc-roles (tokens con espacio).
+           Menú, chat, biblioteca y subida no llevan este atributo — visibles para cualquier sesión. */
+        [data-dc-roles~="club_admin"],
+        [data-dc-roles~="superadmin"] {
+            display: none;
+        }
+        .rol-club_admin [data-dc-roles~="club_admin"] {
+            display: block;
+        }
+        .rol-superadmin [data-dc-roles~="superadmin"] {
+            display: block;
+        }
 
         /* Sección superadmin — panel activación IA */
         .sensei-admin-panel {
@@ -425,28 +420,28 @@ supabase.auth.onAuthStateChange((event, session) => {
             <button type="button" class="mod-btn" onclick="cambiarModalidad(this, 'snooker')">SNOOKER</button>
         </div>
         <div class="menu-sensei" id="menu-principal">
-            <div class="menu-item" data-dc-roles="jugador,club_admin,superadmin" onclick="mostrarSeccion('chat')">
+            <div class="menu-item" onclick="mostrarSeccion('chat')">
                 <div class="menu-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
                 <div class="menu-texto"><div class="menu-titulo">CONSULTAR AL SENSEI</div><div class="menu-desc">Pregunta sobre técnicas, sistemas y estrategias</div></div>
                 <div class="menu-arrow">›</div>
             </div>
             <!-- Diagramas ocultos hasta que estén operativos -->
-            <div class="menu-item" data-dc-roles="jugador,club_admin,superadmin" id="menu-diagramas" style="display:none;" onclick="mostrarSeccion('diagramas')">
+            <div class="menu-item" id="menu-diagramas" style="display:none;" onclick="mostrarSeccion('diagramas')">
                 <div class="menu-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
                 <div class="menu-texto"><div class="menu-titulo">DIAGRAMAS ANIMADOS</div><div class="menu-desc">Aprende los sistemas visualmente (próximamente)</div></div>
                 <div class="menu-arrow">›</div>
             </div>
-            <div class="menu-item" data-dc-roles="jugador,club_admin,superadmin" onclick="mostrarSeccion('biblioteca')">
+            <div class="menu-item" onclick="mostrarSeccion('biblioteca')">
                 <div class="menu-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
                 <div class="menu-texto"><div class="menu-titulo">BIBLIOTECA INTELIGENTE</div><div class="menu-desc">Todo el conocimiento del billar</div></div>
                 <div class="menu-arrow">›</div>
             </div>
-            <div class="menu-item" data-dc-roles="jugador,club_admin,superadmin" onclick="mostrarSeccion('analizar')">
+            <div class="menu-item" onclick="mostrarSeccion('analizar')">
                 <div class="menu-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div>
                 <div class="menu-texto"><div class="menu-titulo">ANALIZAR JUGADA</div><div class="menu-desc">Sube tu video y la IA te explica qué pasó</div></div>
                 <div class="menu-arrow">›</div>
             </div>
-            <div class="menu-item" data-dc-roles="jugador,club_admin,superadmin" onclick="iniciarModoContacto()">
+            <div class="menu-item" onclick="iniciarModoContacto()">
                 <div class="menu-icon"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
                 <div class="menu-texto"><div class="menu-titulo">JOE — CONTACTO Y PQRS</div><div class="menu-desc">Contacto, PQRS e información de la plataforma y servicios de administración</div></div>
                 <div class="menu-arrow">›</div>
@@ -454,7 +449,7 @@ supabase.auth.onAuthStateChange((event, session) => {
         </div>
 
         <!-- CHAT — consulta IA (todos los roles con sesión) -->
-        <div class="seccion" id="sec-chat" data-dc-roles="jugador,club_admin,superadmin">
+        <div class="seccion" id="sec-chat">
             <div class="tarjeta">
                 <div class="tarjeta-header"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="tarjeta-header-texto" id="chat-header-texto">CONSULTAR AL SENSEI</span></div>
                 <div class="mensajes" id="mensajes"><div class="mensaje sensei"><span class="sensei-label">SENSEI</span>Bienvenido, estudiante. Soy tu maestro de billar. Pregúntame sobre sistemas de diamantes, técnicas de los grandes maestros, o cualquier duda sobre el juego.</div></div>
@@ -466,7 +461,7 @@ supabase.auth.onAuthStateChange((event, session) => {
         </div>
 
         <!-- DIAGRAMAS ANIMADOS (oculto hasta que estén operativos) -->
-        <div class="seccion" id="sec-diagramas" data-dc-roles="jugador,club_admin,superadmin" style="display:none !important;">
+        <div class="seccion" id="sec-diagramas" style="display:none !important;">
             <div class="tarjeta">
                 <div class="tarjeta-header"><svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg><span class="tarjeta-header-texto">DIAGRAMAS ANIMADOS</span></div>
                 <div class="diagrama-container">
@@ -637,7 +632,7 @@ supabase.auth.onAuthStateChange((event, session) => {
         </div>
 
         <!-- BIBLIOTECA -->
-        <div class="seccion" id="sec-biblioteca" data-dc-roles="jugador,club_admin,superadmin">
+        <div class="seccion" id="sec-biblioteca">
             <div class="tarjeta">
                 <div class="tarjeta-header"><svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span class="tarjeta-header-texto">BIBLIOTECA INTELIGENTE</span></div>
                 <div class="biblioteca-lista">
@@ -657,7 +652,7 @@ supabase.auth.onAuthStateChange((event, session) => {
         </div>
 
         <!-- ANALIZAR JUGADA -->
-        <div class="seccion" id="sec-analizar" data-dc-roles="jugador,club_admin,superadmin">
+        <div class="seccion" id="sec-analizar">
             <div class="tarjeta">
                 <div class="tarjeta-header"><svg viewBox="0 0 24 24" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg><span class="tarjeta-header-texto">ANALIZAR JUGADA</span></div>
                 <div class="upload-container">
@@ -717,7 +712,7 @@ supabase.auth.onAuthStateChange((event, session) => {
           </div>
         </section>
 
-        <section data-dc-roles="club_admin,superadmin" class="sensei-club-panel dc-reveal">
+        <section data-dc-roles="club_admin superadmin" class="sensei-club-panel dc-reveal">
           <div class="dc-card" style="margin-top:16px">
             <div class="dc-section-title">Uso de IA en tu club</div>
             <div class="dc-section-sub">Consultas realizadas por tus jugadores</div>
