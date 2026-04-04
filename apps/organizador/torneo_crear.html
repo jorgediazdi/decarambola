@@ -252,7 +252,17 @@ body.tc-torneo-crear.dc-home-v2 {
 .modal-pill.sel b { color:var(--oro); }
 .modal-pill.sel span { color:rgba(201,168,76,0.5); }
 .modal-pill:active { transform:scale(0.97); }
-.unica-sets-grid { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+.unica-modo-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; margin-bottom:4px; }
+.unica-modo-pill {
+    flex:1; min-width:calc(50% - 4px);
+    background:var(--card); border:1px solid var(--borde-oro); border-radius:16px;
+    padding:14px 12px; text-align:center; cursor:pointer; transition:0.2s;
+    font-family:"DM Sans",system-ui,sans-serif; font-size:0.72rem; font-weight:600;
+    color:var(--color-text-muted,#888); letter-spacing:0.04em;
+}
+.unica-modo-pill.sel { border-color:var(--oro); background:rgba(201,168,76,0.06); color:var(--oro); }
+.unica-modo-pill:active { transform:scale(0.98); }
+.unica-sets-grid { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
 .unica-set-pill {
     background:var(--card); border:1px solid var(--borde-oro); border-radius:16px;
     padding:14px 12px; text-align:center; cursor:pointer; transition:0.2s;
@@ -810,9 +820,13 @@ body.tc-torneo-crear.dc-home-v2 {
     <div class="card">
         <div class="card-lbl">
             <span class="card-lbl-ico" id="ico-tc-unica-sets" aria-hidden="true"></span>
-            PARTIDA ÚNICA (SETS)
+            MODALIDAD DE PARTIDA
         </div>
-        <div class="unica-sets-grid" role="group" aria-label="Sets partida única">
+        <div class="unica-modo-row" role="group" aria-label="Modalidad de partida">
+            <button type="button" class="unica-modo-pill sel" id="btn-partida-unica" onclick="selPartidaReglaTipo('unica',this)">Única</button>
+            <button type="button" class="unica-modo-pill" id="btn-partida-directa" onclick="selPartidaReglaTipo('directa',this)">Directa</button>
+        </div>
+        <div id="unica-sets-wrap" class="unica-sets-grid" role="group" aria-label="Sets partida única">
             <button type="button" class="unica-set-pill sel" onclick="selUnicaSets(3,this)">Única a 3 sets</button>
             <button type="button" class="unica-set-pill" onclick="selUnicaSets(5,this)">Única a 5 sets</button>
             <button type="button" class="unica-set-pill" onclick="selUnicaSets(7,this)">Única a 7 sets</button>
@@ -1010,7 +1024,7 @@ DC.icon = function (name, size) {
 <script>
 var estado = {
     paso:0, sitio:'', nombre:'', fecha:'', modalidad:'3 Bandas',
-    sistema:'', cupo:0, tiempo:40, meta:10, unicaSets:3, reglamento:'',
+    sistema:'', cupo:0, tiempo:40, meta:10, partidaReglaTipo:'unica', unicaSets:3, reglamento:'',
     inscripcion:50000, base:100000,
     pctPremios:80, pctFee:20, dist1:50, dist2:30, dist3:20,
     formatoImportado:null
@@ -1027,6 +1041,7 @@ window.onload = function() {
                 ['ico-tc-tiempo', 'ranking', 16],
                 ['ico-tc-meta', 'tacoYbola', 16],
                 ['ico-tc-regl', 'ranking', 16],
+                ['ico-tc-unica-sets', 'trofeo', 16],
                 ['ico-tc-resumen', 'trofeo', 24]
             ];
             for (var _i = 0; _i < _ic.length; _i++) {
@@ -1043,6 +1058,7 @@ window.onload = function() {
     if (inpFecha && !inpFecha.value.trim()) inpFecha.value = hoy;
     calcBolsa();
     cargarFormatoImportado();
+    syncReglasPartidaUI();
 };
 
 /* ── PROGRESS ── */
@@ -1058,6 +1074,7 @@ function irPaso(num) {
     document.getElementById('paso'+estado.paso).classList.remove('visible');
     estado.paso = num;
     document.getElementById('paso'+num).classList.add('visible');
+    if (num === 2) syncReglasPartidaUI();
     if (num===4) generarResumen();
     window.scrollTo(0,0);
 }
@@ -1179,7 +1196,31 @@ function selTiempo(val, el) {
     el.classList.add('sel'); estado.tiempo = val;
 }
 
+function actualizarUnicaSetsWrap() {
+    var w = document.getElementById('unica-sets-wrap');
+    if (!w) return;
+    w.style.display = estado.partidaReglaTipo === 'unica' ? '' : 'none';
+}
+
+function syncReglasPartidaUI() {
+    var u = document.getElementById('btn-partida-unica');
+    var d = document.getElementById('btn-partida-directa');
+    if (u && d) {
+        u.classList.toggle('sel', estado.partidaReglaTipo === 'unica');
+        d.classList.toggle('sel', estado.partidaReglaTipo === 'directa');
+    }
+    actualizarUnicaSetsWrap();
+}
+
+function selPartidaReglaTipo(tipo, el) {
+    estado.partidaReglaTipo = tipo === 'directa' ? 'directa' : 'unica';
+    document.querySelectorAll('.unica-modo-pill').forEach(function(b){ b.classList.remove('sel'); });
+    el.classList.add('sel');
+    actualizarUnicaSetsWrap();
+}
+
 function selUnicaSets(n, el) {
+    if (estado.partidaReglaTipo !== 'unica') return;
     document.querySelectorAll('.unica-set-pill').forEach(function(b){ b.classList.remove('sel'); });
     el.classList.add('sel');
     estado.unicaSets = n;
@@ -1240,7 +1281,11 @@ function generarResumen() {
     h+=row('FORMATO', sisteNom);
     h+=row('CUPO', estado.cupo+' jugadores');
     h+=row('TIEMPO', estado.tiempo+'s por entrada');
-    h+=row('PARTIDA ÚNICA', 'A '+(estado.unicaSets||3)+' sets');
+    if (estado.partidaReglaTipo === 'unica') {
+        h+=row('MODALIDAD PARTIDA', 'Única · a '+(estado.unicaSets||3)+' sets');
+    } else {
+        h+=row('MODALIDAD PARTIDA', 'Directa (mejor de '+estado.meta+' carambolas)');
+    }
     h+=row('META', estado.meta+' carambolas');
     h+=row('INSCRIPCIÓN', pesos(estado.inscripcion));
     h+=row('BOLSA PREMIOS', pesos(bolsa), 'neon');
@@ -1255,13 +1300,24 @@ function generarResumen() {
 async function crearTorneo() {
     function getClubId() { return MasterVIP.getClubId(); }
     var fmt = estado.formatoImportado;
+    var esUnica = estado.partidaReglaTipo === 'unica';
     var us = parseInt(estado.unicaSets, 10);
     if (us !== 3 && us !== 5 && us !== 7) us = 3;
     var reglasBase = fmt && fmt.reglas ? Object.assign({}, fmt.reglas) : { modo:'directo', metaDirecto:estado.meta, handicap:'no' };
-    reglasBase.unicaSets = us;
+    reglasBase.partidaReglaTipo = esUnica ? 'unica' : 'directa';
+    if (esUnica) {
+        reglasBase.unicaSets = us;
+    } else {
+        delete reglasBase.unicaSets;
+    }
     var reglamentoUsuario = (typeof estado.reglamento === 'string' ? estado.reglamento : '').trim();
-    var reglamentoUnica = 'Partida única a ' + us + ' sets.';
-    var reglamentoEnvio = reglamentoUsuario ? (reglamentoUnica + '\n\n' + reglamentoUsuario) : reglamentoUnica;
+    var prefijoReglamento = '';
+    if (esUnica) {
+        prefijoReglamento = 'Partida única a ' + us + ' sets.';
+    } else {
+        prefijoReglamento = 'Partida directa al mejor de ' + (parseInt(estado.meta, 10) || 10) + ' carambolas.';
+    }
+    var reglamentoEnvio = reglamentoUsuario ? (prefijoReglamento + '\n\n' + reglamentoUsuario) : prefijoReglamento;
     var cfg = {
         sede: estado.sitio, nombre: estado.nombre, fechaInicio: estado.fecha, modalidad: estado.modalidad,
         sistema: estado.sistema||(fmt?fmt.formatoId:'brackets'),
