@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="sensei-doc">
 <head>
     <script type="module">
 import { supabase } from '/js/supabase-client.js';
@@ -19,6 +19,9 @@ async function iniciarSensei(session) {
   const rol = raw ? raw.toLowerCase().replace(/\s+/g, '_') : 'jugador';
   document.body.classList.add('rol-' + rol);
   window.DC_ROL = rol;
+  if (typeof window.DC_senseiSyncModalidadUI === 'function') {
+    window.DC_senseiSyncModalidadUI(rol);
+  }
 }
 
 supabase.auth.onAuthStateChange((event, session) => {
@@ -57,13 +60,26 @@ supabase.auth.onAuthStateChange((event, session) => {
             --dc-font-display: "Playfair Display", Georgia, serif;
         }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        .sensei-root.dc-app {
+        /* Scroll del documento: dc-app solo fija overflow-x; forzar eje Y para que no se corte el contenido */
+        html.sensei-doc {
+            height: auto;
+            min-height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .sensei-root.dc-app.page-sensei {
             background: #0a0a0a;
             color: var(--dc-text);
             font-family: var(--dc-font-body);
             font-size: 14px;
             min-height: 100vh;
-            overscroll-behavior-y: contain;
+            min-height: 100dvh;
+            height: auto;
+            max-height: none;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             -webkit-font-smoothing: antialiased;
         }
         .org-panel #stars-bg { display: none !important; }
@@ -137,7 +153,9 @@ supabase.auth.onAuthStateChange((event, session) => {
         }
         .sensei-toplink:hover { color: var(--dc-gold, #c9a84c); }
         .contenido { position:relative; z-index:10; padding:12px 0 32px; max-width:none; margin:0; }
-        .modalidad-selector { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; padding:12px; background:var(--dc-surface); border-radius:12px; border:1px solid var(--borde-oro); }
+        .sensei-modalidad-bloque { display: none !important; }
+        .rol-superadmin .sensei-modalidad-bloque { display: block !important; }
+        .modalidad-selector { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; padding:12px; background:var(--dc-surface); border-radius:12px; border:1px solid var(--borde-oro); justify-content:center; }
         .mod-btn {
             flex:1; min-width:calc(33.33% - 8px); min-height:48px;
             padding:14px 8px; background:transparent; border:none; border-radius:12px; color:#888;
@@ -411,13 +429,13 @@ supabase.auth.onAuthStateChange((event, session) => {
         <a href="index.html" class="sensei-back">Menú</a>
     </header>
     <div class="contenido">
-        <p class="sensei-intro">
-            Elige modalidad del Sensei (afina las respuestas). Esto no es una “puerta de seguridad”: cualquiera con el enlace puede entrar a Sensei.
-        </p>
-        <div class="modalidad-selector">
-            <button type="button" class="mod-btn activo" onclick="cambiarModalidad(this, 'tresbandas')">TRES BANDAS</button>
-            <button type="button" class="mod-btn" onclick="cambiarModalidad(this, 'libre')">LIBRE</button>
-            <button type="button" class="mod-btn" onclick="cambiarModalidad(this, 'snooker')">SNOOKER</button>
+        <div class="sensei-modalidad-bloque" id="sensei-modalidad-bloque" aria-label="Configuración modalidad Sensei (superadmin)">
+            <p class="sensei-intro">
+                Configurá la modalidad del Sensei para toda la plataforma (afina las respuestas de la IA). El resto de usuarios la recibe automáticamente; no pueden cambiarla aquí.
+            </p>
+            <div class="modalidad-selector">
+                <button type="button" class="mod-btn activo" data-modalidad="tresbandas" onclick="cambiarModalidad(this, 'tresbandas')">TRES BANDAS</button>
+            </div>
         </div>
         <div class="menu-sensei" id="menu-principal">
             <div class="menu-item" onclick="mostrarSeccion('chat')">
@@ -755,7 +773,16 @@ supabase.auth.onAuthStateChange((event, session) => {
     </div>
 
     <script>
-    var modalidadActual='tresbandas';
+    var SENSEI_MOD_KEY = 'sensei_modalidad_plataforma';
+    function DC_senseiLeerModalidadGuardada() {
+        try {
+            var s = localStorage.getItem(SENSEI_MOD_KEY);
+            if (s === 'tresbandas') return 'tresbandas';
+            if (s === 'libre' || s === 'snooker') return 'tresbandas';
+        } catch (e) {}
+        return 'tresbandas';
+    }
+    var modalidadActual = DC_senseiLeerModalidadGuardada();
     var tipoAnalisis='jugada';
     var temaActualModal='';
     var contactMode=false;
@@ -763,7 +790,27 @@ supabase.auth.onAuthStateChange((event, session) => {
     var contactData={};
     var JOE_NAME='Joe';
     
-    function cambiarModalidad(btn,mod){document.querySelectorAll('.mod-btn').forEach(b=>b.classList.remove('activo'));btn.classList.add('activo');modalidadActual=mod;}
+    window.DC_senseiSyncModalidadUI = function (rol) {
+        modalidadActual = DC_senseiLeerModalidadGuardada();
+        if (rol === 'superadmin') {
+            document.querySelectorAll('.mod-btn').forEach(function (b) {
+                var m = b.getAttribute('data-modalidad');
+                b.classList.toggle('activo', m === modalidadActual);
+            });
+            try {
+                localStorage.setItem(SENSEI_MOD_KEY, modalidadActual);
+            } catch (e) {}
+        }
+    };
+    function cambiarModalidad(btn, mod) {
+        if (!document.body.classList.contains('rol-superadmin')) return;
+        document.querySelectorAll('.mod-btn').forEach(function (b) { b.classList.remove('activo'); });
+        btn.classList.add('activo');
+        modalidadActual = mod;
+        try {
+            localStorage.setItem(SENSEI_MOD_KEY, mod);
+        } catch (e) {}
+    }
     function mostrarSeccion(id){
         document.getElementById('menu-principal').style.display='none';
         document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('visible'));
