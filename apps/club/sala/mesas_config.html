@@ -300,9 +300,6 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
 </head>
 <body class="dc-ux dc-ux-skin m-root-salon">
 
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-
 <div class="header">
     <div class="dc-dash-back-row" style="margin-bottom:0;">
         <a href="/index.html" class="btn-dash-dashboard"><span class="dc-dash-ico">←</span> Volver al dashboard</a>
@@ -1371,7 +1368,10 @@ function dcFmtTimeForInput(v) {
 
 window.DC_hydrateMesasConfigDesdeSupabase = async function () {
     var clubId = await resolveClubIdForGuardar();
-    if (!clubId) return;
+    if (!clubId) {
+        console.warn('[mesas_config] sin clubId — hydrate abortado');
+        return;
+    }
     var keysToTry = [String(clubId).trim()];
     try {
         var Rm = await import('/js/resolve-club-id.js');
@@ -1380,7 +1380,9 @@ window.DC_hydrateMesasConfigDesdeSupabase = async function () {
             if (ru.uuid && keysToTry.indexOf(ru.uuid) < 0) keysToTry.push(ru.uuid);
             if (ru.codigo && keysToTry.indexOf(ru.codigo) < 0) keysToTry.push(ru.codigo);
         }
-    } catch (_e) {}
+    } catch (e) {
+        console.error('[mesas_config] resolve-club-id import error:', e);
+    }
 
     var apiMod = await _clubApiCfg();
     var row = null;
@@ -1391,7 +1393,10 @@ window.DC_hydrateMesasConfigDesdeSupabase = async function () {
             break;
         }
     }
-    if (!row) return;
+    if (!row) {
+        console.warn('[mesas_config] sin fila en mesas_config para clubId:', clubId);
+        return;
+    }
 
     var setVal = function (id, val) {
         var el = document.getElementById(id);
@@ -1866,7 +1871,7 @@ window.__salaBoot = function() {
         actualizarPreview();
         var wd = document.getElementById('wd1');
         if (wd) wd.classList.add('activo');
-    } catch (e) {}
+    } catch (e) { console.error('[mesas_config] __salaBoot error:', e); }
     if (typeof window.DC_hydrateMesasConfigDesdeSupabase === 'function') {
         window.DC_hydrateMesasConfigDesdeSupabase().catch(function (err) {
             if (typeof console !== 'undefined' && console.warn) console.warn('[mesas_config] hydrate:', err);
@@ -1877,20 +1882,6 @@ window.__salaBoot = function() {
 if (typeof window.__salaBoot === 'function') window.__salaBoot();
 
 /* Paso 1 → 2: onclick en #btn-paso1-siguiente (mismo patrón que los demás pasos; evita doble handler). */
-</script>
-
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
 </script>
 
 </body>
