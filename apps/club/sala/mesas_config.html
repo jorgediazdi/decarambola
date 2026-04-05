@@ -549,8 +549,6 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
     </div>
 </div>
 
-<div id="aviso-restringido" class="aviso-salon-gate" style="display:none;max-width:500px;margin:0 auto;padding:20px 18px 40px;"></div>
-
 <script src="/session.js"></script>
 <script>
 /**
@@ -721,37 +719,6 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
 (function () {
     var o = document.getElementById('dc-sala-gate-overlay');
     if (o) o.remove();
-})();
-var avisoRestringidoActivo = false;
-/**
- * Por ahora: asistente visible sin exigir admin en localStorage (acceso alineado con sala-supabase-gate).
- * Después: restricción con email/sesión — poner false y/o leer la misma política que guardSalaPage. Ver docs/ACCESO_SALA_ROADMAP.md
- */
-var DC_SALA_OPEN_ACCESS = false;
-(function(){
-    var clubAdmin = localStorage.getItem('club_admin') === 'true';
-    var pinAdmin = localStorage.getItem('club_admin_activo') === 'true';
-    /* Admin en MI CLUB / PIN, o acceso abierto alineado con guardSalaPage. */
-    var rolSesion = localStorage.getItem('session_rol');
-    var puedeConfig = rolSesion === 'superadmin' || rolSesion === 'club_admin';
-    /* Antes también exigíamos session_ultimo_act “fresco” antes de SESSION.iniciar → el formulario desaparecía. */
-    if (!puedeConfig) {
-        avisoRestringidoActivo = true;
-        var aviso = document.getElementById('aviso-restringido');
-        if (aviso) {
-            aviso.style.display = 'block';
-            aviso.innerHTML =
-                '<div style="background:linear-gradient(160deg,#1a1200,#0c0a06);border:1px solid rgba(201,168,76,0.35);border-radius:16px;padding:20px 16px;text-align:center;">' +
-                '<p style="color:#c9a84c;font-size:0.75rem;letter-spacing:0.12em;margin:0 0 12px;">ACCESO A CONFIGURAR SALÓN</p>' +
-                '<p style="color:#aaa;font-size:0.82rem;line-height:1.5;margin:0 0 16px;">Esta pantalla es para quien <strong style="color:#eee;">administra el club</strong> (creaste el club o te dieron permiso de admin).</p>' +
-                '<p style="color:#888;font-size:0.78rem;line-height:1.45;margin:0 0 18px;">En el <strong>inicio</strong> de la app tocá <strong>«Soy administrador del club»</strong>, ingresá el PIN que configuraste, y volvé a abrir <strong>Configurar instalaciones</strong> desde <strong>MI CLUB</strong> o el menú abajo.</p>' +
-                '<a href="/index.html" style="display:inline-block;padding:12px 18px;background:linear-gradient(135deg,#c9a84c,#a07800);color:#000;text-decoration:none;border-radius:12px;font-size:0.8rem;font-weight:bold;letter-spacing:0.06em;">Ir al inicio de la app</a> ' +
-                '<a href="/club/index.html" style="display:inline-block;margin-top:10px;padding:12px 18px;border:1px solid rgba(201,168,76,0.45);color:#c9a84c;text-decoration:none;border-radius:12px;font-size:0.8rem;font-weight:bold;letter-spacing:0.06em;">Abrir Portal club</a>' +
-                '</div>';
-        }
-        var contenido = document.getElementById('contenido-principal');
-        if (contenido) contenido.style.display = 'none';
-    }
 })();
 /* Sin SESSION.iniciar: evita depender de SESSION/core en el arranque del asistente. */
 
