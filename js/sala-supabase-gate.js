@@ -6,6 +6,7 @@
  *   <script type="module">
  *   import { guardSalaPage } from '/js/sala-supabase-gate.js';
  *   await guardSalaPage({ pageTitle: 'Salón en vivo' });
+ *   // Solo admin: allowedRoles: ['club_admin', 'superadmin']
  *   </script>
  */
 import { supabase } from './supabase-client.js';
