@@ -59,6 +59,9 @@ export async function guardSalaPageConPolitica(opts) {
 
     removeOverlay();
     syncClubIdToLocalStorage(clubId);
+    try {
+        document.body.style.visibility = 'visible';
+    } catch (_e) {}
     if (typeof window.__salaBoot === 'function') {
         try {
             window.__salaBoot();

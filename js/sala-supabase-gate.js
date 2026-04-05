@@ -52,6 +52,28 @@ function removeOverlay() {
     if (el) el.remove();
 }
 
+function bodyReveal() {
+    try {
+        document.body.style.visibility = 'visible';
+    } catch (e) {}
+}
+
+/**
+ * @param {{ role: string }} r
+ * @param {string[]|undefined} allowedRoles
+ * @returns {boolean}
+ */
+function roleAllowed(r, allowedRoles) {
+    if (!allowedRoles || !allowedRoles.length) return true;
+    var skip = r.role === 'open_public' || r.role === 'dev';
+    if (skip) return true;
+    var rn = String(r.role || '').trim().toLowerCase();
+    for (var i = 0; i < allowedRoles.length; i++) {
+        if (String(allowedRoles[i]).trim().toLowerCase() === rn) return true;
+    }
+    return false;
+}
+
 async function checkStaffAccess() {
     if (OPEN_ACCESS_PUBLIC) {
         var openCid = null;
@@ -137,6 +159,7 @@ export async function guardSalaPage(opts) {
             var rOpen = await checkStaffAccess();
             removeOverlay();
             syncClubIdToLocalStorage(rOpen.clubId);
+            bodyReveal();
             if (typeof window.__salaBoot === 'function') {
                 try {
                     window.__salaBoot();
@@ -188,8 +211,17 @@ export async function guardSalaPage(opts) {
             return false;
         }
 
+        if (!roleAllowed(r, opts.allowedRoles)) {
+            setGateMessage(
+                '<strong style="color:#c98">Solo administración del club</strong><p style="margin-top:12px">Esta pantalla es para <strong>club_admin</strong> o <strong>superadmin</strong>.</p>' +
+                    '<p style="margin-top:16px;font-size:0.8rem"><a href="/jugador/" style="color:#6cf">App jugador</a> · <a href="/login.html" style="color:#8c8">Otra cuenta</a> · <a href="/index.html" style="color:#c9a84c">Inicio</a></p>'
+            );
+            return false;
+        }
+
         removeOverlay();
         syncClubIdToLocalStorage(r.clubId);
+        bodyReveal();
         if (typeof window.__salaBoot === 'function') {
             try {
                 window.__salaBoot();

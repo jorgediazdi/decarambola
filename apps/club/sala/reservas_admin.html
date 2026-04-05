@@ -6,27 +6,38 @@
     <meta name="theme-color" content="#c9a84c">
     <meta name="description" content="Gestión de reservas de mesas e instalaciones — DeCarambola">
     <title>Reservas — DeCarambola</title>
-    <link rel="stylesheet" href="/css/dc-system.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --oro: #c9a84c;
+            --fondo: #0a0a0a;
+            --fondo2: #111111;
+            --fondo3: #1a1a1a;
+            --borde: rgba(201, 168, 76, 0.15);
+            --texto: #e8e8e8;
+            --texto2: #888888;
+        }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body {
-            background: var(--negro);
-            color: var(--text);
-            font-family: var(--font-ui);
+        body.dc-ux.dc-ux-skin.reservas-admin-hub {
+            background: #0a0a0a;
+            color: #e8e8e8;
+            font-family: 'DM Sans', sans-serif;
             font-size: 15px;
             line-height: 1.45;
             min-height: 100vh;
+            visibility: hidden;
             padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
         }
+        body.dc-ux.dc-ux-skin.reservas-admin-hub #stars-bg { display: none !important; }
 
         .header {
             position: sticky;
             top: 0;
             z-index: 30;
-            background: rgba(5,5,5,0.92);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 1px solid rgba(201, 168, 76, 0.15);
             padding: 14px 18px;
             padding-top: calc(14px + env(safe-area-inset-top, 0px));
             display: flex;
@@ -36,15 +47,15 @@
             gap: 12px;
         }
         .header-titulo {
-            font-family: var(--font-display);
-            color: var(--oro);
-            font-size: 0.72rem;
-            letter-spacing: 0.18em;
-            font-weight: 900;
-            text-shadow: 0 0 22px rgba(212, 175, 55, 0.4);
+            font-family: 'Playfair Display', serif;
+            color: #c9a84c;
+            font-size: 0.85rem;
+            letter-spacing: 0.12em;
+            font-weight: 700;
         }
         .header-sub {
-            color: var(--muted2);
+            color: var(--texto2);
+            font-family: 'DM Sans', sans-serif;
             font-size: 0.68rem;
             margin-top: 4px;
             letter-spacing: 0.04em;
@@ -56,21 +67,21 @@
             gap: 6px;
         }
         .btn-hdr {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            color: var(--muted);
+            background: var(--fondo2);
+            border: 1px solid rgba(201, 168, 76, 0.15);
+            color: var(--texto2);
             padding: 8px 12px;
-            border-radius: var(--radius-sm);
+            border-radius: 12px;
             font-size: 0.65rem;
             font-weight: 600;
             letter-spacing: 0.06em;
             cursor: pointer;
             text-decoration: none;
-            font-family: var(--font-ui);
-            transition: border-color 0.15s, color 0.15s;
+            font-family: 'DM Sans', sans-serif;
+            transition: border-color 0.2s, color 0.2s;
         }
         .btn-hdr:hover, .btn-hdr:focus-visible {
-            border-color: rgba(212,175,55,0.35);
+            border-color: rgba(201, 168, 76, 0.4);
             color: var(--oro);
             outline: none;
         }
@@ -80,7 +91,8 @@
             margin: 0 auto;
             padding: 10px 18px 0;
             font-size: 0.75rem;
-            color: var(--muted);
+            color: var(--texto2);
+            font-family: 'DM Sans', sans-serif;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -91,10 +103,10 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: var(--warn);
+            background: #f39c12;
             flex-shrink: 0;
         }
-        .ctx-dot.ok { background: var(--neon); box-shadow: 0 0 8px rgba(46, 255, 112, 0.45); }
+        .ctx-dot.ok { background: #2ecc71; }
 
         .wrap { max-width: 520px; margin: 0 auto; padding: 16px 18px; }
 
@@ -103,9 +115,9 @@
             gap: 8px;
             margin-bottom: 16px;
             padding: 4px;
-            background: linear-gradient(180deg, #0f0f0f, #0a0a0a);
+            background: var(--fondo2);
             border-radius: 999px;
-            border: 1px solid rgba(212, 175, 55, 0.22);
+            border: 1px solid rgba(201, 168, 76, 0.15);
         }
         .tab-btn {
             flex: 1;
@@ -113,34 +125,33 @@
             border-radius: 999px;
             border: none;
             background: transparent;
-            color: var(--muted2);
+            color: var(--texto2);
             font-size: 0.62rem;
             font-weight: 700;
             letter-spacing: 0.08em;
             cursor: pointer;
-            font-family: var(--font-display);
+            font-family: 'DM Sans', sans-serif;
             transition: background 0.15s, color 0.15s;
         }
-        .tab-btn:hover { color: var(--muted); }
+        .tab-btn:hover { color: var(--texto); }
         .tab-btn:focus-visible {
             outline: 2px solid var(--oro);
             outline-offset: 2px;
         }
         .tab-btn.activo {
             background: var(--oro);
-            color: #000;
+            color: #0a0a0a;
         }
 
         .reserva-card {
-            background: linear-gradient(145deg, #1a1200, #0c0a06);
-            border-radius: var(--radius);
+            background: #111111;
+            border-radius: 16px;
             padding: 14px 16px;
-            border: 1px solid rgba(212, 175, 55, 0.28);
+            border: 1px solid rgba(201, 168, 76, 0.15);
             margin-bottom: 10px;
-            transition: border-color 0.15s, box-shadow 0.15s;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+            transition: border-color 0.2s;
         }
-        .reserva-card:hover { border-color: rgba(212, 175, 55, 0.45); }
+        .reserva-card:hover { border-color: rgba(201, 168, 76, 0.4); }
         .reserva-top {
             display: flex;
             justify-content: space-between;
@@ -149,7 +160,7 @@
             margin-bottom: 8px;
         }
         .reserva-mesa {
-            font-family: var(--font-display);
+            font-family: 'Playfair Display', serif;
             color: var(--oro);
             font-size: 0.7rem;
             letter-spacing: 0.12em;
@@ -162,17 +173,19 @@
             border-radius: 999px;
             letter-spacing: 0.06em;
             flex-shrink: 0;
+            font-family: 'DM Sans', sans-serif;
         }
         .badge-pendiente { background: rgba(243,156,18,0.15); color: #f1c40f; border: 1px solid rgba(243,156,18,0.25); }
-        .badge-confirmada { background: rgba(46,204,113,0.12); color: var(--ok); border: 1px solid rgba(46,204,113,0.25); }
-        .badge-cancelada { background: rgba(231,76,60,0.12); color: var(--danger); border: 1px solid rgba(231,76,60,0.25); }
+        .badge-confirmada { background: rgba(46,204,113,0.12); color: #2ecc71; border: 1px solid rgba(46,204,113,0.25); }
+        .badge-cancelada { background: rgba(231,76,60,0.12); color: #e74c3c; border: 1px solid rgba(231,76,60,0.25); }
 
         .reserva-det {
-            color: var(--muted);
+            color: var(--texto2);
+            font-family: 'DM Sans', sans-serif;
             font-size: 0.8rem;
             line-height: 1.5;
         }
-        .reserva-det b { color: var(--text); font-weight: 600; }
+        .reserva-det b { color: var(--texto); font-weight: 600; }
 
         .reserva-acciones {
             display: flex;
@@ -182,16 +195,16 @@
         .btn-small {
             flex: 1;
             padding: 10px 12px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            background: var(--surface2);
-            color: var(--muted);
+            border-radius: 12px;
+            border: 1px solid rgba(201, 168, 76, 0.15);
+            background: var(--fondo2);
+            color: var(--texto2);
             font-size: 0.65rem;
             font-weight: 700;
             letter-spacing: 0.08em;
             cursor: pointer;
-            font-family: var(--font-display);
-            transition: background 0.15s, border-color 0.15s;
+            font-family: 'DM Sans', sans-serif;
+            transition: border-color 0.2s, background 0.15s;
         }
         .btn-small:focus-visible {
             outline: 2px solid var(--oro);
@@ -199,7 +212,7 @@
         }
         .btn-ok {
             border-color: rgba(46,204,113,0.45);
-            color: var(--ok);
+            color: #2ecc71;
             background: rgba(46,204,113,0.06);
         }
         .btn-ok:hover { background: rgba(46,204,113,0.12); }
@@ -213,20 +226,21 @@
         .panel-msg {
             text-align: center;
             padding: 36px 20px;
-            border-radius: var(--radius);
-            border: 1px dashed rgba(212, 175, 55, 0.25);
-            background: linear-gradient(160deg, #12100a, #080705);
+            border-radius: 16px;
+            border: 1px dashed rgba(201, 168, 76, 0.2);
+            background: #111111;
         }
-        .panel-msg--load { border-style: solid; }
+        .panel-msg--load { border-style: solid; border-color: rgba(201, 168, 76, 0.15); }
         .panel-msg h3 {
-            font-family: var(--font-display);
-            font-size: 0.75rem;
-            letter-spacing: 0.12em;
+            font-family: 'Playfair Display', serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
             color: var(--oro);
             margin-bottom: 10px;
         }
         .panel-msg p {
-            color: var(--muted);
+            color: var(--texto2);
+            font-family: 'DM Sans', sans-serif;
             font-size: 0.85rem;
             max-width: 280px;
             margin: 0 auto 16px;
@@ -242,7 +256,7 @@
             width: 36px;
             height: 36px;
             margin: 0 auto 16px;
-            border: 3px solid var(--border);
+            border: 3px solid rgba(201, 168, 76, 0.15);
             border-top-color: var(--oro);
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
@@ -259,6 +273,7 @@
             border-radius: 12px;
             font-size: 0.85rem;
             font-weight: 500;
+            font-family: 'DM Sans', sans-serif;
             z-index: 1000;
             opacity: 0;
             transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s;
@@ -272,21 +287,9 @@
         .toast.err { background: #2a1818; border: 1px solid rgba(231,76,60,0.4); color: #ffc9c9; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
-    <style>
-        body.dc-ux.dc-ux-skin.reservas-admin-hub {
-            font-family: var(--font-ui);
-            font-size: 15px;
-            line-height: 1.45;
-        }
-        body.dc-ux-skin.reservas-admin-hub .header-titulo {
-            text-shadow: 0 0 22px rgba(212, 175, 55, 0.38);
-        }
-    </style>
 <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-ux dc-ux-skin reservas-admin-hub">
-
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
 
 <div class="header">
     <div>
@@ -563,22 +566,12 @@ window.__salaBoot = function() {
     cargarDatos();
 };
 </script>
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 <script type="module">
 import { guardSalaPage } from '/js/sala-supabase-gate.js';
-await guardSalaPage({ pageTitle: 'Reservas' });
+await guardSalaPage({
+    pageTitle: 'Reservas',
+    allowedRoles: ['club_admin', 'superadmin'],
+});
 </script>
 
 </body>
