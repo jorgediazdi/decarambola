@@ -11,88 +11,432 @@
     <style>
         :root {
             --oro: #c9a84c;
+            --oro-claro: #e8c96a;
+            --oro-dim: rgba(201,168,76,0.15);
+            --oro-mid: rgba(201,168,76,0.35);
             --fondo: #0a0a0a;
             --fondo2: #111111;
-            --fondo3: #1a1a1a;
-            --borde: rgba(201, 168, 76, 0.15);
+            --fondo3: #161616;
+            --borde: rgba(201,168,76,0.15);
             --texto: #e8e8e8;
             --texto2: #888888;
-            --g1: #1a1a1a;
-            --g2: #111111;
-            --g3: #0a0a0a;
+            --texto3: #aaaaaa;
         }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+
         body.dc-ux.dc-ux-skin.m-root-salon {
-            background: #0a0a0a;
-            color: #e8e8e8;
+            background: var(--fondo);
+            color: var(--texto);
             font-family: 'DM Sans', sans-serif;
             min-height: 100vh;
             visibility: hidden;
-            padding-bottom: 100px;
+            padding-bottom: 120px;
         }
         body.dc-ux.dc-ux-skin.m-root-salon #stars-bg { display: none !important; }
-        .header { width:100%; border-bottom:1px solid rgba(201,168,76,0.15); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; position:sticky; top:0; background:rgba(10,10,10,0.95); z-index:10; }
-        .header-titulo { font-family:'Playfair Display',serif; color:var(--oro); font-size:0.9rem; letter-spacing:0.08em; font-weight:700; }
-        .header-sub { color:var(--texto2); font-size:0.62rem; letter-spacing:2px; margin-top:4px; }
-        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
-        .btn-hdr { background:var(--fondo2); border:1px solid rgba(201,168,76,0.15); color:var(--texto2); padding:8px 12px; border-radius:12px; font-size:0.52rem; text-decoration:none; font-weight:600; letter-spacing:0.06em; font-family:'DM Sans',sans-serif; transition:border-color 0.2s,color 0.15s; }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(201,168,76,0.4); color:var(--oro); outline:none; }
-        .wrap { max-width:500px; margin:0 auto; padding:16px 18px; }
-        .sec { color:var(--oro); font-size:0.65rem; letter-spacing:3px; margin:16px 0 10px; font-family:'DM Sans',sans-serif; text-transform:uppercase; }
-        .campo { background:var(--fondo2); border:1px solid rgba(201,168,76,0.15); border-radius:16px; padding:12px 14px; margin-bottom:10px; transition:border-color 0.2s; }
-        .campo:hover { border-color:rgba(201,168,76,0.25); }
-        .campo label { display:block; color:var(--texto2); font-size:0.48rem; margin-bottom:6px; font-family:'DM Sans',sans-serif; }
-        .campo input { width:100%; background:transparent; border:none; border-bottom:1px solid var(--g1); color:#fff; font-size:1rem; padding:6px 0; font-family:'DM Sans',sans-serif; }
-        .campo-doble { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-        .info-tarifa { font-size:0.58rem; color:var(--texto2); line-height:1.45; margin-bottom:14px; padding:12px 14px; background:var(--fondo2); border-radius:16px; border:1px solid rgba(201,168,76,0.15); font-family:'DM Sans',sans-serif; }
-        .desc-franja-fila { display:grid; grid-template-columns:1fr 1fr 72px auto; gap:8px; align-items:center; margin-bottom:8px; font-size:0.55rem; }
-        .desc-franja-fila input { padding:6px; border-radius:8px; border:1px solid rgba(201,168,76,0.15); background:var(--g3); color:#fff; font-family:'DM Sans',sans-serif; }
-        .desc-dia-fila { background:var(--fondo2); border:1px solid rgba(201,168,76,0.15); border-radius:16px; padding:10px; margin-bottom:10px; font-size:0.52rem; }
-        .desc-dia-fila .dias-chk { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
-        .desc-dia-fila .dias-chk label { color:var(--texto2); cursor:pointer; }
-        .promo-fila { display:grid; grid-template-columns:1fr 80px 1fr auto; gap:8px; align-items:center; margin-bottom:8px; font-size:0.55rem; }
-        .promo-fila input { padding:6px; border-radius:8px; border:1px solid rgba(201,168,76,0.15); background:var(--g3); color:#fff; font-family:'DM Sans',sans-serif; }
-        .btn-quitar { background:none; border:none; color:#e74c3c; cursor:pointer; padding:4px; }
-        .btn-paso { width:100%; padding:14px; margin-top:12px; background:linear-gradient(135deg,var(--oro),#8a7038); color:#0a0a0a; border:none; border-radius:16px; font-size:0.75rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; }
-        .btn-paso.sec { background:var(--fondo2); color:var(--texto2); border:1px solid rgba(201,168,76,0.15); }
-        .btn-paso.sec:hover { border-color:rgba(201,168,76,0.4); }
-        .tarifa-mesa-fila {
+
+        /* ── HEADER ── */
+        .header {
+            width: 100%;
+            border-bottom: 1px solid var(--borde);
+            padding: 14px 18px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            background: rgba(10,10,10,0.97);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+        }
+        .header-titulo {
+            font-family: 'Playfair Display', serif;
+            color: var(--oro);
+            font-size: 0.95rem;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+        }
+        .header-sub { color: var(--texto2); font-size: 0.6rem; letter-spacing: 2px; margin-top: 4px; text-transform: uppercase; }
+        .btn-hdr {
             background: var(--fondo2);
-            border: 1px solid rgba(201,168,76,0.15);
-            border-radius: 16px;
-            padding: 12px 14px;
-            margin-bottom: 10px;
+            border: 1px solid var(--borde);
+            color: var(--texto2);
+            padding: 8px 12px;
+            border-radius: 10px;
             font-size: 0.52rem;
+            text-decoration: none;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            font-family: 'DM Sans', sans-serif;
+            transition: border-color 0.2s, color 0.15s;
+        }
+        .btn-hdr:hover { border-color: var(--oro-mid); color: var(--oro); }
+
+        /* ── WRAP ── */
+        .wrap { max-width: 500px; margin: 0 auto; padding: 20px 18px; }
+
+        /* ── SECCIÓN LABEL ── */
+        .sec-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 24px 0 12px;
+        }
+        .sec-label-text {
+            font-size: 0.6rem;
+            letter-spacing: 0.22em;
+            color: var(--oro);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .sec-label-line {
+            flex: 1;
+            height: 1px;
+            background: var(--borde);
+        }
+
+        /* ── CAMPO ── */
+        .campo {
+            background: var(--fondo2);
+            border: 1px solid var(--borde);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
             transition: border-color 0.2s;
+            position: relative;
         }
-        .tarifa-mesa-fila:hover { border-color: rgba(201,168,76,0.35); }
-        .tarifa-mesa-fila .tarifa-mesa-leyenda {
-            color: #888;
+        .campo:hover { border-color: var(--oro-mid); }
+        .campo:focus-within { border-color: rgba(201,168,76,0.4); }
+
+        .campo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 8px;
-            line-height: 1.4;
         }
-        .tarifa-mesa-fila .tarifa-mesa-leyenda strong { color: var(--oro); font-size: 0.58rem; }
-        .tarifa-mesa-fila label { display: block; color: #555; font-size: 0.48rem; margin-bottom: 6px; }
-        .tarifa-mesa-fila input[type="number"] {
+        .campo label {
+            display: block;
+            color: var(--texto2);
+            font-size: 0.6rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .campo input[type="number"] {
             width: 100%;
             background: transparent;
             border: none;
-            border-bottom: 1px solid var(--g1);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
             color: #fff;
-            font-size: 0.95rem;
+            font-size: 1.1rem;
             padding: 6px 0;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
         }
-        .tarifa-mesa-fila .tarifa-mesa-video-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
+        .campo input[type="number"]:focus { border-bottom-color: var(--oro); }
+
+        /* ── TOOLTIP ── */
+        .tooltip-btn {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            border: 1px solid var(--oro-mid);
+            background: transparent;
+            color: var(--oro);
+            font-size: 0.6rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+        }
+        .tooltip-btn:hover { background: var(--oro-dim); }
+        .tooltip-content {
+            display: none;
             margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid var(--g1);
+            padding: 10px 12px;
+            background: rgba(201,168,76,0.06);
+            border: 1px solid var(--oro-dim);
+            border-radius: 10px;
+            font-size: 0.68rem;
+            color: var(--texto3);
+            line-height: 1.55;
         }
-        .tarifa-mesa-fila .tarifa-mesa-video-row label { margin: 0; display: flex; align-items: center; gap: 6px; color: #888; cursor: pointer; }
-        .tarifa-mesa-fila .tarifa-mesa-video-row input[type="number"] { flex: 1; min-width: 100px; }
+        .tooltip-content.open { display: block; }
+
+        /* ── EJEMPLO VIVO ── */
+        .ejemplo-vivo {
+            background: var(--fondo2);
+            border: 1px solid var(--borde);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 10px;
+        }
+        .ejemplo-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 0.75rem;
+        }
+        .ejemplo-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .ejemplo-row:first-child { padding-top: 0; }
+        .ejemplo-label { color: var(--texto2); }
+        .ejemplo-val { color: var(--oro); font-weight: 600; font-family: 'Playfair Display', serif; font-size: 0.9rem; }
+        .ejemplo-empty { color: var(--texto2); font-size: 0.75rem; text-align: center; padding: 8px 0; }
+
+        /* ── FRANJAS GRID ── */
+        .franjas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .franja-card {
+            background: var(--fondo2);
+            border: 1px solid var(--borde);
+            border-radius: 14px;
+            padding: 12px;
+            transition: border-color 0.2s;
+        }
+        .franja-card:hover { border-color: var(--oro-mid); }
+        .franja-card:focus-within { border-color: rgba(201,168,76,0.4); }
+        .franja-icon { font-size: 1.1rem; margin-bottom: 6px; display: block; }
+        .franja-label { font-size: 0.55rem; color: var(--texto2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; display: block; }
+        .franja-sub { font-size: 0.5rem; color: #555; margin-bottom: 8px; display: block; }
+        .franja-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 1rem;
+            padding: 4px 0;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+        }
+        .franja-input:focus { border-bottom-color: var(--oro); }
+        .franja-unit { font-size: 0.55rem; color: #555; margin-top: 4px; display: block; }
+
+        /* ── VIP SECTION ── */
+        .vip-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--fondo2);
+            border: 1px solid var(--borde);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .vip-toggle-row:hover { border-color: var(--oro-mid); }
+        .vip-toggle-left { display: flex; align-items: center; gap: 10px; }
+        .vip-badge {
+            padding: 3px 10px;
+            background: rgba(201,168,76,0.15);
+            border: 1px solid var(--oro-mid);
+            border-radius: 20px;
+            font-size: 0.6rem;
+            color: var(--oro);
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+        .vip-toggle-label { font-size: 0.8rem; color: var(--texto); }
+        .vip-toggle-sub { font-size: 0.62rem; color: var(--texto2); margin-top: 2px; }
+
+        /* Toggle switch */
+        .dc-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+        .dc-switch input { opacity: 0; width: 0; height: 0; }
+        .dc-switch-slider {
+            position: absolute; inset: 0;
+            background: #333;
+            border-radius: 22px;
+            transition: background 0.25s;
+            cursor: pointer;
+        }
+        .dc-switch-slider::before {
+            content: '';
+            position: absolute;
+            width: 16px; height: 16px;
+            left: 3px; top: 3px;
+            background: #666;
+            border-radius: 50%;
+            transition: transform 0.25s, background 0.25s;
+        }
+        .dc-switch input:checked + .dc-switch-slider { background: rgba(201,168,76,0.25); }
+        .dc-switch input:checked + .dc-switch-slider::before { transform: translateX(18px); background: var(--oro); }
+
+        .vip-section {
+            background: rgba(201,168,76,0.04);
+            border: 1px solid var(--oro-mid);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .vip-section.open { display: block; }
+        .vip-section-title {
+            font-size: 0.6rem;
+            color: var(--oro);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .vip-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--oro-dim);
+        }
+
+        /* Mesa excepción */
+        .excepcion-add-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .excepcion-input {
+            flex: 1;
+            background: var(--fondo2);
+            border: 1px solid var(--borde);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 0.82rem;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .excepcion-input:focus { border-color: var(--oro-mid); }
+        .excepcion-input::placeholder { color: #444; }
+
+        .btn-add-excepcion {
+            background: rgba(201,168,76,0.1);
+            border: 1px solid var(--oro-mid);
+            color: var(--oro);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .btn-add-excepcion:hover { background: rgba(201,168,76,0.18); }
+
+        .excepciones-lista { display: flex; flex-direction: column; gap: 8px; }
+
+        .excepcion-fila {
+            background: var(--fondo2);
+            border: 1px solid var(--borde);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: grid;
+            grid-template-columns: auto 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            transition: border-color 0.2s;
+        }
+        .excepcion-fila:hover { border-color: var(--oro-mid); }
+        .excepcion-mesa-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            color: var(--oro);
+            min-width: 32px;
+            text-align: center;
+        }
+        .excepcion-campo {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .excepcion-campo-label { font-size: 0.5rem; color: #555; text-transform: uppercase; letter-spacing: 0.08em; }
+        .excepcion-campo-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 0.9rem;
+            padding: 3px 0;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            width: 100%;
+        }
+        .excepcion-campo-input:focus { border-bottom-color: var(--oro); }
+        .excepcion-campo-input::placeholder { color: #444; font-size: 0.75rem; }
+        .btn-quitar-excepcion {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 1rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .btn-quitar-excepcion:hover { opacity: 1; }
+
+        /* ── BOTONES ── */
+        .btn-guardar {
+            width: 100%;
+            padding: 16px;
+            margin-top: 8px;
+            background: linear-gradient(135deg, var(--oro), #8a7038);
+            color: #0a0a0a;
+            border: none;
+            border-radius: 16px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.08em;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+        .btn-guardar:hover { opacity: 0.92; transform: translateY(-1px); }
+        .btn-guardar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-sec {
+            width: 100%;
+            padding: 14px;
+            margin-top: 8px;
+            background: var(--fondo2);
+            color: var(--texto2);
+            border: 1px solid var(--borde);
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.06em;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .btn-sec:hover { border-color: var(--oro-mid); color: var(--oro); }
+
+        /* ── READONLY MSG ── */
+        #dc-tarifas-readonly-msg {
+            display: none;
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--fondo2);
+            border: 1px solid var(--borde);
+            border-radius: 16px;
+            color: #c8c8c8;
+            font-size: 0.68rem;
+            line-height: 1.55;
+            text-align: center;
+        }
+        #dc-tarifas-readonly-msg strong { color: var(--oro); }
+        .dc-neon { color: #39ff14; font-weight: 700; }
+
+        /* ── TOAST ── */
         #tarifas-toast {
             position: fixed;
             bottom: max(20px, env(safe-area-inset-bottom));
@@ -100,10 +444,10 @@
             transform: translateX(-50%) translateY(140%);
             max-width: 92%;
             padding: 12px 18px;
-            background: #111111;
-            border: 1px solid rgba(201, 168, 76, 0.25);
+            background: #111;
+            border: 1px solid rgba(201,168,76,0.25);
             border-radius: 12px;
-            color: #e8e8e8;
+            color: var(--texto);
             font-size: 0.72rem;
             line-height: 1.35;
             font-family: 'DM Sans', sans-serif;
@@ -113,34 +457,35 @@
             pointer-events: none;
         }
         #tarifas-toast.dc-toast--show { transform: translateX(-50%) translateY(0); }
-        #dc-tarifas-readonly-msg {
-            display: none;
-            margin-top: 14px;
-            padding: 14px 16px;
+
+        /* ── INFO BOX ── */
+        .info-box {
             background: var(--fondo2);
-            border: 1px solid rgba(201, 168, 76, 0.25);
-            border-radius: 16px;
-            color: #c8c8c8;
-            font-size: 0.62rem;
-            line-height: 1.5;
-            text-align: center;
-            font-family: 'DM Sans', sans-serif;
+            border: 1px solid var(--borde);
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 0.68rem;
+            color: var(--texto2);
+            line-height: 1.55;
+            margin-bottom: 10px;
         }
-        #dc-tarifas-readonly-msg strong { color: var(--oro); }
-        #dc-tarifas-readonly-msg .dc-neon { color: #39ff14; font-weight: 700; }
+        .info-box strong { color: var(--texto3); }
+        .info-box a { color: var(--oro); text-decoration: none; }
+        .info-box code { color: #555; font-family: monospace; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
     <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"DM Sans",sans-serif!important;}</style>
-<link rel="stylesheet" href="/css/bottom-nav.css">
+    <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-ux dc-ux-skin m-root-salon">
 
+<!-- HEADER -->
 <div class="header">
     <div>
         <div class="header-titulo">TARIFAS Y DESCUENTOS</div>
         <div class="header-sub">Edición rápida · sin el asistente completo</div>
     </div>
-    <div class="header-actions">
+    <div>
         <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
             <summary>Menú del club</summary>
             <div class="jug-nav-fold__links">
@@ -156,62 +501,148 @@
         </details>
     </div>
 </div>
+
 <div class="wrap">
-    <div class="info-tarifa">
-        Una sola <strong>tarifa por hora</strong> de referencia y, si querés, <strong>descuentos o recargos en %</strong> según el horario. El <strong>Salón en vivo</strong> cobra el <strong>tiempo real jugado</strong>, minuto a minuto (si la sesión cruza franjas, cada tramo usa su %). Todo se guarda en <code style="color:#666;">mesas_config.tarifas</code> (Supabase).
-        <span style="display:block;margin-top:8px;color:#777;">El <strong>plano</strong> de la sala está en <a href="mesas_config.html" style="color:var(--oro);">Configurar instalaciones</a>. Necesitás <strong>tarifa base &gt; 0</strong> y mesas en Supabase para operar el salón.</span>
-    </div>
+
+    <!-- READONLY -->
     <div id="dc-tarifas-readonly-msg" aria-live="polite">
         <span class="dc-neon">Solo lectura</span> · <strong>Solo el administrador del club puede editar tarifas.</strong>
     </div>
+
+    <!-- EDITABLE -->
     <div id="dc-tarifas-editable" style="display:none">
-    <div class="sec">TARIFA</div>
-    <div class="campo">
-        <label>Tarifa por hora ($)</label>
-        <input type="number" id="tarifa_base" min="0" step="0.01" value="0" inputmode="decimal" oninput="actualizarEjemploTarifas()">
-    </div>
 
-    <div class="sec">DESCUENTOS / RECARGOS POR HORARIO (OPCIONAL)</div>
-    <p class="info-tarifa" style="margin-top:0;margin-bottom:12px;">
-        <strong>Valor negativo</strong> = descuento sobre la tarifa base · <strong>Valor positivo</strong> = recargo.<br>
-        Ejemplo: <code style="color:#888;">-20</code> en mañana = cobrás 20% menos antes de las 12h; <code style="color:#888;">+10</code> en noche = 10% más desde las 20h.
-    </p>
-    <div class="campo">
-        <label>Mañana (antes de 12:00) — %</label>
-        <input type="number" id="descuento_manana" step="0.1" value="0" placeholder="0" min="-100" max="200" oninput="actualizarEjemploTarifas()">
-    </div>
-    <div class="campo">
-        <label>Noche (desde las 20:00) — %</label>
-        <input type="number" id="descuento_noche" step="0.1" value="0" placeholder="0" min="-100" max="200" oninput="actualizarEjemploTarifas()">
-    </div>
-    <div class="campo">
-        <label>Fin de semana (sábado y domingo) — %</label>
-        <input type="number" id="descuento_finde" step="0.1" value="0" placeholder="0" min="-100" max="200" oninput="actualizarEjemploTarifas()">
-    </div>
+        <!-- INFO -->
+        <div class="info-box" style="margin-top:4px;">
+            Una <strong>tarifa por hora</strong> aplica a todas las mesas. Podés agregar descuentos o recargos por franja horaria. Las <strong>excepciones VIP</strong> solo aparecen si las activás. El <a href="mesas_config.html">plano del salón</a> está en Configurar instalaciones.
+        </div>
 
-    <div class="sec">EJEMPLO (SE ACTUALIZA AL ESCRIBIR)</div>
-    <div id="tarifas_ejemplo_vivo" class="info-tarifa" style="font-size:0.62rem;line-height:1.5;"></div>
+        <!-- ── TARIFA BASE ── -->
+        <div class="sec-label">
+            <span class="sec-label-text">Tarifa base</span>
+            <div class="sec-label-line"></div>
+        </div>
 
-    <div class="sec">TARIFAS POR MESA</div>
-    <div id="dc-tarifas-por-mesa-estado" class="info-tarifa" style="display:none;font-size:0.55rem;"></div>
-    <div id="dc-tarifas-por-mesa-body"></div>
-    <button type="button" class="btn-paso sec" id="btn_guardar_tarifas_mesa" onclick="guardarTarifasPorMesa()">GUARDAR TARIFAS POR MESA</button>
+        <div class="campo">
+            <div class="campo-header">
+                <label for="tarifa_base">Tarifa por hora</label>
+                <button class="tooltip-btn" type="button" onclick="toggleTooltip('tt-base')" aria-label="Ayuda tarifa base">?</button>
+            </div>
+            <input type="number" id="tarifa_base" min="0" step="0.01" value="0" inputmode="decimal" placeholder="Ej: 15000" oninput="actualizarEjemploTarifas()">
+            <div class="tooltip-content" id="tt-base">
+                Precio por hora que aplica a <strong>todas las mesas</strong> por defecto. El salón cobra minuto a minuto según el tiempo real jugado. Si cruzás franjas horarias, cada tramo usa su ajuste.
+            </div>
+        </div>
 
-    <button type="button" class="btn-paso" id="btn_guardar" onclick="guardarTarifas()">GUARDAR TARIFAS</button>
-    </div>
-</div>
+        <!-- ── FRANJAS HORARIAS ── -->
+        <div class="sec-label">
+            <span class="sec-label-text">Ajustes por franja</span>
+            <div class="sec-label-line"></div>
+            <button class="tooltip-btn" type="button" onclick="toggleTooltip('tt-franjas')" aria-label="Ayuda franjas">?</button>
+        </div>
+
+        <div class="tooltip-content" id="tt-franjas" style="margin-bottom:10px;">
+            Valor <strong>negativo</strong> = descuento sobre la tarifa base. Valor <strong>positivo</strong> = recargo.<br>
+            Ejemplo: <code>-20</code> en mañana = cobrás 20% menos antes de las 12h. El fin de semana acumula con la franja del horario.
+        </div>
+
+        <div class="franjas-grid">
+            <div class="franja-card">
+                <span class="franja-icon">🌅</span>
+                <span class="franja-label">Mañana</span>
+                <span class="franja-sub">Antes de 12:00</span>
+                <input class="franja-input" type="number" id="descuento_manana" step="0.1" value="0" placeholder="0" min="-100" max="200" inputmode="decimal" oninput="actualizarEjemploTarifas()">
+                <span class="franja-unit">%</span>
+            </div>
+            <div class="franja-card">
+                <span class="franja-icon">🌙</span>
+                <span class="franja-label">Noche</span>
+                <span class="franja-sub">Desde las 20:00</span>
+                <input class="franja-input" type="number" id="descuento_noche" step="0.1" value="0" placeholder="0" min="-100" max="200" inputmode="decimal" oninput="actualizarEjemploTarifas()">
+                <span class="franja-unit">%</span>
+            </div>
+            <div class="franja-card">
+                <span class="franja-icon">📅</span>
+                <span class="franja-label">Fin de semana</span>
+                <span class="franja-sub">Sáb y Dom</span>
+                <input class="franja-input" type="number" id="descuento_finde" step="0.1" value="0" placeholder="0" min="-100" max="200" inputmode="decimal" oninput="actualizarEjemploTarifas()">
+                <span class="franja-unit">%</span>
+            </div>
+        </div>
+
+        <!-- ── EJEMPLO VIVO ── -->
+        <div class="sec-label">
+            <span class="sec-label-text">Ejemplo en vivo</span>
+            <div class="sec-label-line"></div>
+        </div>
+        <div class="ejemplo-vivo" id="tarifas_ejemplo_vivo_wrap">
+            <div class="ejemplo-empty" id="tarifas_ejemplo_empty">Ingresá una tarifa por hora para ver ejemplos.</div>
+            <div id="tarifas_ejemplo_rows" style="display:none"></div>
+        </div>
+
+        <!-- ── EXCEPCIONES VIP ── -->
+        <div class="sec-label" style="margin-top:28px;">
+            <span class="sec-label-text">Mesas con tarifa diferencial</span>
+            <div class="sec-label-line"></div>
+            <button class="tooltip-btn" type="button" onclick="toggleTooltip('tt-vip')" aria-label="Ayuda VIP">?</button>
+        </div>
+
+        <div class="tooltip-content" id="tt-vip" style="margin-bottom:10px;">
+            Solo definís las mesas que tienen una tarifa <strong>diferente</strong> a la base. No tenés que tocar las demás. Ideal para mesas VIP, snooker premium o cualquier mesa con precio especial.
+        </div>
+
+        <div class="vip-toggle-row" onclick="toggleVipSection()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleVipSection()">
+            <div class="vip-toggle-left">
+                <span class="vip-badge">VIP</span>
+                <div>
+                    <div class="vip-toggle-label">Agregar excepción de tarifa</div>
+                    <div class="vip-toggle-sub" id="vip-toggle-sub">Sin excepciones definidas</div>
+                </div>
+            </div>
+            <label class="dc-switch" onclick="event.stopPropagation()">
+                <input type="checkbox" id="vip-switch" onchange="toggleVipSection()">
+                <span class="dc-switch-slider"></span>
+            </label>
+        </div>
+
+        <div class="vip-section" id="vip-section">
+            <div class="vip-section-title">Excepciones de tarifa por mesa</div>
+
+            <!-- Agregar nueva excepción -->
+            <div class="excepcion-add-row">
+                <input class="excepcion-input" type="number" id="nueva-excepcion-num" placeholder="N° de mesa" min="1" max="99" inputmode="numeric">
+                <button class="btn-add-excepcion" type="button" onclick="agregarExcepcion()">+ Agregar mesa</button>
+            </div>
+
+            <div class="excepciones-lista" id="excepciones-lista"></div>
+
+            <div id="excepciones-empty" style="font-size:0.68rem;color:#555;text-align:center;padding:12px 0;">
+                Ingresá el número de mesa y tocá Agregar.
+            </div>
+        </div>
+
+        <!-- ── GUARDAR ── -->
+        <div class="sec-label" style="margin-top:28px;">
+            <span class="sec-label-text">Guardar</span>
+            <div class="sec-label-line"></div>
+        </div>
+
+        <button type="button" class="btn-guardar" id="btn_guardar" onclick="guardarTarifas()">GUARDAR TARIFAS</button>
+
+    </div><!-- /editable -->
+</div><!-- /wrap -->
+
+<div id="tarifas-toast" role="status" aria-live="polite"></div>
 
 <script src="/session.js"></script>
 <script>
-// guard moderno en <head>
-
+// ── HELPERS ──────────────────────────────────────────────────
 var _dcClubApiTarP = null;
 function _clubApiTar() {
     if (!_dcClubApiTarP) _dcClubApiTarP = import('/js/api/club-api.js');
     return _dcClubApiTarP;
 }
 
-/** Mismo criterio que mesas.html / mesas_config — club_id puede ser UUID o clubs.codigo. */
 function getClubIdTarifas() {
     try {
         var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
@@ -224,7 +655,6 @@ function getClubIdTarifas() {
     return null;
 }
 
-/** Incluye id + codigo del club para encontrar mesas_config aunque club_id esté guardado como el otro formato. */
 async function getTryClubIdsForMesas() {
     var raw = getClubIdTarifas();
     if (!raw) return [];
@@ -262,348 +692,226 @@ function tarifasBaseTienenValor(t) {
     return false;
 }
 
-function construirObjetoTarifas() {
-    return {
-        tarifa_base: parseFloat(document.getElementById('tarifa_base').value) || 0,
-        descuento_manana: parseFloat(document.getElementById('descuento_manana').value) || 0,
-        descuento_noche: parseFloat(document.getElementById('descuento_noche').value) || 0,
-        descuento_finde: parseFloat(document.getElementById('descuento_finde').value) || 0,
-    };
-}
-
-function aplicarTarifasAlForm(t) {
-    if (!t) return;
-    var base = t.tarifa_base != null && t.tarifa_base !== '' ? parseFloat(t.tarifa_base) : NaN;
-    if (isNaN(base) || base <= 0) {
-        base = parseFloat(t.hora) || 0;
-    }
-    if (base <= 0) {
-        var cands = [t.manana, t.tarde, t.noche, t.finde];
-        for (var i = 0; i < cands.length; i++) {
-            var v = parseFloat(cands[i]) || 0;
-            if (v > 0) {
-                base = v;
-                break;
-            }
-        }
-    }
-    if (base <= 0) {
-        var med = parseFloat(t.media) || 0;
-        if (med > 0) base = med * 2;
-    }
-    document.getElementById('tarifa_base').value = base > 0 ? base : '';
-    document.getElementById('descuento_manana').value =
-        t.descuento_manana != null && t.descuento_manana !== '' ? t.descuento_manana : 0;
-    document.getElementById('descuento_noche').value =
-        t.descuento_noche != null && t.descuento_noche !== '' ? t.descuento_noche : 0;
-    document.getElementById('descuento_finde').value =
-        t.descuento_finde != null && t.descuento_finde !== '' ? t.descuento_finde : 0;
-    actualizarEjemploTarifas();
-}
-
-function actualizarEjemploTarifas() {
-    var el = document.getElementById('tarifas_ejemplo_vivo');
+// ── TOOLTIP ──────────────────────────────────────────────────
+function toggleTooltip(id) {
+    var el = document.getElementById(id);
     if (!el) return;
+    el.classList.toggle('open');
+}
+
+// ── EJEMPLO VIVO ──────────────────────────────────────────────
+function actualizarEjemploTarifas() {
+    var empty = document.getElementById('tarifas_ejemplo_empty');
+    var rows = document.getElementById('tarifas_ejemplo_rows');
+    if (!rows) return;
+
     var base = parseFloat(document.getElementById('tarifa_base').value) || 0;
     var dm = parseFloat(document.getElementById('descuento_manana').value) || 0;
     var dn = parseFloat(document.getElementById('descuento_noche').value) || 0;
     var df = parseFloat(document.getElementById('descuento_finde').value) || 0;
 
-    function eff(pct) { return base * (1 + pct / 100); }
-    function fmt(n) { return Math.round(n).toLocaleString('es-CO'); }
-    function signo(n) { return n >= 0 ? '+' + n : '' + n; }
-
     if (base <= 0) {
-        el.innerHTML = 'Ingresá una <strong>tarifa por hora</strong> para ver ejemplos.';
+        if (empty) empty.style.display = 'block';
+        rows.style.display = 'none';
         return;
     }
+    if (empty) empty.style.display = 'none';
+    rows.style.display = 'block';
 
-    var tarde43 = (base * 43) / 60;
+    function eff(pct) { return base * (1 + pct / 100); }
+    function fmt(n) { return '$' + Math.round(n).toLocaleString('es-CO') + '/h'; }
+    function signo(n) { return (n >= 0 ? '+' : '') + n + '%'; }
 
-    // Finde acumula con la franja (igual que ajusteHorarioPct)
-    var findeDia   = eff(df);           // sáb/dom sin franja especial (12h–20h)
-    var findeMan   = eff(df + dm);      // sáb/dom antes de 12h
-    var findeNoche = eff(df + dn);      // sáb/dom desde 20h
+    var datos = [
+        { label: 'Lun–Vie · 12h–20h (base)', val: fmt(base), sub: '43 min = $' + Math.round((base*43)/60).toLocaleString('es-CO') },
+        { label: 'Mañana Lun–Vie (' + signo(dm) + ')', val: fmt(eff(dm)) },
+        { label: 'Noche Lun–Vie (' + signo(dn) + ')', val: fmt(eff(dn)) },
+        { label: 'Sáb/Dom día (' + signo(df) + ')', val: fmt(eff(df)) },
+        { label: 'Sáb/Dom mañana (' + signo(df+dm) + ')', val: fmt(eff(df+dm)) },
+        { label: 'Sáb/Dom noche (' + signo(df+dn) + ')', val: fmt(eff(df+dn)) },
+    ];
 
-    var lineas = [];
-
-    lineas.push(
-        '<strong>Lun–Vie 12h–20h (base):</strong> $' + fmt(base) + '/h' +
-        ' · 43 min = <strong>$' + fmt(tarde43) + '</strong>'
-    );
-
-    lineas.push(
-        '<strong>Mañana Lun–Vie</strong> (' + signo(dm) + '%)&nbsp; $' + fmt(eff(dm)) + '/h' +
-        ' &nbsp;|&nbsp; ' +
-        '<strong>Noche Lun–Vie</strong> (' + signo(dn) + '%)&nbsp; $' + fmt(eff(dn)) + '/h'
-    );
-
-    lineas.push(
-        '<strong>Sáb/Dom día</strong> (' + signo(df) + '%)&nbsp; $' + fmt(findeDia) + '/h' +
-        ' &nbsp;|&nbsp; ' +
-        '<strong>Sáb/Dom mañana</strong> (' + signo(df + dm) + '%)&nbsp; $' + fmt(findeMan) + '/h' +
-        ' &nbsp;|&nbsp; ' +
-        '<strong>Sáb/Dom noche</strong> (' + signo(df + dn) + '%)&nbsp; $' + fmt(findeNoche) + '/h'
-    );
-
-    el.innerHTML = lineas.join('<br><br>');
+    rows.innerHTML = datos.map(function(d) {
+        return '<div class="ejemplo-row">' +
+            '<span class="ejemplo-label">' + d.label + (d.sub ? '<br><span style="font-size:0.62rem;color:#555;">' + d.sub + '</span>' : '') + '</span>' +
+            '<span class="ejemplo-val">' + d.val + '</span>' +
+            '</div>';
+    }).join('');
 }
 
+// ── FORM LOAD ─────────────────────────────────────────────────
+function aplicarTarifasAlForm(t) {
+    if (!t) return;
+    var base = t.tarifa_base != null && t.tarifa_base !== '' ? parseFloat(t.tarifa_base) : NaN;
+    if (isNaN(base) || base <= 0) base = parseFloat(t.hora) || 0;
+    if (base <= 0) {
+        var cands = [t.manana, t.tarde, t.noche, t.finde];
+        for (var i = 0; i < cands.length; i++) {
+            var v = parseFloat(cands[i]) || 0;
+            if (v > 0) { base = v; break; }
+        }
+    }
+    if (base <= 0) { var med = parseFloat(t.media) || 0; if (med > 0) base = med * 2; }
+    document.getElementById('tarifa_base').value = base > 0 ? base : '';
+    document.getElementById('descuento_manana').value = t.descuento_manana != null && t.descuento_manana !== '' ? t.descuento_manana : 0;
+    document.getElementById('descuento_noche').value = t.descuento_noche != null && t.descuento_noche !== '' ? t.descuento_noche : 0;
+    document.getElementById('descuento_finde').value = t.descuento_finde != null && t.descuento_finde !== '' ? t.descuento_finde : 0;
+
+    // Cargar excepciones VIP guardadas
+    if (t.excepciones && Array.isArray(t.excepciones) && t.excepciones.length > 0) {
+        document.getElementById('vip-switch').checked = true;
+        document.getElementById('vip-section').classList.add('open');
+        t.excepciones.forEach(function(ex) {
+            _agregarExcepcionDOM(ex.mesa, ex.tarifa_hora, ex.nombre);
+        });
+        actualizarSubVip();
+    }
+    actualizarEjemploTarifas();
+}
+
+function construirObjetoTarifas() {
+    var excepciones = recogerExcepciones();
+    return {
+        tarifa_base: parseFloat(document.getElementById('tarifa_base').value) || 0,
+        descuento_manana: parseFloat(document.getElementById('descuento_manana').value) || 0,
+        descuento_noche: parseFloat(document.getElementById('descuento_noche').value) || 0,
+        descuento_finde: parseFloat(document.getElementById('descuento_finde').value) || 0,
+        excepciones: excepciones,
+    };
+}
+
+// ── VIP / EXCEPCIONES ─────────────────────────────────────────
+function toggleVipSection() {
+    var sw = document.getElementById('vip-switch');
+    var sec = document.getElementById('vip-section');
+    if (!sw || !sec) return;
+    if (sec.classList.contains('open')) {
+        sec.classList.remove('open');
+        sw.checked = false;
+    } else {
+        sec.classList.add('open');
+        sw.checked = true;
+    }
+    actualizarSubVip();
+}
+
+function actualizarSubVip() {
+    var lista = document.querySelectorAll('.excepcion-fila');
+    var sub = document.getElementById('vip-toggle-sub');
+    if (!sub) return;
+    if (lista.length === 0) {
+        sub.textContent = 'Sin excepciones definidas';
+    } else {
+        sub.textContent = lista.length + ' mesa' + (lista.length > 1 ? 's' : '') + ' con tarifa diferencial';
+    }
+    var emptyEl = document.getElementById('excepciones-empty');
+    if (emptyEl) emptyEl.style.display = lista.length === 0 ? 'block' : 'none';
+}
+
+var _excepcionesCounter = 0;
+
+function _agregarExcepcionDOM(numMesa, tarifaHora, nombreMesa) {
+    var lista = document.getElementById('excepciones-lista');
+    if (!lista) return;
+    var id = ++_excepcionesCounter;
+    var div = document.createElement('div');
+    div.className = 'excepcion-fila';
+    div.dataset.excId = id;
+    div.innerHTML =
+        '<div class="excepcion-mesa-num">' + (numMesa || '?') + '</div>' +
+        '<div class="excepcion-campo">' +
+            '<span class="excepcion-campo-label">N° Mesa</span>' +
+            '<input class="excepcion-campo-input" type="number" data-field="mesa" value="' + (numMesa || '') + '" min="1" max="99" placeholder="N°" inputmode="numeric">' +
+        '</div>' +
+        '<div class="excepcion-campo">' +
+            '<span class="excepcion-campo-label">Tarifa/hora</span>' +
+            '<input class="excepcion-campo-input" type="number" data-field="tarifa" value="' + (tarifaHora || '') + '" min="0" step="0.01" placeholder="Ej: 25000" inputmode="decimal">' +
+        '</div>' +
+        '<button class="btn-quitar-excepcion" type="button" onclick="quitarExcepcion(this)" aria-label="Quitar excepción">✕</button>';
+
+    // Actualizar número en el label cuando cambia el input
+    var numInput = div.querySelector('[data-field="mesa"]');
+    var numLabel = div.querySelector('.excepcion-mesa-num');
+    numInput.addEventListener('input', function() {
+        numLabel.textContent = this.value || '?';
+        actualizarSubVip();
+    });
+
+    lista.appendChild(div);
+    actualizarSubVip();
+}
+
+function agregarExcepcion() {
+    var numInput = document.getElementById('nueva-excepcion-num');
+    var num = parseInt(numInput.value);
+    if (!num || num < 1) {
+        numInput.focus();
+        mostrarToastTarifas('Ingresá el número de mesa.');
+        return;
+    }
+    // Verificar duplicado
+    var existentes = document.querySelectorAll('.excepcion-fila [data-field="mesa"]');
+    for (var i = 0; i < existentes.length; i++) {
+        if (parseInt(existentes[i].value) === num) {
+            mostrarToastTarifas('La mesa ' + num + ' ya tiene una excepción.');
+            return;
+        }
+    }
+    _agregarExcepcionDOM(num, '', '');
+    numInput.value = '';
+    numInput.focus();
+}
+
+function quitarExcepcion(btn) {
+    var fila = btn.closest('.excepcion-fila');
+    if (fila) fila.remove();
+    actualizarSubVip();
+}
+
+function recogerExcepciones() {
+    var filas = document.querySelectorAll('.excepcion-fila');
+    var result = [];
+    filas.forEach(function(fila) {
+        var mesaInput = fila.querySelector('[data-field="mesa"]');
+        var tarifaInput = fila.querySelector('[data-field="tarifa"]');
+        var mesa = parseInt(mesaInput ? mesaInput.value : '') || null;
+        var tarifa = parseFloat(tarifaInput ? tarifaInput.value : '') || null;
+        if (mesa) result.push({ mesa: mesa, tarifa_hora: tarifa });
+    });
+    return result;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function mostrarToastTarifas(msg) {
+    var el = document.getElementById('tarifas-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('dc-toast--show');
+    clearTimeout(el._dcToastT);
+    el._dcToastT = setTimeout(function() { el.classList.remove('dc-toast--show'); }, 2600);
+}
+
+// ── CARGAR ────────────────────────────────────────────────────
 async function cargarTarifas() {
     var clubId = getClubIdTarifas();
     var t = {};
     if (clubId) {
-        var api = await _clubApiTar();
-        var cr = await api.getFirstMesasConfigByClubId(clubId);
-        if (cr.data && cr.data.tarifas) t = cr.data.tarifas;
+        try {
+            var api = await _clubApiTar();
+            var cr = await api.getFirstMesasConfigByClubId(clubId);
+            if (cr.data && cr.data.tarifas) t = cr.data.tarifas;
+        } catch(e) {}
     }
     aplicarTarifasAlForm(t);
 }
 
-function mostrarToastTarifas(msg) {
-    var el = document.getElementById('tarifas-toast');
-    if (!el) {
-        el = document.createElement('div');
-        el.id = 'tarifas-toast';
-        el.setAttribute('role', 'status');
-        el.setAttribute('aria-live', 'polite');
-        document.body.appendChild(el);
-    }
-    el.textContent = msg;
-    el.classList.add('dc-toast--show');
-    clearTimeout(el._dcToastT);
-    el._dcToastT = setTimeout(function () {
-        el.classList.remove('dc-toast--show');
-    }, 2600);
-}
-
-var _dcTarifasSalonMesasLista = null;
-var _dcTarifasSalonMesasSnapshot = {};
-var _dcTarifasPorMesaEsSuperadmin = false;
-var _dcClubVideoIaActivo = false;
-
-function _normTarifaHoraMesaInput(v) {
-    if (v == null || String(v).trim() === '') return null;
-    var n = parseFloat(v);
-    return isNaN(n) ? null : n;
-}
-
-function _snapTarifaHoraFromMesa(m) {
-    var th = m.tarifa_hora;
-    if (th != null && th !== '') {
-        var n = parseFloat(th);
-        return isNaN(n) ? null : n;
-    }
-    return null;
-}
-
-function _escAttrTarifa(s) {
-    return String(s == null ? '' : s)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-}
-
-async function initTarifasPorMesaSection() {
-    var body = document.getElementById('dc-tarifas-por-mesa-body');
-    var estado = document.getElementById('dc-tarifas-por-mesa-estado');
-    if (!body) return;
-    body.innerHTML = '';
-    _dcTarifasSalonMesasLista = null;
-    _dcTarifasSalonMesasSnapshot = {};
-    _dcClubVideoIaActivo = false;
-    if (estado) {
-        estado.style.display = 'none';
-        estado.textContent = '';
-    }
-    try {
-        var auth = await import('/js/auth-manager.js');
-        var sr = await auth.getSession();
-        if (sr.error || !sr.data) return;
-        var rr = await auth.getRole();
-        var rol = rr.error ? null : rr.data;
-        _dcTarifasPorMesaEsSuperadmin = rol === 'superadmin';
-        if (rol !== 'club_admin' && rol !== 'superadmin') return;
-        if (rol === 'club_admin') {
-            try {
-                var cid = getClubIdTarifas();
-                if (cid) {
-                    var apiC = await _clubApiTar();
-                    var clubR = await apiC.getClubByIdOrCodigo(cid);
-                    _dcClubVideoIaActivo = !!(clubR.data && clubR.data.video_ia_activo);
-                }
-            } catch (_ec) {}
-        }
-    } catch (_e) {
-        return;
-    }
-    var cfgRow = await findMesasConfigRowTarifas();
-    var salonId = cfgRow && cfgRow.id ? cfgRow.id : null;
-    var clubId = getClubIdTarifas();
-    var api = await _clubApiTar();
-    var list = null;
-    if (salonId) {
-        var lr = await api.listMesasBySalonId(salonId);
-        list = lr.data;
-    } else if (clubId) {
-        var lr2 = await api.listMesas(clubId, { orderBy: 'numero' });
-        list = lr2.data;
-    }
-    _dcTarifasSalonMesasLista = (list || []).slice(0, 200);
-    _dcTarifasSalonMesasLista.sort(function (a, b) {
-        return (a.numero || 0) - (b.numero || 0);
-    });
-    if (!_dcTarifasSalonMesasLista.length) {
-        if (estado) {
-            estado.style.display = 'block';
-            estado.textContent =
-                salonId || clubId ? 'No hay mesas en este salón todavía.' : 'No hay club vinculado o salón en Supabase.';
-        }
-        return;
-    }
-    var html = '';
-    for (var i = 0; i < _dcTarifasSalonMesasLista.length; i++) {
-        var m = _dcTarifasSalonMesasLista[i];
-        var mid = String(m.id);
-        var num = m.numero != null ? m.numero : '—';
-        var nom = (m.nombre || '').trim() || '—';
-        var thVal = m.tarifa_hora != null && m.tarifa_hora !== '' ? String(m.tarifa_hora) : '';
-        var vid = !!m.video_activo;
-        var vt = m.video_tarifa != null && m.video_tarifa !== '' ? String(m.video_tarifa) : '';
-        _dcTarifasSalonMesasSnapshot[mid] = {
-            tarifa_hora: _snapTarifaHoraFromMesa(m),
-            video_activo: vid,
-            video_tarifa: parseFloat(vt) || 0
-        };
-        html += '<div class="tarifa-mesa-fila" data-mesa-id="' + _escAttrTarifa(mid) + '">';
-        html += '<div class="tarifa-mesa-leyenda"><strong>Mesa ' + _escAttrTarifa(num) + '</strong> · ' + _escAttrTarifa(nom) + '</div>';
-        html += '<label for="tarifa_hr_' + mid + '">Tarifa/hr propia</label>';
-        html +=
-            '<input type="number" id="tarifa_hr_' +
-            mid +
-            '" min="0" step="0.01" placeholder="Sin tarifa propia (usa base salón)" value="' +
-            _escAttrTarifa(thVal) +
-            '">';
-        if (_dcTarifasPorMesaEsSuperadmin || _dcClubVideoIaActivo) {
-            html += '<div class="tarifa-mesa-video-row">';
-            html +=
-                '<label><input type="checkbox" id="video_ia_' +
-                mid +
-                '" ' +
-                (vid ? 'checked' : '') +
-                '> Video IA</label>';
-            html += '<label for="video_tarifa_' + mid + '" style="flex:1 1 100%;color:#555;">Tarifa video</label>';
-            html +=
-                '<input type="number" id="video_tarifa_' +
-                mid +
-                '" min="0" step="0.01" placeholder="0" value="' +
-                _escAttrTarifa(vt) +
-                '">';
-            html += '</div>';
-        }
-        html += '</div>';
-    }
-    body.innerHTML = html;
-}
-
-async function guardarTarifasPorMesa() {
-    var auth = await import('/js/auth-manager.js');
-    var sr = await auth.getSession();
-    if (sr.error || !sr.data) {
-        mostrarToastTarifas('Iniciá sesión para guardar.');
-        return;
-    }
-    var rr = await auth.getRole();
-    var rol = rr.error ? null : rr.data;
-    if (rol !== 'club_admin' && rol !== 'superadmin') {
-        mostrarToastTarifas('Sin permiso para guardar tarifas por mesa.');
-        return;
-    }
-    var isSuper = rol === 'superadmin';
-    var list = _dcTarifasSalonMesasLista;
-    if (!list || !list.length) {
-        mostrarToastTarifas('No hay mesas cargadas.');
-        return;
-    }
-    var btn = document.getElementById('btn_guardar_tarifas_mesa');
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = 'Guardando…';
-    }
-    var api = await _clubApiTar();
-    var nOk = 0;
-    var nErr = 0;
-    try {
-        for (var i = 0; i < list.length; i++) {
-            var m = list[i];
-            var mid = String(m.id);
-            var snap = _dcTarifasSalonMesasSnapshot[mid];
-            if (!snap) continue;
-            var thEl = document.getElementById('tarifa_hr_' + mid);
-            var newTh = thEl ? _normTarifaHoraMesaInput(thEl.value) : snap.tarifa_hora;
-            var newVid = snap.video_activo;
-            var newVt = snap.video_tarifa;
-            if (isSuper || _dcClubVideoIaActivo) {
-                var cEl = document.getElementById('video_ia_' + mid);
-                var vEl = document.getElementById('video_tarifa_' + mid);
-                newVid = !!(cEl && cEl.checked);
-                newVt = vEl ? parseFloat(vEl.value) || 0 : 0;
-            }
-            var changed =
-                newTh !== snap.tarifa_hora ||
-                newVid !== snap.video_activo ||
-                newVt !== snap.video_tarifa;
-            if (!changed) continue;
-            var patch = {
-                tarifa_hora: newTh,
-                video_activo: newVid,
-                video_tarifa: newVt,
-                updated_at: new Date().toISOString()
-            };
-            var ur = await api.updateMesa(m.id, patch);
-            if (ur.error) {
-                nErr++;
-                console.error('[tarifas_por_mesa]', mid, ur.error);
-            } else {
-                nOk++;
-                snap.tarifa_hora = newTh;
-                snap.video_activo = newVid;
-                snap.video_tarifa = newVt;
-            }
-        }
-        if (nOk === 0 && nErr === 0) {
-            mostrarToastTarifas('No había cambios en tarifas por mesa.');
-        } else if (nErr && !nOk) {
-            mostrarToastTarifas('No se pudieron guardar las tarifas por mesa (RLS o red).');
-        } else if (nErr) {
-            mostrarToastTarifas('Guardado parcial: ' + nOk + ' mesa(s) OK, ' + nErr + ' con error.');
-        } else {
-            mostrarToastTarifas('Tarifas por mesa guardadas (' + nOk + ' actualización/es).');
-        }
-    } catch (e) {
-        console.error('[tarifas_por_mesa]', e);
-        mostrarToastTarifas('Error al guardar. Revisá consola.');
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'GUARDAR TARIFAS POR MESA';
-        }
-    }
-}
-
+// ── GUARDAR ───────────────────────────────────────────────────
 async function guardarTarifas() {
     var auth = await import('/js/auth-manager.js');
     var sr = await auth.getSession();
-    if (sr.error || !sr.data) {
-        mostrarToastTarifas('Iniciá sesión para guardar tarifas.');
-        return;
-    }
+    if (sr.error || !sr.data) { mostrarToastTarifas('Iniciá sesión para guardar tarifas.'); return; }
     var rr = await auth.getRole();
-    if (rr.error || rr.data !== 'club_admin') {
-        mostrarToastTarifas('Solo el administrador del club puede editar tarifas.');
-        return;
-    }
+    if (rr.error || rr.data !== 'club_admin') { mostrarToastTarifas('Solo el administrador del club puede editar tarifas.'); return; }
     var dm = parseFloat(document.getElementById('descuento_manana').value) || 0;
     var dn = parseFloat(document.getElementById('descuento_noche').value) || 0;
     var df = parseFloat(document.getElementById('descuento_finde').value) || 0;
@@ -628,39 +936,31 @@ async function guardarTarifas() {
                 try {
                     var syncMod = await import('/js/sync-club-operacion-flags.js');
                     if (syncMod && syncMod.syncClubOperacionFlags) {
-                        var sr = await syncMod.syncClubOperacionFlags(clubId, tarifas, { onlyTarifas: true });
-                        syncOk = !sr || sr.ok !== false;
+                        var syncR = await syncMod.syncClubOperacionFlags(clubId, tarifas, { onlyTarifas: true });
+                        syncOk = !syncR || syncR.ok !== false;
                     }
-                } catch (_s) {
-                    syncOk = false;
-                }
+                } catch (_s) { syncOk = false; }
                 if (!syncOk) {
-                    mostrarToastTarifas('Tarifas guardadas. No se pudo actualizar el estado del club en Supabase (migración 011 o permisos en clubs).');
+                    mostrarToastTarifas('Tarifas guardadas. No se pudo actualizar el estado del club en Supabase.');
                 } else if (!tarifasBaseTienenValor(tarifas)) {
                     mostrarToastTarifas('Guardado. Poné una tarifa por hora > 0 para desbloquear el salón.');
                 } else {
-                    mostrarToastTarifas('Tarifas guardadas en la nube.');
+                    mostrarToastTarifas('Tarifas guardadas en la nube. ✓');
                 }
             }
         } else {
-            mostrarToastTarifas('No hay salón en Supabase para este club. Primero guardá en Configurar instalaciones (mesas_config).');
+            mostrarToastTarifas('No hay salón en Supabase. Primero guardá en Configurar instalaciones.');
         }
     } catch (err) {
         console.error('[tarifas_salon]', err);
-        mostrarToastTarifas('Error al guardar. Revisá consola o probá de nuevo.');
+        mostrarToastTarifas('Error al guardar. Revisá consola.');
     } finally {
         if (btn) { btn.disabled = false; btn.textContent = 'GUARDAR TARIFAS'; }
     }
 }
 
+// ── BOOT ──────────────────────────────────────────────────────
 window.__salaBoot = cargarTarifas;
-(function () {
-    var prev = window.__salaBoot;
-    window.__salaBoot = async function () {
-        if (typeof prev === 'function') await prev();
-        if (typeof initTarifasPorMesaSection === 'function') await initTarifasPorMesaSection();
-    };
-})();
 </script>
 
 <script>
@@ -676,6 +976,7 @@ window.__salaBoot = cargarTarifas;
     }
 })();
 </script>
+
 <script type="module">
 import { getSession, getRole } from '/js/auth-manager.js';
 import { guardSalaPageConPolitica } from '/js/sala-gate-politica-club.js';
@@ -686,22 +987,13 @@ try {
     var results = await Promise.all([getSession(), getRole()]);
     var sess = results[0];
     var roleR = results[1];
-    var okAdmin =
-        !sess.error && sess.data && !roleR.error && (roleR.data === 'club_admin' || roleR.data === 'superadmin');
+    var okAdmin = !sess.error && sess.data && !roleR.error && (roleR.data === 'club_admin' || roleR.data === 'superadmin');
     if (editable && msg) {
-        if (okAdmin) {
-            editable.style.display = '';
-            msg.style.display = 'none';
-        } else {
-            editable.style.display = 'none';
-            msg.style.display = 'block';
-        }
+        if (okAdmin) { editable.style.display = ''; msg.style.display = 'none'; }
+        else { editable.style.display = 'none'; msg.style.display = 'block'; }
     }
 } catch (_e) {
-    if (editable && msg) {
-        editable.style.display = 'none';
-        msg.style.display = 'block';
-    }
+    if (editable && msg) { editable.style.display = 'none'; msg.style.display = 'block'; }
 }
 
 await guardSalaPageConPolitica({
