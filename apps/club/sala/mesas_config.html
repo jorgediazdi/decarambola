@@ -146,6 +146,19 @@ if (rol !== 'club_admin' && rol !== 'superadmin') {
         @keyframes preview-luz { 0%, 100% { box-shadow:0 0 6px rgba(212,175,55,0.25); } 50% { box-shadow:0 0 14px rgba(212,175,55,0.5), 0 0 22px rgba(46,204,113,0.12); } }
         .preview-celda .nom { font-size:0.85rem; font-weight:bold; color:var(--oro); }
         .preview-celda:hover { background:rgba(212,175,55,0.25); border-color:var(--oro); }
+        .preview-celda-vip {
+            margin-top: 4px;
+            font-size: 0.42rem;
+            letter-spacing: 0.06em;
+            color: #c9a84c;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            z-index: 5;
+            position: relative;
+        }
+        .preview-celda-vip input { accent-color: #c9a84c; width: 12px; height: 12px; flex-shrink: 0; }
         .layout-btns { display:flex; flex-wrap:wrap; gap:10px; margin:14px 0 12px; position:relative; z-index:8; }
         .layout-btns__tit { width:100%; font-size:0.52rem; letter-spacing:0.14em; color:#888; margin-bottom:2px; }
         .layout-btns button { flex:1 1 140px; min-height:56px; padding:10px 12px; border-radius:12px; border:1px solid var(--g1); background:var(--g3); color:#b0b0b0; font-size:0.52rem; cursor:pointer; font-family:'Arial Black',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(212,175,55,0.25); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center; line-height:1.25; }
@@ -788,6 +801,8 @@ window.layoutMode = 'grid';
 var layoutMode = window.layoutMode;
 /** Posiciones personalizadas del paso 3 (preview): numMesa → { x, y } en % del área .preview-plano-sala */
 var posicionesMesas = {};
+/** VIP por número de mesa (paso 3): numMesa → true */
+var vipPorMesaNumero = {};
 /** Medidas fijas mesa de billar (m): largo × ancho — vista cenital, largo según ancho del local, ancho según largo del local */
 var PREVIEW_MESA_LARGO_M = 2.84;
 var PREVIEW_MESA_ANCHO_M = 1.42;
@@ -1036,6 +1051,10 @@ function prunePosicionesMesas(activos) {
         var nk = parseInt(k, 10);
         if (!set[nk]) delete posicionesMesas[k];
     });
+    Object.keys(vipPorMesaNumero).forEach(function (k2) {
+        var nk2 = parseInt(k2, 10);
+        if (!set[nk2]) delete vipPorMesaNumero[k2];
+    });
 }
 
 /**
@@ -1188,7 +1207,25 @@ function actualizarPreview() {
     function celdaPreview(num) {
         var celda = document.createElement('div');
         celda.className = 'preview-celda';
-        celda.innerHTML = '<span class="nom">' + num + '</span><span>' + tipo + '</span>';
+        var chk = vipPorMesaNumero[num] ? ' checked' : '';
+        celda.innerHTML =
+            '<span class="nom">' + num + '</span><span>' + tipo + '</span>' +
+            '<label class="preview-celda-vip" title="Mesa VIP">' +
+            '<input type="checkbox" class="preview-celda-vip-cb" data-mesa-num="' + num + '"' + chk + '> VIP</label>';
+        var cb = celda.querySelector('.preview-celda-vip-cb');
+        if (cb) {
+            cb.addEventListener('change', function () {
+                if (this.checked) vipPorMesaNumero[num] = true;
+                else delete vipPorMesaNumero[num];
+            });
+            cb.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+            cb.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+        }
+        var lbl = celda.querySelector('.preview-celda-vip');
+        if (lbl) {
+            lbl.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+            lbl.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+        }
         return celda;
     }
 
@@ -1411,12 +1448,22 @@ window.DC_hydrateMesasConfigDesdeSupabase = async function () {
         var tipo0 = (mesasList[0].tipo_instalacion || '').trim();
         if (tipo0) setVal('tipo_instalacion', tipo0);
         posicionesMesas = {};
+        vipPorMesaNumero = {};
         for (var mi = 0; mi < mesasList.length; mi++) {
             var mm = mesasList[mi];
             if (mm.numero == null) continue;
             if (mm.posicion_x != null && mm.posicion_y != null) {
                 posicionesMesas[mm.numero] = { x: parseFloat(mm.posicion_x), y: parseFloat(mm.posicion_y) };
             }
+            var metaM = mm.meta;
+            if (typeof metaM === 'string') {
+                try {
+                    metaM = JSON.parse(metaM);
+                } catch (_p) {
+                    metaM = null;
+                }
+            }
+            if (metaM && typeof metaM === 'object' && metaM.es_vip === true) vipPorMesaNumero[mm.numero] = true;
         }
     } else {
         var fr0 = parseInt(row.filas, 10) || 2;
@@ -1424,6 +1471,7 @@ window.DC_hydrateMesasConfigDesdeSupabase = async function () {
         var guessN = Math.min(50, Math.max(1, fr0 * co0));
         setVal('cantidad', guessN);
         posicionesMesas = {};
+        vipPorMesaNumero = {};
     }
 
     try {
@@ -1594,6 +1642,38 @@ window.guardarTodo = async function () {
                 var syncMod = await import('/js/sync-club-operacion-flags.js');
                 if (syncMod && syncMod.syncClubOperacionFlags) await syncMod.syncClubOperacionFlags(clubId, tarifas);
             } catch (_sync) {}
+            try {
+                var apiMesasSync = await _clubApiCfg();
+                var mlSync = await apiMesasSync.listMesasBySalonId(salonIdExistente);
+                var mesasDb = mlSync.data || [];
+                var tsUp = new Date().toISOString();
+                for (var si = 0; si < mesasDb.length; si++) {
+                    var md = mesasDb[si];
+                    if (!md || md.numero == null) continue;
+                    var prevMeta = md.meta;
+                    if (typeof prevMeta === 'string') {
+                        try {
+                            prevMeta = JSON.parse(prevMeta);
+                        } catch (_e) {
+                            prevMeta = {};
+                        }
+                    }
+                    if (!prevMeta || typeof prevMeta !== 'object') prevMeta = {};
+                    var patchM = {
+                        meta: Object.assign({}, prevMeta, { es_vip: !!vipPorMesaNumero[md.numero] }),
+                        updated_at: tsUp,
+                    };
+                    var posS = posicionesMesas[md.numero];
+                    if (posS && typeof posS.x === 'number' && typeof posS.y === 'number') {
+                        patchM.posicion_x = posS.x;
+                        patchM.posicion_y = posS.y;
+                    }
+                    var upM = await apiMesasSync.updateMesa(md.id, patchM);
+                    if (upM.error) console.warn('[mesas_config] update mesa VIP/pos:', md.id, upM.error);
+                }
+            } catch (eSyncM) {
+                console.warn('[mesas_config] sync mesas meta/VIP:', eSyncM);
+            }
             alert('Configuración actualizada. Ya puedes usar el Salón en vivo.');
             location.href = 'mesas.html?desde=config';
             return;
@@ -1636,15 +1716,22 @@ window.guardarTodo = async function () {
         var apiMesas = await _clubApiCfg();
         for (var i = 0; i < cantidad; i++) {
             var numero = numIni + i;
-            await apiMesas.insertMesaRow({
+            var rowIns = {
                 club_id: clubId,
                 salon_id: salonId,
                 numero: numero,
                 nombre: 'Instalación ' + numero,
                 tipo_instalacion: tipoInst,
                 estado: 'libre',
-                tarifa_hora: tarifaHora
-            });
+                tarifa_hora: tarifaHora,
+                meta: { es_vip: !!vipPorMesaNumero[numero] },
+            };
+            var posI = posicionesMesas[numero];
+            if (posI && typeof posI.x === 'number' && typeof posI.y === 'number') {
+                rowIns.posicion_x = posI.x;
+                rowIns.posicion_y = posI.y;
+            }
+            await apiMesas.insertMesaRow(rowIns);
         }
 
         var mlR = await apiMesas.listMesasBySalonId(salonId);
