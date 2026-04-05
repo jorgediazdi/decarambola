@@ -319,7 +319,12 @@ export async function listMesasForReporte(clubId) {
 
 export async function updateMesa(id, patch) {
   try {
-    const { data, error } = await supabase.from('mesas').update(patch).eq('id', id).select();
+    var p = patch && typeof patch === 'object' ? { ...patch } : patch;
+    if (p && Object.prototype.hasOwnProperty.call(p, 'camaras')) {
+      p.urls_camaras = p.camaras;
+      delete p.camaras;
+    }
+    const { data, error } = await supabase.from('mesas').update(p).eq('id', id).select();
     return wrap(data && data[0] ? data[0] : data, error);
   } catch (e) {
     return { data: null, error: e };
@@ -402,10 +407,131 @@ export async function updateMesasReservaRow(id, patch) {
   }
 }
 
+/** Lista jsonb `urls_camaras` → [{nombre,url}] para UI (ficha instalación). */
+function mapUrlsCamarasToCamaras(urls) {
+  if (!urls || !Array.isArray(urls)) return [];
+  return urls
+    .map(function (item, i) {
+      if (typeof item === 'string') return { nombre: 'Cámara ' + (i + 1), url: item };
+      if (item && typeof item === 'object')
+        return { nombre: item.nombre || 'Cámara ' + (i + 1), url: item.url || '' };
+      return null;
+    })
+    .filter(Boolean);
+}
+
+/** Fila `mesas_historial` → campos que usa instalacion_ficha (inicio, duracion_segundos). */
+function normalizeSesionFichaRow(row) {
+  if (!row || typeof row !== 'object') return row;
+  var horas = parseFloat(row.horas_reales);
+  var seg = row.duracion_segundos;
+  if (seg == null || seg === '') {
+    if (horas != null && !isNaN(horas)) seg = Math.round(horas * 3600);
+    else if (row.inicio_sesion && row.fin_sesion) {
+      seg = Math.round((new Date(row.fin_sesion) - new Date(row.inicio_sesion)) / 1000);
+    } else seg = 0;
+  }
+  return {
+    ...row,
+    inicio: row.inicio_sesion || row.inicio,
+    duracion_segundos: seg,
+  };
+}
+
+async function enrichMesaForFichaUi(data) {
+  if (!data) return data;
+  var m = { ...data };
+  if (!m.tipo && m.tipo_instalacion) m.tipo = m.tipo_instalacion;
+  if (m.camaras && Array.isArray(m.camaras) && m.camaras.length) {
+    m.camaras = mapUrlsCamarasToCamaras(m.camaras);
+  } else {
+    m.camaras = mapUrlsCamarasToCamaras(m.urls_camaras);
+  }
+  var hasComp = m.componentes && Array.isArray(m.componentes) && m.componentes.length;
+  if (!hasComp) {
+    try {
+      var cr = await listInstalacionesComponentesByMesa(m.id);
+      var rows = cr.data || [];
+      if (rows.length) {
+        m.componentes = rows.map(function (c) {
+          return {
+            id: c.id,
+            nombre: c.nombre,
+            horas_uso: c.horas_uso_actual != null ? c.horas_uso_actual : c.horas_uso || 0,
+            horas_vida:
+              c.horas_uso_alerta != null
+                ? c.horas_uso_alerta
+                : c.horas_uso_optimo != null
+                  ? c.horas_uso_optimo
+                  : c.horas_vida || 1000,
+          };
+        });
+      } else m.componentes = [];
+    } catch (e) {
+      m.componentes = m.componentes || [];
+    }
+  }
+  return m;
+}
+
 export async function getMesaById(mesaId) {
   try {
     const { data, error } = await supabase.from('mesas').select('*').eq('id', mesaId).limit(1).maybeSingle();
-    return wrap(data, error);
+    if (error || !data) return wrap(data, error);
+    const enriched = await enrichMesaForFichaUi(data);
+    return wrap(enriched, null);
+  } catch (e) {
+    return { data: null, error: e };
+  }
+}
+
+/** Alias para ficha instalación: sesiones con `inicio` y `duracion_segundos`. */
+export async function listSesionesByMesa(mesaId, opts) {
+  var lim = (opts && opts.limit) || 200;
+  var r = await listMesasHistorialByMesaId(mesaId);
+  if (r.error) return r;
+  var rows = (r.data || []).slice(0, lim).map(normalizeSesionFichaRow);
+  return { data: rows, error: null };
+}
+
+/** Alias para ficha instalación. */
+export async function listReservasByMesa(mesaId, opts) {
+  var lim = (opts && opts.limit) || 50;
+  var r = await listMesasReservasByMesaId(mesaId);
+  if (r.error) return r;
+  return { data: (r.data || []).slice(0, lim), error: null };
+}
+
+/** Alias para ficha instalación; expone `tipo` además de `tipo_trabajo`. */
+export async function listMantenimientosByMesa(mesaId, opts) {
+  var lim = (opts && opts.limit) || 50;
+  var r = await listInstalacionesMantenimientoByMesa(mesaId);
+  if (r.error) return r;
+  var rows = (r.data || []).slice(0, lim).map(function (m) {
+    return { ...m, tipo: m.tipo_trabajo || m.tipo };
+  });
+  return { data: rows, error: null };
+}
+
+/**
+ * Insert mantenimiento desde ficha (`tipo` → `tipo_trabajo`).
+ * Completa `club_id` desde perfil / club activo si falta.
+ */
+export async function createMantenimiento(payload) {
+  try {
+    var clubRes = await resolveClubIdForQuery(null);
+    var clubId = clubRes.data || payload.club_id || null;
+    var row = {
+      mesa_id: payload.mesa_id,
+      club_id: clubId,
+      componente_id: payload.componente_id || null,
+      tipo_trabajo: payload.tipo_trabajo || payload.tipo || 'REVISION',
+      descripcion: payload.descripcion != null ? payload.descripcion : null,
+      costo: payload.costo != null ? payload.costo : null,
+      responsable: payload.responsable != null ? payload.responsable : null,
+      fecha: payload.fecha || new Date().toISOString(),
+    };
+    return insertInstalacionesMantenimientoRow(row);
   } catch (e) {
     return { data: null, error: e };
   }
