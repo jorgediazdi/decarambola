@@ -255,6 +255,7 @@ async function cargarFicha(){
     try{
         var api=await _clubApiFicha();
         var clubId=getClubIdFicha();
+        if(!clubId){try{var am=await import('/js/auth-manager.js');var gr=await am.getClubId();if(gr.data)clubId=gr.data;}catch(_e){}}
         var mr=await api.getMesaById(mesaId);
         if(!mr.data){document.getElementById('lbl_nombre').textContent='Mesa no encontrada';return;}
         mesa=mr.data;
@@ -267,10 +268,8 @@ async function cargarFicha(){
         badgeEl.className='badge badge-'+badgeCls;
         var th=mesa.tarifa_hora!=null?parseFloat(mesa.tarifa_hora):null;
         if(th&&th>0)document.getElementById('lbl_tarifa').textContent=fmtMoney(th)+'/h';
-        if(clubId){
-            try{var hr=await api.listSesionesByMesa(mesaId,{limit:200});historial=hr.data||[];historialTodo=historial;}catch(_e){}
-            try{var rr=await api.listReservasByMesa(mesaId,{limit:50});reservasMesa=rr.data||[];}catch(_e){}
-        }
+        try{var hr=await api.listSesionesByMesa(mesaId,{limit:200});historial=hr.data||[];historialTodo=historial;}catch(_e){historial=[];historialTodo=[];}
+        try{var rr=await api.listReservasByMesa(mesaId,{limit:50});reservasMesa=rr.data||[];}catch(_e){reservasMesa=[];}
         renderEstadisticas();renderTarifaMesa();renderHojaVida();renderCamaras();renderSemaforo();renderMantenimientos();renderHistoriaCompleta();renderSesiones();
     }catch(err){console.error('[instalacion_ficha]',err);}
 }
