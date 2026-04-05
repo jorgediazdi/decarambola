@@ -732,7 +732,7 @@ var DC_SALA_OPEN_ACCESS = false;
     var pinAdmin = localStorage.getItem('club_admin_activo') === 'true';
     /* Admin en MI CLUB / PIN, o acceso abierto alineado con guardSalaPage. */
     var rolSesion = localStorage.getItem('session_rol');
-    var puedeConfig = rolSesion === 'superadmin';
+    var puedeConfig = rolSesion === 'superadmin' || rolSesion === 'club_admin';
     /* Antes también exigíamos session_ultimo_act “fresco” antes de SESSION.iniciar → el formulario desaparecía. */
     if (!puedeConfig) {
         avisoRestringidoActivo = true;
