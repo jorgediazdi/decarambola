@@ -46,36 +46,49 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
 </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#c9a84c">
     <title>Configurar instalaciones — DeCarambola</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --platino:rgba(220, 228, 236, 0.14); --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
+        :root {
+            --oro: #c9a84c;
+            --fondo: #0a0a0a;
+            --fondo2: #111111;
+            --fondo3: #1a1a1a;
+            --borde: rgba(201, 168, 76, 0.15);
+            --texto: #e8e8e8;
+            --texto2: #888888;
+            --negro: #0a0a0a;
+            --neon: #2eff70;
+            --platino: rgba(201, 168, 76, 0.12);
+            --g1: #1a1a1a;
+            --g2: #111111;
+            --g3: #0a0a0a;
+        }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { visibility: hidden; background:var(--negro); color:#e8eaed; font-family:'Outfit','Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:120px; }
+        body { visibility: hidden; background: #0a0a0a; color: #e8e8e8; font-family: 'DM Sans', sans-serif; min-height:100vh; padding-bottom:120px; }
 
-        .header { width:100%; background:rgba(5,5,5,0.95); border-bottom:1px solid rgba(212,175,55,0.18); padding:14px 18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:50; flex-wrap:wrap; }
+        .header { width:100%; background:rgba(10,10,10,0.95); border-bottom:1px solid rgba(201,168,76,0.15); padding:14px 18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:50; flex-wrap:wrap; }
         .header > .header-row-main { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; width:100%; }
-        .header-titulo { color:#d4af37; font-size:0.95rem; letter-spacing:0.12em; font-weight:800; font-family:'Outfit',sans-serif; text-transform:uppercase; }
+        .header-titulo { color:var(--oro); font-size:0.95rem; letter-spacing:0.12em; font-weight:700; font-family:'Playfair Display', serif; text-transform:uppercase; }
         .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
         .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
-        .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
+        .btn-hdr { background:var(--fondo2); border:1px solid rgba(201,168,76,0.15); color:#888; padding:8px 12px; border-radius:12px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'DM Sans',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.2s,color 0.15s; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(201,168,76,0.4); color:var(--oro); outline:none; }
 
         .wrap { max-width:500px; margin:12px auto 0; padding:20px 20px 24px; position:relative; z-index:40; }
         /* Bloques consola platino — creación (paso 2) y tarifas (paso 4) */
         #paso2.paso.activo,
         #paso4.paso.activo {
             padding: 18px 16px;
-            border-radius: 28px;
-            border: 1px solid var(--platino);
-            background: linear-gradient(165deg, rgba(36, 38, 42, 0.55), rgba(5, 5, 5, 0.98));
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+            border-radius: 16px;
+            border: 1px solid rgba(201, 168, 76, 0.15);
+            background: #111111;
         }
-        .btn-paso, .wizard-dot.activo { font-family:'Outfit','Arial Black',sans-serif; }
-        .sec-titulo { font-family:'Outfit',sans-serif; font-weight:700; }
+        .btn-paso, .wizard-dot.activo { font-family:'DM Sans',sans-serif; }
+        .sec-titulo { font-family:'Playfair Display',serif; font-weight:700; }
 
         .wizard-steps { display:flex; gap:4px; margin-bottom:20px; }
         .wizard-dot { flex:1; height:6px; border-radius:3px; background:var(--g1); transition:0.3s; cursor:pointer; touch-action:manipulation; }
@@ -138,7 +151,7 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
             height: 56px;
             margin: 0;
             border-radius: 12px;
-            background: rgba(212,175,55,0.15);
+            background: rgba(201,168,76,0.12);
             border: 2px solid var(--oro);
             display: flex;
             flex-direction: column;
@@ -148,7 +161,6 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
             color: var(--oro);
             text-align: center;
             padding: 4px;
-            animation: preview-luz 2.5s ease-in-out infinite;
             transform: translate(-50%, -50%);
             cursor: grab;
             user-select: none;
@@ -171,11 +183,10 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
             cursor: grabbing;
             z-index: 300;
             animation: none;
-            box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 20px rgba(212,175,55,0.35);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 16px rgba(201,168,76,0.25);
         }
-        @keyframes preview-luz { 0%, 100% { box-shadow:0 0 6px rgba(212,175,55,0.25); } 50% { box-shadow:0 0 14px rgba(212,175,55,0.5), 0 0 22px rgba(46,204,113,0.12); } }
         .preview-celda .nom { font-size:0.85rem; font-weight:bold; color:var(--oro); }
-        .preview-celda:hover { background:rgba(212,175,55,0.25); border-color:var(--oro); }
+        .preview-celda:hover { background:rgba(201,168,76,0.2); border-color:var(--oro); }
         .preview-celda-vip {
             margin-top: 4px;
             font-size: 0.42rem;
@@ -191,10 +202,10 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
         .preview-celda-vip input { accent-color: #c9a84c; width: 12px; height: 12px; flex-shrink: 0; }
         .layout-btns { display:flex; flex-wrap:wrap; gap:10px; margin:14px 0 12px; position:relative; z-index:8; }
         .layout-btns__tit { width:100%; font-size:0.52rem; letter-spacing:0.14em; color:#888; margin-bottom:2px; }
-        .layout-btns button { flex:1 1 140px; min-height:56px; padding:10px 12px; border-radius:12px; border:1px solid var(--g1); background:var(--g3); color:#b0b0b0; font-size:0.52rem; cursor:pointer; font-family:'Arial Black',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(212,175,55,0.25); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center; line-height:1.25; }
+        .layout-btns button { flex:1 1 140px; min-height:56px; padding:10px 12px; border-radius:12px; border:1px solid rgba(201,168,76,0.15); background:var(--g3); color:#b0b0b0; font-size:0.52rem; cursor:pointer; font-family:'DM Sans',sans-serif; touch-action:manipulation; -webkit-tap-highlight-color:rgba(201,168,76,0.25); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center; line-height:1.25; transition:border-color 0.2s; }
         .layout-btns button .layout-btn-sub { font-size:0.48rem; color:#666; font-weight:normal; letter-spacing:0.06em; text-transform:none; }
-        .layout-btns button.layout-btn--activo { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.14); box-shadow:0 0 0 1px rgba(212,175,55,0.25); }
-        .layout-btns button.layout-btn--activo .layout-btn-sub { color:rgba(212,175,55,0.9); }
+        .layout-btns button.layout-btn--activo { border-color:rgba(201,168,76,0.4); color:var(--oro); background:rgba(201,168,76,0.12); box-shadow:0 0 0 1px rgba(201,168,76,0.2); }
+        .layout-btns button.layout-btn--activo .layout-btn-sub { color:rgba(201,168,76,0.95); }
         .paso3-guia { font-size:0.62rem; color:#aaa; line-height:1.5; margin-bottom:12px; padding:14px; background:var(--g3); border-radius:14px; border:1px solid var(--g1); }
         .paso3-guia strong { color:var(--oro); }
         .paso3-pasos { margin:10px 0 0 1.1rem; padding:0; }
@@ -225,7 +236,7 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
         .desc-dia-fila .dias-chk label { color:#888; cursor:pointer; }
         .info-tarifa { font-size:0.58rem; color:#888; line-height:1.45; margin-bottom:12px; padding:10px; background:var(--g3); border-radius:12px; border:1px solid var(--g1); }
 
-        .btn-paso { width:100%; padding:16px; margin-top:16px; background:linear-gradient(135deg,var(--oro),#a07800); color:#000; border:none; border-radius:16px; font-size:0.9rem; font-weight:bold; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:2px; position:relative; z-index:8; touch-action:manipulation; -webkit-tap-highlight-color:rgba(212,175,55,0.35); }
+        .btn-paso { width:100%; padding:16px; margin-top:16px; background:linear-gradient(135deg,var(--oro),#8a7038); color:#0a0a0a; border:none; border-radius:16px; font-size:0.9rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; letter-spacing:2px; position:relative; z-index:8; touch-action:manipulation; -webkit-tap-highlight-color:rgba(201,168,76,0.35); }
         .btn-paso.sec { background:var(--g3); color:#b8b8b8; border:1px solid var(--g1); z-index:8; }
         #btn-paso1-siguiente,
         #btn-paso2-siguiente,
@@ -249,12 +260,12 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
         .paso2-info strong { color: #c9a227; font-weight: 700; }
         .paso2-info code { color: #666; font-size: 0.9em; }
         .vacio { text-align:center; color:#444; font-size:0.6rem; padding:20px; }
-        #err-paso1 { display:none; margin:12px 0; padding:12px 14px; border-radius:12px; border:1px solid rgba(212,175,55,0.45); background:rgba(212,175,55,0.08); color:#c9b060; font-size:0.62rem; line-height:1.4; letter-spacing:0.04em; }
-        .dc-mesas-atajo { margin-top:14px; padding:12px; border-radius:12px; border:1px dashed rgba(212,175,55,0.35); font-size:0.55rem; color:#666; line-height:1.45; }
+        #err-paso1 { display:none; margin:12px 0; padding:12px 14px; border-radius:12px; border:1px solid rgba(201,168,76,0.35); background:rgba(201,168,76,0.08); color:var(--oro); font-size:0.62rem; line-height:1.4; letter-spacing:0.04em; }
+        .dc-mesas-atajo { margin-top:14px; padding:12px; border-radius:12px; border:1px dashed rgba(201,168,76,0.3); font-size:0.55rem; color:#666; line-height:1.45; }
         .dc-mesas-atajo a { color:var(--oro); cursor:pointer; text-decoration:underline; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
-    <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"Arial Black",Arial,sans-serif!important;}</style>
+    <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"DM Sans",sans-serif!important;}</style>
     <!-- ux-shell fuerza body.dc-ux-skin .wrap { z-index:10 } y gana al .wrap local: subimos el bloque del asistente y el guardar. -->
     <style>
         /* Capa “fantasma”: el wrap/barra no interceptan toques; los hijos vuelven a recibirlos. */
@@ -732,12 +743,12 @@ var DC_SALA_OPEN_ACCESS = false;
         if (aviso) {
             aviso.style.display = 'block';
             aviso.innerHTML =
-                '<div style="background:linear-gradient(160deg,#1a1200,#0c0a06);border:1px solid rgba(212,175,55,0.35);border-radius:16px;padding:20px 16px;text-align:center;">' +
-                '<p style="color:#d4af37;font-size:0.75rem;letter-spacing:0.12em;margin:0 0 12px;">ACCESO A CONFIGURAR SALÓN</p>' +
+                '<div style="background:linear-gradient(160deg,#1a1200,#0c0a06);border:1px solid rgba(201,168,76,0.35);border-radius:16px;padding:20px 16px;text-align:center;">' +
+                '<p style="color:#c9a84c;font-size:0.75rem;letter-spacing:0.12em;margin:0 0 12px;">ACCESO A CONFIGURAR SALÓN</p>' +
                 '<p style="color:#aaa;font-size:0.82rem;line-height:1.5;margin:0 0 16px;">Esta pantalla es para quien <strong style="color:#eee;">administra el club</strong> (creaste el club o te dieron permiso de admin).</p>' +
                 '<p style="color:#888;font-size:0.78rem;line-height:1.45;margin:0 0 18px;">En el <strong>inicio</strong> de la app tocá <strong>«Soy administrador del club»</strong>, ingresá el PIN que configuraste, y volvé a abrir <strong>Configurar instalaciones</strong> desde <strong>MI CLUB</strong> o el menú abajo.</p>' +
-                '<a href="/index.html" style="display:inline-block;padding:12px 18px;background:linear-gradient(135deg,#d4af37,#a07800);color:#000;text-decoration:none;border-radius:12px;font-size:0.8rem;font-weight:bold;letter-spacing:0.06em;">Ir al inicio de la app</a> ' +
-                '<a href="/club/index.html" style="display:inline-block;margin-top:10px;padding:12px 18px;border:1px solid rgba(212,175,55,0.45);color:#d4af37;text-decoration:none;border-radius:12px;font-size:0.8rem;font-weight:bold;letter-spacing:0.06em;">Abrir Portal club</a>' +
+                '<a href="/index.html" style="display:inline-block;padding:12px 18px;background:linear-gradient(135deg,#c9a84c,#a07800);color:#000;text-decoration:none;border-radius:12px;font-size:0.8rem;font-weight:bold;letter-spacing:0.06em;">Ir al inicio de la app</a> ' +
+                '<a href="/club/index.html" style="display:inline-block;margin-top:10px;padding:12px 18px;border:1px solid rgba(201,168,76,0.45);color:#c9a84c;text-decoration:none;border-radius:12px;font-size:0.8rem;font-weight:bold;letter-spacing:0.06em;">Abrir Portal club</a>' +
                 '</div>';
         }
         var contenido = document.getElementById('contenido-principal');
@@ -905,7 +916,7 @@ function DC_mesas_paso1_a_2() {
         var ns = document.getElementById('nombre_salon');
         if (ns) {
             ns.focus();
-            ns.style.borderBottomColor = '#d4af37';
+            ns.style.borderBottomColor = '#c9a84c';
         }
         try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
         return;
