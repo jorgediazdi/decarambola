@@ -2,26 +2,31 @@
 <html lang="es">
 <head>
     <script type="module">
-        import { getSession, getRole } from '/js/auth-manager.js';
+        import { supabase } from '/js/supabase-client.js';
 
-        const next = encodeURIComponent(
-            (window.location.pathname || '') + (window.location.search || '')
-        );
-        const s = await getSession();
-        if (!s?.data?.user) {
-            window.location.replace('/login.html?next=' + next);
-        }
-        const r = await getRole();
-        const rol = String(r?.data || '').trim();
-        if (rol === 'organizador') {
-            window.location.replace('/apps/organizador/organizador.html');
-        }
-        if (rol === 'jugador') {
-            window.location.replace('/jugador/index.html');
-        }
-        if (rol !== 'club_admin' && rol !== 'superadmin') {
-            window.location.replace('/jugador/index.html');
-        }
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event !== 'INITIAL_SESSION') return;
+
+            if (!session) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+
+            const rol = profile?.role?.trim().toLowerCase();
+
+            if (!['club_admin', 'superadmin'].includes(rol)) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            document.body.style.visibility = 'visible';
+        });
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -32,6 +37,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/index-v2.css">
     <style>
+        body { visibility: hidden; }
         .club-panel { background: #0a0a0a; }
         .club-panel #stars-bg { display: none !important; }
         .club-panel .home-main { max-width: 560px; }
@@ -149,6 +155,7 @@
         }
         .accion-card:active { transform: scale(0.98); border-color: rgba(201, 168, 76, 0.35); }
         .accion-ico { font-size: 1.75rem; }
+        .accion-ico .accion-ico-dc { display: inline-flex; align-items: center; justify-content: center; color: #c9a84c; line-height: 0; }
         .accion-nom { font-size: 0.62rem; color: #c9a84c; letter-spacing: 0.1em; font-weight: 700; }
         .accion-det { font-size: 0.65rem; color: #666; letter-spacing: 0.03em; line-height: 1.35; }
         .header-marca.offscreen {
@@ -376,6 +383,28 @@
 
 <script src="/core.js"></script>
 <script src="/session.js"></script>
+<script src="/js/dc-icons.js"></script>
+<script>
+    window.DC = window.DC || {};
+    DC.icon = function (name, size) {
+        var fn = typeof IC !== 'undefined' && IC[name];
+        return typeof fn === 'function' ? fn(size || 24) : '';
+    };
+    (function () {
+        var a = document.getElementById('club-accion-ico-mesas-cfg');
+        var b = document.getElementById('club-accion-ico-torneo-crear');
+        if (a && typeof DC !== 'undefined' && typeof DC.icon === 'function') {
+            var h = DC.icon('mesa', 28);
+            if (h) a.innerHTML = h;
+            else a.textContent = '⚙️';
+        }
+        if (b && typeof DC !== 'undefined' && typeof DC.icon === 'function') {
+            var t = DC.icon('trofeo', 28);
+            if (t) b.innerHTML = t;
+            else b.textContent = '🏆';
+        }
+    })();
+</script>
 <script>
     function clubDashGetClubId() {
         try {
