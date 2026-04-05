@@ -820,8 +820,22 @@ window.__salaBoot = async function () {
 })();
 </script>
 <script type="module">
-import { guardSalaPage } from '/js/sala-supabase-gate.js';
-await guardSalaPage({ pageTitle: 'Reservar mesa' });
+import { supabase } from '/js/supabase-client.js';
+
+supabase.auth.onAuthStateChange(function (event, session) {
+    if (event !== 'INITIAL_SESSION') return;
+    if (!session) {
+        window.location.href = '/login.html?next=' + encodeURIComponent(window.location.pathname + window.location.search);
+        return;
+    }
+    if (typeof window.__salaBoot === 'function') {
+        try {
+            window.__salaBoot();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+});
 </script>
 
 </body>
