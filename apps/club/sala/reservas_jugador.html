@@ -3,24 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#c9a84c">
     <meta name="description" content="Solicitar reserva de mesa — DeCarambola">
     <title>Reservar mesa — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --oro:#d4af37; --negro:#0b0b0b; --surface:#111;
+            --oro:#c9a84c; --negro:#0a0a0a; --surface:#111;
             --surface2:#0a0a0a; --border:#222; --text:#eaeaea;
             --muted:#8a8a8a; --muted2:#555; --ok:#2ecc71;
             --warn:#f39c12; --danger:#e74c3c; --radius:14px;
             --neon:#2eff70;
             --azul:#3498db;
             --radius-sm:10px;
-            --font-ui: system-ui,-apple-system,'Segoe UI',sans-serif;
-            --font-display: 'Arial Black',Arial,sans-serif;
+            --font-ui: 'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+            --font-display: 'Playfair Display',Georgia,serif;
         }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body {
-            background: var(--negro);
+            background: #0a0a0a;
             color: var(--text);
             font-family: var(--font-ui);
             font-size: 15px;
@@ -45,13 +48,14 @@
             flex-wrap: wrap;
             gap: 12px;
         }
+        .header-titulo-row { display: flex; align-items: center; gap: 10px; }
+        .header-ico { display: flex; color: #c9a84c; flex-shrink: 0; }
         .header-titulo {
             font-family: var(--font-display);
-            color: var(--oro);
+            color: #c9a84c;
             font-size: 0.72rem;
             letter-spacing: 0.18em;
-            font-weight: 900;
-            text-shadow: 0 0 22px rgba(212, 175, 55, 0.4);
+            font-weight: 700;
         }
         .header-sub {
             color: var(--muted2);
@@ -294,18 +298,19 @@
             line-height: 1.45;
         }
         body.dc-ux-skin.reservas-jugador-hub .header-titulo {
-            text-shadow: 0 0 22px rgba(212, 175, 55, 0.38);
+            text-shadow: none;
         }
     </style>
 <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-ux dc-ux-skin reservas-jugador-hub">
 
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
 <div class="header">
     <div>
-        <div class="header-titulo">RESERVAR MESA</div>
+        <div class="header-titulo-row">
+            <span id="reserva-header-ico" class="header-ico" aria-hidden="true"></span>
+            <div class="header-titulo">RESERVAR MESA</div>
+        </div>
         <div class="header-sub">Solicitá tu turno — el admin lo confirma</div>
     </div>
     <div class="header-actions">
@@ -413,6 +418,18 @@
 
 <script src="/core.js"></script>
 <script src="/session.js"></script>
+<script src="/js/dc-icons.js"></script>
+<script>
+window.DC = window.DC || {};
+DC.icon = function (name, size) {
+    var fn = typeof IC !== 'undefined' && IC[name];
+    return typeof fn === 'function' ? fn(size || 24) : '';
+};
+(function () {
+    var el = document.getElementById('reserva-header-ico');
+    if (el && typeof DC !== 'undefined' && typeof DC.icon === 'function') el.innerHTML = DC.icon('mesa', 22);
+})();
+</script>
 <script>
 var jugadorActivo = null;
 var mesaSeleccionada = null;
@@ -453,7 +470,7 @@ function detectarSolapamiento(mesaId, inicioMs, finMs, excludeId, lista) {
         if (!o || String(o.id) === String(excludeId)) continue;
         if (String(o.mesa_id) !== String(mesaId)) continue;
         var est = (o.estado || 'pendiente').toLowerCase();
-        if (est === 'cancelada') continue;
+        if (est === 'cancelada' || est === 'vencida') continue;
         if (est !== 'pendiente' && est !== 'confirmada') continue;
         var ts = o.fecha_reserva ? new Date(o.fecha_reserva).getTime() : NaN;
         if (isNaN(ts)) continue;
@@ -462,6 +479,19 @@ function detectarSolapamiento(mesaId, inicioMs, finMs, excludeId, lista) {
         if (inicioMs < finO && finMs > ts) return true;
     }
     return false;
+}
+
+function mesaMetaEsVip(m) {
+    if (!m) return false;
+    var meta = m.meta;
+    if (typeof meta === 'string') {
+        try {
+            meta = JSON.parse(meta);
+        } catch (e) {
+            return false;
+        }
+    }
+    return !!(meta && typeof meta === 'object' && meta.es_vip === true);
 }
 
 function escapeHtml(s) {
@@ -546,9 +576,17 @@ function pintarMesas(mesas) {
         var nom = escapeHtml(m.nombre || 'Mesa');
         var num = m.numero != null ? escapeHtml(String(m.numero)) : '—';
         var sel = mesaSeleccionada && String(mesaSeleccionada.id) === String(m.id) ? ' selected' : '';
+        var vip = mesaMetaEsVip(m);
+        var vipHtml = vip ? '<span class="mesa-vip-badge">VIP</span>' : '';
+        var th = parseFloat(m.tarifa_hora);
+        var tarifaHtml = !isNaN(th) && th >= 0
+            ? '<div class="mesa-card-tarifa"><b>Tarifa</b> · ' + escapeHtml(th.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 })) + ' / hora</div>'
+            : '';
         return '<button type="button" class="mesa-card' + sel + '" data-mesa-id="' + escapeHtml(String(m.id)) + '">' +
+            vipHtml +
             '<div class="mesa-card-tit">' + nom + '</div>' +
             '<div class="mesa-card-sub">Número · ' + num + '</div>' +
+            tarifaHtml +
             '</button>';
     }).join('');
     Array.prototype.forEach.call(grid.querySelectorAll('.mesa-card'), function (btn) {
@@ -565,22 +603,25 @@ function pintarMesas(mesas) {
 function pintarMisReservas(reservas, jugadorNombre) {
     var cont = document.getElementById('lista-mis-reservas');
     if (!cont) return;
+    var ahora = new Date();
     var target = String(jugadorNombre || '').trim().toUpperCase();
     var mine = (reservas || []).filter(function (r) {
         return String(r.jugador_nombre || '').trim().toUpperCase() === target;
     });
-    var activas = mine.filter(function (r) {
-        var e = (r.estado || 'pendiente').toLowerCase();
-        return e === 'pendiente' || e === 'confirmada';
+    var reservasVigentes = mine.filter(function (r) {
+        if (!r || !r.fecha_reserva) return false;
+        var est = (r.estado || 'pendiente').toLowerCase();
+        if (est === 'vencida' || est === 'cancelada') return false;
+        var fin = new Date(new Date(r.fecha_reserva).getTime() + (parseInt(r.duracion_minutos, 10) || 60) * 60000);
+        return fin > ahora;
     });
-    var mostrar = activas.length ? activas : mine;
 
-    if (!mostrar.length) {
-        cont.innerHTML = '<div class="reserva-det">Aún no tenés reservas en este club.</div>';
+    if (!reservasVigentes.length) {
+        cont.innerHTML = '<div class="reserva-det">Aún no tenés reservas vigentes en este club.</div>';
         return;
     }
 
-    cont.innerHTML = mostrar.map(function (r) {
+    cont.innerHTML = reservasVigentes.map(function (r) {
         var m = mesasById[r.mesa_id];
         var nombreMesa = m ? (m.nombre || 'Mesa') : 'Mesa';
         var fecha = r.fecha_reserva ? new Date(r.fecha_reserva) : null;
@@ -805,19 +846,6 @@ function initReservasJugador() {
 window.__salaBoot = async function () {
     initReservasJugador();
 };
-</script>
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
 </script>
 <script type="module">
 import { supabase } from '/js/supabase-client.js';
