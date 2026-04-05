@@ -3,82 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#c9a84c">
     <title>Historial de mesas — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --oro:#d4af37; --negro:#000; --g1:#1a1a1a; --g2:#111; --azul:#3498db; --rojo:#e74c3c; --neon:#2eff70; }
+        :root {
+            --oro: #c9a84c;
+            --fondo: #0a0a0a;
+            --fondo2: #111111;
+            --borde: rgba(201, 168, 76, 0.15);
+            --texto: #e8e8e8;
+            --texto2: #888888;
+            --azul: #3498db;
+            --rojo: #e74c3c;
+            --neon: #2eff70;
+        }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
+        body.dc-ux.dc-ux-skin.m-root-salon {
+            background: #0a0a0a;
+            color: #e8e8e8;
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            visibility: hidden;
+            padding-bottom: 80px;
+        }
+        body.dc-ux.dc-ux-skin.m-root-salon #stars-bg { display: none !important; }
 
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; position:sticky; top:0; z-index:20; }
-        .header-titulo { color:var(--oro); font-size:0.85rem; letter-spacing:3px; }
-        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
+        .header { width:100%; background:rgba(10,10,10,0.95); border-bottom:1px solid rgba(201,168,76,0.15); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; position:sticky; top:0; z-index:20; }
+        .header-titulo { font-family:'Playfair Display',serif; color:var(--oro); font-size:0.95rem; letter-spacing:0.06em; font-weight:700; }
+        .header-sub { color:var(--texto2); font-size:0.62rem; letter-spacing:2px; margin-top:2px; }
         .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
-        .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
+        .btn-hdr { background:var(--fondo2); border:1px solid rgba(201,168,76,0.15); color:var(--texto2); padding:8px 12px; border-radius:12px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'DM Sans',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.2s,color 0.15s; }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(201,168,76,0.4); color:var(--oro); outline:none; }
 
         .wrap { max-width:540px; margin:0 auto; padding:16px 18px; }
 
         .filtros { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
         .filtro-select {
             flex:1; min-width:120px;
-            background:#000; border:1px solid #222;
+            background:var(--fondo2); border:1px solid rgba(201,168,76,0.15);
             border-radius:12px; padding:8px 10px;
-            color:#bbb; font-size:0.55rem; font-family:'Arial Black',sans-serif; letter-spacing:1px;
+            color:#e8e8e8; font-size:0.55rem; font-family:'DM Sans',sans-serif; letter-spacing:1px;
         }
         .filtro-chip {
             padding:7px 10px; border-radius:999px;
-            border:1px solid #222; background:#050505;
-            color:#666; font-size:0.5rem; letter-spacing:1px;
-            cursor:pointer;
+            border:1px solid rgba(201,168,76,0.15); background:var(--fondo2);
+            color:var(--texto2); font-size:0.52rem; letter-spacing:1px;
+            cursor:pointer; font-family:'DM Sans',sans-serif;
+            transition:border-color 0.2s,color 0.2s;
         }
-        .filtro-chip.on { border-color:var(--oro); color:var(--oro); background:rgba(212,175,55,0.08); }
+        .filtro-chip.on { border-color:rgba(201,168,76,0.4); color:var(--oro); background:rgba(201,168,76,0.08); }
 
         .kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
-        .kpi { background:var(--g2); border-radius:14px; padding:10px 10px 9px; border:1px solid var(--g1); }
-        .kpi-label { color:#666; font-size:0.46rem; letter-spacing:2px; margin-bottom:4px; }
-        .kpi-value { font-size:0.95rem; font-weight:900; color:var(--oro); }
-        .kpi-sub { color:#777; font-size:0.48rem; margin-top:2px; }
+        .kpi { background:var(--fondo2); border-radius:16px; padding:10px 10px 9px; border:1px solid rgba(201,168,76,0.15); transition:border-color 0.2s; }
+        .kpi:hover { border-color:rgba(201,168,76,0.3); }
+        .kpi-label { color:var(--texto2); font-size:0.46rem; letter-spacing:2px; margin-bottom:4px; font-family:'DM Sans',sans-serif; }
+        .kpi-value { font-size:0.95rem; font-weight:700; color:var(--oro); font-family:'DM Sans',sans-serif; }
+        .kpi-sub { color:var(--texto2); font-size:0.48rem; margin-top:2px; }
 
-        .sec-tit { color:#555; font-size:0.55rem; letter-spacing:2px; margin:10px 0 6px; }
+        .sec-tit { font-family:'Playfair Display',serif; color:var(--texto2); font-size:0.65rem; letter-spacing:0.12em; margin:10px 0 6px; }
 
         .sesion-dia { margin-top:10px; }
-        .sesion-dia-tit { font-size:0.52rem; color:#777; letter-spacing:2px; margin-bottom:4px; }
+        .sesion-dia-tit { font-size:0.52rem; color:var(--texto2); letter-spacing:2px; margin-bottom:4px; font-family:'DM Sans',sans-serif; }
 
-        .sesion-item { background:var(--g2); border-radius:12px; padding:10px 12px; border:1px solid var(--g1); margin-bottom:6px; font-size:0.58rem; }
+        .sesion-item { background:var(--fondo2); border-radius:16px; padding:10px 12px; border:1px solid rgba(201,168,76,0.15); margin-bottom:6px; font-size:0.58rem; transition:border-color 0.2s; }
+        .sesion-item:hover { border-color:rgba(201,168,76,0.35); }
         .sesion-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; }
-        .sesion-mesa { color:var(--oro); font-size:0.62rem; }
-        .sesion-hora { color:#777; font-size:0.5rem; }
+        .sesion-mesa { color:var(--oro); font-size:0.62rem; font-weight:600; }
+        .sesion-hora { color:var(--texto2); font-size:0.5rem; }
         .sesion-det { color:#aaa; font-size:0.53rem; }
-        .sesion-nota { color:#666; font-size:0.45rem; margin-top:4px; }
+        .sesion-nota { color:var(--texto2); font-size:0.45rem; margin-top:4px; }
 
-        .empty { text-align:center; color:#444; font-size:0.6rem; padding:24px 10px; }
+        .empty { text-align:center; color:var(--texto2); font-size:0.62rem; padding:24px 10px; }
         .btn-mesas {
             margin-top:10px; display:inline-block;
-            padding:10px 18px; border-radius:14px;
+            padding:10px 18px; border-radius:16px;
             border:1px solid var(--azul);
             background:rgba(52,152,219,0.1);
             color:var(--azul); font-size:0.6rem;
-            font-family:'Arial Black',sans-serif;
+            font-family:'DM Sans',sans-serif;
+            font-weight:600;
             letter-spacing:1px; text-decoration:none;
         }
 
         .mant-card {
             margin-top:18px;
-            background:#050505; border:1px solid #222;
-            border-radius:14px; padding:12px 14px;
-            font-size:0.5rem; color:#777; line-height:1.7;
+            background:var(--fondo2); border:1px solid rgba(201,168,76,0.15);
+            border-radius:16px; padding:12px 14px;
+            font-size:0.52rem; color:var(--texto2); line-height:1.7;
+            font-family:'DM Sans',sans-serif;
         }
         .mant-tag { font-size:0.55rem; color:var(--neon); letter-spacing:2px; margin-bottom:4px; display:block; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
-    <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"Arial Black",Arial,sans-serif!important;}</style>
+    <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"DM Sans",sans-serif!important;}</style>
 <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-ux dc-ux-skin m-root-salon">
-
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
 
 <div class="header">
     <div>
@@ -291,22 +314,12 @@ window.__salaBoot = function() {
 </script>
 
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 <script type="module">
 import { guardSalaPage } from '/js/sala-supabase-gate.js';
-await guardSalaPage({ pageTitle: 'Historial de mesas' });
+await guardSalaPage({
+    pageTitle: 'Historial de mesas',
+    allowedRoles: ['club_admin', 'superadmin'],
+});
 </script>
 
 </body>
