@@ -9,26 +9,38 @@ function iniciarPagina() {
 }
 
 const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+  console.log('EVENT:', event);
+  console.log('SESSION:', session?.user?.id);
+
   if (event !== 'INITIAL_SESSION') return;
 
   if (!session) {
+    console.log('SIN SESION → login');
     window.location.href = '/login.html';
     return;
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', session.user.id)
     .single();
 
+  console.log('PROFILE:', profile);
+  console.log('ERROR:', error);
+  console.log('ROL:', profile?.role);
+
   const rol = profile?.role?.trim().toLowerCase();
+  console.log('ROL NORMALIZADO:', rol);
+  console.log('TIENE ACCESO:', ['club_admin', 'superadmin'].includes(rol));
 
   if (!['club_admin', 'superadmin'].includes(rol)) {
+    console.log('SIN ACCESO → login');
     window.location.href = '/login.html';
     return;
   }
 
+  console.log('ACCESO OK → iniciarPagina');
   iniciarPagina();
 });
 </script>
