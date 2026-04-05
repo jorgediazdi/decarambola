@@ -3,17 +3,46 @@
 <head>
     <script type="module">
 import { supabase } from '/js/supabase-client.js';
-import { getRole } from '/js/auth-manager.js';
 
-const { data: sess } = await supabase.auth.getSession();
-if (!sess?.session) {
-  window.location.replace('/login.html?next=' + encodeURIComponent(window.location.pathname));
-}
-const { data: rol } = await getRole();
-if (rol !== 'club_admin' && rol !== 'superadmin') {
-  window.location.replace('/jugador/index.html');
-}
-    </script>
+const rolesPermitidos = ['club_admin', 'superadmin'];
+const next = encodeURIComponent(window.location.pathname + window.location.search);
+
+await new Promise(function (resolve) {
+  var subscription = null;
+  var out = supabase.auth.onAuthStateChange(function (event, session) {
+    if (event !== 'INITIAL_SESSION') return;
+    try {
+      if (subscription) subscription.unsubscribe();
+    } catch (_u) {}
+    (async function () {
+      try {
+        if (!session || !session.user) {
+          window.location.replace('/login.html?next=' + next);
+          return;
+        }
+        var uid = session.user.id;
+        var pr = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
+        if (pr.error) {
+          console.warn('[mesas_config] guard profiles:', pr.error);
+          window.location.replace('/login.html?next=' + next);
+          return;
+        }
+        var raw = pr.data && pr.data.role != null ? String(pr.data.role).trim().toLowerCase() : 'jugador';
+        var ok = rolesPermitidos.indexOf(raw) >= 0;
+        if (!ok) {
+          window.location.replace('/login.html?next=' + next);
+        }
+      } catch (e) {
+        console.warn('[mesas_config] guard:', e);
+        window.location.replace('/login.html?next=' + next);
+      } finally {
+        resolve();
+      }
+    })();
+  });
+  subscription = out && out.data ? out.data.subscription : null;
+});
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#d4af37">
