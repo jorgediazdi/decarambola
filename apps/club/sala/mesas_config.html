@@ -4,43 +4,30 @@
     <script type="module">
 import { supabase } from '/js/supabase-client.js';
 
-const rolesPermitidos = ['club_admin', 'superadmin'];
-const next = encodeURIComponent(window.location.pathname + window.location.search);
+function iniciarPagina() {}
 
-await new Promise(function (resolve) {
-  var subscription = null;
-  var out = supabase.auth.onAuthStateChange(function (event, session) {
-    if (event !== 'INITIAL_SESSION') return;
-    try {
-      if (subscription) subscription.unsubscribe();
-    } catch (_u) {}
-    (async function () {
-      try {
-        if (!session || !session.user) {
-          window.location.replace('/login.html?next=' + next);
-          return;
-        }
-        var uid = session.user.id;
-        var pr = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
-        if (pr.error) {
-          console.warn('[mesas_config] guard profiles:', pr.error);
-          window.location.replace('/login.html?next=' + next);
-          return;
-        }
-        var raw = pr.data && pr.data.role != null ? String(pr.data.role).trim().toLowerCase() : 'jugador';
-        var ok = rolesPermitidos.indexOf(raw) >= 0;
-        if (!ok) {
-          window.location.replace('/login.html?next=' + next);
-        }
-      } catch (e) {
-        console.warn('[mesas_config] guard:', e);
-        window.location.replace('/login.html?next=' + next);
-      } finally {
-        resolve();
-      }
-    })();
-  });
-  subscription = out && out.data ? out.data.subscription : null;
+const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event !== 'INITIAL_SESSION') return;
+
+  if (!session) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .single();
+
+  const rol = profile?.role?.trim().toLowerCase();
+
+  if (!['club_admin', 'superadmin'].includes(rol)) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  iniciarPagina();
 });
 </script>
     <meta charset="UTF-8">
