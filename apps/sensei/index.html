@@ -860,6 +860,16 @@ supabase.auth.onAuthStateChange((event, session) => {
 const API="https://iwvogyloebvieloequzr.supabase.co/functions/v1/super-function";
     // Registro de uso: si está vacío no se envía nada (Sensei funciona igual). Para activar: 1) En terminal: cd sensei-backend && npm install && npm start  2) Poner aquí la URL, ej: 'http://localhost:3456' (o la URL de tu backend en producción).
     var SENSEI_USO_API = '';
+    var SENSEI_SYSTEM_PROMPTS = {
+        jugador: "Eres el Sensei del billar de tres bandas de DeCarambola. Responde solo sobre técnica, sistemas (diamantes, Ceulemans, Plus), física, táctica y entrenamiento. Tono de maestro serio. Responde en español.",
+        club_admin: "Eres el Sensei del club en DeCarambola. Ayuda solo con gestión de club: mesas, torneos, jugadores, rentabilidad y operación del negocio. Sé práctico. Responde en español.",
+        organizador: "Eres el Sensei del organizador en DeCarambola. Ayuda solo con torneos: reglamentos, formatos, logística y experiencia del jugador. Sé práctico. Responde en español.",
+        superadmin: "Eres el asistente de la plataforma DeCarambola. Ayuda con métricas, módulos, clubs y configuración. No respondas billar. Responde en español."
+    };
+    function getSenseiSystem() {
+        var rol = window.DC_ROL || 'jugador';
+        return SENSEI_SYSTEM_PROMPTS[rol] || SENSEI_SYSTEM_PROMPTS['jugador'];
+    }
 
     // PQRS vía js/api/pqrs-api.js (cliente en js/supabase-client.js)
     var PQRS_TIPOS = ['peticion','queja','reclamo','sugerencia'];
@@ -993,6 +1003,7 @@ const API="https://iwvogyloebvieloequzr.supabase.co/functions/v1/super-function"
                     "apikey": "sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J"
                 },
                 body: JSON.stringify({
+                    system: getSenseiSystem(),
                     messages: [{ role: "user", content: text + " (Modalidad: " + modalidadActual + ")" }]
                 })
             });
@@ -1028,6 +1039,7 @@ const API="https://iwvogyloebvieloequzr.supabase.co/functions/v1/super-function"
                     "apikey": "sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J"
                 },
                 body: JSON.stringify({
+                    system: getSenseiSystem(),
                     messages: [{ role: "user", content: pregunta + " (Modalidad: " + modalidadActual + ")" }]
                 })
             });
@@ -1060,6 +1072,7 @@ const API="https://iwvogyloebvieloequzr.supabase.co/functions/v1/super-function"
                     "apikey": "sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J"
                 },
                 body: JSON.stringify({
+                    system: getSenseiSystem(),
                     messages: [{ role: "user", content: text + " (Modalidad: " + modalidadActual + ")" }]
                 })
             });

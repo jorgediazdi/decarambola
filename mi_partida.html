@@ -133,7 +133,7 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;mi
     <div id="sugs"></div>
   </div>
   <div class="chip" id="chip">Escribe tu nombre para detectar tu promedio</div>
-  <button class="btn-go" onclick="iniciar()">&#9654; INICIAR MI PARTIDA</button>
+  <button class="btn-go" onclick="iniciar().catch(function(e){console.warn('iniciar error:',e)})">&#9654; INICIAR MI PARTIDA</button>
   <button class="btn-back" onclick="location.href='jugador/index.html'">&#8592; HUB JUGADOR</button>
 </div>
 
@@ -192,6 +192,8 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;mi
 <script src="/core.js"></script>
 <script>
 var st={c:0,e:0,s:0,sm:0},nom='',doc='',prom=0;
+/** UUID jugadores.id resuelto al iniciar si hay cédula (getJugadorByCedula) */
+var jugadorIdActual = null;
 
 function dcSetMipartidaActiva(on) {
   try {
@@ -320,10 +322,22 @@ function selJ(el){
   document.getElementById('sugs').style.display='none';
 }
 
-function iniciar(){
+async function iniciar(){
   nom=document.getElementById('nom').value.trim().toUpperCase();
   doc=document.getElementById('doc').value.trim();
+  jugadorIdActual = null;
   if(!nom||nom.length<2){alert('Ingresa tu nombre.');return;}
+
+  if (doc) {
+    try {
+      var jm = await import('/js/api/jugador-api.js');
+      var r = await jm.getJugadorByCedula(doc);
+      if (!r.error && r.data && r.data.id) jugadorIdActual = r.data.id;
+    } catch (e) {
+      jugadorIdActual = null;
+    }
+  }
+
   var jj=getJugs(); prom=0;
   for(var i=0;i<jj.length;i++){
     if(jj[i].nombre&&jj[i].nombre.toUpperCase()===nom){prom=parseFloat(jj[i].promedio)||0;break;}
@@ -387,47 +401,44 @@ function resumen(){
   show('p-res');
 }
 
-function guardar(){
+async function guardar(){
   dcSetMipartidaActiva(false);
+
   var jugActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
   if (!jugActivo || !jugActivo.cedula) {
     alert('⚠️ Para guardar tu entrenamiento en el perfil debes identificarte con tu cédula.\n\nVe al menú principal → JUGADOR → ENTRAR');
     return;
   }
-  var p = st.e===0 ? 0 : parseFloat((st.c/st.e).toFixed(3));
 
-  var h = JSON.parse(localStorage.getItem('ranking_historico_club')||'[]');
-  h.push({
-    nombre: nom, cedula: doc, promedio: p,
-    carambolas: st.c, entradas: st.e, serieMax: st.sm,
-    fecha: new Date().toLocaleDateString(), tipo: 'Entrenamiento'
-  });
-  localStorage.setItem('ranking_historico_club', JSON.stringify(h));
+  var p = st.e === 0 ? 0 : parseFloat((st.c / st.e).toFixed(3));
 
-  var jugExistente = mvBuscar(nom);
-  if (jugExistente) {
-    var sesiones = h.filter(function(x){ return x.nombre.toUpperCase()===nom; });
-    var promAcum = sesiones.reduce(function(acc,x){ return acc+parseFloat(x.promedio||0); },0) / sesiones.length;
-    mvGuardar({
-      nombre: nom,
-      cedula: doc || jugExistente.cedula,
-      promedio: parseFloat(promAcum.toFixed(3)),
-      ultimaSesion: new Date().toLocaleDateString()
+  // 1. Guardar en Supabase + localStorage via HISTORIAL
+  try {
+    await HISTORIAL.guardarPartida({
+      jugador_id:        jugadorIdActual,
+      jugador_nombre:    nom,
+      rival_nombre:      null,
+      rival_promedio:    0,
+      entrada_objetivo:  0,
+      entradas_jugador:  st.e,
+      carambolas_jugador: st.c,
+      promedio_partida:  p,
+      gano:              prom > 0 ? p >= prom : false,
+      tipo:              'entrenamiento',
+      torneo_nombre:     null,
+      serie_mayor:       st.sm,
+      fecha:             new Date().toISOString()
     });
-  } else {
-    mvGuardar({
-      nombre: nom,
-      cedula: doc,
-      promedio: p,
-      ultimaSesion: new Date().toLocaleDateString()
-    });
+  } catch(e) {
+    console.warn('HISTORIAL.guardarPartida error:', e);
   }
 
-  localStorage.setItem('mi_perfil', JSON.stringify({nombre:nom, cedula:doc, promedio:p}));
-  localStorage.setItem('jugador_activo', JSON.stringify({nombre:nom, cedula:doc, promedio:p}));
+  // 2. Actualizar perfil y jugador activo local
+  localStorage.setItem('mi_perfil',      JSON.stringify({ nombre: nom, cedula: doc, promedio: p }));
+  localStorage.setItem('jugador_activo', JSON.stringify({ nombre: nom, cedula: jugActivo.cedula, promedio: p, id: jugadorIdActual }));
 
   alert('✅ GUARDADO — Tu promedio ya suma al ranking y torneos');
-  location.href='/jugador/';
+  location.href = '/jugador/';
 }
 
 function reiniciar(){dcSetMipartidaActiva(false);st={c:0,e:0,s:0,sm:0};show('p-ini');}

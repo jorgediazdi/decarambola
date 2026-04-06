@@ -211,6 +211,15 @@
         }
         .f1-field input::placeholder { color: #444; }
         .f1-field input:focus, .f1-field select:focus { border-color: var(--oro); }
+        .f1-field input.f1-cedula-invalid { border-color: var(--rojo) !important; }
+        .f1-field-cedula-err {
+            font-size: clamp(0.4rem, 1.5vw, 0.48rem);
+            color: var(--rojo);
+            margin-top: 6px;
+            min-height: 1.15em;
+            letter-spacing: 0.04em;
+            line-height: 1.3;
+        }
         .f1-btn-iniciar {
             width: 100%;
             max-width: 420px;
@@ -971,11 +980,13 @@
         <div class="f1-row">
             <div class="f1-field">
                 <label for="reg-c1">Cédula J1 (opcional)</label>
-                <input type="text" id="reg-c1" placeholder="Solo números" maxlength="16" inputmode="numeric" pattern="[0-9]*" data-dc-cedula="1">
+                <input type="text" id="reg-c1" placeholder="Solo números" maxlength="16" inputmode="numeric" pattern="[0-9]*" data-dc-cedula="1" autocomplete="off" aria-describedby="reg-c1-err">
+                <div class="f1-field-cedula-err" id="reg-c1-err" role="alert"></div>
             </div>
             <div class="f1-field">
                 <label for="reg-c2">Cédula J2 (opcional)</label>
-                <input type="text" id="reg-c2" placeholder="Solo números" maxlength="16" inputmode="numeric" pattern="[0-9]*" data-dc-cedula="1">
+                <input type="text" id="reg-c2" placeholder="Solo números" maxlength="16" inputmode="numeric" pattern="[0-9]*" data-dc-cedula="1" autocomplete="off" aria-describedby="reg-c2-err">
+                <div class="f1-field-cedula-err" id="reg-c2-err" role="alert"></div>
             </div>
         </div>
     </div>
@@ -1227,6 +1238,9 @@
         try { initVideoPanel(); } catch (e) {}
     };
     let nomJ1 = 'JUGADOR A', nomJ2 = 'JUGADOR B';
+    /** Resueltos vía getJugadorByCedula al hacer blur en reg-c1 / reg-c2 */
+    let jugadorIdJ1 = null;
+    let jugadorIdJ2 = null;
     let localCameraStream = null;
     let mediaRecorder = null;
     let recordedChunks = [];
@@ -1571,13 +1585,13 @@
             const prom1 = d.e1 > 0 ? (d.p1 / d.e1) : 0;
             const prom2 = d.e2 > 0 ? (d.p2 / d.e2) : 0;
             HISTORIAL.guardarPartida({
-                jugador_id: null, jugador_nombre: nom1, rival_nombre: nom2, rival_promedio: prom2,
+                jugador_id: jugadorIdJ1, jugador_nombre: nom1, rival_nombre: nom2, rival_promedio: prom2,
                 entrada_objetivo: entradaObj, entradas_jugador: d.e1, carambolas_jugador: d.p1,
                 promedio_partida: prom1, gano: d.p1 >= d.p2, tipo: 'duelo', torneo_nombre: null,
                 serie_mayor: d.ms1, fecha: fecha
             });
             HISTORIAL.guardarPartida({
-                jugador_id: null, jugador_nombre: nom2, rival_nombre: nom1, rival_promedio: prom1,
+                jugador_id: jugadorIdJ2, jugador_nombre: nom2, rival_nombre: nom1, rival_promedio: prom1,
                 entrada_objetivo: entradaObj, entradas_jugador: d.e2, carambolas_jugador: d.p2,
                 promedio_partida: prom2, gano: d.p2 >= d.p1, tipo: 'duelo', torneo_nombre: null,
                 serie_mayor: d.ms2, fecha: fecha
@@ -1590,7 +1604,7 @@
         var nom1 = (el1 && el1.innerText) ? el1.innerText.trim() : nomJ1;
         var nom2 = (el2 && el2.innerText) ? el2.innerText.trim() : nomJ2;
         var ganador = d.p1 >= d.p2 ? nom1 : (d.p2 >= d.p1 ? nom2 : (d.ms1 >= d.ms2 ? nom1 : nom2));
-        var basePublica = (typeof localStorage !== 'undefined' && localStorage.getItem('wl_cert_base_url')) || 'https://decarambola.com';
+        var basePublica = (typeof localStorage !== 'undefined' && localStorage.getItem('wl_cert_base_url')) || window.location.origin;
         var base = basePublica.replace(/\/$/, '') + '/Certificados.html';
         var qs = '?n1=' + encodeURIComponent(nom1) + '&n2=' + encodeURIComponent(nom2) +
             '&p1=' + d.p1 + '&p2=' + d.p2 + '&e1=' + d.e1 + '&e2=' + d.e2 +
@@ -1615,7 +1629,7 @@
             siguienteSet();
         };
         ov.querySelector('#btn-menu-despues-qr').onclick = function() {
-            window.location.href = 'mi_partida.html';
+            window.location.href = '/mi_partida.html';
         };
         document.body.appendChild(ov);
     }
@@ -1889,7 +1903,57 @@
         el.value = el.value.replace(/[^0-9]/g, '');
     }
 
+    function setCedulaFieldError(inputId, errId, message) {
+        var inp = document.getElementById(inputId);
+        var err = document.getElementById(errId);
+        if (inp) {
+            inp.classList.toggle('f1-cedula-invalid', !!message);
+            if (message) inp.setAttribute('aria-invalid', 'true');
+            else inp.removeAttribute('aria-invalid');
+        }
+        if (err) err.textContent = message || '';
+    }
+
+    function onInputCedulaDuelo(which) {
+        var inputId = which === 'j1' ? 'reg-c1' : 'reg-c2';
+        var errId = which === 'j1' ? 'reg-c1-err' : 'reg-c2-err';
+        if (which === 'j1') jugadorIdJ1 = null;
+        else jugadorIdJ2 = null;
+        setCedulaFieldError(inputId, errId, '');
+    }
+
+    async function onBlurCedulaDuelo(which) {
+        var inputId = which === 'j1' ? 'reg-c1' : 'reg-c2';
+        var errId = which === 'j1' ? 'reg-c1-err' : 'reg-c2-err';
+        var inp = document.getElementById(inputId);
+        if (!inp) return;
+        filtrarCedulaJugador({ target: inp });
+        var c = (inp.value || '').trim();
+        if (which === 'j1') jugadorIdJ1 = null;
+        else jugadorIdJ2 = null;
+        setCedulaFieldError(inputId, errId, '');
+        if (!c) return;
+        try {
+            var jm = await import('/js/api/jugador-api.js');
+            var r = await jm.getJugadorByCedula(c);
+            if (r.error) {
+                setCedulaFieldError(inputId, errId, 'No se pudo buscar. Reintentá.');
+                return;
+            }
+            if (!r.data) {
+                setCedulaFieldError(inputId, errId, 'Cédula no registrada');
+                return;
+            }
+            if (which === 'j1') jugadorIdJ1 = r.data.id;
+            else jugadorIdJ2 = r.data.id;
+        } catch (e) {
+            setCedulaFieldError(inputId, errId, 'Error de red. Reintentá.');
+        }
+    }
+
     async function iniciarDesdeFase1() {
+        await onBlurCedulaDuelo('j1');
+        await onBlurCedulaDuelo('j2');
         var n1 = (document.getElementById('reg-n1').value || '').trim() || 'JUGADOR A';
         var n2 = (document.getElementById('reg-n2').value || '').trim() || 'JUGADOR B';
         var meta1 = parseInt(document.getElementById('reg-meta1').value, 10) || 3;
@@ -2052,6 +2116,16 @@
                 el.addEventListener('blur', filtrarCedulaJugador);
             }
         });
+        var elC1 = document.getElementById('reg-c1');
+        if (elC1) {
+            elC1.addEventListener('input', function () { onInputCedulaDuelo('j1'); });
+            elC1.addEventListener('blur', function () { onBlurCedulaDuelo('j1'); });
+        }
+        var elC2 = document.getElementById('reg-c2');
+        if (elC2) {
+            elC2.addEventListener('input', function () { onInputCedulaDuelo('j2'); });
+            elC2.addEventListener('blur', function () { onBlurCedulaDuelo('j2'); });
+        }
     })();
 </script>
 

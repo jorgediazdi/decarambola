@@ -304,8 +304,8 @@
 <script>
 /** TIMEOUTS de SESSION solo entienden jugador | organizador | partida — mapear desde profiles.role. */
 function _dcSessionRolDesdePerfil(profileRole) {
-    var r = String(profileRole || '').trim();
-    if (r === 'club_admin' || r === 'superadmin') return 'organizador';
+    var r = String(profileRole || '').trim().toLowerCase();
+    if (r === 'club_admin' || r === 'superadmin' || r === 'organizador') return 'organizador';
     return 'jugador';
 }
 import('/js/auth-manager.js').then(function (am) {
@@ -319,7 +319,7 @@ import('/js/auth-manager.js').then(function (am) {
     });
 }).then(function (rr) {
     var rawRol = !rr || rr.error ? '' : rr.data;
-    if (String(rawRol || '').trim() === 'organizador') {
+    if (String(rawRol || '').trim().toLowerCase() === 'organizador') {
         window.location.replace('/apps/organizador/organizador.html');
         return Promise.reject({ _dcAuthRedirect: true });
     }
@@ -469,8 +469,12 @@ async function cargarDatos() {
         var lr2 = await api.listMesas(clubId, { orderBy: 'numero' });
         list = lr2.data;
     } else {
-        var lr3 = await api.listMesasLimited(50);
-        list = lr3.data;
+        console.warn('cargarDatos: sin clubId — abortando carga de mesas');
+        mesasLista = [];
+        sesionesAbiertas = {};
+        var lbl = document.getElementById('lbl-salon');
+        if (lbl) lbl.textContent = 'Sin club asignado';
+        return;
     }
     mesasLista = (list || []).slice(0, 200);
     mesasLista.sort(function(a,b){ return (a.numero||0) - (b.numero||0); });
@@ -831,7 +835,7 @@ function actualizarCronos() {
 
 function dcUrlOverlayMarcador(matchUuid) {
     if (!matchUuid) return '';
-    return 'https://decarambola.com/overlay_marcador.html?match_id=' + encodeURIComponent(String(matchUuid).trim());
+    return window.location.origin + '/overlay_marcador.html?match_id=' + encodeURIComponent(String(matchUuid).trim());
 }
 
 function actualizarBloqueUrlOverlaySesion(sesionId) {
@@ -893,6 +897,7 @@ function copiarUrlOverlayMesa() {
 
 function abrirModal(mesaId) {
     if (window._dcBarmanMode) return;
+    if (document.body.classList.contains('salon-vista-jugador')) return;
     var m = mesasLista.find(function(x){ return x.id === mesaId; });
     if (!m) return;
     mesaSeleccionada = m;
@@ -1185,9 +1190,11 @@ function accionMesa(accion) {
         }).then(function () { refresh(); cerrarModal(); }).catch(function () {});
     } else if (accion === 'reservar') {
         var nombre = (prompt('Nombre para la reserva:') || '').trim() || 'Reserva';
+        var durInput = (prompt('Duración en minutos (ej: 60, 90, 120):') || '').trim();
+        var duracionMin = parseInt(durInput, 10);
+        if (isNaN(duracionMin) || duracionMin < 15 || duracionMin > 480) duracionMin = 60;
         var clubId = getClubId();
         var ahora = new Date();
-        var duracionMin = 60;
         _clubApi().then(function (api) {
             return api.insertMesasReservaRow({
                 mesa_id: m.id,
@@ -1202,7 +1209,14 @@ function accionMesa(accion) {
             return _clubApi().then(function (api2) {
                 return api2.updateMesa(m.id, { estado: 'reservada', updated_at: new Date().toISOString() });
             });
-        }).then(function () { refresh(); cerrarModal(); }).catch(function () {});
+        }).then(function () {
+            toastSalon('Reserva creada — ' + duracionMin + ' min para ' + nombre, 'ok');
+            refresh();
+            cerrarModal();
+        }).catch(function (e) {
+            console.error('[reservar mesa]', e);
+            toastSalon('No se pudo crear la reserva. Revisá tu conexión.', 'error');
+        });
     }
 }
 
