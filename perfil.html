@@ -2,16 +2,12 @@
 <html lang="es">
 <head>
 <script type="module">
-import { supabase } from '/js/supabase-client.js';
-
-const { data: sess } = await supabase.auth.getSession();
-if (!sess?.session) {
-  window.location.replace('/login.html?next=' + encodeURIComponent(window.location.pathname));
-}
+import { guardSalaPage } from '/js/sala-supabase-gate.js';
+await guardSalaPage({ pageTitle: 'Perfil' });
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#d4af37">
+<meta name="theme-color" content="#c9a84c">
 <title>Perfil — DeCarambola</title>
 <link rel="stylesheet" href="/css/dc-system.css">
 <script src="/js/dc-nav.js" defer></script>
@@ -19,7 +15,7 @@ if (!sess?.session) {
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;800&display=swap');
 
 :root{
-  --oro:#d4af37;--oro2:#f5e070;--negro:#050505;
+  --oro:#c9a84c;--oro2:#f5e070;--negro:#050505;
   --g1:#0f0f0f;--g2:#161616;--g3:#1e1e1e;
   --neon:#2eff70;--rojo:#e74c3c;--azul:#3498db;
 }
@@ -390,8 +386,6 @@ body{background:var(--negro);color:#fff;
     <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-app dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
 
 <div class="hdr">
   <div class="hdr-top">
@@ -920,20 +914,6 @@ function copiarLink(){
 }
 </script>
 <script src="whitelabel.js"></script>
-
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 
 <nav class="bottom-nav" aria-label="Navegación inferior">
   <a class="bottom-nav__item" href="/index.html">
