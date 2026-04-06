@@ -11,17 +11,19 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
     <meta name="description" content="Portal club DeCarambola — administración de sala, torneos y TV">
     <title>Portal club — DeCarambola</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- Rutas desde la raíz del sitio (/css/...) para que carguen bien en iPhone y al duplicar pantalla -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap">
     <link rel="stylesheet" href="/css/ux-shell.css">
     <link rel="stylesheet" href="/css/hub-sections.css">
     <style>
-        /* Si el CSS externo falla (404, red offline), la página sigue siendo legible */
-        html { background: #0b0b0b; }
+        html { background: #0a0a0a; }
         :root {
-            --text: #eaeaea;
-            --muted: #555;
-            --oro: #c9a84c;
-            --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            --text:   #e0d8c8;
+            --muted:  #555;
+            --oro:    #c9a84c;
+            --border: rgba(201,168,76,0.15);
+            --font:   'DM Sans', sans-serif;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -30,8 +32,8 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
             line-height: 1.5;
             min-height: 100vh;
             padding: calc(20px + env(safe-area-inset-top)) 18px calc(100px + env(safe-area-inset-bottom));
-            background: #0b0b0b;
-            color: #eaeaea;
+            background: #0a0a0a;
+            color: var(--text);
         }
         .hero, .dc-hub { position: relative; z-index: 5; }
         .hero {
@@ -39,7 +41,7 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
             margin: 0 auto 22px;
             text-align: center;
             padding-bottom: 20px;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            border-bottom: 1px solid var(--border);
         }
         .hero-eyebrow {
             font-size: 0.62rem;
@@ -49,20 +51,20 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
             font-weight: 600;
         }
         .hero h1 {
-            font-family: Georgia, 'Times New Roman', serif;
+            font-family: 'Playfair Display', serif;
             font-style: italic;
             font-size: 1.35rem;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.03em;
             color: var(--oro);
             margin: 12px 0 10px;
-            text-shadow: 0 0 28px rgba(212, 175, 55, 0.45);
+            text-shadow: 0 0 28px rgba(201,168,76,0.35);
         }
         .hero p {
             color: #666;
             font-size: 0.78rem;
             max-width: 360px;
             margin: 0 auto;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.02em;
         }
         .club-hero-logo-wrap {
             display: flex;
@@ -73,13 +75,13 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
             width: 88px;
             height: 88px;
             border-radius: 50%;
-            border: 1px solid rgba(212, 175, 55, 0.25);
+            border: 1px solid var(--border);
             background: linear-gradient(145deg, #14100a, #0a0806);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.4);
         }
         .club-access-gate {
             position: fixed;
@@ -88,22 +90,22 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(11, 11, 11, 0.98);
+            background: rgba(10,10,10,0.98);
             padding: 24px;
         }
         .club-access-gate__box {
             max-width: 380px;
             text-align: center;
+            font-family: var(--font);
         }
-        .club-access-gate__box a {
-            text-decoration: underline;
-        }
-        /* Enlaces globales al pie: no compiten con el hero ni con los recuadros del hub */
+        .club-access-gate__box a { text-decoration: underline; }
+
+        /* Footer */
         .club-portal-footer {
             max-width: 540px;
             margin: 28px auto 0;
             padding: 16px 8px 8px;
-            border-top: 1px solid rgba(212, 175, 55, 0.15);
+            border-top: 1px solid var(--border);
             display: flex;
             flex-wrap: wrap;
             gap: 10px 14px;
@@ -114,19 +116,20 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
             letter-spacing: 0.06em;
             color: #666;
             text-decoration: none;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            border-bottom: 1px solid var(--border);
             padding-bottom: 2px;
+            font-family: var(--font);
         }
-        .club-portal-footer a:hover, .club-portal-footer a:focus-visible {
+        .club-portal-footer a:hover,
+        .club-portal-footer a:focus-visible {
             color: var(--oro);
-            border-bottom-color: rgba(212, 175, 55, 0.45);
+            border-bottom-color: rgba(201,168,76,0.45);
             outline: none;
         }
     </style>
 </head>
 <body class="dc-ux dc-ux-skin">
 
-    <!-- Gate staff: club-portal-gate.js muestra esto hasta verificar sesión / rol -->
     <div id="club-access-gate" class="club-access-gate" style="display:flex" aria-live="polite">
         <div class="club-access-gate__box">
             <div id="club-gate-msg"><p style="color:#888;font-size:0.88rem;">Verificando acceso…</p></div>
@@ -147,7 +150,7 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
     <section class="dc-setup-guide" aria-label="Puesta en marcha">
         <h2 class="dc-setup-guide__title">Puesta en marcha</h2>
         <p style="font-size:0.78rem;color:#888;margin-bottom:12px;line-height:1.45;">
-            <a href="/apps/club/solicitud_config.html" style="color:#d4af37;text-decoration:underline;">Solicitud de configuración de club</a> (alta o cambio de datos; requiere aprobación del administrador de la plataforma antes de guardar salón y tarifas en el sistema).
+            <a href="/apps/club/solicitud_config.html" style="color:var(--oro);text-decoration:underline;">Solicitud de configuración de club</a> (alta o cambio de datos; requiere aprobación del administrador de la plataforma antes de guardar salón y tarifas en el sistema).
         </p>
         <p class="dc-setup-guide__lead">Orden recomendado: cuenta y club → marca → salón → tarifas → cámaras → TV. Los pasos 1–4 usan <strong>este navegador</strong>; si ya guardaste el salón en el servidor, al entrar al portal se <strong>sincroniza</strong> lo guardado en Supabase. Los pasos 5–6 se marcan con el botón o desde datos del club.</p>
         <div class="dc-setup-guide__bar" role="progressbar" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" aria-label="Pasos completados">
@@ -161,7 +164,7 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
             </li>
             <li data-step="2">
                 <a href="/apps/club/sala/admin_sede.html">Configurar sede (marca)</a>
-                <span class="dc-setup-guide__hint">Nombre y logo del club en el sistema (no “GLOBAL”).</span>
+                <span class="dc-setup-guide__hint">Nombre y logo del club en el sistema (no "GLOBAL").</span>
             </li>
             <li data-step="3">
                 <a href="/apps/club/sala/mesas_config.html">Configurar instalaciones (salón)</a>
@@ -191,7 +194,7 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
     <div class="dc-hub dc-hub--club club-hub-main" id="club-hub-main">
         <p class="dc-hub-lead"><strong>Abajo:</strong> 6 áreas del portal. Arriba tenés el checklist en orden. Toca cada bloque para desplegar. Con <strong>cuenta y permisos</strong> podrás ocultar las que no uses.</p>
 
-        <!-- 1 · Operación diaria -->
+        <!-- 1 · Salón y recepción -->
         <details class="dc-hub-fold" open>
             <summary class="dc-hub-fold__sum">
                 <span class="dc-hub-fold__kbd">1</span>
@@ -266,7 +269,7 @@ await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'su
             </div>
         </details>
 
-        <!-- 3 · Marca y socios -->
+        <!-- 3 · Club y marca -->
         <details class="dc-hub-fold">
             <summary class="dc-hub-fold__sum">
                 <span class="dc-hub-fold__kbd">3</span>
