@@ -1,0 +1,8 @@
+# Reglas De Carambola Suite
+- Fechas: siempre type="date" nativo, nunca type="text" con placeholder dd/mm/aaaa
+- SQL: siempre IF NOT EXISTS y ADD COLUMN IF NOT EXISTS  
+- club_id es text, usar btrim() en RLS
+- urls_camaras es jsonb array en mesas, no columna separada
+- Vista sesiones_mesa es solo lectura, INSERT/UPDATE siempre a mesas_historial
+- Nunca tocar supabase/_bundle_rls_y_mesas_referencia.sql
+- Commits: feat/fix/chore(scope): descripción

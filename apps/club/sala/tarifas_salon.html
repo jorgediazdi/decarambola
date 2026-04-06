@@ -911,7 +911,7 @@ async function guardarTarifas() {
     var sr = await auth.getSession();
     if (sr.error || !sr.data) { mostrarToastTarifas('Iniciá sesión para guardar tarifas.'); return; }
     var rr = await auth.getRole();
-    if (rr.error || rr.data !== 'club_admin') { mostrarToastTarifas('Solo el administrador del club puede editar tarifas.'); return; }
+    if (rr.error || (rr.data !== 'club_admin' && rr.data !== 'superadmin')) { mostrarToastTarifas('Solo el administrador del club puede editar tarifas.'); return; }
     var dm = parseFloat(document.getElementById('descuento_manana').value) || 0;
     var dn = parseFloat(document.getElementById('descuento_noche').value) || 0;
     var df = parseFloat(document.getElementById('descuento_finde').value) || 0;

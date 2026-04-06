@@ -59,6 +59,8 @@
         .campo input:focus, .campo select:focus, .campo textarea:focus { border-color:var(--oro-mid); }
         .campo textarea { min-height:70px; resize:vertical; }
         .campo select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
+        .campo input[type="date"] { appearance:auto; -webkit-appearance:auto; min-height:44px; color-scheme:dark; }
+        .campo input[type="date"]::-webkit-calendar-picker-indicator { cursor:pointer; opacity:1; filter:invert(0.85); }
         .semaforo-item { padding:12px 14px; background:var(--fondo3); border-radius:12px; margin-bottom:8px; border-left:3px solid #333; }
         .semaforo-item.optimo { border-left-color:var(--verde); }
         .semaforo-item.desgaste { border-left-color:var(--naranja); }
@@ -109,14 +111,22 @@
         .btn-paso.sec:hover { border-color:var(--oro-mid); color:var(--oro); }
         .btn-paso.azul { background:rgba(52,152,219,0.15); color:var(--azul); border:1px solid rgba(52,152,219,0.25); }
         .btn-paso.azul:hover { background:rgba(52,152,219,0.25); }
+        .btn-paso:disabled,.btn-paso.sec:disabled,.btn-paso.azul:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+        .btn-paso:disabled:hover,.btn-paso.sec:disabled:hover,.btn-paso.azul:disabled:hover { opacity:0.5; transform:none; }
         .ficha-minihelp { font-size:0.65rem; color:var(--texto2); line-height:1.55; margin-bottom:14px; padding:10px 12px; background:var(--fondo3); border-radius:10px; border:1px solid var(--borde); }
         .ficha-minihelp code { color:#555; font-family:monospace; }
         .vacio { text-align:center; color:var(--texto2); font-size:0.68rem; padding:20px; }
+        .ficha-toast-host { position:fixed; left:50%; bottom:max(24px,env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:200; pointer-events:none; max-width:min(420px,calc(100vw - 32px)); }
+        .ficha-toast { padding:12px 16px; border-radius:12px; font-size:0.8rem; line-height:1.45; font-weight:500; box-shadow:0 8px 28px rgba(0,0,0,0.5); opacity:0; transition:opacity .25s ease; }
+        .ficha-toast--visible { opacity:1; }
+        .ficha-toast--success { background:linear-gradient(135deg,rgba(46,204,113,0.98),rgba(39,174,96,0.98)); color:#0a0a0a; border:1px solid rgba(46,204,113,1); }
+        .ficha-toast--error { background:linear-gradient(135deg,rgba(231,76,60,0.98),rgba(192,57,43,0.98)); color:#fff; border:1px solid rgba(231,76,60,1); }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
     <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
+<div id="ficha-toast-host" class="ficha-toast-host" aria-live="polite" aria-atomic="true"></div>
 <div class="stars" id="stars-bg" aria-hidden="true"></div>
 <div class="header">
     <div style="flex:1;min-width:0;">
@@ -156,12 +166,12 @@
         <div class="campo" id="wrap_tarifa_input" style="display:none;">
             <label>Tarifa por hora</label>
             <input type="number" id="ficha_tarifa_hora" min="0" step="0.01" inputmode="decimal" autocomplete="off" placeholder="Ej: 15000">
-            <button type="button" class="btn-paso" style="margin-top:10px;" onclick="guardarTarifaMesa()">GUARDAR TARIFA</button>
+            <button type="button" class="btn-paso" style="margin-top:10px;" data-ficha-busy onclick="guardarTarifaMesa()">GUARDAR TARIFA</button>
         </div>
     </div>
     <div class="ficha-card" id="card_hoja_vida">
         <div class="ficha-titulo">Hoja de vida de la mesa</div>
-        <p class="ficha-minihelp">Fecha de compra, paño, próximo cambio, monitor y notas. Se guardan en la nube (<code>hoja_vida</code> en Supabase).</p>
+        <p class="ficha-minihelp">Fecha de compra, paño, próximo cambio, monitor y notas. Los datos se guardan automáticamente en la nube.</p>
         <div id="alerta_pano_banner" style="display:none;" class="alerta-pano"></div>
         <div class="campo"><label>Fecha de compra</label><input type="date" id="hv_fecha_compra"></div>
         <div class="campo"><label>Detalle de la compra (proveedor, factura, serie, valor…)</label><textarea id="hv_detalle_compra" placeholder="Ej: Billares López, factura F-10234…"></textarea></div>
@@ -173,17 +183,17 @@
         <div class="campo"><label>Notas del monitor / equipo audiovisual</label><textarea id="hv_notas_monitor" placeholder="Modelo, IP, credenciales…"></textarea></div>
         <div id="monitor_preview_wrap" class="monitor-preview" style="display:none;"></div>
         <a id="monitor_abrir" class="btn-link-monitor" href="#" target="_blank" rel="noopener" style="display:none;">Abrir monitor en pestaña nueva →</a>
-        <button type="button" class="btn-paso" onclick="guardarHojaVida()">GUARDAR HOJA DE VIDA</button>
-        <button type="button" class="btn-paso sec" onclick="registrarCambioPanoHoy()" style="margin-top:8px;">MARCAR CAMBIO DE PAÑO HOY</button>
+        <button type="button" class="btn-paso" data-ficha-busy onclick="guardarHojaVida()">GUARDAR HOJA DE VIDA</button>
+        <button type="button" class="btn-paso sec" data-ficha-busy onclick="solicitarCambioPanoHoy()" style="margin-top:8px;">MARCAR CAMBIO DE PAÑO HOY</button>
         <div class="campo" style="margin-top:16px;"><label>Nota libre para el historial</label><textarea id="hv_nota_crono" placeholder="Incidencias, actas, observaciones…"></textarea></div>
-        <button type="button" class="btn-paso sec" onclick="agregarNotaCronologia()">AÑADIR NOTA AL HISTORIAL</button>
+        <button type="button" class="btn-paso sec" data-ficha-busy onclick="agregarNotaCronologia()">AÑADIR NOTA AL HISTORIAL</button>
     </div>
     <div class="ficha-card" id="card_camara">
         <div class="ficha-titulo">Cámaras / streams</div>
         <p class="ficha-minihelp">Varias cámaras por instalación. La primera URL se usa por defecto en transmisión.</p>
         <div id="lista_camaras"></div>
-        <button type="button" class="btn-paso sec" onclick="anadirCamara()" style="margin-top:8px;">+ AÑADIR CÁMARA</button>
-        <button type="button" class="btn-paso" onclick="guardarCamaras()" style="margin-top:8px;">GUARDAR CÁMARAS</button>
+        <button type="button" class="btn-paso sec" data-ficha-busy onclick="anadirCamara()" style="margin-top:8px;">+ AÑADIR CÁMARA</button>
+        <button type="button" class="btn-paso" data-ficha-busy onclick="guardarCamaras()" style="margin-top:8px;">GUARDAR CÁMARAS</button>
     </div>
     <div class="ficha-card" id="card_alertas" style="display:none;">
         <div class="ficha-titulo">Alertas automáticas</div>
@@ -214,7 +224,7 @@
         <div class="campo"><label>Costo</label><input type="number" id="mant_costo" min="0" step="0.01" placeholder="0"></div>
         <div class="campo"><label>Responsable</label><input type="text" id="mant_responsable" placeholder="Nombre"></div>
         <div class="campo"><label>Componente afectado (opcional)</label><select id="mant_componente"><option value="">— Ninguno —</option></select></div>
-        <button type="button" class="btn-paso" onclick="guardarMantenimiento()">GUARDAR</button>
+        <button type="button" class="btn-paso" data-ficha-busy onclick="guardarMantenimiento()">GUARDAR</button>
         <button type="button" class="btn-paso sec" onclick="document.getElementById('form_mant').style.display='none'">Cancelar</button>
     </div>
     <div class="ficha-card">
@@ -247,6 +257,41 @@ function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').repla
 function fmtFecha(ts){if(!ts)return'—';try{var d=new Date(ts);return d.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});}catch(e){return String(ts);}}
 function fmtDuracion(seg){if(!seg||seg<=0)return'—';var h=Math.floor(seg/3600),m=Math.floor((seg%3600)/60),s=seg%60;if(h>0)return h+'h '+m+'m';if(m>0)return m+'m '+s+'s';return s+'s';}
 function fmtMoney(n){if(n==null||isNaN(n))return'—';return'$'+Math.round(n).toLocaleString('es-CO');}
+
+var _fichaToastShowT=null,_fichaToastHideT=null;
+function showToast(msg,kind){
+    kind=kind==='error'?'error':'success';
+    var host=document.getElementById('ficha-toast-host');
+    if(!host)return;
+    if(_fichaToastShowT){clearTimeout(_fichaToastShowT);_fichaToastShowT=null;}
+    if(_fichaToastHideT){clearTimeout(_fichaToastHideT);_fichaToastHideT=null;}
+    host.innerHTML='';
+    var el=document.createElement('div');
+    el.className='ficha-toast ficha-toast--'+kind;
+    el.setAttribute('role','status');
+    el.textContent=msg;
+    host.appendChild(el);
+    requestAnimationFrame(function(){el.classList.add('ficha-toast--visible');});
+    _fichaToastShowT=setTimeout(function(){
+        _fichaToastShowT=null;
+        el.classList.remove('ficha-toast--visible');
+        _fichaToastHideT=setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);_fichaToastHideT=null;},280);
+    },3000);
+}
+function toastError(err){
+    var m='Error desconocido';
+    if(err==null)return m;
+    if(typeof err==='string')return err;
+    if(err.message)return String(err.message);
+    return String(err);
+}
+
+function setFichaBusy(on){
+    document.querySelectorAll('button.btn-paso[data-ficha-busy]').forEach(function(b){
+        b.disabled=!!on;
+        if(on)b.setAttribute('aria-busy','true');else b.removeAttribute('aria-busy');
+    });
+}
 
 async function cargarFicha(){
     var params=new URLSearchParams(window.location.search);
@@ -298,7 +343,8 @@ function renderTarifaMesa(){
 
 async function guardarTarifaMesa(){
     var val=parseFloat(document.getElementById('ficha_tarifa_hora').value)||0;
-    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{tarifa_hora:val>0?val:null,updated_at:new Date().toISOString()});alert(ur.error?'Error al guardar tarifa.':'Tarifa guardada.');}catch(e){alert('Error: '+e.message);}
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{tarifa_hora:val>0?val:null,updated_at:new Date().toISOString()});if(ur.error)showToast(toastError(ur.error),'error');else showToast('Tarifa guardada.','success');}catch(e){showToast(toastError(e),'error');}finally{setFichaBusy(false);}
 }
 
 function renderHojaVida(){
@@ -342,14 +388,23 @@ function renderMonitor(){
 }
 
 async function guardarHojaVida(){
-    hojaVida.fecha_compra=(document.getElementById('hv_fecha_compra').value||'').trim()||null;
+    var fc=(document.getElementById('hv_fecha_compra').value||'').trim();
+    var fp=(document.getElementById('hv_fecha_pano').value||'').trim();
+    if(fc&&fp&&fc>fp){showToast('La fecha de compra no puede ser posterior al último cambio de paño.','error');return;}
+    hojaVida.fecha_compra=fc||null;
     hojaVida.detalle_compra=(document.getElementById('hv_detalle_compra').value||'').trim()||null;
-    hojaVida.fecha_ultimo_cambio_pano=(document.getElementById('hv_fecha_pano').value||'').trim()||null;
+    hojaVida.fecha_ultimo_cambio_pano=fp||null;
     hojaVida.meses_intervalo_pano=parseInt(document.getElementById('hv_meses_pano').value,10)||12;
     hojaVida.fecha_proximo_pano_manual=(document.getElementById('hv_fecha_proximo_pano').value||'').trim()||null;
     hojaVida.url_monitor=(document.getElementById('hv_url_monitor').value||'').trim()||null;
     hojaVida.notas_monitor=(document.getElementById('hv_notas_monitor').value||'').trim()||null;
-    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{hoja_vida:hojaVida,updated_at:new Date().toISOString()});if(ur.error){alert('Error: '+(ur.error.message||ur.error));return;}mesa.hoja_vida=hojaVida;calcProximoPano();renderAlertaPano();renderMonitor();alert('Hoja de vida guardada.');}catch(e){alert('Error: '+e.message);}
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{hoja_vida:hojaVida,updated_at:new Date().toISOString()});if(ur.error){showToast(toastError(ur.error),'error');return;}mesa.hoja_vida=hojaVida;calcProximoPano();renderAlertaPano();renderMonitor();showToast('Hoja de vida guardada.','success');}catch(e){showToast(toastError(e),'error');}finally{setFichaBusy(false);}
+}
+
+function solicitarCambioPanoHoy(){
+    if(!confirm('¿Confirmar cambio de paño hoy? Esta acción quedará registrada en el historial'))return;
+    registrarCambioPanoHoy();
 }
 
 async function registrarCambioPanoHoy(){
@@ -358,15 +413,17 @@ async function registrarCambioPanoHoy(){
     hojaVida.fecha_ultimo_cambio_pano=hoy;
     if(!hojaVida.cronologia)hojaVida.cronologia=[];
     hojaVida.cronologia.push({fecha:new Date().toISOString(),titulo:'Cambio de paño',detalle:'Registrado desde ficha.'});
-    try{var api=await _clubApiFicha();await api.updateMesa(mesaId,{hoja_vida:hojaVida,updated_at:new Date().toISOString()});calcProximoPano();renderAlertaPano();alert('Cambio de paño registrado.');}catch(e){alert('Error: '+e.message);}
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{hoja_vida:hojaVida,updated_at:new Date().toISOString()});if(ur.error){showToast(toastError(ur.error),'error');return;}calcProximoPano();renderAlertaPano();showToast('Cambio de paño registrado.','success');}catch(e){showToast(toastError(e),'error');}finally{setFichaBusy(false);}
 }
 
 async function agregarNotaCronologia(){
     var txt=(document.getElementById('hv_nota_crono').value||'').trim();
-    if(!txt){alert('Escribí una nota primero.');return;}
+    if(!txt){showToast('Escribí una nota primero.','error');return;}
     if(!hojaVida.cronologia)hojaVida.cronologia=[];
     hojaVida.cronologia.push({fecha:new Date().toISOString(),titulo:'Nota',detalle:txt});
-    try{var api=await _clubApiFicha();await api.updateMesa(mesaId,{hoja_vida:hojaVida,updated_at:new Date().toISOString()});document.getElementById('hv_nota_crono').value='';renderHistoriaCompleta();alert('Nota agregada.');}catch(e){alert('Error: '+e.message);}
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{hoja_vida:hojaVida,updated_at:new Date().toISOString()});if(ur.error){if(hojaVida.cronologia&&hojaVida.cronologia.length)hojaVida.cronologia.pop();showToast(toastError(ur.error),'error');return;}document.getElementById('hv_nota_crono').value='';renderHistoriaCompleta();showToast('Nota agregada.','success');}catch(e){if(hojaVida.cronologia&&hojaVida.cronologia.length)hojaVida.cronologia.pop();showToast(toastError(e),'error');}finally{setFichaBusy(false);}
 }
 
 function renderCamaras(){
@@ -383,7 +440,8 @@ function anadirCamara(){document.getElementById('lista_camaras').appendChild(cre
 async function guardarCamaras(){
     var filas=document.querySelectorAll('#lista_camaras .fila-camara'),cams=[];
     filas.forEach(function(f){var nombre=f.querySelector('.nom-camara').value.trim(),url=f.querySelector('.url-camara').value.trim();if(url)cams.push({nombre:nombre||'Cámara',url});});
-    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{camaras:cams,updated_at:new Date().toISOString()});alert(ur.error?'Error al guardar cámaras.':'Cámaras guardadas ('+cams.length+').');}catch(e){alert('Error: '+e.message);}
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{camaras:cams,updated_at:new Date().toISOString()});if(ur.error)showToast(toastError(ur.error),'error');else showToast('Cámaras guardadas ('+cams.length+').','success');}catch(e){showToast(toastError(e),'error');}finally{setFichaBusy(false);}
 }
 
 function renderSemaforo(){
@@ -416,8 +474,10 @@ async function renderMantenimientos(){
 }
 function mostrarFormMant(){var f=document.getElementById('form_mant');f.style.display=f.style.display==='none'?'':'none';}
 async function guardarMantenimiento(){
-    var tipo=document.getElementById('mant_tipo').value,desc=document.getElementById('mant_desc').value.trim(),costo=parseFloat(document.getElementById('mant_costo').value)||0,responsable=document.getElementById('mant_responsable').value.trim(),componente=document.getElementById('mant_componente').value;
-    try{var api=await _clubApiFicha();var payload={mesa_id:mesaId,tipo,descripcion:desc||null,costo:costo||null,responsable:responsable||null,componente_id:componente||null,fecha:new Date().toISOString()};var ur=await api.createMantenimiento(payload);if(ur.error){alert('Error: '+(ur.error.message||ur.error));return;}document.getElementById('form_mant').style.display='none';renderMantenimientos();alert('Mantenimiento registrado.');}catch(e){alert('Error: '+e.message);}
+    var tipo=document.getElementById('mant_tipo').value,desc=document.getElementById('mant_desc').value.trim(),costoStr=(document.getElementById('mant_costo').value||'').trim(),responsable=document.getElementById('mant_responsable').value.trim(),componente=document.getElementById('mant_componente').value;
+    var costo=costoStr===''?null:parseFloat(costoStr);if(costoStr!==''&&(isNaN(costo)||costo<0)){showToast('Costo inválido.','error');return;}
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var payload={mesa_id:mesaId,tipo,descripcion:desc||null,costo:costo,responsable:responsable||null,componente_id:componente||null,fecha:new Date().toISOString()};var ur=await api.createMantenimiento(payload);if(ur.error){showToast(toastError(ur.error),'error');return;}document.getElementById('form_mant').style.display='none';renderMantenimientos();showToast('Mantenimiento registrado.','success');}catch(e){showToast(toastError(e),'error');}finally{setFichaBusy(false);}
 }
 
 function renderHistoriaCompleta(){

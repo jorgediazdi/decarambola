@@ -337,12 +337,22 @@ let mesasIndex = {};
 let filtroEstado = 'pendiente';
 let loadDone = false;
 
-function getClubId() {
-    if (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) return MasterVIP.getClubId();
+async function getClubId() {
+    try {
+        var auth = await import('/js/auth-manager.js');
+        var r = await auth.getClubId();
+        if (r && r.data) return r.data;
+    } catch (e) {}
     try {
         var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-        return perfil.club_id || null;
-    } catch (e) { return null; }
+        if (perfil.club_id) return perfil.club_id;
+    } catch (e) {}
+    try {
+        var club = JSON.parse(localStorage.getItem('club_activo') || 'null');
+        if (club && club.codigo) return club.codigo;
+        if (club && club.id) return club.id;
+    } catch (e) {}
+    return null;
 }
 
 function clubNombreContexto() {
@@ -486,7 +496,7 @@ async function actualizarReserva(id, nuevoEstado) {
             }
         }
         var api = await import('/js/api/club-api.js');
-        await api.updateMesasReservaRow(id, { estado: nuevoEstado, updated_at: new Date().toISOString() });
+        await api.updateMesasReservaRow(id, { estado: nuevoEstado });
         reservas = reservas.map(function(r){ if (r.id === id) r.estado = nuevoEstado; return r; });
         pintarReservas();
         toast(nuevoEstado === 'confirmada' ? 'Reserva confirmada.' : 'Reserva cancelada.', 'ok');
@@ -530,7 +540,7 @@ function showError(msg) {
 async function cargarDatos() {
     loadDone = false;
     showLoading();
-    var clubId = getClubId();
+    var clubId = await getClubId();
     var nom = clubNombreContexto();
 
     if (!clubId) {

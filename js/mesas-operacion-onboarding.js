@@ -53,6 +53,14 @@
      * @returns {Promise<{ ok: boolean, faltan: string[], mensaje: string }>}
      */
     window.DC_mesasOperacionCheckOnboarding = async function () {
+        try {
+            var authMod = await import("./auth-manager.js");
+            var roleR = await authMod.getRole();
+            if (!roleR.error && roleR.data === "superadmin") {
+                return { ok: true, faltan: [], mensaje: "" };
+            }
+        } catch (_eRole) {}
+
         var faltan = [];
         var cid = getClubIdFromLocalStorage();
         if (!cid) {
@@ -193,58 +201,66 @@
         st.id = "dc-mesas-gate-ui-css";
         st.textContent =
             "#dc-mesas-onboarding-gate.dc-mesas-gate-root{" +
-            "position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.92);" +
+            "position:fixed;inset:0;z-index:200;" +
+            "background:rgba(10,10,10,0.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);" +
             "display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;" +
-            "font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;" +
+            "font-family:var(--dc-font-body,'DM Sans',system-ui,sans-serif);" +
             "}" +
-            ".dc-mesas-gate-board{width:100%;max-width:min(560px,100%);border:4px solid #0a0a0a;" +
-            "border-radius:2px;overflow:hidden;box-shadow:0 0 0 2px #2a2a2a,0 22px 56px rgba(0,0,0,0.85);" +
+            ".dc-mesas-gate-board{" +
+            "width:100%;max-width:min(520px,100%);" +
+            "background:var(--dc-surface,#111111);" +
+            "border:1px solid var(--dc-border,rgba(201,168,76,0.12));" +
+            "border-radius:14px;overflow:hidden;" +
+            "box-shadow:0 24px 64px rgba(0,0,0,0.5),inset 0 0 0 1px var(--dc-gold-glow2,rgba(201,168,76,0.06));" +
             "}" +
-            ".dc-mesas-gate-stripes{" +
-            "background:repeating-linear-gradient(180deg,#0c0c0c 0,#0c0c0c 7px,#141414 7px,#141414 14px);" +
+            ".dc-mesas-gate-title{margin:0;padding:18px 20px 16px;font-weight:700;" +
+            "font-family:var(--dc-font-display,'Playfair Display',Georgia,serif);" +
+            "font-size:clamp(0.85rem,3.5vw,1.05rem);letter-spacing:0.1em;text-transform:uppercase;" +
+            "text-align:center;line-height:1.35;border-bottom:1px solid var(--dc-border,rgba(201,168,76,0.12));" +
             "}" +
-            ".dc-mesas-gate-title{margin:0;padding:20px 18px 18px;font-weight:800;" +
-            "font-size:clamp(0.62rem,3.2vw,0.88rem);letter-spacing:0.32em;text-transform:uppercase;" +
-            "text-align:center;line-height:1.4;border-bottom:4px solid #000;" +
+            ".dc-mesas-gate-title--warn{" +
+            "color:var(--dc-gold-light,#e8c97a);background:var(--dc-gold-glow,rgba(201,168,76,0.12));" +
             "}" +
-            ".dc-mesas-gate-title--error{color:#e74c3c;text-shadow:0 0 24px rgba(231,76,60,0.45);" +
-            "background:linear-gradient(180deg,rgba(231,76,60,0.2) 0%,rgba(0,0,0,0.4) 100%);" +
+            ".dc-mesas-gate-title--error{" +
+            "color:#e8a0a0;background:rgba(231,76,60,0.08);border-bottom-color:rgba(231,76,60,0.2);" +
             "}" +
-            ".dc-mesas-gate-title--warn{color:#e67e22;text-shadow:0 0 24px rgba(230,126,34,0.4);" +
-            "background:linear-gradient(180deg,rgba(230,126,34,0.18) 0%,rgba(0,0,0,0.4) 100%);" +
+            ".dc-mesas-gate-body{margin:0;padding:20px 22px;background:var(--dc-surface,#111111);" +
+            "color:var(--dc-text,#f0f0f0);font-size:0.84rem;line-height:1.58;white-space:pre-wrap;text-align:left;" +
+            "border-bottom:1px solid var(--dc-border,rgba(201,168,76,0.12));" +
             "}" +
-            ".dc-mesas-gate-body{margin:0;padding:20px 22px;background:#050505;color:#fff;" +
-            "font-size:0.84rem;line-height:1.58;white-space:pre-wrap;text-align:left;border-bottom:3px solid #1f1f1f;" +
+            ".dc-mesas-gate-foot{margin:0;padding:12px 18px;background:var(--dc-surface2,#1a1a1a);" +
+            "color:var(--dc-text-muted,#888);font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;" +
+            "text-align:center;line-height:1.45;border-bottom:1px solid var(--dc-border,rgba(201,168,76,0.1));" +
             "}" +
-            ".dc-mesas-gate-foot{margin:0;padding:12px 18px;background:#080808;color:#7f8c8d;" +
-            "font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;text-align:center;line-height:1.45;" +
-            "border-bottom:3px solid #1a1a1a;" +
-            "}" +
-            ".dc-mesas-gate-badges{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;" +
-            "padding:18px 14px;" +
-            "background:repeating-linear-gradient(180deg,#101010 0,#101010 5px,#0a0a0a 5px,#0a0a0a 10px);" +
+            ".dc-mesas-gate-badges{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;" +
+            "padding:16px 18px;background:var(--dc-bg,#0a0a0a);" +
             "}" +
             ".dc-mesas-gate-badge{display:inline-flex;align-items:center;justify-content:center;" +
-            "padding:12px 18px;min-height:44px;font-size:0.58rem;font-weight:800;letter-spacing:0.2em;" +
-            "text-transform:uppercase;text-decoration:none;border-radius:2px;border:2px solid;cursor:pointer;" +
-            "font-family:inherit;box-sizing:border-box;box-shadow:inset 0 1px 0 rgba(255,255,255,0.07);" +
-            "transition:border-color 0.15s,color 0.15s,background 0.15s;" +
+            "padding:12px 16px;min-height:44px;font-size:0.55rem;font-weight:600;letter-spacing:0.12em;" +
+            "text-transform:uppercase;text-decoration:none;border-radius:14px;border:1px solid;cursor:pointer;" +
+            "font-family:var(--dc-font-body,'DM Sans',system-ui,sans-serif);box-sizing:border-box;" +
+            "transition:border-color 0.2s,color 0.2s,background 0.2s;" +
             "}" +
-            ".dc-mesas-gate-badge:focus-visible{outline:2px solid #fff;outline-offset:2px;}" +
-            ".dc-mesas-gate-badge--primary{background:linear-gradient(180deg,#252525 0%,#121212 100%);" +
-            "color:#e67e22;border-color:#e67e22;}" +
+            ".dc-mesas-gate-badge:focus-visible{outline:2px solid var(--dc-gold,#c9a84c);outline-offset:2px;}" +
+            ".dc-mesas-gate-badge--primary{" +
+            "background:rgba(201,168,76,0.12);color:var(--dc-gold-light,#e8c97a);" +
+            "border-color:rgba(201,168,76,0.35);" +
+            "}" +
             ".dc-mesas-gate-badge--primary:hover,.dc-mesas-gate-badge--primary:focus-visible{" +
-            "background:linear-gradient(180deg,#2f2f2f 0%,#1a1a1a 100%);color:#f39c12;border-color:#f39c12;" +
+            "background:rgba(201,168,76,0.18);border-color:var(--dc-gold,#c9a84c);color:var(--dc-gold,#c9a84c);" +
             "}" +
-            ".dc-mesas-gate-badge--secondary{background:linear-gradient(180deg,#1c1c1c 0%,#0e0e0e 100%);" +
-            "color:#ecf0f1;border-color:#4a4a4a;}" +
+            ".dc-mesas-gate-badge--secondary{" +
+            "background:var(--dc-surface2,#1a1a1a);color:var(--dc-text-muted,#888);" +
+            "border-color:var(--dc-border,rgba(201,168,76,0.12));" +
+            "}" +
             ".dc-mesas-gate-badge--secondary:hover,.dc-mesas-gate-badge--secondary:focus-visible{" +
-            "border-color:#95a5a6;color:#fff;" +
+            "border-color:var(--dc-border-hover,rgba(201,168,76,0.3));color:var(--dc-text,#f0f0f0);" +
             "}" +
-            ".dc-mesas-gate-badge--retry{background:linear-gradient(180deg,#1a2e22 0%,#0d1810 100%);" +
-            "color:#2ecc71;border-color:#27ae60;}" +
+            ".dc-mesas-gate-badge--retry{" +
+            "background:rgba(46,204,113,0.1);color:#4caf7d;border-color:rgba(46,204,113,0.35);" +
+            "}" +
             ".dc-mesas-gate-badge--retry:hover,.dc-mesas-gate-badge--retry:focus-visible{" +
-            "border-color:#2ecc71;color:#58d68d;" +
+            "border-color:#4caf7d;color:#6fcf97;" +
             "}";
         document.head.appendChild(st);
     }
@@ -273,7 +289,7 @@
         el.setAttribute("aria-labelledby", "dc-mesas-gate-title-txt");
 
         el.innerHTML =
-            '<div class="dc-mesas-gate-board dc-mesas-gate-stripes">' +
+            '<div class="dc-mesas-gate-board">' +
             '<p id="dc-mesas-gate-title-txt" class="dc-mesas-gate-title ' +
             titleMod +
             '">' +
