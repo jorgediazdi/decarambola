@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
 <script type="module">
-import { guardSalaPage } from '/js/sala-supabase-gate.js';
-await guardSalaPage({ pageTitle: 'Perfil' });
+import { guardSalaPage } from '/js/auth-manager.js';
+guardSalaPage('jugador');
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
