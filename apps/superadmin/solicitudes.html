@@ -1,237 +1,516 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <script type="module">
-      import { getSession, getRole } from '/js/auth-manager.js';
-      const s = await getSession();
-      if (!s?.data) window.location.replace('/auth.html');
-      const r = await getRole();
-      if (r?.data !== 'superadmin') window.location.replace('/auth.html');
-      try { sessionStorage.setItem('plataforma_superadmin_activo', 'true'); } catch (e) {}
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0b0b0b">
-    <title>Solicitudes de club — Superadmin</title>
-    <link rel="stylesheet" href="/css/ux-shell.css">
-    <style>
-        :root { --oro: #d4af37; --azul: #3498db; --neon: #2eff70; --rojo: #e74c3c; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0b0b0b; color: #e8eaed; font-family: system-ui, sans-serif; min-height: 100vh; padding: 18px 16px 48px; }
-        .header { max-width: 640px; margin: 0 auto 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .header h1 { font-size: 1rem; letter-spacing: 0.06em; color: var(--oro); flex: 1; min-width: 200px; }
-        .header a { color: #888; font-size: 0.8rem; text-decoration: none; }
-        .header a:hover { color: var(--oro); }
-        .filtros { max-width: 640px; margin: 0 auto 16px; display: flex; gap: 8px; flex-wrap: wrap; }
-        .filtros button {
-            padding: 8px 14px;
-            border-radius: 10px;
-            border: 1px solid #2a2a2a;
-            background: #111;
-            color: #888;
-            font-size: 0.72rem;
-            cursor: pointer;
-        }
-        .filtros button.activo { border-color: var(--azul); color: var(--azul); }
-        .lista { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
-        .card {
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
-            border-radius: 16px;
-            padding: 16px;
-            font-size: 0.85rem;
-            line-height: 1.5;
-        }
-        .card.pendiente { border-color: rgba(52, 152, 219, 0.25); }
-        .card h3 { color: var(--oro); font-size: 0.95rem; margin-bottom: 10px; }
-        .card dl { display: grid; gap: 6px; }
-        .card dt { color: #666; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; }
-        .card dd { margin: 0 0 8px 0; }
-        .card textarea {
-            width: 100%;
-            min-height: 64px;
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid #222;
-            background: #080808;
-            color: #ddd;
-            font-family: inherit;
-            font-size: 0.85rem;
-        }
-        .acciones { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-        .btn {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 0.75rem;
-            cursor: pointer;
-            letter-spacing: 0.06em;
-        }
-        .btn-aprob { background: var(--neon); color: #000; }
-        .btn-rec { background: rgba(231, 76, 60, 0.2); color: var(--rojo); border: 1px solid rgba(231, 76, 60, 0.4); }
-        .empty { text-align: center; color: #555; padding: 40px 20px; max-width: 640px; margin: 0 auto; }
-        .loading { text-align: center; color: #666; padding: 24px; }
-        .err { color: var(--rojo); font-size: 0.82rem; margin-top: 8px; }
-    </style>
+  <script type="module">
+    import { getSession, getRole } from '/js/auth-manager.js';
+    const s = await getSession();
+    if (!s?.data) window.location.replace('/auth.html');
+    const r = await getRole();
+    if (r?.data !== 'superadmin') window.location.replace('/auth.html');
+    try { sessionStorage.setItem('plataforma_superadmin_activo', 'true'); } catch (e) {}
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Solicitudes de club — Superadmin</title>
+  <link rel="stylesheet" href="/css/ux-shell.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=Playfair+Display:wght@500;600&display=swap">
+
+  <style>
+    :root {
+      --oro:       #c9a84c;
+      --oro-dim:   rgba(201,168,76,0.15);
+      --oro-glow:  rgba(201,168,76,0.08);
+      --neon:      #2eff70;
+      --rojo:      #e05252;
+      --rojo-dim:  rgba(224,82,82,0.15);
+      --azul:      #4a9eff;
+      --azul-dim:  rgba(74,158,255,0.12);
+      --bg:        #0a0a0a;
+      --surface:   #111111;
+      --border:    rgba(201,168,76,0.15);
+      --text:      #e0d8c8;
+      --muted:     #666;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      visibility: hidden;
+      padding: 0 0 80px;
+    }
+    body.dc-ready { visibility: visible; animation: fadeIn .35s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* ── NAV ── */
+    .sa-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(10,10,10,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .sa-nav-title {
+      font-family: 'Playfair Display', serif;
+      font-size: .95rem;
+      color: var(--oro);
+      flex: 1;
+      letter-spacing: .03em;
+    }
+    .sa-nav-title span {
+      font-family: 'DM Sans', sans-serif;
+      font-size: .65rem;
+      color: var(--muted);
+      display: block;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+    .sa-nav a {
+      color: var(--muted);
+      font-size: .75rem;
+      text-decoration: none;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      transition: color .2s;
+    }
+    .sa-nav a:hover { color: var(--oro); }
+
+    /* ── CONTENIDO ── */
+    .sa-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 28px 16px 0;
+    }
+
+    /* ── FILTROS ── */
+    .filtros {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .filtros button {
+      padding: 7px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .filtros button:hover { border-color: var(--oro); color: var(--oro); }
+    .filtros button.activo {
+      background: var(--oro-dim);
+      border-color: var(--oro);
+      color: var(--oro);
+    }
+    .filtros button[data-estado="pendiente"].activo {
+      background: var(--azul-dim);
+      border-color: var(--azul);
+      color: var(--azul);
+    }
+    .filtros button[data-estado="aprobada"].activo {
+      background: rgba(46,255,112,.08);
+      border-color: var(--neon);
+      color: var(--neon);
+    }
+    .filtros button[data-estado="rechazada"].activo {
+      background: var(--rojo-dim);
+      border-color: var(--rojo);
+      color: var(--rojo);
+    }
+
+    /* ── LOADING / EMPTY ── */
+    .loading {
+      text-align: center;
+      color: var(--muted);
+      padding: 60px 20px;
+      font-size: .85rem;
+      letter-spacing: .04em;
+    }
+    .loading::after {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--oro);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 16px auto 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 60px 20px;
+      font-size: .85rem;
+    }
+
+    /* ── LISTA ── */
+    .lista {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: border-color .2s;
+    }
+    .card.pendiente { border-color: rgba(74,158,255,.25); }
+    .card.aprobada  { border-color: rgba(46,255,112,.15); }
+    .card.rechazada { border-color: rgba(224,82,82,.2); }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card-head h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--oro);
+      font-weight: 500;
+    }
+    .card-head .card-id {
+      font-size: .62rem;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      margin-top: 3px;
+      letter-spacing: .04em;
+    }
+
+    /* badge estado */
+    .badge {
+      flex-shrink: 0;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .badge.pendiente { background: var(--azul-dim);  color: var(--azul); }
+    .badge.aprobada  { background: rgba(46,255,112,.1); color: var(--neon); }
+    .badge.rechazada { background: var(--rojo-dim);   color: var(--rojo); }
+
+    /* grid de datos */
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 20px;
+      font-size: .8rem;
+    }
+    .card-grid .full { grid-column: 1 / -1; }
+    .field-label {
+      font-size: .6rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      margin-bottom: 3px;
+    }
+    .field-val {
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .field-val code {
+      font-size: .68rem;
+      color: var(--muted);
+      background: rgba(255,255,255,.04);
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: .04em;
+    }
+
+    /* separador */
+    .card-sep {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+
+    /* textarea */
+    .card-comentario {
+      width: 100%;
+      min-height: 72px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .82rem;
+      resize: vertical;
+      transition: border-color .2s;
+      margin-bottom: 14px;
+    }
+    .card-comentario::placeholder { color: var(--muted); }
+    .card-comentario:focus {
+      outline: none;
+      border-color: var(--oro);
+    }
+
+    /* acciones */
+    .card-acciones {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-aprob {
+      background: var(--neon);
+      color: #000;
+    }
+    .btn-aprob:hover:not(:disabled) { opacity: .85; }
+    .btn-rec {
+      background: var(--rojo-dim);
+      color: var(--rojo);
+      border: 1px solid rgba(224,82,82,.4);
+    }
+    .btn-rec:hover:not(:disabled) { background: rgba(224,82,82,.25); }
+
+    /* comentario admin existente */
+    .comentario-prev {
+      margin-top: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.03);
+      border-left: 2px solid var(--oro);
+      font-size: .78rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+  </style>
 </head>
+
 <body class="dc-ux dc-ux-skin">
-    <div class="header">
-        <h1>Solicitudes de configuración de club</h1>
-        <a href="/index.html">Inicio</a>
-        <a href="/pqrs_admin.html">PQRS</a>
+
+  <!-- NAV -->
+  <nav class="sa-nav">
+    <div class="sa-nav-title">
+      Solicitudes de club
+      <span>Superadmin · DE CARAMBOLA</span>
     </div>
+    <a href="/index.html">Inicio</a>
+    <a href="/pqrs_admin.html">PQRS</a>
+  </nav>
+
+  <div class="sa-wrap">
+
+    <!-- FILTROS -->
     <div class="filtros" id="filtros">
-        <button type="button" data-estado="" class="activo">Todas</button>
-        <button type="button" data-estado="pendiente">Pendientes</button>
-        <button type="button" data-estado="aprobada">Aprobadas</button>
-        <button type="button" data-estado="rechazada">Rechazadas</button>
+      <button type="button" data-estado="" class="activo">Todas</button>
+      <button type="button" data-estado="pendiente">Pendientes</button>
+      <button type="button" data-estado="aprobada">Aprobadas</button>
+      <button type="button" data-estado="rechazada">Rechazadas</button>
     </div>
-    <div id="loading" class="loading">Cargando…</div>
-    <div id="lista" class="lista" style="display: none;"></div>
-    <div id="empty" class="empty" style="display: none;">No hay solicitudes con este filtro.</div>
 
-    <script type="module">
-        import {
-            superadmin_listarSolicitudes,
-            superadmin_aprobarSolicitud,
-            superadmin_rechazarSolicitud,
-        } from '/js/solicitud-config.js';
+    <!-- ESTADOS -->
+    <div id="loading" class="loading">Cargando solicitudes</div>
+    <div id="lista"   class="lista"   style="display:none;"></div>
+    <div id="empty"   class="empty"   style="display:none;">No hay solicitudes con este filtro.</div>
 
-        var filtroActual = '';
-        var loading = document.getElementById('loading');
-        var listaEl = document.getElementById('lista');
-        var emptyEl = document.getElementById('empty');
+  </div><!-- /sa-wrap -->
 
-        async function cargar() {
-            loading.style.display = 'block';
-            listaEl.style.display = 'none';
-            emptyEl.style.display = 'none';
-            var r = await superadmin_listarSolicitudes(filtroActual || null);
-            loading.style.display = 'none';
-            if (r.error) {
-                alert(r.error);
-            }
-            var rows = r.data || [];
-            if (!rows.length) {
-                emptyEl.style.display = 'block';
-                return;
-            }
-            listaEl.style.display = 'flex';
-            listaEl.innerHTML = '';
-            rows.forEach(function (sol) {
-                listaEl.appendChild(renderCard(sol));
-            });
-        }
+  <script type="module">
+    import {
+      superadmin_listarSolicitudes,
+      superadmin_aprobarSolicitud,
+      superadmin_rechazarSolicitud,
+    } from '/js/solicitud-config.js';
+    import { guardSalaPage } from '/js/sala-supabase-gate.js';
 
-        function renderCard(sol) {
-            var div = document.createElement('div');
-            div.className = 'card ' + (sol.estado || '');
-            var idShort = sol.id ? String(sol.id).slice(0, 8) : '';
-            div.innerHTML =
-                '<h3>' +
-                escapeHtml(sol.nombre_club || '(sin nombre)') +
-                ' <span style="color:#666;font-size:0.65rem;">#' +
-                idShort +
-                '…</span></h3>' +
-                '<dl>' +
-                '<dt>Estado</dt><dd><strong>' +
-                escapeHtml(sol.estado || '') +
-                '</strong></dd>' +
-                '<dt>Solicitante (user id)</dt><dd><code style="font-size:0.7rem;">' +
-                escapeHtml(sol.user_id || '') +
-                '</code></dd>' +
-                '<dt>Dimensiones (m)</dt><dd>' +
-                (sol.metraje_ancho != null ? sol.metraje_ancho : '—') +
-                ' × ' +
-                (sol.metraje_largo != null ? sol.metraje_largo : '—') +
-                '</dd>' +
-                '<dt>Mesas</dt><dd>' +
-                escapeHtml(String(sol.num_mesas != null ? sol.num_mesas : '')) +
-                '</dd>' +
-                '<dt>Ciudad / Dirección</dt><dd>' +
-                escapeHtml([sol.ciudad, sol.direccion].filter(Boolean).join(' — ') || '—') +
-                '</dd>' +
-                '<dt>Club (codigo)</dt><dd>' +
-                (sol.club_id ? escapeHtml(sol.club_id) + ' (cambio o asignado)' : 'Alta nueva') +
-                '</dd>' +
-                '<dt>Enviada</dt><dd>' +
-                (sol.created_at ? new Date(sol.created_at).toLocaleString() : '—') +
-                '</dd>' +
-                (sol.comentario_admin
-                    ? '<dt>Comentario admin</dt><dd>' + escapeHtml(sol.comentario_admin) + '</dd>'
-                    : '') +
-                '</dl>';
+    function bodyReveal() {
+      document.body.classList.add('dc-ready');
+    }
 
-            if (sol.estado === 'pendiente') {
-                var ta = document.createElement('textarea');
-                ta.className = 'comentario-scc';
-                ta.placeholder = 'Comentario para el club (opcional en aprobar, recomendado en rechazar)';
-                ta.dataset.id = sol.id;
+    const loading = document.getElementById('loading');
+    const listaEl = document.getElementById('lista');
+    const emptyEl = document.getElementById('empty');
+    let filtroActual = '';
 
-                var acc = document.createElement('div');
-                acc.className = 'acciones';
-                var b1 = document.createElement('button');
-                b1.type = 'button';
-                b1.className = 'btn btn-aprob';
-                b1.textContent = 'APROBAR';
-                b1.addEventListener('click', async function () {
-                    b1.disabled = true;
-                    var res = await superadmin_aprobarSolicitud(sol.id, ta.value.trim() || null);
-                    if (!res.ok) {
-                        alert(res.error || 'Error');
-                        b1.disabled = false;
-                        return;
-                    }
-                    alert('Aprobado. Código club: ' + (res.club_codigo || ''));
-                    cargar();
-                });
-                var b2 = document.createElement('button');
-                b2.type = 'button';
-                b2.className = 'btn btn-rec';
-                b2.textContent = 'RECHAZAR';
-                b2.addEventListener('click', async function () {
-                    if (!ta.value.trim()) {
-                        if (!confirm('¿Rechazar sin comentario?')) return;
-                    }
-                    b2.disabled = true;
-                    var res = await superadmin_rechazarSolicitud(sol.id, ta.value.trim() || null);
-                    if (!res.ok) {
-                        alert(res.error || 'Error');
-                        b2.disabled = false;
-                        return;
-                    }
-                    cargar();
-                });
-                acc.appendChild(b1);
-                acc.appendChild(b2);
-                div.appendChild(ta);
-                div.appendChild(acc);
-            }
+    async function cargar() {
+      loading.style.display = 'block';
+      listaEl.style.display = 'none';
+      emptyEl.style.display = 'none';
 
-            return div;
-        }
+      const r = await superadmin_listarSolicitudes(filtroActual || null);
+      loading.style.display = 'none';
 
-        function escapeHtml(t) {
-            if (t == null) return '';
-            var d = document.createElement('div');
-            d.textContent = t;
-            return d.innerHTML;
-        }
+      if (r.error) { alert(r.error); return; }
 
-        document.getElementById('filtros').addEventListener('click', function (e) {
-            var b = e.target.closest('button[data-estado]');
-            if (!b) return;
-            document.querySelectorAll('.filtros button').forEach(function (x) {
-                x.classList.remove('activo');
-            });
-            b.classList.add('activo');
-            filtroActual = b.getAttribute('data-estado') || '';
-            cargar();
+      const rows = r.data || [];
+      if (!rows.length) { emptyEl.style.display = 'block'; bodyReveal(); return; }
+
+      listaEl.style.display = 'flex';
+      listaEl.innerHTML = '';
+      rows.forEach(sol => listaEl.appendChild(renderCard(sol)));
+      bodyReveal();
+    }
+
+    function renderCard(sol) {
+      const div = document.createElement('div');
+      div.className = 'card ' + (sol.estado || '');
+
+      const idShort = sol.id ? String(sol.id).slice(0, 8) : '';
+      const estado  = sol.estado || '';
+
+      const head = document.createElement('div');
+      head.className = 'card-head';
+      head.innerHTML =
+        `<div>
+          <h3>${esc(sol.nombre_club || '(sin nombre)')}</h3>
+          <div class="card-id">#${idShort}…</div>
+        </div>
+        <span class="badge ${estado}">${esc(estado)}</span>`;
+      div.appendChild(head);
+
+      const grid = document.createElement('div');
+      grid.className = 'card-grid';
+      grid.innerHTML =
+        field('Solicitante (user id)', `<code>${esc(sol.user_id || '—')}</code>`) +
+        field('Dimensiones (m)',
+          (sol.metraje_ancho != null ? sol.metraje_ancho : '—') + ' × ' +
+          (sol.metraje_largo != null ? sol.metraje_largo : '—')) +
+        field('Mesas', esc(String(sol.num_mesas != null ? sol.num_mesas : '—'))) +
+        field('Ciudad / Dirección',
+          esc([sol.ciudad, sol.direccion].filter(Boolean).join(' — ') || '—'),
+          true) +
+        field('Club (código)',
+          sol.club_id ? esc(sol.club_id) + ' <span style="color:var(--muted);font-size:.7rem;">(cambio)</span>' : 'Alta nueva') +
+        field('Enviada',
+          sol.created_at ? new Date(sol.created_at).toLocaleString() : '—');
+      div.appendChild(grid);
+
+      if (sol.comentario_admin) {
+        const sep = document.createElement('hr');
+        sep.className = 'card-sep';
+        div.appendChild(sep);
+        const prev = document.createElement('div');
+        prev.className = 'comentario-prev';
+        prev.textContent = sol.comentario_admin;
+        div.appendChild(prev);
+      }
+
+      if (estado === 'pendiente') {
+        const sep2 = document.createElement('hr');
+        sep2.className = 'card-sep';
+        div.appendChild(sep2);
+
+        const ta = document.createElement('textarea');
+        ta.className = 'card-comentario';
+        ta.placeholder = 'Comentario para el club (opcional al aprobar, recomendado al rechazar)';
+        ta.dataset.id = sol.id;
+        div.appendChild(ta);
+
+        const acc = document.createElement('div');
+        acc.className = 'card-acciones';
+
+        const b1 = document.createElement('button');
+        b1.type = 'button';
+        b1.className = 'btn btn-aprob';
+        b1.textContent = 'APROBAR';
+        b1.addEventListener('click', async () => {
+          b1.disabled = b2.disabled = true;
+          const res = await superadmin_aprobarSolicitud(sol.id, ta.value.trim() || null);
+          if (!res.ok) {
+            alert(res.error || 'Error al aprobar');
+            b1.disabled = b2.disabled = false;
+            return;
+          }
+          alert('Aprobado. Código club: ' + (res.club_codigo || ''));
+          cargar();
         });
 
-        cargar();
-    </script>
+        const b2 = document.createElement('button');
+        b2.type = 'button';
+        b2.className = 'btn btn-rec';
+        b2.textContent = 'RECHAZAR';
+        b2.addEventListener('click', async () => {
+          if (!ta.value.trim() && !confirm('¿Rechazar sin comentario?')) return;
+          b1.disabled = b2.disabled = true;
+          const res = await superadmin_rechazarSolicitud(sol.id, ta.value.trim() || null);
+          if (!res.ok) {
+            alert(res.error || 'Error al rechazar');
+            b1.disabled = b2.disabled = false;
+            return;
+          }
+          cargar();
+        });
+
+        acc.appendChild(b1);
+        acc.appendChild(b2);
+        div.appendChild(acc);
+      }
+
+      return div;
+    }
+
+    function field(label, val, full = false) {
+      return `<div class="${full ? 'full' : ''}">
+        <div class="field-label">${label}</div>
+        <div class="field-val">${val}</div>
+      </div>`;
+    }
+
+    function esc(t) {
+      if (t == null) return '';
+      const d = document.createElement('div');
+      d.textContent = t;
+      return d.innerHTML;
+    }
+
+    document.getElementById('filtros').addEventListener('click', e => {
+      const b = e.target.closest('button[data-estado]');
+      if (!b) return;
+      document.querySelectorAll('.filtros button').forEach(x => x.classList.remove('activo'));
+      b.classList.add('activo');
+      filtroActual = b.getAttribute('data-estado') || '';
+      cargar();
+    });
+
+    const gateOk = await guardSalaPage({
+      pageTitle: 'Solicitudes de club',
+      allowedRoles: ['superadmin'],
+    });
+    if (gateOk) cargar();
+  </script>
 </body>
 </html>
