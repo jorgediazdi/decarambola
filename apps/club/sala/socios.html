@@ -92,10 +92,22 @@
 <script>
 let socios = [];
 
-function getClubId() {
-    if (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) return MasterVIP.getClubId();
-    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-    return perfil.club_id || null;
+async function getClubId() {
+    try {
+        var auth = await import('/js/auth-manager.js');
+        var r = await auth.getClubId();
+        if (r && r.data) return r.data;
+    } catch (e) {}
+    try {
+        var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        if (perfil.club_id) return perfil.club_id;
+    } catch (e) {}
+    try {
+        var club = JSON.parse(localStorage.getItem('club_activo') || 'null');
+        if (club && club.codigo) return club.codigo;
+        if (club && club.id) return club.id;
+    } catch (e) {}
+    return null;
 }
 
 function iniciales(nombre) {
@@ -132,9 +144,12 @@ function pintarSocios() {
 }
 
 async function cargarSocios() {
-    var clubId = getClubId();
+    var clubId = await getClubId();
+    var api = await import('/js/api/club-api.js');
+    var cr = await api.getClubByIdOrCodigo(clubId);
+    var uuid = cr.data && cr.data.id ? cr.data.id : clubId;
     var jm = await import('/js/api/jugador-api.js');
-    var jr = await jm.listJugadores(clubId, { soloActivos: true });
+    var jr = await jm.listJugadores(uuid, { soloActivos: true });
     socios = jr.data || [];
     socios.sort(function(a,b){ return (a.nombre || '').localeCompare(b.nombre || ''); });
     pintarSocios();
