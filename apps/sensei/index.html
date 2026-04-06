@@ -1143,6 +1143,80 @@ const API="https://sensei-billar-api.onrender.com";
     if (typeof URLSearchParams !== 'undefined' && new URLSearchParams(window.location.search).get('contacto') === '1') {
         setTimeout(iniciarModoContacto, 150);
     }
+
+    // ── PANELES ADMIN ─────────────────────────────────────────────
+    async function cargarPanelesAdmin() {
+        var rol = window.DC_ROL || '';
+        if (rol !== 'superadmin' && rol !== 'club_admin') return;
+        try {
+            var api = await import('/js/api/club-api.js');
+            // Panel superadmin
+            if (rol === 'superadmin') {
+                var cr = await api.listClubsActivos();
+                var clubs = cr.data || [];
+                var lista = document.getElementById('sensei-clubs-lista');
+                if (lista) {
+                    lista.innerHTML = clubs.map(function(c) {
+                        var activo = c.video_ia_activo;
+                        return '<div class="dc-card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+                            '<span style="font-size:13px;color:#f0f0f0">' + (c.nombre || c.id) + '</span>' +
+                            '<span class="dc-badge ' + (activo ? 'dc-badge-green' : 'dc-badge-gray') + '">' + (activo ? 'Activo' : 'Inactivo') + '</span>' +
+                            '</div>';
+                    }).join('') || '<div style="color:#888;font-size:12px;">Sin clubs registrados.</div>';
+                }
+                var totalClubs = clubs.length;
+                var activosIA = clubs.filter(function(c){ return c.video_ia_activo; }).length;
+                var usoEl = document.getElementById('sensei-uso-mes');
+                var costoEl = document.getElementById('sensei-costo-mes');
+                if (usoEl) usoEl.textContent = activosIA + ' / ' + totalClubs;
+                if (costoEl) costoEl.textContent = activosIA > 0 ? 'Activa' : 'Sin IA';
+                // Actualizar labels
+                var labels = document.querySelectorAll('.sensei-admin-panel .dc-stat-label');
+                if (labels[0]) labels[0].textContent = 'Clubs con IA activa';
+                if (labels[1]) labels[1].textContent = 'Estado módulo';
+            }
+            // Panel club_admin
+            if (rol === 'club_admin' || rol === 'superadmin') {
+                var clubId = null;
+                try {
+                    var auth = await import('/js/auth-manager.js');
+                    var cr2 = await auth.getClubId();
+                    if (cr2 && cr2.data) clubId = cr2.data;
+                } catch(e) {}
+                if (!clubId) {
+                    try {
+                        var club = JSON.parse(localStorage.getItem('club_activo') || 'null');
+                        if (club && club.codigo) clubId = club.codigo;
+                        else if (club && club.id) clubId = club.id;
+                    } catch(e) {}
+                }
+                if (clubId) {
+                    var api2 = await import('/js/api/club-api.js');
+                    var mr = await api2.listMesas(clubId, { orderBy: 'numero' });
+                    var mesas = mr.data || [];
+                    var consultasEl = document.getElementById('sensei-club-consultas');
+                    var jugadoresEl = document.getElementById('sensei-club-jugadores');
+                    if (consultasEl) consultasEl.textContent = mesas.length;
+                    if (jugadoresEl) jugadoresEl.textContent = mesas.filter(function(m){ return m.estado === 'ocupada'; }).length;
+                    var labels2 = document.querySelectorAll('#sensei-club-consultas, #sensei-club-jugadores');
+                    var l1 = document.querySelector('[id="sensei-club-consultas"] ~ .dc-stat-label');
+                    var l2 = document.querySelector('[id="sensei-club-jugadores"] ~ .dc-stat-label');
+                    // Actualizar labels panel club
+                    var statLabels = document.querySelectorAll('.sensei-club-panel .dc-stat-label');
+                    if (statLabels[0]) statLabels[0].textContent = 'Mesas totales';
+                    if (statLabels[1]) statLabels[1].textContent = 'Mesas ocupadas';
+                }
+            }
+        } catch(e) {
+            console.warn('[sensei] cargarPanelesAdmin:', e);
+        }
+    }
+
+    // Llamar cuando el rol esté disponible
+    (function esperarRol() {
+        if (window.DC_ROL) { cargarPanelesAdmin(); return; }
+        setTimeout(esperarRol, 200);
+    })();
     </script>
 <script src="/whitelabel.js"></script>
 <script src="/js/dc-icons.js"></script>
