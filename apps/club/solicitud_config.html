@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="/css/ux-shell.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=Playfair+Display:wght@500;600&display=swap">
-
   <style>
     :root {
       --oro:      #c9a84c;
@@ -23,199 +22,96 @@
       --text:     #e0d8c8;
       --muted:    #555;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif; min-height: 100vh;
       visibility: hidden;
       padding: calc(20px + env(safe-area-inset-top)) 18px calc(60px + env(safe-area-inset-bottom));
     }
     body.dc-ready { visibility: visible; animation: fadeIn .35s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-    /* WRAP */
     .wrap { max-width: 480px; margin: 0 auto; }
-
-    /* CABECERA */
     .page-head { margin-bottom: 24px; }
     .page-head h1 {
       font-family: 'Playfair Display', serif;
-      font-size: 1.15rem;
-      color: var(--oro);
-      font-weight: 500;
-      letter-spacing: .02em;
-      margin-bottom: 8px;
+      font-size: 1.15rem; color: var(--oro);
+      font-weight: 500; letter-spacing: .02em; margin-bottom: 8px;
     }
-    .page-head p {
-      font-size: .82rem;
-      color: var(--muted);
-      line-height: 1.55;
-    }
-
-    /* BLOQUE ESTADO */
+    .page-head p { font-size: .82rem; color: var(--muted); line-height: 1.55; }
     .bloque-estado {
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 20px;
-      font-size: .82rem;
-      line-height: 1.5;
-      border: 1px solid var(--border);
-      background: var(--surface);
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 20px;
+      font-size: .82rem; line-height: 1.5;
+      border: 1px solid var(--border); background: var(--surface);
     }
-    .bloque-estado.pendiente {
-      border-color: rgba(74,158,255,.3);
-      background: var(--azul-dim);
-    }
-    .bloque-estado.aprobada {
-      border-color: rgba(46,255,112,.2);
-      background: rgba(46,255,112,.06);
-    }
-    .bloque-estado.rechazada {
-      border-color: rgba(224,82,82,.3);
-      background: rgba(224,82,82,.07);
-    }
-
-    /* FORM */
+    .bloque-estado.pendiente { border-color: rgba(74,158,255,.3); background: var(--azul-dim); }
+    .bloque-estado.aprobada  { border-color: rgba(46,255,112,.2); background: rgba(46,255,112,.06); }
+    .bloque-estado.rechazada { border-color: rgba(224,82,82,.3); background: rgba(224,82,82,.07); }
     .campo { margin-bottom: 16px; }
-
     .campo-label {
-      display: block;
-      font-size: .6rem;
-      letter-spacing: .12em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 7px;
+      display: block; font-size: .6rem; letter-spacing: .12em;
+      color: var(--muted); text-transform: uppercase; margin-bottom: 7px;
     }
-
-    input[type=text],
-    input[type=number],
-    textarea {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
+    input[type=text], input[type=number], textarea {
+      width: 100%; padding: 12px 14px; border-radius: 12px;
       border: 1px solid var(--border);
       background: rgba(255,255,255,.03);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: .9rem;
-      transition: border-color .2s;
+      color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: .9rem; transition: border-color .2s;
     }
-    input[type=text]:focus,
-    input[type=number]:focus,
-    textarea:focus {
-      outline: none;
-      border-color: var(--oro);
+    input[type=text]:focus, input[type=number]:focus, textarea:focus {
+      outline: none; border-color: var(--oro);
     }
-    input::placeholder,
-    textarea::placeholder { color: var(--muted); }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
     textarea { min-height: 80px; resize: vertical; }
-
-    .row2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    /* checkbox cambio */
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .campo-cambio label {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: .82rem;
-      color: #bbb;
-      cursor: pointer;
-      line-height: 1.4;
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: .82rem; color: #bbb; cursor: pointer; line-height: 1.4;
     }
     .campo-cambio input[type=checkbox] {
-      width: auto;
-      margin-top: 3px;
-      accent-color: var(--oro);
-      flex-shrink: 0;
+      width: auto; margin-top: 3px; accent-color: var(--oro); flex-shrink: 0;
     }
     .campo-ayuda {
-      font-size: .7rem;
-      color: var(--muted);
-      line-height: 1.4;
-      margin-top: 8px;
-      padding-left: 25px;
+      font-size: .7rem; color: var(--muted);
+      line-height: 1.4; margin-top: 8px; padding-left: 25px;
     }
-
-    /* BOTÓN SUBMIT */
     .btn-submit {
-      width: 100%;
-      margin-top: 8px;
-      padding: 15px;
-      border: none;
+      width: 100%; margin-top: 8px; padding: 15px; border: none;
       border-radius: 14px;
       background: linear-gradient(135deg, var(--oro), #a07828);
-      color: #000;
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 700;
-      font-size: .8rem;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      cursor: pointer;
+      color: #000; font-family: 'DM Sans', sans-serif;
+      font-weight: 700; font-size: .8rem; letter-spacing: .1em;
+      text-transform: uppercase; cursor: pointer;
       transition: opacity .2s, transform .1s;
     }
     .btn-submit:hover:not(:disabled) { opacity: .88; }
     .btn-submit:active:not(:disabled) { transform: scale(.98); }
     .btn-submit:disabled { opacity: .45; cursor: not-allowed; }
-
-    /* MENSAJES */
-    .msg-err {
-      color: var(--rojo);
-      font-size: .78rem;
-      margin-top: 10px;
-    }
-    .msg-ok {
-      color: var(--neon);
-      font-size: .78rem;
-      margin-top: 10px;
-    }
-
-    /* BACK */
+    .msg-err { color: var(--rojo); font-size: .78rem; margin-top: 10px; }
+    .msg-ok  { color: var(--neon);  font-size: .78rem; margin-top: 10px; }
     .back {
-      display: inline-block;
-      margin-top: 22px;
-      color: var(--muted);
-      font-size: .75rem;
-      text-decoration: none;
-      letter-spacing: .05em;
-      transition: color .2s;
+      display: inline-block; margin-top: 22px;
+      color: var(--muted); font-size: .75rem; text-decoration: none;
+      letter-spacing: .05em; transition: color .2s;
     }
     .back:hover { color: var(--oro); }
-
-    /* separador */
-    .form-sep {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 20px 0;
-    }
+    .form-sep { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
   </style>
 </head>
-
 <body class="dc-ux dc-ux-skin">
   <div class="wrap">
-
     <div class="page-head">
       <h1>Solicitud de configuración de club</h1>
       <p>Completá los datos para que un administrador de la plataforma revise y apruebe tu club. Hasta entonces no podrás guardar la configuración del salón.</p>
     </div>
-
     <div id="bloque-estado" class="bloque-estado" style="display:none;"></div>
-
     <form id="form-solicitud">
-
       <div class="campo">
         <label class="campo-label" for="nombre_club">Nombre del club *</label>
         <input type="text" id="nombre_club" name="nombre_club" required maxlength="120"
                autocomplete="organization" placeholder="Ej: Club Billar Centro">
       </div>
-
       <div class="row2">
         <div class="campo">
           <label class="campo-label" for="metraje_ancho">Ancho del local (m)</label>
@@ -226,24 +122,20 @@
           <input type="number" id="metraje_largo" name="metraje_largo" min="0" step="0.1" placeholder="Ej: 18">
         </div>
       </div>
-
       <div class="campo">
         <label class="campo-label" for="num_mesas">Número de mesas *</label>
         <input type="number" id="num_mesas" name="num_mesas" min="1" max="50" value="4"
                required inputmode="numeric">
       </div>
-
       <div class="campo">
         <label class="campo-label" for="ciudad">Ciudad</label>
         <input type="text" id="ciudad" name="ciudad" maxlength="80" placeholder="Ej: Bogotá">
       </div>
-
       <div class="campo">
         <label class="campo-label" for="direccion">Dirección</label>
         <textarea id="direccion" name="direccion" maxlength="300"
                   placeholder="Calle, barrio, referencia…"></textarea>
       </div>
-
       <div class="campo campo-cambio" id="wrap-cambio" style="display:none;">
         <hr class="form-sep">
         <label>
@@ -255,39 +147,29 @@
           Hasta que se apruebe de nuevo, no podrás guardar cambios de configuración del salón.
         </p>
       </div>
-
       <hr class="form-sep">
-
       <button type="submit" class="btn-submit" id="btn-enviar">Enviar solicitud</button>
       <p id="msg-err" class="msg-err" style="display:none;"></p>
       <p id="msg-ok"  class="msg-ok"  style="display:none;"></p>
-
     </form>
-
     <a class="back" href="/club/index.html">← Portal club</a>
-
-  </div><!-- /wrap -->
-
+  </div>
   <script type="module">
     import { getSession, getRole } from '/js/auth-manager.js';
     import { club_getResumenPortal, club_enviarSolicitud } from '/js/solicitud-config.js';
 
-    const form        = document.getElementById('form-solicitud');
-    const btn         = document.getElementById('btn-enviar');
-    const bloqueEstado= document.getElementById('bloque-estado');
-    const msgErr      = document.getElementById('msg-err');
-    const msgOk       = document.getElementById('msg-ok');
-    const wrapCambio  = document.getElementById('wrap-cambio');
-    const chkCambio   = document.getElementById('chk_cambio');
+    const form         = document.getElementById('form-solicitud');
+    const btn          = document.getElementById('btn-enviar');
+    const bloqueEstado = document.getElementById('bloque-estado');
+    const msgErr       = document.getElementById('msg-err');
+    const msgOk        = document.getElementById('msg-ok');
+    const wrapCambio   = document.getElementById('wrap-cambio');
+    const chkCambio    = document.getElementById('chk_cambio');
 
-    function bodyReveal() {
-      document.body.classList.add('dc-ready');
-    }
+    function bodyReveal() { document.body.classList.add('dc-ready'); }
 
     function esc(t) {
-      const d = document.createElement('div');
-      d.textContent = t;
-      return d.innerHTML;
+      const d = document.createElement('div'); d.textContent = t; return d.innerHTML;
     }
 
     async function boot() {
@@ -298,10 +180,8 @@
       }
       const r    = await getRole();
       const role = r?.data ? String(r.data) : 'jugador';
-
       if (role === 'superadmin') {
-        window.location.href = '/apps/superadmin/solicitudes.html';
-        return;
+        window.location.href = '/apps/superadmin/solicitudes.html'; return;
       }
       if (role !== 'club_admin') {
         bloqueEstado.style.display = 'block';
@@ -309,39 +189,30 @@
         bloqueEstado.textContent =
           'Esta solicitud la completa el administrador del club (rol club_admin). Iniciá sesión con esa cuenta o pedí acceso en tu sede.';
         form.style.display = 'none';
-        bodyReveal();
-        return;
+        bodyReveal(); return;
       }
-
       const res = await club_getResumenPortal();
       wrapCambio.style.display = res.mostrarCheckboxCambio ? 'block' : 'none';
       chkCambio.checked = false;
-
       if (res.ultima) {
         bloqueEstado.style.display = 'block';
         bloqueEstado.className = 'bloque-estado ' + String(res.ultima.estado || '').toLowerCase();
-
         const estLabel =
           res.ultima.estado === 'pendiente' ? 'Pendiente de revisión.' :
           res.ultima.estado === 'aprobada'  ? 'Aprobada.' : 'Rechazada.';
-
-        let txt = `<strong>Estado de tu última solicitud:</strong> ${estLabel}
-                   <br><small style="color:var(--muted)">Enviada: ${new Date(res.ultima.created_at).toLocaleString()}</small>`;
-
+        let txt = `<strong>Estado de tu última solicitud:</strong> ${estLabel}<br>
+                   <small style="color:var(--muted)">Enviada: ${new Date(res.ultima.created_at).toLocaleString()}</small>`;
         if (res.ultima.comentario_admin)
           txt += `<br><span style="color:#bbb">Comentario: ${esc(res.ultima.comentario_admin)}</span>`;
         if (res.ultima.club_id)
           txt += `<br><span style="color:var(--oro)">Código de club: ${esc(res.ultima.club_id)}</span>`;
-
         bloqueEstado.innerHTML = txt;
       } else {
         bloqueEstado.style.display = 'none';
       }
-
       btn.disabled = false;
       btn.textContent = 'Enviar solicitud';
       chkCambio.onchange = null;
-
       if (res.tienePendiente) {
         btn.disabled = true;
         btn.textContent = 'Ya hay una solicitud en revisión';
@@ -355,7 +226,6 @@
             : 'Marcá «Solicitar cambio» y enviá';
         };
       }
-
       bodyReveal();
     }
 
@@ -364,20 +234,18 @@
       msgErr.style.display = 'none';
       msgOk.style.display  = 'none';
       btn.disabled = true;
-
       const fd = new FormData(form);
       const r  = await club_enviarSolicitud(
         {
-          nombre_club:    fd.get('nombre_club'),
-          metraje_ancho:  fd.get('metraje_ancho'),
-          metraje_largo:  fd.get('metraje_largo'),
-          num_mesas:      fd.get('num_mesas'),
-          ciudad:         fd.get('ciudad'),
-          direccion:      fd.get('direccion'),
+          nombre_club:   fd.get('nombre_club'),
+          metraje_ancho: fd.get('metraje_ancho'),
+          metraje_largo: fd.get('metraje_largo'),
+          num_mesas:     fd.get('num_mesas'),
+          ciudad:        fd.get('ciudad'),
+          direccion:     fd.get('direccion'),
         },
         { solicitudCambio: !!(chkCambio?.checked) }
       );
-
       if (r.ok) {
         msgOk.style.display = 'block';
         msgOk.textContent = 'Solicitud enviada. Volvé más tarde para ver el estado, o revisá el portal del club.';
