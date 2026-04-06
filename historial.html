@@ -9,12 +9,15 @@ await guardSalaPage({ pageTitle: 'Historial de partidas' });
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#c9a84c">
     <title>Historial de partidas — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=Playfair+Display:wght@500;600&display=swap">
     <style>
         :root { --oro:#c9a84c; --negro:#000; --g1:#1a1a1a; --g2:#111; --neon:#2eff70; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
+        body { background:#000; color:#fff; font-family:'DM Sans',system-ui,sans-serif; min-height:100vh; padding-bottom:80px; }
         .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; flex-direction:column; gap:10px; position:sticky; top:0; z-index:20; }
-        .header-titulo { color:var(--oro); font-size:0.82rem; letter-spacing:3px; }
+        .header-titulo { font-family:'Playfair Display',Georgia,serif; color:var(--oro); font-size:0.82rem; letter-spacing:3px; }
         .header-sub { color:#555; font-size:0.52rem; letter-spacing:0.06em; margin-top:4px; line-height:1.45; }
         .wrap { max-width:520px; margin:0 auto; padding:16px 18px; position:relative; z-index:5; }
         .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
