@@ -2,48 +2,8 @@
 <html lang="es">
 <head>
     <script type="module">
-import { supabase } from '/js/supabase-client.js';
-
-function iniciarPagina(rol) {
-  if (rol) localStorage.setItem('session_rol', rol);
-  document.body.style.visibility = 'visible';
-}
-
-const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-  console.log('EVENT:', event);
-  console.log('SESSION:', session?.user?.id);
-
-  if (event !== 'INITIAL_SESSION') return;
-
-  if (!session) {
-    console.log('SIN SESION → login');
-    window.location.href = '/login.html';
-    return;
-  }
-
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', session.user.id)
-    .single();
-
-  console.log('PROFILE:', profile);
-  console.log('ERROR:', error);
-  console.log('ROL:', profile?.role);
-
-  const rol = profile?.role?.trim().toLowerCase();
-  console.log('ROL NORMALIZADO:', rol);
-  console.log('TIENE ACCESO:', ['club_admin', 'superadmin'].includes(rol));
-
-  if (!['club_admin', 'superadmin'].includes(rol)) {
-    console.log('SIN ACCESO → login');
-    window.location.href = '/login.html';
-    return;
-  }
-
-  console.log('ACCESO OK → iniciarPagina');
-  iniciarPagina(rol);
-});
+import { guardSalaPage } from '/js/sala-supabase-gate.js';
+await guardSalaPage({ pageTitle: 'Configurar instalaciones', allowedRoles: ['club_admin', 'superadmin'] });
 </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -307,8 +267,8 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event,
     </div>
     <div class="header-row-main">
     <div>
-        <div class="header-titulo">Configurar instalaciones</div>
-        <div class="header-sub" id="lbl-paso">Paso 1 · Datos del salón</div>
+        <div class="dc-header-eyebrow">DeCarambola · Club</div>
+        <div class="dc-header-title" id="lbl-paso">Configurar instalaciones</div>
     </div>
     <div class="header-actions">
         <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
@@ -1849,7 +1809,6 @@ window.__salaBoot = function() {
 /* Sin guardSalaPage: configuración del salón, no streaming ni gate Supabase en esta URL. */
 if (typeof window.__salaBoot === 'function') window.__salaBoot();
 
-/* Paso 1 → 2: onclick en #btn-paso1-siguiente (mismo patrón que los demás pasos; evita doble handler). */
 </script>
 
 </body>
