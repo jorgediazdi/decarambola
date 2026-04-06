@@ -2,21 +2,12 @@
 <html lang="es">
 <head>
     <script type="module">
-import { supabase } from '/js/supabase-client.js';
-import { getRole } from '/js/auth-manager.js';
-
-const { data: sess } = await supabase.auth.getSession();
-if (!sess?.session) {
-  window.location.replace('/auth.html?next=' + encodeURIComponent(window.location.pathname));
-}
-const { data: rol } = await getRole();
-if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
-  window.location.replace('/jugador/index.html');
-}
+import { guardSalaPage } from '/js/sala-supabase-gate.js';
+await guardSalaPage({ pageTitle: 'Portal club', allowedRoles: ['club_admin', 'superadmin', 'organizador'] });
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#c9a84c">
     <meta name="description" content="Portal club DeCarambola — administración de sala, torneos y TV">
     <title>Portal club — DeCarambola</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -29,7 +20,7 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
         :root {
             --text: #eaeaea;
             --muted: #555;
-            --oro: #d4af37;
+            --oro: #c9a84c;
             --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -134,8 +125,6 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
     </style>
 </head>
 <body class="dc-ux dc-ux-skin">
-
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
 
     <!-- Gate staff: club-portal-gate.js muestra esto hasta verificar sesión / rol -->
     <div id="club-access-gate" class="club-access-gate" style="display:flex" aria-live="polite">
@@ -423,19 +412,6 @@ if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador') {
 
     </div><!-- /#club-portal-main -->
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 <script src="/Version.js"></script>
 <script src="/whitelabel.js"></script>
 <script type="module">
