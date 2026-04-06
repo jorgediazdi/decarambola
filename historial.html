@@ -2,21 +2,15 @@
 <html lang="es">
 <head>
     <script type="module">
-        import { getSession } from '/js/auth-manager.js';
-        const s = await getSession();
-        if (!s?.data?.user) {
-            const next = encodeURIComponent(
-                (window.location.pathname || '') + (window.location.search || '')
-            );
-            window.location.replace('/login.html?next=' + next);
-        }
+import { guardSalaPage } from '/js/sala-supabase-gate.js';
+await guardSalaPage({ pageTitle: 'Historial de partidas' });
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#c9a84c">
     <title>Historial de partidas — DeCarambola</title>
     <style>
-        :root { --oro:#d4af37; --negro:#000; --g1:#1a1a1a; --g2:#111; --neon:#2eff70; }
+        :root { --oro:#c9a84c; --negro:#000; --g1:#1a1a1a; --g2:#111; --neon:#2eff70; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
         .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; flex-direction:column; gap:10px; position:sticky; top:0; z-index:20; }
@@ -46,7 +40,6 @@
     <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
 
 <div class="header">
     <div>
@@ -281,32 +274,6 @@ window.onload = function () {
     } catch (e) {}
     cargarTodo();
 };
-</script>
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText =
-            'width:' +
-            sz +
-            'px;height:' +
-            sz +
-            'px;top:' +
-            Math.random() * 100 +
-            '%;left:' +
-            Math.random() * 100 +
-            '%;animation-delay:' +
-            Math.random() * 3 +
-            's;animation-duration:' +
-            (2 + Math.random() * 3) +
-            's;';
-        bg.appendChild(s);
-    }
-})();
 </script>
 
 <nav class="bottom-nav" aria-label="Navegación inferior">
