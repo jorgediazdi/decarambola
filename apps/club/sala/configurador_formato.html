@@ -3,655 +3,757 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#c9a84c">
 <title>DeCarambola — Configurador de Formato</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 :root {
-    --oro:#d4af37; --neon:#2eff70; --rojo:#e74c3c;
-    --bg:#080808; --card:#0f0f0f; --borde:#1a1a1a;
+    --oro: #c9a84c;
+    --oro-dim: rgba(201,168,76,0.12);
+    --oro-mid: rgba(201,168,76,0.35);
+    --oro-glow: rgba(201,168,76,0.06);
+    --neon: #2ecc71;
+    --neon-dim: rgba(46,204,113,0.08);
+    --neon-brd: rgba(46,204,113,0.22);
+    --rojo: #e74c3c;
+    --rojo-dim: rgba(231,76,60,0.08);
+    --rojo-brd: rgba(231,76,60,0.22);
+    --azul: #3498db;
+    --azul-dim: rgba(52,152,219,0.08);
+    --azul-brd: rgba(52,152,219,0.22);
+    --negro: #0a0a0a;
+    --g1: #111;
+    --g2: #161616;
+    --g3: #1c1c1c;
+    --borde: rgba(201,168,76,0.13);
+    --borde2: #1e1e1e;
+    --texto: #e8e0d0;
+    --muted: #6b6355;
+    --muted2: #3a3530;
 }
-html { font-size:16px; }
+html { font-size: 16px; }
 body {
-    background:var(--bg); color:#e0e0e0;
-    font-family:'Arial Black',Arial,sans-serif;
-    padding-bottom:120px;
+    background: var(--negro);
+    color: var(--texto);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    padding-bottom: 120px;
+    visibility: hidden;
+}
+body.dc-ready { visibility: visible; }
+
+/* ── HEADER ── */
+.dc-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,10,10,0.97);
+    border-bottom: 1px solid var(--borde);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 14px;
+}
+.dc-back {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: transparent; border: 1px solid var(--borde);
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none; color: var(--muted); font-size: 1.1rem;
+    flex-shrink: 0; transition: border-color .2s, color .2s;
+}
+.dc-back:hover { border-color: var(--oro-mid); color: var(--oro); }
+.dc-header-txt {}
+.dc-header-eyebrow {
+    font-size: 0.56rem; font-weight: 500; letter-spacing: 0.2em;
+    color: var(--muted); text-transform: uppercase; margin-bottom: 3px;
+}
+.dc-header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 600;
+    color: var(--oro); letter-spacing: 0.02em; line-height: 1.1;
 }
 
-/* HEADER */
-.header {
-    background:#0a0a0a; border-bottom:2px solid var(--borde);
-    padding:20px 18px 18px;
-    position:sticky; top:0; z-index:50;
-    display:flex; align-items:center; gap:14px;
-}
-.back-btn {
-    width:42px; height:42px; border-radius:12px;
-    background:#111; border:1px solid #222;
-    display:flex; align-items:center; justify-content:center;
-    text-decoration:none; color:#666; font-size:1.3rem;
-    flex-shrink:0; transition:0.2s;
-}
-.back-btn:active { border-color:var(--oro); color:var(--oro); }
-.h-titulo { font-size:1.1rem; letter-spacing:2px; color:var(--oro); }
-.h-sub    { font-size:0.65rem; letter-spacing:2px; color:#444; margin-top:4px; }
+/* ── WRAP ── */
+.dc-wrap { padding: 22px 18px; max-width: 580px; margin: 0 auto; }
 
-/* WRAP */
-.wrap { padding:22px 16px; max-width:580px; margin:0 auto; }
+/* ── INTRO TEXT ── */
+.dc-intro {
+    font-size: 0.68rem; color: var(--muted); line-height: 1.65;
+    padding: 0 2px; margin-bottom: 22px;
+    border-left: 2px solid var(--borde);
+    padding-left: 12px;
+}
+.dc-intro strong { color: var(--texto); font-weight: 600; }
+.dc-intro em { color: var(--oro); font-style: normal; font-weight: 600; }
 
-/* STEP BADGE */
-.paso-badge {
-    display:inline-flex; align-items:center; gap:10px;
-    background:rgba(212,175,55,0.07);
-    border:1px solid rgba(212,175,55,0.2);
-    border-radius:30px; padding:8px 18px;
-    margin-bottom:18px;
+/* ── STEP BADGE ── */
+.dc-paso {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--oro-dim);
+    border: 1px solid var(--borde);
+    border-radius: 30px; padding: 7px 16px;
+    margin-bottom: 16px;
 }
-.paso-num {
-    width:26px; height:26px; border-radius:50%;
-    background:var(--oro); color:#000;
-    font-size:0.75rem; font-weight:900;
-    display:flex; align-items:center; justify-content:center;
-    flex-shrink:0;
+.dc-paso-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--oro); color: #000;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.7rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.paso-lbl { font-size:0.75rem; letter-spacing:2px; color:var(--oro); }
-
-/* CARD JUGADORES */
-.jug-card {
-    background:var(--card); border:1px solid var(--borde);
-    border-radius:22px; padding:26px 22px; margin-bottom:26px;
-}
-.jug-pantalla {
-    text-align:center; padding:16px 0 22px;
-}
-.jug-numero {
-    font-size:5.5rem; color:var(--oro);
-    font-family:'Courier New',monospace; line-height:1;
-    text-shadow:0 0 40px rgba(212,175,55,0.3);
-}
-.jug-sublabel {
-    font-size:0.72rem; color:#444;
-    letter-spacing:4px; margin-top:10px;
-}
-.jug-btns {
-    display:flex; gap:8px; flex-wrap:wrap;
-    justify-content:center; margin-bottom:18px;
-}
-.jug-btn {
-    padding:11px 18px; border-radius:24px;
-    background:#111; border:1px solid #222;
-    color:#666; font-size:0.85rem;
-    font-family:'Arial Black',sans-serif;
-    letter-spacing:1px; cursor:pointer;
-    min-width:52px; text-align:center; transition:0.15s;
-}
-.jug-btn.sel { background:rgba(212,175,55,0.12); border-color:var(--oro); color:var(--oro); }
-.jug-btn:active { transform:scale(0.94); }
-.jug-custom-lbl { font-size:0.65rem; letter-spacing:2px; color:#444; margin-bottom:10px; }
-.jug-input {
-    width:100%; padding:14px 18px;
-    background:#0a0a0a; border:1px solid #222; border-radius:14px;
-    color:#fff; font-size:1.1rem; font-family:'Courier New',monospace;
-    text-align:center; letter-spacing:4px; outline:none; transition:0.2s;
-}
-.jug-input:focus { border-color:rgba(212,175,55,0.4); }
-
-/* SEPARADOR DE PASO */
-.sep { display:flex; align-items:center; gap:14px; margin:28px 0 20px; }
-.sep-line { flex:1; height:1px; background:var(--borde); }
-.sep-centro { display:flex; align-items:center; gap:10px; }
-.sep-circ {
-    width:28px; height:28px; border-radius:50%;
-    background:var(--oro); color:#000; font-size:0.8rem; font-weight:900;
-    display:flex; align-items:center; justify-content:center; flex-shrink:0;
-}
-.sep-txt { font-size:0.78rem; letter-spacing:2px; color:#555; white-space:nowrap; }
-
-/* ALERTA */
-.alerta {
-    background:rgba(231,76,60,0.07); border:1px solid rgba(231,76,60,0.25);
-    border-radius:16px; padding:14px 18px; margin-bottom:16px;
-    font-size:0.72rem; color:var(--rojo); line-height:1.7; display:none;
+.dc-paso-lbl {
+    font-size: 0.62rem; font-weight: 600;
+    letter-spacing: 0.16em; color: var(--oro); text-transform: uppercase;
 }
 
-/* OPCIONES FORMATO */
-.formato-opciones { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
+/* ── JUGADORES CARD ── */
+.dc-jug-card {
+    background: var(--g2); border: 1px solid var(--borde);
+    border-radius: 20px; padding: 24px 20px; margin-bottom: 28px;
+}
+.dc-jug-pantalla { text-align: center; padding: 12px 0 20px; }
+.dc-jug-numero {
+    font-family: 'Playfair Display', serif;
+    font-size: 5rem; color: var(--oro); line-height: 1;
+    text-shadow: 0 0 40px rgba(201,168,76,0.25);
+}
+.dc-jug-sublabel {
+    font-size: 0.6rem; font-weight: 600; letter-spacing: 0.22em;
+    color: var(--muted); margin-top: 8px; text-transform: uppercase;
+}
+.dc-jug-btns {
+    display: flex; gap: 7px; flex-wrap: wrap;
+    justify-content: center; margin-bottom: 16px;
+}
+.dc-jug-btn {
+    padding: 9px 16px; border-radius: 22px;
+    background: transparent; border: 1px solid var(--borde2);
+    color: var(--muted); font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; font-weight: 600;
+    letter-spacing: 0.04em; cursor: pointer;
+    min-width: 48px; text-align: center; transition: .15s;
+}
+.dc-jug-btn.sel {
+    background: var(--oro-dim); border-color: var(--oro-mid); color: var(--oro);
+}
+.dc-jug-btn:active { transform: scale(0.93); }
+.dc-jug-custom-lbl {
+    font-size: 0.58rem; font-weight: 600; letter-spacing: 0.16em;
+    color: var(--muted); margin-bottom: 8px; text-transform: uppercase;
+}
+.dc-jug-input {
+    width: 100%; padding: 13px 16px;
+    background: var(--negro); border: 1px solid var(--borde2); border-radius: 12px;
+    color: var(--texto); font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; font-weight: 500;
+    text-align: center; letter-spacing: 0.1em; outline: none; transition: .2s;
+}
+.dc-jug-input:focus { border-color: var(--oro-mid); }
 
-.formato-opt {
-    background:var(--card); border:2px solid var(--borde);
-    border-radius:20px; padding:22px 20px;
-    cursor:pointer; transition:0.2s; position:relative;
+/* ── SEPARADOR DE PASO ── */
+.dc-sep {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 20px;
 }
-.formato-opt:active { transform:scale(0.98); }
-.formato-opt.sel {
-    border-color:var(--oro); background:rgba(212,175,55,0.04);
+.dc-sep-line { flex: 1; height: 1px; background: var(--borde2); }
+.dc-sep-centro { display: flex; align-items: center; gap: 10px; }
+.dc-sep-circ {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--oro); color: #000;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.formato-opt.sel::before {
-    content:''; position:absolute; top:0; left:0; right:0;
-    height:3px; background:var(--oro); border-radius:18px 18px 0 0;
+.dc-sep-txt {
+    font-size: 0.62rem; font-weight: 600;
+    letter-spacing: 0.18em; color: var(--muted); white-space: nowrap; text-transform: uppercase;
 }
-.fo-check {
-    position:absolute; top:16px; right:16px;
-    width:28px; height:28px; border-radius:50%;
-    background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.3);
-    display:none; align-items:center; justify-content:center;
-    color:var(--oro); font-size:0.9rem;
-}
-.formato-opt.sel .fo-check { display:flex; }
-.fo-recomen {
-    display:inline-flex; align-items:center; gap:6px;
-    font-size:0.65rem; letter-spacing:1px; color:var(--neon);
-    background:rgba(46,255,112,0.07); border:1px solid rgba(46,255,112,0.2);
-    padding:5px 13px; border-radius:20px; margin-bottom:12px;
-}
-.fo-nombre { font-size:1rem; color:#fff; letter-spacing:1px; margin-bottom:9px; padding-right:38px; }
-.fo-desc { font-size:0.72rem; color:#888; line-height:1.8; margin-bottom:14px; }
-.fo-tags { display:flex; gap:7px; flex-wrap:wrap; }
-.fo-tag {
-    font-size:0.65rem; padding:5px 12px; border-radius:12px;
-    background:#111; border:1px solid #1a1a1a; color:#555;
-}
-.fo-tag.v { border-color:rgba(46,255,112,0.25); color:var(--neon); background:rgba(46,255,112,0.04); }
-.fo-tag.x { border-color:rgba(231,76,60,0.25);  color:var(--rojo); background:rgba(231,76,60,0.04); }
-.fo-tag.s { border-color:rgba(212,175,55,0.2);  color:var(--oro);  background:rgba(212,175,55,0.04); }
 
-/* RESUMEN */
-.resumen {
-    background:var(--card); border:1px solid var(--borde);
-    border-radius:22px; overflow:hidden; margin-bottom:20px;
+/* ── ALERTA ── */
+.dc-alerta {
+    background: var(--rojo-dim); border: 1px solid var(--rojo-brd);
+    border-radius: 14px; padding: 12px 16px; margin-bottom: 14px;
+    font-size: 0.7rem; color: var(--rojo); line-height: 1.65; display: none;
 }
-.resumen-head {
-    padding:18px 22px; background:rgba(212,175,55,0.04);
-    border-bottom:1px solid var(--borde);
-    display:flex; justify-content:space-between; align-items:center; gap:12px;
-}
-.rh-nombre { font-size:0.85rem; color:var(--oro); letter-spacing:2px; }
-.rh-cant {
-    font-size:0.65rem; color:#444;
-    background:#111; border:1px solid #1a1a1a;
-    padding:5px 12px; border-radius:20px; white-space:nowrap;
-}
-.resumen-body { padding:22px; }
 
-/* FLUJO */
-.flujo { display:flex; flex-direction:column; }
-.flujo-fila { display:flex; align-items:stretch; }
-.flujo-izq { display:flex; flex-direction:column; align-items:center; width:40px; flex-shrink:0; }
-.flujo-circulo {
-    width:32px; height:32px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    font-size:0.7rem; font-weight:900; flex-shrink:0;
-    border:2px solid #222; color:#444;
-}
-.flujo-circulo.verde { border-color:rgba(46,255,112,0.4); color:var(--neon); background:rgba(46,255,112,0.06); }
-.flujo-circulo.oro   { border-color:rgba(212,175,55,0.5); color:var(--oro);  background:rgba(212,175,55,0.08); }
-.flujo-circulo.gris  { border-color:#1e1e1e; color:#444; background:#0d0d0d; }
-.flujo-vline { flex:1; width:2px; background:#1a1a1a; margin-top:4px; border-radius:2px; min-height:20px; }
-.flujo-vline.verde { background:rgba(46,255,112,0.2); }
-.flujo-vline.oro   { background:rgba(212,175,55,0.2); }
-.flujo-cont { flex:1; padding:3px 0 24px 16px; }
-.flujo-fila:last-child .flujo-cont { padding-bottom:0; }
-.flujo-fila:last-child .flujo-izq .flujo-vline { display:none; }
-.fe-sub  { font-size:0.6rem; color:#444; letter-spacing:2px; margin-bottom:5px; }
-.fe-nom  { font-size:0.88rem; color:#fff; letter-spacing:1px; margin-bottom:6px; }
-.fe-det  { font-size:0.68rem; color:#777; line-height:1.7; margin-bottom:9px; }
-.fe-badge {
-    display:inline-block; font-size:0.62rem;
-    padding:5px 14px; border-radius:20px;
-}
-.fe-badge.verde { background:rgba(46,255,112,0.07); border:1px solid rgba(46,255,112,0.2); color:var(--neon); }
-.fe-badge.oro   { background:rgba(212,175,55,0.07); border:1px solid rgba(212,175,55,0.2); color:var(--oro); }
-.fe-badge.gris  { background:#0f0f0f; border:1px solid #222; color:#555; }
+/* ── FORMATO OPCIONES ── */
+.dc-formato-opciones { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
 
-.resumen-vacio {
-    text-align:center; padding:40px 20px;
-    color:#333; font-size:0.75rem; letter-spacing:2px;
+.dc-formato-opt {
+    background: var(--g2); border: 1px solid var(--borde2);
+    border-radius: 18px; padding: 20px 18px;
+    cursor: pointer; transition: border-color .2s, background .2s; position: relative;
 }
-.resumen-vacio-ico { font-size:2.5rem; display:block; opacity:0.3; margin-bottom:12px; }
+.dc-formato-opt:active { transform: scale(0.985); }
+.dc-formato-opt.sel {
+    border-color: var(--oro-mid); background: var(--oro-glow);
+}
+.dc-formato-opt.sel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--oro); border-radius: 17px 17px 0 0;
+}
+.dc-fo-check {
+    position: absolute; top: 14px; right: 14px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--oro-dim); border: 1px solid var(--oro-mid);
+    display: none; align-items: center; justify-content: center;
+    color: var(--oro); font-size: 0.82rem;
+}
+.dc-formato-opt.sel .dc-fo-check { display: flex; }
+.dc-fo-recomen {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.6rem; font-weight: 600; letter-spacing: 0.08em; color: var(--neon);
+    background: var(--neon-dim); border: 1px solid var(--neon-brd);
+    padding: 4px 12px; border-radius: 18px; margin-bottom: 10px; text-transform: uppercase;
+}
+.dc-fo-nombre {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem; color: var(--texto);
+    letter-spacing: 0.02em; margin-bottom: 8px; padding-right: 36px;
+}
+.dc-fo-desc { font-size: 0.7rem; color: var(--muted); line-height: 1.75; margin-bottom: 12px; }
+.dc-fo-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.dc-fo-tag {
+    font-size: 0.6rem; font-weight: 500; padding: 4px 11px; border-radius: 10px;
+    background: var(--g3); border: 1px solid var(--borde2); color: var(--muted);
+}
+.dc-fo-tag.v { border-color: var(--neon-brd); color: var(--neon); background: var(--neon-dim); }
+.dc-fo-tag.x { border-color: var(--rojo-brd);  color: var(--rojo); background: var(--rojo-dim); }
+.dc-fo-tag.s { border-color: var(--borde);     color: var(--oro);  background: var(--oro-dim); }
 
-/* BOTÓN */
-.btn-aplicar {
-    width:100%; padding:22px; border-radius:20px;
-    background:linear-gradient(135deg,#d4af37,#8a6200);
-    border:none; color:#000; font-size:0.95rem;
-    font-family:'Arial Black',sans-serif;
-    letter-spacing:3px; cursor:pointer;
-    box-shadow:0 0 40px rgba(212,175,55,0.15);
-    transition:0.2s;
+/* ── RESUMEN ── */
+.dc-resumen {
+    background: var(--g2); border: 1px solid var(--borde);
+    border-radius: 18px; overflow: hidden; margin-bottom: 20px;
 }
-.btn-aplicar:active { transform:scale(0.97); }
+.dc-resumen-head {
+    padding: 16px 20px; background: var(--oro-glow);
+    border-bottom: 1px solid var(--borde);
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.dc-rh-nombre {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.88rem; color: var(--oro); letter-spacing: 0.02em;
+}
+.dc-rh-cant {
+    font-size: 0.62rem; font-weight: 500; color: var(--muted);
+    background: var(--g3); border: 1px solid var(--borde2);
+    padding: 4px 12px; border-radius: 18px; white-space: nowrap;
+}
+.dc-resumen-body { padding: 20px; }
 
-/* REGLAS DE PARTIDA */
-.reglas-card {
-    background:var(--card); border:1px solid var(--borde);
-    border-radius:22px; overflow:hidden; margin-bottom:28px;
+/* ── FLUJO ── */
+.dc-flujo { display: flex; flex-direction: column; }
+.dc-flujo-fila { display: flex; align-items: stretch; }
+.dc-flujo-izq {
+    display: flex; flex-direction: column; align-items: center;
+    width: 38px; flex-shrink: 0;
 }
-.regla-bloque { padding:22px 20px; }
-.regla-sep { height:1px; background:var(--borde); margin:0 20px; }
+.dc-flujo-circulo {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.68rem; font-weight: 700; flex-shrink: 0;
+    border: 1px solid var(--borde2); color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+}
+.dc-flujo-circulo.verde { border-color: var(--neon-brd); color: var(--neon); background: var(--neon-dim); }
+.dc-flujo-circulo.oro   { border-color: var(--oro-mid);  color: var(--oro);  background: var(--oro-dim); }
+.dc-flujo-circulo.gris  { border-color: var(--borde2); color: var(--muted); background: var(--g3); }
+.dc-flujo-vline {
+    flex: 1; width: 1px; background: var(--borde2);
+    margin-top: 4px; border-radius: 2px; min-height: 18px;
+}
+.dc-flujo-vline.verde { background: var(--neon-brd); }
+.dc-flujo-vline.oro   { background: var(--oro-mid); }
+.dc-flujo-cont { flex: 1; padding: 2px 0 22px 14px; }
+.dc-flujo-fila:last-child .dc-flujo-cont { padding-bottom: 0; }
+.dc-flujo-fila:last-child .dc-flujo-izq .dc-flujo-vline { display: none; }
+.dc-fe-sub  { font-size: 0.56rem; font-weight: 600; letter-spacing: 0.18em; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
+.dc-fe-nom  { font-size: 0.85rem; font-weight: 600; color: var(--texto); letter-spacing: 0.02em; margin-bottom: 5px; }
+.dc-fe-det  { font-size: 0.67rem; color: var(--muted); line-height: 1.65; margin-bottom: 8px; }
+.dc-fe-badge {
+    display: inline-block; font-size: 0.6rem; font-weight: 600;
+    padding: 4px 13px; border-radius: 18px;
+}
+.dc-fe-badge.verde { background: var(--neon-dim); border: 1px solid var(--neon-brd); color: var(--neon); }
+.dc-fe-badge.oro   { background: var(--oro-dim);  border: 1px solid var(--oro-mid);  color: var(--oro); }
+.dc-fe-badge.gris  { background: var(--g3); border: 1px solid var(--borde2); color: var(--muted); }
 
-.regla-titulo {
-    display:flex; align-items:center; gap:8px;
-    font-size:0.75rem; letter-spacing:2px; color:#e0e0e0;
-    margin-bottom:6px;
+.dc-resumen-vacio {
+    text-align: center; padding: 36px 20px;
+    color: var(--muted2); font-size: 0.72rem;
+    font-weight: 500; letter-spacing: 0.1em;
 }
-.regla-sub { font-size:0.65rem; color:#555; line-height:1.7; margin-bottom:16px; }
+.dc-resumen-vacio-ico { font-size: 2rem; display: block; opacity: 0.25; margin-bottom: 10px; }
+
+/* ── REGLAS CARD ── */
+.dc-reglas-card {
+    background: var(--g2); border: 1px solid var(--borde);
+    border-radius: 18px; overflow: hidden; margin-bottom: 28px;
+}
+.dc-regla-bloque { padding: 20px 18px; }
+.dc-regla-sep { height: 1px; background: var(--borde2); margin: 0 18px; }
+
+.dc-regla-titulo {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.12em;
+    color: var(--texto); margin-bottom: 4px; text-transform: uppercase;
+}
+.dc-regla-sub { font-size: 0.67rem; color: var(--muted); line-height: 1.65; margin-bottom: 14px; }
 
 /* MODO TABS */
-.modo-tabs {
-    display:flex; gap:0; margin-bottom:16px;
-    background:#0a0a0a; border:1px solid var(--borde); border-radius:12px;
-    overflow:hidden;
+.dc-modo-tabs {
+    display: flex; margin-bottom: 14px;
+    background: var(--negro); border: 1px solid var(--borde2); border-radius: 10px;
+    overflow: hidden;
 }
-.modo-tab {
-    flex:1; padding:11px 8px; text-align:center;
-    font-size:0.62rem; letter-spacing:1px; color:#444;
-    cursor:pointer; transition:0.2s;
-    font-family:'Arial Black',sans-serif;
-    border-right:1px solid var(--borde);
+.dc-modo-tab {
+    flex: 1; padding: 10px 6px; text-align: center;
+    font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em;
+    color: var(--muted); cursor: pointer; transition: .18s;
+    font-family: 'DM Sans', sans-serif; text-transform: uppercase;
+    border-right: 1px solid var(--borde2);
 }
-.modo-tab:last-child { border-right:none; }
-.modo-tab.activo { background:rgba(212,175,55,0.1); color:var(--oro); }
+.dc-modo-tab:last-child { border-right: none; }
+.dc-modo-tab.activo { background: var(--oro-dim); color: var(--oro); }
 
-/* META */
-.meta-selector { margin-bottom:12px; }
-.meta-btns {
-    display:flex; gap:7px; flex-wrap:wrap;
-    margin-bottom:10px;
+/* META SELECTOR */
+.dc-meta-selector { margin-bottom: 10px; }
+.dc-meta-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.dc-meta-btn {
+    padding: 8px 13px; border-radius: 18px;
+    background: transparent; border: 1px solid var(--borde2); color: var(--muted);
+    font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; transition: .15s; min-width: 40px; text-align: center;
 }
-.meta-btn {
-    padding:9px 14px; border-radius:20px;
-    background:#111; border:1px solid #222; color:#555;
-    font-size:0.8rem; font-family:'Arial Black',sans-serif;
-    cursor:pointer; transition:0.15s; min-width:44px; text-align:center;
+.dc-meta-btn.sel { background: var(--oro-dim); border-color: var(--oro-mid); color: var(--oro); }
+.dc-meta-btn:active { transform: scale(0.93); }
+.dc-meta-custom-row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
-.meta-btn.sel { background:rgba(212,175,55,0.12); border-color:var(--oro); color:var(--oro); }
-.meta-btn:active { transform:scale(0.94); }
-.meta-custom-row {
-    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+.dc-meta-custom-lbl { font-size: 0.6rem; font-weight: 500; letter-spacing: 0.1em; color: var(--muted); }
+.dc-meta-inp {
+    padding: 7px 10px; background: var(--negro);
+    border: 1px solid var(--borde2); border-radius: 9px;
+    color: var(--texto); font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; font-weight: 600;
+    width: 66px; text-align: center; outline: none; transition: .2s;
 }
-.meta-custom-lbl { font-size:0.62rem; color:#444; letter-spacing:1px; }
-.meta-inp {
-    padding:8px 12px; background:#0a0a0a;
-    border:1px solid #222; border-radius:10px;
-    color:#fff; font-size:0.85rem; font-family:'Courier New',monospace;
-    width:70px; text-align:center; outline:none; transition:0.2s;
+.dc-meta-inp:focus { border-color: var(--oro-mid); }
+.dc-meta-preview {
+    background: var(--neon-dim); border: 1px solid var(--neon-brd);
+    border-radius: 10px; padding: 10px 13px;
+    font-size: 0.67rem; color: var(--muted); line-height: 1.55; margin-top: 4px;
 }
-.meta-inp:focus { border-color:rgba(212,175,55,0.4); }
-.meta-preview {
-    background:rgba(46,255,112,0.05); border:1px solid rgba(46,255,112,0.15);
-    border-radius:12px; padding:11px 14px;
-    font-size:0.68rem; color:#888; line-height:1.6; margin-top:4px;
-}
-.meta-preview strong { color:var(--neon); }
+.dc-meta-preview strong { color: var(--neon); }
 
 /* SETS */
-.sets-row { display:flex; gap:16px; margin-bottom:12px; flex-wrap:wrap; }
-.sets-bloque { flex:1; min-width:140px; }
-.sets-lbl { font-size:0.6rem; letter-spacing:2px; color:#444; margin-bottom:8px; }
+.dc-sets-row { display: flex; gap: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+.dc-sets-bloque { flex: 1; min-width: 130px; }
+.dc-sets-lbl {
+    font-size: 0.58rem; font-weight: 600; letter-spacing: 0.16em;
+    color: var(--muted); margin-bottom: 7px; text-transform: uppercase;
+}
 
 /* HANDICAP TOGGLE */
-.handi-toggle-row {
-    display:flex; gap:0; margin-bottom:16px;
-    background:#0a0a0a; border:1px solid var(--borde); border-radius:12px;
-    overflow:hidden;
+.dc-handi-toggle-row {
+    display: flex; margin-bottom: 14px;
+    background: var(--negro); border: 1px solid var(--borde2); border-radius: 10px;
+    overflow: hidden;
 }
-.handi-toggle-opt {
-    flex:1; padding:11px 6px; text-align:center;
-    font-size:0.58rem; letter-spacing:1px; color:#444;
-    cursor:pointer; transition:0.2s;
-    font-family:'Arial Black',sans-serif;
-    border-right:1px solid var(--borde);
+.dc-handi-toggle-opt {
+    flex: 1; padding: 10px 5px; text-align: center;
+    font-size: 0.58rem; font-weight: 600; letter-spacing: 0.08em;
+    color: var(--muted); cursor: pointer; transition: .18s;
+    font-family: 'DM Sans', sans-serif; text-transform: uppercase;
+    border-right: 1px solid var(--borde2);
 }
-.handi-toggle-opt:last-child { border-right:none; }
-.handi-toggle-opt.activo { background:rgba(52,152,219,0.1); color:var(--azul, #3498db); }
+.dc-handi-toggle-opt:last-child { border-right: none; }
+.dc-handi-toggle-opt.activo { background: var(--azul-dim); color: var(--azul); }
 
-.handi-info {
-    font-size:0.65rem; color:#666; line-height:1.7;
-    background:#0a0a0a; border:1px solid #1a1a1a;
-    border-radius:12px; padding:12px 14px; margin-bottom:10px;
+.dc-handi-info {
+    font-size: 0.67rem; color: var(--muted); line-height: 1.65;
+    background: var(--g3); border: 1px solid var(--borde2);
+    border-radius: 10px; padding: 11px 13px; margin-bottom: 9px;
 }
-.handi-formula-card {
-    background:#0a0a0a; border:1px solid rgba(52,152,219,0.2);
-    border-radius:14px; padding:14px; margin-bottom:10px;
+.dc-handi-formula-card {
+    background: var(--g3); border: 1px solid var(--azul-brd);
+    border-radius: 12px; padding: 13px; margin-bottom: 9px;
 }
-.hf-titulo { font-size:0.58rem; letter-spacing:2px; color:#3498db; margin-bottom:8px; }
-.hf-formula {
-    font-size:0.7rem; color:#888; font-family:'Courier New',monospace;
-    line-height:1.9; margin-bottom:8px;
-    padding-bottom:8px; border-bottom:1px solid #1a1a1a;
+.dc-hf-titulo {
+    font-size: 0.58rem; font-weight: 600; letter-spacing: 0.16em;
+    color: var(--azul); margin-bottom: 7px; text-transform: uppercase;
 }
-.hf-ejemplo { font-size:0.63rem; color:#666; line-height:1.7; }
-.handi-check-row {
-    display:flex; align-items:center; gap:8px;
-    margin-bottom:8px; flex-wrap:wrap;
+.dc-hf-formula {
+    font-size: 0.68rem; color: var(--muted); font-family: 'Courier New', monospace;
+    line-height: 1.9; margin-bottom: 7px;
+    padding-bottom: 7px; border-bottom: 1px solid var(--borde2);
 }
-.handi-check { display:flex; align-items:center; gap:8px; cursor:pointer; }
-.handi-check input[type=checkbox] { accent-color:#3498db; width:15px; height:15px; }
-.handi-check-lbl { font-size:0.63rem; color:#555; }
+.dc-hf-ejemplo { font-size: 0.63rem; color: var(--muted); line-height: 1.65; }
+.dc-handi-check-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 7px; flex-wrap: wrap;
+}
+.dc-handi-check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.dc-handi-check input[type=checkbox] { accent-color: var(--azul); width: 15px; height: 15px; }
+.dc-handi-check-lbl { font-size: 0.63rem; color: var(--muted); }
 
 /* MANUAL HANDICAP */
-.handi-manual-ejemplo {
-    display:flex; align-items:center; gap:14px;
-    background:#0a0a0a; border:1px solid #1a1a1a;
-    border-radius:14px; padding:16px; margin-bottom:8px;
-    flex-wrap:wrap;
+.dc-handi-manual-ejemplo {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--g3); border: 1px solid var(--borde2);
+    border-radius: 12px; padding: 14px; margin-bottom: 7px; flex-wrap: wrap;
 }
-.hme-jugador { flex:1; min-width:100px; }
-.hme-lbl { font-size:0.58rem; letter-spacing:2px; color:#444; margin-bottom:8px; }
-.hme-fila { display:flex; align-items:center; gap:8px; }
-.hme-inp { width:72px !important; font-size:1.1rem !important; text-align:center; }
-.hme-vs {
-    font-size:0.7rem; letter-spacing:2px; color:#333;
-    padding:0 4px; flex-shrink:0;
+.dc-hme-jugador { flex: 1; min-width: 90px; }
+.dc-hme-lbl {
+    font-size: 0.56rem; font-weight: 600; letter-spacing: 0.16em;
+    color: var(--muted); margin-bottom: 7px; text-transform: uppercase;
+}
+.dc-hme-fila { display: flex; align-items: center; gap: 7px; }
+.dc-hme-inp { width: 68px !important; font-size: 1rem !important; text-align: center; }
+.dc-hme-vs {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+    color: var(--muted2); padding: 0 4px; flex-shrink: 0;
 }
 
-/* Azul variable */
-:root { --azul:#3498db; }
-.toast {
-    position:fixed; bottom:100px; left:50%;
-    transform:translateX(-50%) translateY(16px);
-    background:#1a1a1a; border:1px solid rgba(46,255,112,0.3);
-    color:var(--neon); font-size:0.75rem; letter-spacing:1px;
-    padding:14px 28px; border-radius:50px;
-    opacity:0; transition:0.3s; pointer-events:none;
-    white-space:nowrap; z-index:200;
+/* ── TOAST ── */
+.dc-toast {
+    position: fixed; bottom: 100px; left: 50%;
+    transform: translateX(-50%) translateY(14px);
+    background: var(--g2); border: 1px solid var(--neon-brd);
+    color: var(--neon); font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.06em; padding: 13px 26px; border-radius: 50px;
+    opacity: 0; transition: .28s; pointer-events: none;
+    white-space: nowrap; z-index: 200;
 }
-.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.dc-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* NAV BOTTOM */
-.nav-bottom {
-    position:fixed; bottom:0; left:0; right:0;
-    background:linear-gradient(transparent,#000 40%);
-    padding:10px 16px 24px; display:flex; gap:10px; z-index:50;
+/* ── BTN APLICAR ── */
+.dc-btn-aplicar {
+    width: 100%; padding: 18px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--oro), #8a6200);
+    border: none; color: #000;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; cursor: pointer;
+    box-shadow: 0 0 32px rgba(201,168,76,0.12);
+    transition: opacity .2s, transform .12s;
 }
-.btn-nav {
-    flex:1; padding:15px 10px;
-    background:var(--card); border:1px solid var(--borde);
-    color:#666; border-radius:16px; font-size:0.65rem;
-    text-align:center; text-decoration:none;
-    font-family:'Arial Black',sans-serif; letter-spacing:1px;
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    transition:0.2s;
+.dc-btn-aplicar:hover { opacity: 0.92; transform: translateY(-1px); }
+.dc-btn-aplicar:active { transform: scale(0.97); }
+
+/* ── NAV BOTTOM ── */
+.dc-nav-bottom {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, #000 40%);
+    padding: 10px 16px 24px; display: flex; gap: 9px; z-index: 50;
 }
-.btn-nav:active { border-color:var(--oro); color:var(--oro); }
+.dc-btn-nav {
+    flex: 1; padding: 13px 8px;
+    background: var(--g2); border: 1px solid var(--borde2);
+    color: var(--muted); border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em;
+    text-align: center; text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: border-color .2s, color .2s; text-transform: uppercase;
+}
+.dc-btn-nav:active { border-color: var(--oro-mid); color: var(--oro); }
+
+/* ── FADE-IN ── */
+@keyframes dcFadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+body.dc-ready .dc-wrap > * {
+    animation: dcFadeUp .38s ease both;
+}
+body.dc-ready .dc-wrap > *:nth-child(1)  { animation-delay: .04s; }
+body.dc-ready .dc-wrap > *:nth-child(2)  { animation-delay: .08s; }
+body.dc-ready .dc-wrap > *:nth-child(3)  { animation-delay: .12s; }
+body.dc-ready .dc-wrap > *:nth-child(4)  { animation-delay: .16s; }
+body.dc-ready .dc-wrap > *:nth-child(5)  { animation-delay: .20s; }
+body.dc-ready .dc-wrap > *:nth-child(6)  { animation-delay: .24s; }
+body.dc-ready .dc-wrap > *:nth-child(7)  { animation-delay: .28s; }
+body.dc-ready .dc-wrap > *:nth-child(n+8){ animation-delay: .32s; }
 </style>
-    <meta name="theme-color" content="#d4af37">
-    <link rel="stylesheet" href="/css/ux-shell.css">
+<link rel="stylesheet" href="/css/ux-shell.css">
 <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-ux dc-ux-skin">
 
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-
-<div class="header">
-    <a href="/club/index.html" class="back-btn">&#8592;</a>
-    <div>
-        <div class="h-titulo">CONFIGURAR FORMATO</div>
-        <div class="h-sub">DISEÑADOR DE TORNEO · DECARAMBOLA</div>
+<!-- HEADER -->
+<header class="dc-header">
+    <a href="/apps/club/index.html" class="dc-back">&#8592;</a>
+    <div class="dc-header-txt">
+        <div class="dc-header-eyebrow">DeCarambola · Organizador</div>
+        <div class="dc-header-title">Configurar Formato</div>
     </div>
-</div>
+</header>
 
-<div class="wrap">
+<div class="dc-wrap">
 
-    <p style="font-size:0.58rem;color:#555;letter-spacing:1px;margin-bottom:18px;line-height:1.6;padding:0 4px;">Aquí solo defines <strong style="color:#666;">estructura y reglas</strong> (jugadores, rondas, carambolas, handicap). No creas el torneo aún. Al pulsar &quot;USAR ESTE FORMATO&quot; vas a <strong style="color:var(--oro);">Crear torneo</strong> para completar nombre, fecha, sede y premios.</p>
+    <p class="dc-intro">
+        Aquí defines <strong>estructura y reglas</strong> (jugadores, rondas, carambolas, handicap).
+        No creas el torneo aún. Al pulsar <em>Usar este formato</em> vas a
+        <em>Crear torneo</em> para completar nombre, fecha, sede y premios.
+    </p>
 
     <!-- ── PASO 1 ── -->
-    <div class="paso-badge">
-        <div class="paso-num">1</div>
-        <div class="paso-lbl">NÚMERO DE JUGADORES</div>
+    <div class="dc-paso">
+        <div class="dc-paso-num">1</div>
+        <div class="dc-paso-lbl">Número de jugadores</div>
     </div>
 
-    <div class="jug-card">
-        <div class="jug-pantalla">
-            <div class="jug-numero" id="num-jug">48</div>
-            <div class="jug-sublabel">JUGADORES INSCRITOS</div>
+    <div class="dc-jug-card">
+        <div class="dc-jug-pantalla">
+            <div class="dc-jug-numero" id="num-jug">48</div>
+            <div class="dc-jug-sublabel">Jugadores inscritos</div>
         </div>
-        <div class="jug-btns">
-            <div class="jug-btn" onclick="setJug(8)">8</div>
-            <div class="jug-btn" onclick="setJug(12)">12</div>
-            <div class="jug-btn" onclick="setJug(16)">16</div>
-            <div class="jug-btn" onclick="setJug(24)">24</div>
-            <div class="jug-btn" onclick="setJug(32)">32</div>
-            <div class="jug-btn sel" onclick="setJug(48)">48</div>
-            <div class="jug-btn" onclick="setJug(64)">64</div>
+        <div class="dc-jug-btns">
+            <div class="dc-jug-btn" onclick="setJug(8)">8</div>
+            <div class="dc-jug-btn" onclick="setJug(12)">12</div>
+            <div class="dc-jug-btn" onclick="setJug(16)">16</div>
+            <div class="dc-jug-btn" onclick="setJug(24)">24</div>
+            <div class="dc-jug-btn" onclick="setJug(32)">32</div>
+            <div class="dc-jug-btn sel" onclick="setJug(48)">48</div>
+            <div class="dc-jug-btn" onclick="setJug(64)">64</div>
         </div>
-        <div class="jug-custom-lbl">O ESCRIBE EL NÚMERO EXACTO</div>
-        <input type="number" class="jug-input" id="inp-jug"
+        <div class="dc-jug-custom-lbl">O escribe el número exacto</div>
+        <input type="number" class="dc-jug-input" id="inp-jug"
                value="48" min="4" max="128" placeholder="4 — 128"
                onchange="setJug(parseInt(this.value)||4)">
     </div>
 
     <!-- ── PASO 2 ── -->
-    <div class="sep">
-        <div class="sep-line"></div>
-        <div class="sep-centro"><div class="sep-circ">2</div><div class="sep-txt">ELIGE EL FORMATO</div></div>
-        <div class="sep-line"></div>
+    <div class="dc-sep">
+        <div class="dc-sep-line"></div>
+        <div class="dc-sep-centro"><div class="dc-sep-circ">2</div><div class="dc-sep-txt">Elige el formato</div></div>
+        <div class="dc-sep-line"></div>
     </div>
 
-    <div class="alerta" id="alerta"></div>
-    <div class="formato-opciones" id="opciones-container">
-        <div style="text-align:center;padding:32px;color:#333;font-size:0.75rem;letter-spacing:2px;">Cargando…</div>
+    <div class="dc-alerta" id="alerta"></div>
+    <div class="dc-formato-opciones" id="opciones-container">
+        <div style="text-align:center;padding:32px;color:var(--muted);font-size:0.72rem;letter-spacing:0.1em;">Cargando…</div>
     </div>
 
     <!-- ── PASO 3: REGLAS DE PARTIDA ── -->
-    <div class="sep">
-        <div class="sep-line"></div>
-        <div class="sep-centro"><div class="sep-circ">3</div><div class="sep-txt">REGLAS DE PARTIDA</div></div>
-        <div class="sep-line"></div>
+    <div class="dc-sep">
+        <div class="dc-sep-line"></div>
+        <div class="dc-sep-centro"><div class="dc-sep-circ">3</div><div class="dc-sep-txt">Reglas de partida</div></div>
+        <div class="dc-sep-line"></div>
     </div>
 
-    <div class="reglas-card" id="reglas-card">
+    <div class="dc-reglas-card" id="reglas-card">
 
         <!-- META DE CARAMBOLAS -->
-        <div class="regla-bloque">
-            <div class="regla-titulo">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--oro)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
-                META DE CARAMBOLAS
+        <div class="dc-regla-bloque">
+            <div class="dc-regla-titulo">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--oro)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
+                Meta de carambolas
             </div>
-            <div class="regla-sub">¿Cuántas carambolas necesita hacer un jugador para ganar la partida (o cada set)?</div>
+            <div class="dc-regla-sub">¿Cuántas carambolas necesita hacer un jugador para ganar la partida (o cada set)?</div>
 
-            <!-- Modo de juego: partido directo vs sets -->
-            <div class="modo-tabs" id="modo-tabs">
-                <div class="modo-tab activo" data-modo="directo" onclick="setModo('directo')">PARTIDO DIRECTO</div>
-                <div class="modo-tab" data-modo="sets" onclick="setModo('sets')">AL MEJOR DE 3 SETS</div>
+            <div class="dc-modo-tabs" id="modo-tabs">
+                <div class="dc-modo-tab activo" data-modo="directo" onclick="setModo('directo')">Partido directo</div>
+                <div class="dc-modo-tab" data-modo="sets" onclick="setModo('sets')">Al mejor de 3 sets</div>
             </div>
 
             <!-- PARTIDO DIRECTO -->
             <div id="modo-directo">
-                <div class="meta-selector">
-                    <div class="meta-btns" id="meta-btns-d">
-                        <div class="meta-btn" onclick="setMeta('d',5)">5</div>
-                        <div class="meta-btn" onclick="setMeta('d',8)">8</div>
-                        <div class="meta-btn sel" onclick="setMeta('d',10)">10</div>
-                        <div class="meta-btn" onclick="setMeta('d',12)">12</div>
-                        <div class="meta-btn" onclick="setMeta('d',15)">15</div>
-                        <div class="meta-btn" onclick="setMeta('d',20)">20</div>
-                        <div class="meta-btn" onclick="setMeta('d',25)">25</div>
+                <div class="dc-meta-selector">
+                    <div class="dc-meta-btns" id="meta-btns-d">
+                        <div class="dc-meta-btn" onclick="setMeta('d',5)">5</div>
+                        <div class="dc-meta-btn" onclick="setMeta('d',8)">8</div>
+                        <div class="dc-meta-btn sel" onclick="setMeta('d',10)">10</div>
+                        <div class="dc-meta-btn" onclick="setMeta('d',12)">12</div>
+                        <div class="dc-meta-btn" onclick="setMeta('d',15)">15</div>
+                        <div class="dc-meta-btn" onclick="setMeta('d',20)">20</div>
+                        <div class="dc-meta-btn" onclick="setMeta('d',25)">25</div>
                     </div>
-                    <div class="meta-custom-row">
-                        <span class="meta-custom-lbl">OTRO:</span>
+                    <div class="dc-meta-custom-row">
+                        <span class="dc-meta-custom-lbl">Otro:</span>
                         <input type="number" id="meta-inp-d" value="10" min="1" max="100"
-                               class="meta-inp" onchange="setMeta('d',parseInt(this.value)||10)">
-                        <span class="meta-custom-lbl">caramb.</span>
+                               class="dc-meta-inp" onchange="setMeta('d',parseInt(this.value)||10)">
+                        <span class="dc-meta-custom-lbl">caramb.</span>
                     </div>
                 </div>
-                <div class="meta-preview" id="meta-prev-d">
+                <div class="dc-meta-preview" id="meta-prev-d">
                     Primero en llegar a <strong id="meta-val-d">10</strong> carambolas gana la partida
                 </div>
             </div>
 
             <!-- SETS -->
             <div id="modo-sets" style="display:none;">
-                <div class="sets-row">
-                    <div class="sets-bloque">
-                        <div class="sets-lbl">META POR SET</div>
-                        <div class="meta-btns" id="meta-btns-s" style="justify-content:flex-start;">
-                            <div class="meta-btn sel" onclick="setMeta('s',3)">3</div>
-                            <div class="meta-btn" onclick="setMeta('s',5)">5</div>
-                            <div class="meta-btn" onclick="setMeta('s',8)">8</div>
-                            <div class="meta-btn" onclick="setMeta('s',10)">10</div>
+                <div class="dc-sets-row">
+                    <div class="dc-sets-bloque">
+                        <div class="dc-sets-lbl">Meta por set</div>
+                        <div class="dc-meta-btns" id="meta-btns-s" style="justify-content:flex-start;">
+                            <div class="dc-meta-btn sel" onclick="setMeta('s',3)">3</div>
+                            <div class="dc-meta-btn" onclick="setMeta('s',5)">5</div>
+                            <div class="dc-meta-btn" onclick="setMeta('s',8)">8</div>
+                            <div class="dc-meta-btn" onclick="setMeta('s',10)">10</div>
                         </div>
-                        <div class="meta-custom-row" style="margin-top:8px;">
+                        <div class="dc-meta-custom-row" style="margin-top:7px;">
                             <input type="number" id="meta-inp-s" value="3" min="1" max="50"
-                                   class="meta-inp" onchange="setMeta('s',parseInt(this.value)||3)">
-                            <span class="meta-custom-lbl">caramb./set</span>
+                                   class="dc-meta-inp" onchange="setMeta('s',parseInt(this.value)||3)">
+                            <span class="dc-meta-custom-lbl">caramb./set</span>
                         </div>
                     </div>
-                    <div class="sets-bloque">
-                        <div class="sets-lbl">SETS A GANAR</div>
-                        <div style="display:flex;gap:6px;margin-bottom:8px;">
-                            <div class="meta-btn sel" onclick="setSetsGanar(2)" id="sg-2">2 de 3</div>
-                            <div class="meta-btn" onclick="setSetsGanar(3)" id="sg-3">3 de 5</div>
+                    <div class="dc-sets-bloque">
+                        <div class="dc-sets-lbl">Sets a ganar</div>
+                        <div style="display:flex;gap:6px;margin-bottom:7px;">
+                            <div class="dc-meta-btn sel" onclick="setSetsGanar(2)" id="sg-2">2 de 3</div>
+                            <div class="dc-meta-btn" onclick="setSetsGanar(3)" id="sg-3">3 de 5</div>
                         </div>
-                        <div class="meta-custom-lbl" id="sets-desc" style="color:var(--neon);font-size:0.62rem;">
+                        <div class="dc-meta-custom-lbl" id="sets-desc" style="color:var(--neon);font-size:0.62rem;">
                             Gana quien primero llegue a 2 sets
                         </div>
                     </div>
                 </div>
-                <div class="meta-preview" id="meta-prev-s">
+                <div class="dc-meta-preview" id="meta-prev-s">
                     Cada set a <strong id="meta-val-s">3</strong> caramb. · Gana quien gane <strong id="meta-sg">2</strong> sets primero
                 </div>
             </div>
         </div>
 
         <!-- SEPARADOR -->
-        <div class="regla-sep"></div>
+        <div class="dc-regla-sep"></div>
 
         <!-- HANDICAP -->
-        <div class="regla-bloque">
-            <div class="regla-titulo">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--azul)" stroke-width="1.5" stroke-linecap="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-                HANDICAP
+        <div class="dc-regla-bloque">
+            <div class="dc-regla-titulo">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--azul)" stroke-width="1.5" stroke-linecap="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                Handicap
             </div>
-            <div class="regla-sub">Ventaja para nivelar la diferencia de habilidad entre jugadores.</div>
+            <div class="dc-regla-sub">Ventaja para nivelar la diferencia de habilidad entre jugadores.</div>
 
-            <!-- Toggle handicap -->
-            <div class="handi-toggle-row">
-                <div class="handi-toggle-opt activo" id="hopt-no" onclick="setHandicap('no')">SIN HANDICAP</div>
-                <div class="handi-toggle-opt" id="hopt-auto" onclick="setHandicap('auto')">POR PROMEDIO</div>
-                <div class="handi-toggle-opt" id="hopt-manual" onclick="setHandicap('manual')">MANUAL</div>
+            <div class="dc-handi-toggle-row">
+                <div class="dc-handi-toggle-opt activo" id="hopt-no" onclick="setHandicap('no')">Sin handicap</div>
+                <div class="dc-handi-toggle-opt" id="hopt-auto" onclick="setHandicap('auto')">Por promedio</div>
+                <div class="dc-handi-toggle-opt" id="hopt-manual" onclick="setHandicap('manual')">Manual</div>
             </div>
 
             <!-- SIN HANDICAP -->
             <div id="handi-no">
-                <div class="handi-info">Todos juegan con la misma meta. Sin ventajas.</div>
+                <div class="dc-handi-info">Todos juegan con la misma meta. Sin ventajas.</div>
             </div>
 
-            <!-- HANDICAP AUTOMÁTICO POR PROMEDIO -->
+            <!-- HANDICAP AUTOMÁTICO -->
             <div id="handi-auto" style="display:none;">
-                <div class="handi-info">
+                <div class="dc-handi-info">
                     El sistema calcula la diferencia entre los promedios de cada jugador y ajusta la meta automáticamente.
                 </div>
-                <div class="handi-formula-card">
-                    <div class="hf-titulo">FÓRMULA</div>
-                    <div class="hf-formula">
+                <div class="dc-handi-formula-card">
+                    <div class="dc-hf-titulo">Fórmula</div>
+                    <div class="dc-hf-formula">
                         Meta A = Meta base<br>
                         Meta B = Meta base × (Prom A ÷ Prom B)
                     </div>
-                    <div class="hf-ejemplo" id="hf-ejemplo">
+                    <div class="dc-hf-ejemplo" id="hf-ejemplo">
                         Ej: Meta 10 · Jugador A prom 0.600 vs B prom 0.900<br>
                         → A juega a 10 · B juega a <span style="color:var(--oro)">15</span>
                     </div>
                 </div>
-                <div class="handi-check-row">
-                    <label class="handi-check">
+                <div class="dc-handi-check-row">
+                    <label class="dc-handi-check">
                         <input type="checkbox" id="chk-redondear" checked onchange="actualizarEjemplo()">
-                        <span class="handi-check-lbl">Redondear al entero más cercano</span>
+                        <span class="dc-handi-check-lbl">Redondear al entero más cercano</span>
                     </label>
                 </div>
-                <div class="handi-check-row">
-                    <label class="handi-check">
+                <div class="dc-handi-check-row">
+                    <label class="dc-handi-check">
                         <input type="checkbox" id="chk-tope" onchange="actualizarEjemplo()">
-                        <span class="handi-check-lbl">Límite máximo de ventaja</span>
+                        <span class="dc-handi-check-lbl">Límite máximo de ventaja</span>
                     </label>
                     <input type="number" id="inp-tope-handi" value="5" min="1" max="20"
-                           style="width:52px;margin-left:8px;"
-                           class="meta-inp" onchange="actualizarEjemplo()">
-                    <span class="meta-custom-lbl">caramb.</span>
+                           style="width:50px;margin-left:7px;"
+                           class="dc-meta-inp" onchange="actualizarEjemplo()">
+                    <span class="dc-meta-custom-lbl">caramb.</span>
                 </div>
             </div>
 
             <!-- HANDICAP MANUAL -->
             <div id="handi-manual" style="display:none;">
-                <div class="handi-info">
+                <div class="dc-handi-info">
                     Defines manualmente cuántas carambolas juega cada jugador en cada partida.
                     Puedes ingresarlas en la pantalla de duelo.
                 </div>
-                <div class="handi-manual-ejemplo">
-                    <div class="hme-jugador">
-                        <div class="hme-lbl">JUGADOR A</div>
-                        <div class="hme-fila">
+                <div class="dc-handi-manual-ejemplo">
+                    <div class="dc-hme-jugador">
+                        <div class="dc-hme-lbl">Jugador A</div>
+                        <div class="dc-hme-fila">
                             <input type="number" id="hme-a" value="5" min="1" max="100"
-                                   class="meta-inp hme-inp" onchange="actualizarManual()">
-                            <span class="meta-custom-lbl">caramb.</span>
+                                   class="dc-meta-inp dc-hme-inp" onchange="actualizarManual()">
+                            <span class="dc-meta-custom-lbl">caramb.</span>
                         </div>
                     </div>
-                    <div class="hme-vs">VS</div>
-                    <div class="hme-jugador">
-                        <div class="hme-lbl">JUGADOR B</div>
-                        <div class="hme-fila">
+                    <div class="dc-hme-vs">VS</div>
+                    <div class="dc-hme-jugador">
+                        <div class="dc-hme-lbl">Jugador B</div>
+                        <div class="dc-hme-fila">
                             <input type="number" id="hme-b" value="9" min="1" max="100"
-                                   class="meta-inp hme-inp" onchange="actualizarManual()">
-                            <span class="meta-custom-lbl">caramb.</span>
+                                   class="dc-meta-inp dc-hme-inp" onchange="actualizarManual()">
+                            <span class="dc-meta-custom-lbl">caramb.</span>
                         </div>
                     </div>
                 </div>
-                <div class="handi-info" id="hme-diff" style="color:var(--oro);margin-top:8px;">
+                <div class="dc-handi-info" id="hme-diff" style="color:var(--oro);margin-top:7px;">
                     Diferencia: 4 caramb. · A necesita 4 menos que B
                 </div>
-                <div class="handi-info" style="color:#555;font-size:0.62rem;margin-top:4px;">
+                <div class="dc-handi-info" style="color:var(--muted2);font-size:0.62rem;margin-top:4px;">
                     💡 Este valor es solo de referencia. La diferencia real se ingresa en cada duelo.
                 </div>
             </div>
         </div>
 
-    </div><!-- /reglas-card -->
+    </div><!-- /dc-reglas-card -->
 
     <!-- ── PASO 4: RESUMEN ── -->
-    <div class="sep">
-        <div class="sep-line"></div>
-        <div class="sep-centro"><div class="sep-circ">4</div><div class="sep-txt">ASÍ QUEDARÍA EL TORNEO</div></div>
-        <div class="sep-line"></div>
+    <div class="dc-sep">
+        <div class="dc-sep-line"></div>
+        <div class="dc-sep-centro"><div class="dc-sep-circ">4</div><div class="dc-sep-txt">Así quedaría el torneo</div></div>
+        <div class="dc-sep-line"></div>
     </div>
 
-    <div class="resumen" id="resumen">
-        <div class="resumen-head">
-            <div class="rh-nombre" id="res-titulo">Selecciona un formato</div>
-            <div class="rh-cant" id="res-jug">— jugadores</div>
+    <div class="dc-resumen" id="resumen">
+        <div class="dc-resumen-head">
+            <div class="dc-rh-nombre" id="res-titulo">Selecciona un formato</div>
+            <div class="dc-rh-cant" id="res-jug">— jugadores</div>
         </div>
-        <div class="resumen-body">
-            <div class="flujo" id="res-flujo">
-                <div class="resumen-vacio">
-                    <span class="resumen-vacio-ico">&#9654;</span>
+        <div class="dc-resumen-body">
+            <div class="dc-flujo" id="res-flujo">
+                <div class="dc-resumen-vacio">
+                    <span class="dc-resumen-vacio-ico">▶</span>
                     Toca un formato para ver cómo queda el torneo
                 </div>
             </div>
         </div>
     </div>
 
-    <button class="btn-aplicar" onclick="aplicar()">USAR ESTE FORMATO &#8594;</button>
+    <button class="dc-btn-aplicar" onclick="aplicar()">Usar este formato →</button>
 
-</div>
+</div><!-- /dc-wrap -->
 
-<div class="toast" id="toast"></div>
+<div class="dc-toast" id="toast"></div>
 
-<div class="nav-bottom">
-    <a href="/index.html" class="btn-nav">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<div class="dc-nav-bottom">
+    <a href="/index.html" class="dc-btn-nav">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
         </svg>
-        INICIO
+        Inicio
     </a>
-    <a href="/apps/organizador/torneo_crear.html" class="btn-nav">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <a href="/apps/organizador/torneo_crear.html" class="dc-btn-nav">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
             <line x1="16" y1="13" x2="8" y2="13"/>
             <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
         </svg>
-        TORNEO
+        Torneo
     </a>
 </div>
 
@@ -719,7 +821,7 @@ function getFormatos(n) {
             contras: byes > 0 ? [byes+' jugador(es) juegan una partida menos','Ventaja inicial desigual'] : [],
             rondas: Math.ceil(Math.log(pot)/Math.log(2)),
             totalPartidas: pot - 1,
-            etapas: buildElimEtapas(pot, byes, true)
+            etapas: buildElimEtapas(pot, byes)
         });
     }
 
@@ -1114,7 +1216,7 @@ var reglasConfig = {
 
 function setModo(modo) {
     reglasConfig.modo = modo;
-    document.querySelectorAll('.modo-tab').forEach(function(t){
+    document.querySelectorAll('.dc-modo-tab').forEach(function(t){
         t.classList.toggle('activo', t.getAttribute('data-modo') === modo);
     });
     document.getElementById('modo-directo').style.display = modo==='directo' ? 'block' : 'none';
@@ -1126,14 +1228,14 @@ function setMeta(tipo, val) {
         reglasConfig.metaDirecto = val;
         document.getElementById('meta-inp-d').value = val;
         document.getElementById('meta-val-d').innerText = val;
-        document.querySelectorAll('#meta-btns-d .meta-btn').forEach(function(b){
+        document.querySelectorAll('#meta-btns-d .dc-meta-btn').forEach(function(b){
             b.classList.toggle('sel', parseInt(b.innerText) === val);
         });
     } else {
         reglasConfig.metaSet = val;
         document.getElementById('meta-inp-s').value = val;
         document.getElementById('meta-val-s').innerText = val;
-        document.querySelectorAll('#meta-btns-s .meta-btn').forEach(function(b){
+        document.querySelectorAll('#meta-btns-s .dc-meta-btn').forEach(function(b){
             b.classList.toggle('sel', parseInt(b.innerText) === val);
         });
     }
@@ -1200,7 +1302,7 @@ function setJug(n){
     numJug=n;
     document.getElementById('num-jug').innerText=n;
     document.getElementById('inp-jug').value=n;
-    document.querySelectorAll('.jug-btn').forEach(function(b){
+    document.querySelectorAll('.dc-jug-btn').forEach(function(b){
         b.classList.toggle('sel',parseInt(b.innerText)===n);
     });
     formatoSel=null;
@@ -1216,16 +1318,16 @@ function renderOpciones(){
     alEl.style.display=al?'block':'none'; alEl.innerText=al;
     var html='';
     fmts.forEach(function(f){
-        html+='<div class="formato-opt" id="opt-'+f.id+'" onclick="selFormato(\''+f.id+'\')">';
-        html+='<div class="fo-check">&#10003;</div>';
-        if(f.recomendado)html+='<div class="fo-recomen">&#9733; RECOMENDADO PARA '+numJug+' JUGADORES</div>';
-        html+='<div class="fo-nombre">'+f.nombre+'</div>';
-        html+='<div class="fo-desc">'+f.desc+'</div>';
-        html+='<div class="fo-tags">';
-        html+='<div class="fo-tag s">'+f.rondas+' RONDAS</div>';
-        html+='<div class="fo-tag s">'+f.totalPartidas+' PARTIDAS</div>';
-        f.pros.forEach(function(p){html+='<div class="fo-tag v">&#10003; '+p+'</div>';});
-        f.contras.forEach(function(c){html+='<div class="fo-tag x">&#10007; '+c+'</div>';});
+        html+='<div class="dc-formato-opt" id="opt-'+f.id+'" onclick="selFormato(\''+f.id+'\')">';
+        html+='<div class="dc-fo-check">&#10003;</div>';
+        if(f.recomendado)html+='<div class="dc-fo-recomen">&#9733; Recomendado para '+numJug+' jugadores</div>';
+        html+='<div class="dc-fo-nombre">'+f.nombre+'</div>';
+        html+='<div class="dc-fo-desc">'+f.desc+'</div>';
+        html+='<div class="dc-fo-tags">';
+        html+='<div class="dc-fo-tag s">'+f.rondas+' rondas</div>';
+        html+='<div class="dc-fo-tag s">'+f.totalPartidas+' partidas</div>';
+        f.pros.forEach(function(p){html+='<div class="dc-fo-tag v">&#10003; '+p+'</div>';});
+        f.contras.forEach(function(c){html+='<div class="dc-fo-tag x">&#10007; '+c+'</div>';});
         html+='</div></div>';
     });
     document.getElementById('opciones-container').innerHTML=html;
@@ -1234,7 +1336,7 @@ function renderOpciones(){
     if(recIdx>=0)selFormato(fmts[recIdx].id);
     else{
         document.getElementById('res-flujo').innerHTML=
-            '<div class="resumen-vacio"><span class="resumen-vacio-ico">&#9654;</span>Toca un formato para ver la estructura</div>';
+            '<div class="dc-resumen-vacio"><span class="dc-resumen-vacio-ico">▶</span>Toca un formato para ver la estructura</div>';
     }
 }
 
@@ -1243,7 +1345,7 @@ function selFormato(id){
     getFormatos(numJug).forEach(function(x){if(x.id===id)f=x;});
     if(!f)return;
     formatoSel=f;
-    document.querySelectorAll('.formato-opt').forEach(function(el){el.classList.remove('sel');});
+    document.querySelectorAll('.dc-formato-opt').forEach(function(el){el.classList.remove('sel');});
     var el=document.getElementById('opt-'+id); if(el)el.classList.add('sel');
     renderResumen(f);
 }
@@ -1254,16 +1356,16 @@ function renderResumen(f){
     var html='';
     f.etapas.forEach(function(e,i){
         var esUlt=i===f.etapas.length-1;
-        html+='<div class="flujo-fila">';
-        html+='<div class="flujo-izq">';
-        html+='<div class="flujo-circulo '+e.tipo+'">'+(i+1)+'</div>';
-        if(!esUlt)html+='<div class="flujo-vline '+e.tipo+'"></div>';
+        html+='<div class="dc-flujo-fila">';
+        html+='<div class="dc-flujo-izq">';
+        html+='<div class="dc-flujo-circulo '+e.tipo+'">'+(i+1)+'</div>';
+        if(!esUlt)html+='<div class="dc-flujo-vline '+e.tipo+'"></div>';
         html+='</div>';
-        html+='<div class="flujo-cont">';
-        html+='<div class="fe-sub">FASE '+(i+1)+'</div>';
-        html+='<div class="fe-nom">'+e.nom+'</div>';
-        html+='<div class="fe-det">'+e.det+'</div>';
-        html+='<div class="fe-badge '+e.tipo+'">'+e.badge+'</div>';
+        html+='<div class="dc-flujo-cont">';
+        html+='<div class="dc-fe-sub">FASE '+(i+1)+'</div>';
+        html+='<div class="dc-fe-nom">'+e.nom+'</div>';
+        html+='<div class="dc-fe-det">'+e.det+'</div>';
+        html+='<div class="dc-fe-badge '+e.tipo+'">'+e.badge+'</div>';
         html+='</div></div>';
     });
     document.getElementById('res-flujo').innerHTML=html;
@@ -1316,27 +1418,12 @@ function showToast(msg){
     setTimeout(function(){t.classList.remove('show');},2200);
 }
 
-window.__salaBoot = function() { setJug(48); };
+window.__salaBoot = function() { setJug(48); document.body.classList.add('dc-ready'); };
+
 </script>
 <script src="/core.js"></script>
-<script>
-// guard moderno en <head>
-</script>
 <script src="/whitelabel.js"></script>
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 <script type="module">
 import { guardSalaPage } from '/js/sala-supabase-gate.js';
 await guardSalaPage({ pageTitle: 'Configurador de formato' });

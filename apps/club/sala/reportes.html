@@ -5,57 +5,256 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#c9a84c">
     <title>Reportes de salón — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/dc-system.css">
-    <style>
-        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:90px; }
-
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; position:sticky; top:0; z-index:20; flex-wrap:wrap; gap:12px; }
-        .header-titulo { color:var(--oro); font-size:0.85rem; letter-spacing:3px; }
-        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
-        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
-        .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
-
-        .wrap { max-width:520px; margin:0 auto; padding:16px 18px; }
-
-        .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
-        .kpi { background:var(--g2); border-radius:14px; padding:14px; border:1px solid var(--g1); }
-        .kpi-label { color:#666; font-size:0.5rem; letter-spacing:2px; margin-bottom:6px; }
-        .kpi-value { font-size:1.2rem; font-weight:900; color:var(--oro); }
-        .kpi-sub { color:#777; font-size:0.5rem; margin-top:4px; }
-
-        .sec-tit { color:#555; font-size:0.55rem; letter-spacing:2px; margin:12px 0 6px; }
-        .sesion-item { background:var(--g2); border-radius:12px; padding:10px 12px; border:1px solid var(--g1); margin-bottom:8px; font-size:0.58rem; }
-        .sesion-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-        .sesion-mesa { color:var(--oro); font-size:0.6rem; }
-        .sesion-det { color:#aaa; font-size:0.55rem; }
-        .vacio { text-align:center; color:#444; font-size:0.6rem; padding:18px; }
-    </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
-    <style>body.dc-ux.dc-ux-skin.m-root-salon{font-family:"Arial Black",Arial,sans-serif!important;}</style>
-<link rel="stylesheet" href="/css/bottom-nav.css">
+    <link rel="stylesheet" href="/css/bottom-nav.css">
+    <style>
+        :root {
+            --oro: #c9a84c;
+            --oro15: rgba(201,168,76,0.15);
+            --oro30: rgba(201,168,76,0.30);
+            --bg: #0a0a0a;
+            --g1: #1a1a1a;
+            --g2: #111111;
+            --g3: #161616;
+        }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 100px;
+            visibility: hidden;
+        }
+        body.dc-ready { visibility: visible; }
+
+        /* HEADER */
+        .header {
+            width: 100%;
+            background: rgba(10,10,10,0.97);
+            border-bottom: 1px solid var(--g1);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(12px);
+            gap: 12px;
+        }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .back-btn {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            background: var(--g2);
+            border: 1px solid var(--g1);
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none;
+            color: #666;
+            font-size: 1.1rem;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .back-btn:hover { border-color: var(--oro30); color: var(--oro); }
+        .header-titulo {
+            font-family: 'Playfair Display', serif;
+            color: var(--oro);
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        .header-sub { color: #444; font-size: 0.7rem; margin-top: 2px; letter-spacing: 1px; }
+
+        .header-actions details summary {
+            background: var(--g2);
+            border: 1px solid var(--g1);
+            color: #666;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 1px;
+            list-style: none;
+            transition: 0.2s;
+        }
+        .header-actions details summary:hover { border-color: var(--oro30); color: var(--oro); }
+        .jug-nav-fold__links {
+            position: absolute;
+            right: 20px;
+            top: 64px;
+            background: #111;
+            border: 1px solid var(--g1);
+            border-radius: 14px;
+            padding: 8px;
+            z-index: 100;
+            min-width: 200px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        .jug-nav-fold__links a {
+            display: block;
+            padding: 10px 14px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.75rem;
+            border-radius: 8px;
+            transition: 0.15s;
+            letter-spacing: 0.5px;
+        }
+        .jug-nav-fold__links a:hover { background: var(--oro15); color: var(--oro); }
+
+        /* WRAP */
+        .wrap { max-width: 520px; margin: 0 auto; padding: 20px 18px; }
+
+        /* FILTRO FECHAS */
+        .filtro-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filtro-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--g2);
+            border: 1px solid var(--g1);
+            color: #555;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: 0.15s;
+            letter-spacing: 0.5px;
+        }
+        .filtro-btn.activo {
+            background: var(--oro15);
+            border-color: var(--oro30);
+            color: var(--oro);
+        }
+
+        /* KPI GRID */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .kpi {
+            background: var(--g2);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--g1);
+            transition: border-color 0.2s;
+        }
+        .kpi:hover { border-color: var(--oro30); }
+        .kpi-label {
+            color: #555;
+            font-size: 0.65rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--oro);
+            line-height: 1;
+        }
+        .kpi-sub { color: #555; font-size: 0.65rem; margin-top: 6px; }
+        .kpi.full { grid-column: 1 / -1; }
+
+        /* SECCIÓN TÍTULO */
+        .sec-tit {
+            color: #444;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 20px 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sec-tit::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--g1);
+        }
+
+        /* SESION ITEMS */
+        .sesion-item {
+            background: var(--g2);
+            border-radius: 14px;
+            padding: 14px 16px;
+            border: 1px solid var(--g1);
+            margin-bottom: 8px;
+            transition: border-color 0.15s;
+        }
+        .sesion-item:hover { border-color: var(--oro30); }
+        .sesion-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .sesion-mesa {
+            color: var(--oro);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .sesion-fecha { color: #444; font-size: 0.65rem; }
+        .sesion-det {
+            color: #777;
+            font-size: 0.7rem;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .sesion-det span { display: flex; align-items: center; gap: 4px; }
+        .vacio {
+            text-align: center;
+            color: #333;
+            font-size: 0.75rem;
+            padding: 40px 20px;
+            letter-spacing: 1px;
+        }
+
+        /* LOADING */
+        .loading-bar {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--oro), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 2px;
+            margin-bottom: 20px;
+        }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    </style>
 </head>
 <body class="dc-ux dc-ux-skin m-root-salon">
 
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-
 <div class="header">
-    <div>
-        <div class="header-titulo">REPORTES DE SALÓN</div>
-        <div class="header-sub">Ingresos y uso por instalación</div>
+    <div class="header-left">
+        <a href="/apps/club/club.html" class="back-btn">&#8592;</a>
+        <div>
+            <div class="header-titulo">Reportes</div>
+            <div class="header-sub">Ingresos y uso del salón</div>
+        </div>
     </div>
     <div class="header-actions">
         <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
-            <summary>Menú del club</summary>
+            <summary>Menú ▾</summary>
             <div class="jug-nav-fold__links">
                 <a href="socios.html">Jugadores</a>
                 <a href="mesas.html">Salón en vivo</a>
                 <a href="reservas_admin.html">Reservas</a>
                 <a href="mesas_config.html">Config. salón</a>
-                <a href="tarifas_salon.html">Tarifas del salón</a>
-                <a href="/club/index.html">Portal club</a>
+                <a href="tarifas_salon.html">Tarifas</a>
+                <a href="/apps/club/club.html">Portal club</a>
                 <a href="/index.html">Inicio app</a>
             </div>
         </details>
@@ -63,35 +262,44 @@
 </div>
 
 <div class="wrap">
+    <div id="loading-bar" class="loading-bar" style="display:none"></div>
+
+    <div class="filtro-bar">
+        <button class="filtro-btn activo" data-f="todo" onclick="setFiltro(this,'todo')">Todo</button>
+        <button class="filtro-btn" data-f="hoy" onclick="setFiltro(this,'hoy')">Hoy</button>
+        <button class="filtro-btn" data-f="semana" onclick="setFiltro(this,'semana')">Esta semana</button>
+        <button class="filtro-btn" data-f="mes" onclick="setFiltro(this,'mes')">Este mes</button>
+    </div>
+
     <div class="kpi-grid">
         <div class="kpi">
-            <div class="kpi-label">INGRESOS TOTALES</div>
+            <div class="kpi-label">Ingresos</div>
             <div class="kpi-value" id="kpi_ingresos">$0</div>
-            <div class="kpi-sub">Suma de sesiones cerradas</div>
+            <div class="kpi-sub">Sesiones cerradas</div>
         </div>
         <div class="kpi">
-            <div class="kpi-label">HORAS TOTALES</div>
+            <div class="kpi-label">Horas totales</div>
             <div class="kpi-value" id="kpi_horas">0</div>
-            <div class="kpi-sub">Tiempo acumulado de uso</div>
+            <div class="kpi-sub">Tiempo acumulado</div>
         </div>
         <div class="kpi">
-            <div class="kpi-label">NÚMERO DE SESIONES</div>
+            <div class="kpi-label">Sesiones</div>
             <div class="kpi-value" id="kpi_sesiones">0</div>
-            <div class="kpi-sub">Solo sesiones cerradas</div>
+            <div class="kpi-sub">Cerradas</div>
         </div>
         <div class="kpi">
-            <div class="kpi-label">INSTALACIÓN MÁS USADA</div>
-            <div class="kpi-value" id="kpi_top_mesa">—</div>
-            <div class="kpi-sub" id="kpi_top_horas"></div>
-        </div>
-        <div class="kpi">
-            <div class="kpi-label">MESAS ACTIVAS</div>
+            <div class="kpi-label">Mesas activas</div>
             <div class="kpi-value" id="kpi_mesas_activas">—</div>
             <div class="kpi-sub" id="kpi_mesas_activas_sub">En este momento</div>
         </div>
+        <div class="kpi full">
+            <div class="kpi-label">Instalación más usada</div>
+            <div class="kpi-value" id="kpi_top_mesa" style="font-size:1.1rem">—</div>
+            <div class="kpi-sub" id="kpi_top_horas"></div>
+        </div>
     </div>
 
-    <div class="sec-tit">ÚLTIMAS SESIONES CERRADAS</div>
+    <div class="sec-tit">Últimas sesiones cerradas</div>
     <div id="lista-sesiones"></div>
 </div>
 
@@ -99,50 +307,96 @@
 <script src="/session.js"></script>
 <script>
 let sesiones = [];
+let sesionesAll = [];
 let mesasIndex = {};
+let filtroActual = 'todo';
 
-function getClubId() {
-    if (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) return MasterVIP.getClubId();
-    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
-    return perfil.club_id || null;
+async function getClubId() {
+    try {
+        var auth = await import('/js/auth-manager.js');
+        var r = await auth.getClubId();
+        if (r && r.data) return r.data;
+    } catch(e) {}
+    try {
+        var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        if (perfil.club_id) return perfil.club_id;
+    } catch(e) {}
+    try {
+        var club = JSON.parse(localStorage.getItem('club_activo') || 'null');
+        if (club && club.codigo) return club.codigo;
+        if (club && club.id) return club.id;
+    } catch(e) {}
+    return null;
+}
+
+function setFiltro(btn, f) {
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+    btn.classList.add('activo');
+    filtroActual = f;
+    aplicarFiltro();
+}
+
+function aplicarFiltro() {
+    var ahora = new Date();
+    sesiones = sesionesAll.filter(function(s) {
+        if (filtroActual === 'todo') return true;
+        var fecha = new Date(s.fin_sesion || s.created_at);
+        if (filtroActual === 'hoy') {
+            return fecha.toDateString() === ahora.toDateString();
+        }
+        if (filtroActual === 'semana') {
+            var inicio = new Date(ahora); inicio.setDate(ahora.getDate() - 7);
+            return fecha >= inicio;
+        }
+        if (filtroActual === 'mes') {
+            return fecha.getMonth() === ahora.getMonth() && fecha.getFullYear() === ahora.getFullYear();
+        }
+        return true;
+    });
+    pintarKPIs();
+    pintarSesiones();
 }
 
 async function cargarDatos() {
-    var clubId = getClubId();
-    var api = await import('/js/api/club-api.js');
-    var dataR = await api.listMesasHistorialCerradas(clubId || null);
-    sesiones = dataR.data || [];
-    sesiones.sort(function(a,b){
-        return new Date(b.fin_sesion || b.created_at) - new Date(a.fin_sesion || a.created_at);
-    });
-
-    var mesasR = await api.listMesasForReporte(clubId || null);
-    var mesas = mesasR.data;
-    mesasIndex = {};
-    (mesas || []).forEach(function(m){ mesasIndex[m.id] = m; });
-
-    pintarKPIs();
-    pintarSesiones();
-    // KPI mesas activas en vivo (mismo listado que reporte — listMesasForReporte)
-    var activas = (mesas || []).filter(function (m) {
-        var e = (m.estado || 'libre').toString().toLowerCase().replace(/ /g, '_');
-        return e === 'ocupada';
-    });
-    document.getElementById('kpi_mesas_activas').textContent = activas.length;
-    document.getElementById('kpi_mesas_activas_sub').textContent =
-        activas.length === 1 ? '1 mesa ocupada ahora' : activas.length + ' mesas ocupadas ahora';
+    document.getElementById('loading-bar').style.display = 'block';
+    try {
+        var clubId = await getClubId();
+        var api = await import('/js/api/club-api.js');
+        var dataR = await api.listMesasHistorialCerradas(clubId || null);
+        sesionesAll = dataR.data || [];
+        sesionesAll.sort(function(a,b) {
+            return new Date(b.fin_sesion || b.created_at) - new Date(a.fin_sesion || a.created_at);
+        });
+        var mesasR = await api.listMesasForReporte(clubId || null);
+        var mesas = mesasR.data;
+        mesasIndex = {};
+        (mesas || []).forEach(function(m) { mesasIndex[m.id] = m; });
+        var activas = (mesas || []).filter(function(m) {
+            var e = (m.estado || 'libre').toString().toLowerCase().replace(/ /g,'_');
+            return e === 'ocupada';
+        });
+        document.getElementById('kpi_mesas_activas').textContent = activas.length;
+        document.getElementById('kpi_mesas_activas_sub').textContent =
+            activas.length === 1 ? '1 mesa ocupada ahora' : activas.length + ' mesas ocupadas ahora';
+        aplicarFiltro();
+    } catch(e) {
+        console.error('[reportes] cargarDatos error', e);
+    } finally {
+        document.getElementById('loading-bar').style.display = 'none';
+        document.body.classList.add('dc-ready');
+    }
 }
 
 function nombreMesa(id) {
     var m = mesasIndex[id];
-    if (!m) return 'INSTALACIÓN';
-    return (m.nombre || ('Instalación ' + (m.numero || ''))).toUpperCase();
+    if (!m) return 'Instalación';
+    return m.nombre || ('Instalación ' + (m.numero || ''));
 }
 
 function pintarKPIs() {
     var totalIngresos = 0, totalHoras = 0;
     var usoPorMesa = {};
-    sesiones.forEach(function(s){
+    sesiones.forEach(function(s) {
         var h = parseFloat(s.horas_reales) || 0;
         var c = parseFloat(s.costo_total) || 0;
         totalHoras += h;
@@ -150,11 +404,11 @@ function pintarKPIs() {
         if (s.mesa_id) usoPorMesa[s.mesa_id] = (usoPorMesa[s.mesa_id] || 0) + h;
     });
     document.getElementById('kpi_ingresos').textContent = '$' + Math.round(totalIngresos).toLocaleString('es');
-    document.getElementById('kpi_horas').textContent = totalHoras.toFixed(1);
+    document.getElementById('kpi_horas').textContent = totalHoras.toFixed(1) + ' h';
     document.getElementById('kpi_sesiones').textContent = sesiones.length;
 
     var topId = null, topHoras = 0;
-    Object.keys(usoPorMesa).forEach(function(id){
+    Object.keys(usoPorMesa).forEach(function(id) {
         if (usoPorMesa[id] > topHoras) { topHoras = usoPorMesa[id]; topId = id; }
     });
     document.getElementById('kpi_top_mesa').textContent = topId ? nombreMesa(topId) : '—';
@@ -166,42 +420,32 @@ function pintarSesiones() {
     if (!cont) return;
     var lista = sesiones.slice(0, 40);
     if (!lista.length) {
-        cont.innerHTML = '<div class="vacio">Sin sesiones cerradas aún.</div>';
+        cont.innerHTML = '<div class="vacio">Sin sesiones cerradas en este período.</div>';
         return;
     }
-    cont.innerHTML = lista.map(function(s){
+    cont.innerHTML = lista.map(function(s) {
         var fecha = s.fin_sesion || s.inicio_sesion || s.created_at;
         var fTxt = fecha ? new Date(fecha).toLocaleString('es') : 'Sin fecha';
         var h = parseFloat(s.horas_reales) || 0;
         var c = parseFloat(s.costo_total) || 0;
         var jugador = s.jugador_nombre || '—';
         return '<div class="sesion-item">' +
-            '<div class="sesion-top"><div class="sesion-mesa">' + nombreMesa(s.mesa_id) + '</div>' +
-            '<div style="color:#777;font-size:0.5rem;">' + fTxt + '</div></div>' +
-            '<div class="sesion-det">👤 ' + jugador + ' · ⏱ ' + h.toFixed(1) + ' h · 💰 $' + Math.round(c) + '</div>' +
+            '<div class="sesion-top">' +
+            '<div class="sesion-mesa">' + nombreMesa(s.mesa_id) + '</div>' +
+            '<div class="sesion-fecha">' + fTxt + '</div>' +
+            '</div>' +
+            '<div class="sesion-det">' +
+            '<span>👤 ' + jugador + '</span>' +
+            '<span>⏱ ' + h.toFixed(1) + ' h</span>' +
+            '<span>💰 $' + Math.round(c).toLocaleString('es') + '</span>' +
+            '</div>' +
             '</div>';
     }).join('');
 }
 
-window.__salaBoot = function() {
-    cargarDatos();
-};
+window.__salaBoot = function() { cargarDatos(); };
 </script>
 
-
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 <script type="module">
 import { guardSalaPage } from '/js/sala-supabase-gate.js';
 await guardSalaPage({ pageTitle: 'Reportes' });

@@ -3,985 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="#c9a84c">
     <title>Configurar sede — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --oro:#d4af37; --negro:#0b0b0b; --azul:#3498db; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
-        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:100px; }
-
-        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; position:sticky; top:0; z-index:50; }
-        .header-titulo { color:var(--oro); font-size:0.95rem; letter-spacing:3px; }
-        .header-sub { color:#444; font-size:0.5rem; letter-spacing:2px; margin-top:2px; }
-        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
-        .btn-hdr { background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888; padding:8px 12px; border-radius:10px; font-size:0.55rem; cursor:pointer; text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600; letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s; }
-        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
-
-        .wrap { max-width:500px; margin:0 auto; padding:16px 18px; }
-
-        .sec-titulo { color:#666; font-size:0.5rem; letter-spacing:3px; margin:16px 0 10px; }
-        .campo { background:var(--g3); border:1px solid var(--g1); border-radius:14px; padding:12px 14px; margin-bottom:10px; }
-        .campo label { display:block; color:#555; font-size:0.48rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
-        .campo input { width:100%; background:transparent; border:none; border-bottom:1px solid var(--g1); color:#fff; font-size:1rem; padding:6px 0; outline:none; font-family:'Arial Black',sans-serif; }
-
-        .color-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-        .color-chip { width:36px; height:36px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition:transform 0.2s, border-color 0.2s; }
-        .color-chip:hover { transform:scale(1.1); }
-        .color-chip.sel { border-color:#fff; box-shadow:0 0 12px currentColor; }
-
-        .logo-area { background:var(--g2); border:2px dashed var(--oro); border-radius:18px; padding:24px; text-align:center; margin:14px 0; }
-        .logo-preview { width:100px; height:100px; margin:0 auto 12px; border-radius:50%; background:var(--g3); overflow:hidden; display:flex; align-items:center; justify-content:center; }
-        .logo-preview img { width:100%; height:100%; object-fit:cover; }
-        .logo-preview .ph { color:#555; font-size:2rem; }
-        .logo-upload-btn { display:inline-block; margin-top:8px; padding:10px 18px; background:var(--g3); border:1px solid var(--oro); border-radius:12px; color:var(--oro); font-size:0.6rem; letter-spacing:2px; cursor:pointer; }
-        .logo-upload-btn:hover { background:rgba(212,175,55,0.15); }
-        .logo-input { display:none; }
-        .logo-url-campo { margin-top:10px; }
-        .logo-url-campo input { font-size:0.75rem; }
-
-        .btn-guardar { width:100%; padding:16px; margin-top:20px; background:linear-gradient(135deg,var(--oro),#a07800); color:#000; border:none; border-radius:16px; font-size:0.9rem; font-weight:bold; font-family:'Arial Black',sans-serif; cursor:pointer; letter-spacing:2px; }
-        .btn-guardar:disabled { opacity:0.6; cursor:not-allowed; }
-        .msg { text-align:center; padding:10px; border-radius:12px; font-size:0.7rem; margin-top:10px; display:none; }
-        .msg.ok { display:block; background:rgba(46,255,112,0.15); color:#2eff70; border:1px solid rgba(46,255,112,0.3); }
-        .msg.err { display:block; background:rgba(231,76,60,0.15); color:#e74c3c; border:1px solid rgba(231,76,60,0.3); }
-        .codigo-readonly { background:var(--g2); color:#888; padding:10px 14px; border-radius:10px; font-size:0.8rem; margin-bottom:10px; }
-        .dc-campo.campo label { color:var(--oro); font-size:0.52rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
-        .dc-campo input[type="checkbox"] { width:22px; height:22px; margin-top:6px; accent-color:var(--oro); cursor:pointer; flex-shrink:0; }
-        .dc-ayuda { color:#aaa; font-size:0.54rem; line-height:1.45; margin-top:10px; font-weight:normal; letter-spacing:0.02em; text-transform:none; font-family:system-ui,-apple-system,sans-serif; }
-        #dc-superadmin-salon { margin-top:8px; }
-        #dc-superadmin-salon .dc-sa-preview-host { margin-top:12px; touch-action:none; }
-        #dc-superadmin-salon .dc-sa-preview-plano { position:relative; width:100%; background:var(--g2); border:1px solid rgba(212,175,55,0.35); border-radius:14px; overflow:hidden; box-sizing:border-box; touch-action:none; }
-        #dc-superadmin-salon .dc-sa-mesa { position:absolute; transform:translate(-50%,-50%) rotate(0deg); cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; background:rgba(46,204,113,0.18); border:1px solid #2ecc71; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:0.48rem; color:#2ecc71; font-weight:bold; box-sizing:border-box; z-index:2; }
-        #dc-superadmin-salon .dc-sa-mesa.dc-sa-mesa--rotada { transform:translate(-50%,-50%) rotate(90deg); }
-        #dc-superadmin-salon .dc-sa-mesa.dc-sa-mesa--dragging { cursor:grabbing; }
-        #dc-superadmin-salon .dc-sa-rotate { position:absolute; top:2px; right:2px; width:22px; height:22px; padding:0; margin:0; border:none; border-radius:6px; background:rgba(0,0,0,0.5); color:#fff; font-size:0.75rem; line-height:1; cursor:pointer; z-index:4; display:flex; align-items:center; justify-content:center; touch-action:none; }
-        #dc-superadmin-salon .dc-sa-rotate:hover { background:rgba(0,0,0,0.72); }
-        #dc-superadmin-salon .dc-sa-mesa-label { pointer-events:none; position:relative; z-index:1; }
-        #dc-superadmin-salon .dc-sa-sin-config { color:#888; font-size:0.55rem; line-height:1.4; padding:10px 0; }
+        :root {
+            --oro: #c9a84c;
+            --oro-dim: rgba(201,168,76,0.15);
+            --oro-mid: rgba(201,168,76,0.35);
+            --oro-glow: rgba(201,168,76,0.08);
+            --negro: #0a0a0a;
+            --g1: #111;
+            --g2: #161616;
+            --g3: #1c1c1c;
+            --borde: rgba(201,168,76,0.15);
+            --texto: #e8e0d0;
+            --muted: #6b6355;
+            --muted2: #4a453d;
+            --verde: #2ecc71;
+            --verde-dim: rgba(46,204,113,0.15);
+            --rojo: #e74c3c;
+            --rojo-dim: rgba(231,76,60,0.15);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--negro); color: var(--texto); font-family: 'DM Sans', sans-serif; font-weight: 400; min-height: 100vh; padding-bottom: 120px; visibility: hidden; }
+        body.dc-ready { visibility: visible; }
+        .dc-header { position: sticky; top: 0; z-index: 50; background: rgba(10,10,10,0.97); border-bottom: 1px solid var(--borde); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .dc-header-eyebrow { font-size: 0.6rem; font-weight: 500; letter-spacing: 0.22em; color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
+        .dc-header-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 600; color: var(--oro); letter-spacing: 0.02em; line-height: 1.1; }
+        .dc-nav-fold summary { list-style: none; cursor: pointer; background: transparent; border: 1px solid var(--borde); border-radius: 10px; padding: 8px 14px; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; transition: border-color .2s, color .2s; white-space: nowrap; }
+        .dc-nav-fold summary::-webkit-details-marker { display: none; }
+        .dc-nav-fold summary:hover, .dc-nav-fold[open] summary { border-color: var(--oro-mid); color: var(--oro); }
+        .dc-nav-fold__links { position: absolute; right: 20px; top: calc(100% + 6px); background: var(--g2); border: 1px solid var(--borde); border-radius: 14px; padding: 8px; display: flex; flex-direction: column; gap: 2px; min-width: 200px; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+        .dc-nav-fold__links a { display: block; padding: 10px 14px; border-radius: 9px; font-size: 0.72rem; font-weight: 500; color: var(--muted); text-decoration: none; letter-spacing: 0.04em; transition: background .15s, color .15s; }
+        .dc-nav-fold__links a:hover { background: var(--oro-dim); color: var(--oro); }
+        .dc-wrap { max-width: 520px; margin: 0 auto; padding: 24px 20px; }
+        .dc-label { font-size: 0.58rem; font-weight: 600; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin: 28px 0 10px; }
+        .dc-label:first-child { margin-top: 0; }
+        .dc-codigo { background: var(--g2); border: 1px solid var(--borde); border-radius: 12px; padding: 12px 16px; font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--oro); letter-spacing: 0.08em; }
+        .dc-campo { background: var(--g2); border: 1px solid var(--borde); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; transition: border-color .2s; }
+        .dc-campo:focus-within { border-color: var(--oro-mid); }
+        .dc-campo > label { display: block; font-size: 0.58rem; font-weight: 600; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+        .dc-campo input[type="text"], .dc-campo input[type="url"], .dc-campo input[type="number"] { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--borde); color: var(--texto); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; padding: 6px 0 8px; outline: none; transition: border-color .2s; }
+        .dc-campo input:focus { border-bottom-color: var(--oro-mid); }
+        .dc-campo input::placeholder { color: var(--muted2); }
+        .dc-campo-check { display: flex; align-items: flex-start; gap: 14px; }
+        .dc-campo-check input[type="checkbox"] { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--oro); cursor: pointer; flex-shrink: 0; }
+        .dc-campo-check-body { flex: 1; }
+        .dc-campo-check-body label { display: block; font-size: 0.78rem; font-weight: 500; color: var(--texto); margin-bottom: 4px; cursor: pointer; }
+        .dc-ayuda { font-size: 0.68rem; color: var(--muted); line-height: 1.5; margin-top: 8px; }
+        .dc-ayuda code { font-family: 'Courier New', monospace; font-size: 0.65rem; color: var(--muted); background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 4px; }
+        .dc-chips { display: flex; flex-wrap: wrap; gap: 10px; padding: 4px 0; }
+        .dc-chip { width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform .18s, border-color .18s, box-shadow .18s; outline: none; }
+        .dc-chip:hover { transform: scale(1.12); }
+        .dc-chip.sel { border-color: #fff; box-shadow: 0 0 14px currentColor; transform: scale(1.08); }
+        .dc-logo-area { background: var(--g2); border: 1px dashed var(--oro-mid); border-radius: 18px; padding: 28px 20px 20px; text-align: center; }
+        .dc-logo-preview { width: 96px; height: 96px; margin: 0 auto 16px; border-radius: 50%; background: var(--g3); border: 1px solid var(--borde); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .dc-logo-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .dc-logo-preview .ph { color: var(--muted2); font-size: 2rem; }
+        .dc-logo-upload-btn { display: inline-block; padding: 9px 20px; background: transparent; border: 1px solid var(--borde); border-radius: 10px; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
+        .dc-logo-upload-btn:hover { border-color: var(--oro-mid); color: var(--oro); background: var(--oro-glow); }
+        .dc-logo-input { display: none; }
+        .dc-logo-url { margin-top: 16px; }
+        .dc-logo-url label { display: block; font-size: 0.58rem; font-weight: 600; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+        .dc-logo-url input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--borde); color: var(--texto); font-family: 'DM Sans', sans-serif; font-size: 0.78rem; padding: 6px 0 8px; outline: none; transition: border-color .2s; }
+        .dc-logo-url input:focus { border-bottom-color: var(--oro-mid); }
+        .dc-logo-url input::placeholder { color: var(--muted2); }
+        #dc-superadmin-salon { margin-top: 4px; }
+        #dc-superadmin-salon .dc-sa-preview-host { margin-top: 14px; touch-action: none; }
+        #dc-superadmin-salon .dc-sa-preview-plano { position: relative; width: 100%; background: var(--g2); border: 1px solid var(--borde); border-radius: 14px; overflow: hidden; box-sizing: border-box; touch-action: none; }
+        #dc-superadmin-salon .dc-sa-mesa { position: absolute; transform: translate(-50%,-50%) rotate(0deg); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; background: rgba(46,204,113,0.12); border: 1px solid rgba(46,204,113,0.5); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; font-size: 0.5rem; font-weight: 600; color: var(--verde); box-sizing: border-box; z-index: 2; transition: background .15s; }
+        #dc-superadmin-salon .dc-sa-mesa:hover { background: rgba(46,204,113,0.2); }
+        #dc-superadmin-salon .dc-sa-mesa.dc-sa-mesa--rotada { transform: translate(-50%,-50%) rotate(90deg); }
+        #dc-superadmin-salon .dc-sa-mesa.dc-sa-mesa--dragging { cursor: grabbing; }
+        #dc-superadmin-salon .dc-sa-rotate { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; padding: 0; border: none; border-radius: 5px; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.7rem; cursor: pointer; z-index: 4; display: flex; align-items: center; justify-content: center; touch-action: none; transition: background .15s; }
+        #dc-superadmin-salon .dc-sa-rotate:hover { background: rgba(201,168,76,0.5); }
+        #dc-superadmin-salon .dc-sa-mesa-label { pointer-events: none; position: relative; z-index: 1; }
+        #dc-superadmin-salon .dc-sa-sin-config { color: var(--muted); font-size: 0.68rem; line-height: 1.5; padding: 10px 0; }
+        .dc-divider { border: none; border-top: 1px solid var(--borde); margin: 28px 0; }
+        .dc-btn-guardar { width: 100%; padding: 16px; margin-top: 28px; background: linear-gradient(135deg, var(--oro), #a07820); color: #000; border: none; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; transition: opacity .2s, transform .1s; }
+        .dc-btn-guardar:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+        .dc-btn-guardar:disabled { opacity: 0.45; cursor: not-allowed; }
+        .dc-msg { display: none; text-align: center; padding: 12px 16px; border-radius: 12px; font-size: 0.72rem; font-weight: 500; margin-top: 12px; line-height: 1.4; }
+        .dc-msg.ok { display: block; background: var(--verde-dim); color: var(--verde); border: 1px solid rgba(46,204,113,0.25); }
+        .dc-msg.err { display: block; background: var(--rojo-dim); color: var(--rojo); border: 1px solid rgba(231,76,60,0.25); }
+        @keyframes dcFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        body.dc-ready .dc-wrap > * { animation: dcFadeUp .4s ease both; }
+        body.dc-ready .dc-wrap > *:nth-child(1) { animation-delay: .05s; }
+        body.dc-ready .dc-wrap > *:nth-child(2) { animation-delay: .09s; }
+        body.dc-ready .dc-wrap > *:nth-child(3) { animation-delay: .13s; }
+        body.dc-ready .dc-wrap > *:nth-child(4) { animation-delay: .17s; }
+        body.dc-ready .dc-wrap > *:nth-child(5) { animation-delay: .21s; }
+        body.dc-ready .dc-wrap > *:nth-child(6) { animation-delay: .25s; }
+        body.dc-ready .dc-wrap > *:nth-child(n+7) { animation-delay: .29s; }
     </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
-<link rel="stylesheet" href="/css/bottom-nav.css">
+    <link rel="stylesheet" href="/css/bottom-nav.css">
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
-
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-
-<div class="header">
-    <div>
-        <div class="header-titulo">CONFIGURAR SEDE</div>
-        <div class="header-sub">Nombre · Ciudad · Color · Logo</div>
+<header class="dc-header">
+    <div class="dc-header-left">
+        <div class="dc-header-eyebrow">DeCarambola · Club</div>
+        <div class="dc-header-title">Configurar Sede</div>
     </div>
-    <div class="header-actions">
-        <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
-            <summary>Menú del club</summary>
-            <div class="jug-nav-fold__links">
-                <a href="mesas.html">Salón en vivo</a>
-                <a href="reservas_admin.html">Reservas</a>
-                <a href="mesas_config.html">Config. instalaciones</a>
-                <a href="/club/index.html">Portal club</a>
-                <a href="/index.html">Inicio app</a>
-            </div>
-        </details>
-    </div>
-</div>
-
-<div class="wrap">
-    <div class="sec-titulo">CÓDIGO DE INVITACIÓN</div>
-    <div class="codigo-readonly" id="codigo-display">—</div>
-
-    <div class="sec-titulo">NOMBRE DEL CLUB</div>
-    <div class="campo">
-        <input type="text" id="inp-nombre" placeholder="Ej: Club Tres Bandas" maxlength="120">
-    </div>
-
-    <div class="sec-titulo">CIUDAD</div>
-    <div class="campo">
-        <input type="text" id="inp-ciudad" placeholder="Ej: Bogotá" maxlength="80">
-    </div>
-
+    <details class="dc-nav-fold" aria-label="Menú del club">
+        <summary>Menú</summary>
+        <div class="dc-nav-fold__links">
+            <a href="mesas.html">Salón en vivo</a>
+            <a href="reservas_admin.html">Reservas</a>
+            <a href="mesas_config.html">Config. instalaciones</a>
+            <a href="/apps/club/index.html">Portal club</a>
+            <a href="/index.html">Inicio app</a>
+        </div>
+    </details>
+</header>
+<div class="dc-wrap">
+    <div class="dc-label">Código de invitación</div>
+    <div class="dc-codigo" id="codigo-display">—</div>
+    <div class="dc-label">Nombre del club</div>
+    <div class="dc-campo"><input type="text" id="inp-nombre" placeholder="Ej: Club Tres Bandas" maxlength="120"></div>
+    <div class="dc-label">Ciudad</div>
+    <div class="dc-campo"><input type="text" id="inp-ciudad" placeholder="Ej: Bogotá" maxlength="80"></div>
     <div id="dc-salon-acceso-section" style="display:none">
-    <div class="dc-campo campo">
-        <label for="chk-salon-acceso-publico">
-            Acceso público al salón
-        </label>
-        <input type="checkbox" id="chk-salon-acceso-publico">
-        <p class="dc-ayuda">
-            Si está activo, cualquier persona puede ver
-            el salón sin iniciar sesión.
-        </p>
+        <div class="dc-label">Acceso al salón</div>
+        <div class="dc-campo">
+            <div class="dc-campo-check">
+                <input type="checkbox" id="chk-salon-acceso-publico">
+                <div class="dc-campo-check-body">
+                    <label for="chk-salon-acceso-publico">Acceso público al salón</label>
+                    <p class="dc-ayuda">Si está activo, cualquier persona puede ver el salón sin iniciar sesión.</p>
+                </div>
+            </div>
+        </div>
     </div>
-    </div>
-
-    <div class="sec-titulo">COLOR PRIMARIO</div>
-    <div class="campo">
-        <div class="color-chips" id="color-chips"></div>
-    </div>
-
-    <div class="sec-titulo">LOGO DEL CLUB</div>
-    <div class="logo-area">
-        <div class="logo-preview" id="logo-preview"><span class="ph">🟡</span></div>
-        <div class="logo-upload-btn" onclick="document.getElementById('logo-file').click()">ELEGIR IMAGEN</div>
-        <input type="file" id="logo-file" class="logo-input" accept="image/*" onchange="previewLogo(this)">
-        <div class="logo-url-campo campo" style="margin-top:12px;">
+    <div class="dc-label">Color primario</div>
+    <div class="dc-campo"><div class="dc-chips" id="color-chips"></div></div>
+    <div class="dc-label">Logo del club</div>
+    <div class="dc-logo-area">
+        <div class="dc-logo-preview" id="logo-preview"><span class="ph">◆</span></div>
+        <div class="dc-logo-upload-btn" onclick="document.getElementById('logo-file').click()">Elegir imagen</div>
+        <input type="file" id="logo-file" class="dc-logo-input" accept="image/*" onchange="previewLogo(this)">
+        <div class="dc-logo-url">
             <label>O pega la URL del logo</label>
             <input type="url" id="inp-logo-url" placeholder="https://...">
         </div>
     </div>
-
     <div id="dc-superadmin-salon" style="display:none">
-        <div class="sec-titulo">METRAJE DEL LOCAL · SUPERADMIN</div>
-        <div class="campo">
-            <label for="inp-largo-local">Largo del local (metros)</label>
-            <input type="number" id="inp-largo-local" min="1" step="0.1" value="20" inputmode="decimal">
-        </div>
-        <div class="campo">
-            <label for="inp-ancho-local">Ancho del local (metros)</label>
-            <input type="number" id="inp-ancho-local" min="1" step="0.1" value="15" inputmode="decimal">
-        </div>
-        <p class="dc-ayuda" style="margin-top:-4px;">Se guarda en <code style="color:#666;">mesas_config.metraje</code> como JSON <code style="color:#666;">{ largo, ancho }</code>.</p>
-
-        <div class="sec-titulo">MESAS DEL SALÓN · SUPERADMIN</div>
-        <div class="campo">
-            <label for="inp-num-mesas">Número de mesas</label>
-            <input type="number" id="inp-num-mesas" min="1" max="30" step="1" value="1">
-        </div>
-        <p class="dc-ayuda" style="margin-top:-4px;">Vista previa proporcional al local; al cambiar la cantidad se redistribuyen (margen ~5&nbsp;%). ↻ rota cada mesa; arrastrá desde la mesa (no desde ↻). Al guardar: posición y rotación (<code style="color:#666;">meta.rotada</code> en cada fila de <code style="color:#666;">mesas</code>).</p>
+        <hr class="dc-divider">
+        <div class="dc-label">Metraje del local · Superadmin</div>
+        <div class="dc-campo"><label for="inp-largo-local">Largo del local (metros)</label><input type="number" id="inp-largo-local" min="1" step="0.1" value="20" inputmode="decimal"></div>
+        <div class="dc-campo"><label for="inp-ancho-local">Ancho del local (metros)</label><input type="number" id="inp-ancho-local" min="1" step="0.1" value="15" inputmode="decimal"></div>
+        <p class="dc-ayuda">Se guarda en <code>mesas_config.metraje</code> como JSON <code>{ largo, ancho }</code>.</p>
+        <div class="dc-label" style="margin-top:24px;">Mesas del salón · Superadmin</div>
+        <div class="dc-campo"><label for="inp-num-mesas">Número de mesas</label><input type="number" id="inp-num-mesas" min="1" max="30" step="1" value="1"></div>
+        <p class="dc-ayuda">Vista previa proporcional al local; al cambiar la cantidad se redistribuyen (margen ~5 %). ↻ rota cada mesa; arrastrá desde la mesa (no desde ↻). Al guardar: posición y rotación (<code>meta.rotada</code> en cada fila de <code>mesas</code>).</p>
         <div id="dc-sa-sin-config" class="dc-sa-sin-config" style="display:none;"></div>
         <div class="dc-sa-preview-host" id="dc-sa-preview-host" style="display:none;">
             <div class="dc-sa-preview-plano" id="dc-sa-preview-plano"></div>
         </div>
     </div>
-
-    <button class="btn-guardar" id="btn-guardar" onclick="guardarSede()">GUARDAR CAMBIOS</button>
-    <div class="msg" id="msg"></div>
+    <button class="dc-btn-guardar" id="btn-guardar" onclick="guardarSede()">Guardar cambios</button>
+    <div class="dc-msg" id="msg"></div>
 </div>
-
 <script src="/whitelabel.js"></script>
 <script>
-(function () {
-    function soloNombreSinDigitos(el) {
-        if (!el || el._dcNm) return;
-        el._dcNm = true;
-        el.addEventListener('input', function () {
-            var v = this.value;
-            var n = v.replace(/[0-9]/g, '');
-            if (v !== n) this.value = n;
-        });
-        el.addEventListener('keydown', function (e) {
-            if (e.ctrlKey || e.metaKey || e.altKey) return;
-            if (e.key && e.key.length === 1 && /[0-9]/.test(e.key)) e.preventDefault();
-        });
-    }
-    document.addEventListener('DOMContentLoaded', function () {
-        soloNombreSinDigitos(document.getElementById('inp-nombre'));
-        soloNombreSinDigitos(document.getElementById('inp-ciudad'));
-    });
-})();
-window.__salaBoot = function() {
-    'use strict';
-
-    var COLORES = ['#d4af37','#3498db','#e74c3c','#2ecc71','#9b59b6','#1abc9c','#e67e22','#34495e'];
-
-    function get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
-    function set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
-    function getObj(key) { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; } }
-
-    function getClubActivo() {
-        var club = getObj('club_activo');
-        if (club && (club.nombre || club.codigo)) return club;
-        var clubes = getObj('mis_clubes') || [];
-        return clubes.find(function(c) { return c.admin === true; }) || null;
-    }
-
-    /** Si el staff solo usó Supabase (sin club_activo), cargar fila clubs por mi_perfil.club_id.
-     *  Ver docs/CANON_CLUB_ID.md: club_id suele ser clubs.codigo (texto), no siempre UUID. */
-    function hidratarClubDesdeSupabase(clubId, hecho) {
-        if (!clubId) { if (hecho) hecho(); return; }
-        import('/js/api/club-api.js')
-            .then(function (api) {
-                return api.getClubByIdOrCodigo(clubId);
-            })
-            .then(function (r) {
-                var row = r && r.data;
-                if ((r && r.error) || !row) {
-                    if (hecho) hecho();
-                    return;
-                }
-                var codigo = row.codigo || '';
-                var club = {
-                    id: row.id,
-                    nombre: row.nombre || '',
-                    codigo: codigo,
-                    ciudad: row.ciudad || '',
-                    color: row.color_primario || '',
-                    logo_url: row.logo_url || '',
-                    admin: true
-                };
-                localStorage.setItem('club_activo', JSON.stringify(club));
-                set('wl_club_id', row.id);
-                if (row.nombre) set('wl_club_nombre', row.nombre);
-                if (row.logo_url) set('wl_club_logo_url', row.logo_url);
-                if (row.color_primario) set('wl_club_color', row.color_primario);
-                if (hecho) hecho();
-            })
-            .catch(function () {
-                if (hecho) hecho();
-            });
-    }
-
-    function mostrarMsg(texto, esError) {
-        var el = document.getElementById('msg');
-        if (!el) return;
-        el.textContent = texto;
-        el.className = 'msg ' + (esError ? 'err' : 'ok');
-    }
-
-    function renderColorChips(selColor) {
-        var cont = document.getElementById('color-chips');
-        if (!cont) return;
-        cont.innerHTML = COLORES.map(function(c) {
-            var sel = (c === selColor) ? ' sel' : '';
-            return '<div class="color-chip' + sel + '" data-c="' + c + '" style="background:' + c + '" onclick="elegirColor(this)"></div>';
-        }).join('');
-    }
-
-    window.elegirColor = function(el) {
-        document.querySelectorAll('.color-chip').forEach(function(c) { c.classList.remove('sel'); });
-        el.classList.add('sel');
-    };
-
-    function getColorSeleccionado() {
-        var sel = document.querySelector('.color-chip.sel');
-        return sel ? sel.getAttribute('data-c') : COLORES[0];
-    }
-
-    var dcSa = {
-        salonId: null,
-        clubIdKey: null,
-        slots: [],
-        drag: { idx: null, ptr: null, cont: null, el: null },
-        _winMove: null,
-        _winUp: null
-    };
-
-    function dcSaPctEnPlano(cont, clientX, clientY) {
-        var rect = cont.getBoundingClientRect();
-        if (rect.width < 1 || rect.height < 1) return { x: 50, y: 50 };
-        var x = ((clientX - rect.left) / rect.width) * 100;
-        var y = ((clientY - rect.top) / rect.height) * 100;
-        return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
-    }
-
-    var dcSaDragMoveOpts = { capture: true, passive: false };
-
-    function dcSaUnbindWindowDragListeners() {
-        if (dcSa._winMove) {
-            document.removeEventListener('pointermove', dcSa._winMove, dcSaDragMoveOpts);
-            dcSa._winMove = null;
-        }
-        if (dcSa._winUp) {
-            document.removeEventListener('pointerup', dcSa._winUp, true);
-            document.removeEventListener('pointercancel', dcSa._winUp, true);
-            dcSa._winUp = null;
-        }
-    }
-
-    function dcSaPointerEventTargetEl(t) {
-        if (!t) return null;
-        return t.nodeType === 3 ? t.parentElement : t;
-    }
-
-    function dcSaTeardownDrag() {
-        if (dcSa.drag.el) {
-            try {
-                dcSa.drag.el.classList.remove('dc-sa-mesa--dragging');
-            } catch (eT) {}
-        }
-        dcSaUnbindWindowDragListeners();
-        dcSa.drag.idx = null;
-        dcSa.drag.ptr = null;
-        dcSa.drag.cont = null;
-        dcSa.drag.el = null;
-    }
-
-    function dcSaApplyDragToSlot(clientX, clientY) {
-        var cont = dcSa.drag.cont;
-        var idx = dcSa.drag.idx;
-        if (!cont || idx == null || !dcSa.slots[idx]) return;
-        var coords = dcSaPctEnPlano(cont, clientX, clientY);
-        dcSa.slots[idx].x = coords.x;
-        dcSa.slots[idx].y = coords.y;
-        var el = dcSa.drag.el;
-        if (el && el.parentNode === cont) {
-            el.style.left = coords.x + '%';
-            el.style.top = coords.y + '%';
-        }
-    }
-
-    function dcSaOnWindowPointerMove(ev) {
-        if (dcSa.drag.idx == null || dcSa.drag.ptr !== ev.pointerId) return;
-        ev.preventDefault();
-        dcSaApplyDragToSlot(ev.clientX, ev.clientY);
-    }
-
-    function dcSaOnWindowPointerUp(ev) {
-        if (dcSa.drag.idx == null || dcSa.drag.ptr !== ev.pointerId) return;
-        dcSaApplyDragToSlot(ev.clientX, ev.clientY);
-        dcSaTeardownDrag();
-    }
-
-    function dcSaBindPreviewDrag(cont) {
-        if (!cont) return;
-        cont.querySelectorAll('.dc-sa-mesa').forEach(function (node) {
-            node.addEventListener(
-                'pointerdown',
-                function (ev) {
-                    if (ev.pointerType === 'mouse' && ev.button !== 0) return;
-                    var te = dcSaPointerEventTargetEl(ev.target);
-                    if (te && typeof te.closest === 'function' && te.closest('.dc-sa-rotate')) return;
-                    ev.preventDefault();
-                    dcSaTeardownDrag();
-                    var idx = parseInt(node.getAttribute('data-dc-sa-idx'), 10);
-                    if (isNaN(idx)) return;
-                    dcSa.drag.idx = idx;
-                    dcSa.drag.ptr = ev.pointerId;
-                    dcSa.drag.cont = cont;
-                    dcSa.drag.el = node;
-                    try {
-                        node.classList.add('dc-sa-mesa--dragging');
-                    } catch (e1) {}
-                    dcSa._winMove = dcSaOnWindowPointerMove;
-                    dcSa._winUp = dcSaOnWindowPointerUp;
-                    document.addEventListener('pointermove', dcSa._winMove, dcSaDragMoveOpts);
-                    document.addEventListener('pointerup', dcSa._winUp, true);
-                    document.addEventListener('pointercancel', dcSa._winUp, true);
-                },
-                true
-            );
-        });
-    }
-
-    function dcSaLeerMetrajeInputs() {
-        var elL = document.getElementById('inp-largo-local');
-        var elA = document.getElementById('inp-ancho-local');
-        var L = parseFloat(elL && elL.value) || 20;
-        var A = parseFloat(elA && elA.value) || 15;
-        return { largo: Math.max(0.5, L), ancho: Math.max(0.5, A) };
-    }
-
-    /** Tamaño base fijo (2,84 × 1,42 m); la rotación 90° es solo CSS transform. */
-    function dcSaMesaBaseDimsPct(L, A) {
-        return { w: (2.84 / L) * 100, h: (1.42 / A) * 100 };
-    }
-
-    function dcSaApplySlotVisualToEl(el, idx) {
-        if (!el || dcSa.slots[idx] == null) return;
-        var ma = dcSaLeerMetrajeInputs();
-        var d = dcSaMesaBaseDimsPct(ma.largo, ma.ancho);
-        el.style.width = d.w + '%';
-        el.style.height = d.h + '%';
-        try {
-            if (dcSa.slots[idx].rotada) el.classList.add('dc-sa-mesa--rotada');
-            else el.classList.remove('dc-sa-mesa--rotada');
-        } catch (eV) {}
-    }
-
-    function dcSaBindRotateButtons(cont) {
-        if (!cont) return;
-        cont.querySelectorAll('.dc-sa-rotate').forEach(function (btn) {
-            btn.addEventListener('pointerdown', function (ev) {
-                ev.stopPropagation();
-            });
-            btn.addEventListener('click', function (ev) {
-                ev.preventDefault();
-                ev.stopPropagation();
-                var idx = parseInt(btn.getAttribute('data-dc-sa-idx'), 10);
-                if (isNaN(idx) || !dcSa.slots[idx]) return;
-                dcSa.slots[idx].rotada = !dcSa.slots[idx].rotada;
-                var mesaEl = cont.querySelector('.dc-sa-mesa[data-dc-sa-idx="' + idx + '"]');
-                if (mesaEl) dcSaApplySlotVisualToEl(mesaEl, idx);
-            });
-        });
-    }
-
-    /** Grid solo por N: columnas = ceil(sqrt(N)), filas = ceil(N/columnas). */
-    function dcSaGridDims(n) {
-        var N = Math.min(30, Math.max(1, parseInt(n, 10) || 1));
-        var columnas = Math.ceil(Math.sqrt(N));
-        var filas = Math.ceil(N / columnas);
-        return { n: N, columnas: columnas, filas: filas };
-    }
-
-    /** Centros en % del plano con ~5 % de margen exterior. */
-    function dcSaDistribuirSlots() {
-        var n = dcSa.slots ? dcSa.slots.length : 0;
-        if (n < 1) return;
-        var gd = dcSaGridDims(n);
-        var cols = gd.columnas;
-        var rows = gd.filas;
-        var inset = 5;
-        var ux = 100 - 2 * inset;
-        var uy = 100 - 2 * inset;
-        for (var i = 0; i < n; i++) {
-            var col = i % cols;
-            var row = Math.floor(i / cols);
-            dcSa.slots[i].x = inset + ((col + 0.5) / cols) * ux;
-            dcSa.slots[i].y = inset + ((row + 0.5) / rows) * uy;
-        }
-    }
-
-    function dcSaRenderPreview() {
-        var cont = document.getElementById('dc-sa-preview-plano');
-        if (!cont || !dcSa.salonId) return;
-        dcSaTeardownDrag();
-        var ma = dcSaLeerMetrajeInputs();
-        cont.style.aspectRatio = ma.largo + ' / ' + ma.ancho;
-        var L = ma.largo;
-        var A = ma.ancho;
-        var html = '';
-        for (var i = 0; i < dcSa.slots.length; i++) {
-            var s = dcSa.slots[i];
-            var d = dcSaMesaBaseDimsPct(L, A);
-            var label = s.numero != null ? 'Mesa ' + s.numero : 'Mesa ' + (i + 1);
-            var rotCls = s.rotada ? ' dc-sa-mesa--rotada' : '';
-            html +=
-                '<div class="dc-sa-mesa' +
-                rotCls +
-                '" data-dc-sa-idx="' +
-                i +
-                '" style="left:' +
-                s.x +
-                '%;top:' +
-                s.y +
-                '%;width:' +
-                d.w +
-                '%;height:' +
-                d.h +
-                '%"><button type="button" class="dc-sa-rotate" data-dc-sa-idx="' +
-                i +
-                '" aria-label="Rotar mesa" title="Rotar">↻</button><span class="dc-sa-mesa-label">' +
-                label +
-                '</span></div>';
-        }
-        cont.innerHTML = html;
-        dcSaBindPreviewDrag(cont);
-        dcSaBindRotateButtons(cont);
-    }
-
-    function dcSaRebuildSlotsFromNumInput() {
-        var inp = document.getElementById('inp-num-mesas');
-        var newN = Math.min(30, Math.max(1, parseInt(inp && inp.value, 10) || 1));
-        if (inp) inp.value = String(newN);
-        var prev = dcSa.slots || [];
-        var nex = [];
-        for (var i = 0; i < newN; i++) {
-            var p = prev[i];
-            nex.push({
-                key: p && p.key != null ? p.key : 't' + i,
-                id: p && p.id ? p.id : null,
-                numero: p && p.numero != null ? p.numero : null,
-                rotada: !!(p && p.rotada),
-                x: 50,
-                y: 50
-            });
-        }
-        dcSa.slots = nex;
-        dcSaDistribuirSlots();
-        dcSaRenderPreview();
-    }
-
-    var _dcSaInputsOnce = false;
-    function dcSaBindInputsOnce() {
-        if (_dcSaInputsOnce) return;
-        _dcSaInputsOnce = true;
-        var l = document.getElementById('inp-largo-local');
-        var a = document.getElementById('inp-ancho-local');
-        var n = document.getElementById('inp-num-mesas');
-        if (l) l.addEventListener('input', function () { dcSaRenderPreview(); });
-        if (a) a.addEventListener('input', function () { dcSaRenderPreview(); });
-        if (n) {
-            n.addEventListener('change', function () { dcSaRebuildSlotsFromNumInput(); });
-            n.addEventListener('input', function () { dcSaRebuildSlotsFromNumInput(); });
-        }
-    }
-
-    /** mesas_config.club_id puede estar guardado como código (MVIP-001) o como UUID de clubs.id. */
-    async function dcSaResolveConfigRow(api, club) {
-        if (!club) return { data: null, error: null };
-        var keys = [];
-        if (club.codigo != null && String(club.codigo).trim()) keys.push(String(club.codigo).trim());
-        if (club.id != null) {
-            var idStr = String(club.id).trim();
-            if (keys.indexOf(idStr) < 0) keys.push(idStr);
-        }
-        var lastErr = null;
-        for (var ki = 0; ki < keys.length; ki++) {
-            var r = await api.getFirstMesasConfigByClubId(keys[ki]);
-            if (r.error) lastErr = r.error;
-            if (r.data && r.data.id) return r;
-        }
-        return { data: null, error: lastErr };
-    }
-
-    async function dcSaCargarDesdeSupabase() {
-        var box = document.getElementById('dc-superadmin-salon');
-        if (!box || box.style.display === 'none') return;
-        var club = getClubActivo();
-        var sinEl = document.getElementById('dc-sa-sin-config');
-        var host = document.getElementById('dc-sa-preview-host');
-        if (!club || (!club.codigo && !club.id)) {
-            dcSa.salonId = null;
-            dcSa.clubIdKey = null;
-            dcSa.slots = [];
-            if (sinEl) sinEl.style.display = 'none';
-            if (host) host.style.display = 'none';
-            return;
-        }
-        dcSa.clubIdKey = club.codigo ? String(club.codigo).trim() : String(club.id);
-        dcSaBindInputsOnce();
-        var api = await import('/js/api/club-api.js');
-        var cfgR = await dcSaResolveConfigRow(api, club);
-        var row = cfgR.data;
-        if (!row || !row.id) {
-            dcSa.salonId = null;
-            dcSa.slots = [];
-            if (sinEl) {
-                sinEl.style.display = 'block';
-                if (cfgR.error) {
-                    sinEl.textContent =
-                        'No se pudo leer mesas_config (red o RLS). Con sesión de superadmin, las políticas en Supabase deben permitir SELECT en mesas_config, o tu perfil debe tener club_id = código del club (ej. MVIP-001) para ver la fila del salón.';
-                } else {
-                    sinEl.textContent =
-                        'No hay mesas_config para este club. Creá la configuración en Configurar instalaciones; después podrás ajustar metraje y mesas aquí.';
-                }
-            }
-            if (host) host.style.display = 'none';
-            return;
-        }
-        dcSa.salonId = row.id;
-        if (sinEl) sinEl.style.display = 'none';
-        if (host) host.style.display = 'block';
-        var met = row.metraje;
-        var L = 20;
-        var A = 15;
-        if (met && typeof met === 'object') {
-            if (met.largo != null) L = parseFloat(met.largo) || 20;
-            if (met.ancho != null) A = parseFloat(met.ancho) || 15;
-        }
-        var elL = document.getElementById('inp-largo-local');
-        var elA = document.getElementById('inp-ancho-local');
-        if (elL) elL.value = String(L);
-        if (elA) elA.value = String(A);
-        var lr = await api.listMesasBySalonId(dcSa.salonId);
-        var todos = (lr.data || []).slice().sort(function (a, b) {
-            return (a.numero || 0) - (b.numero || 0);
-        });
-        var nDef = Math.min(30, Math.max(1, todos.length || 1));
-        var elN = document.getElementById('inp-num-mesas');
-        if (elN) elN.value = String(nDef);
-        dcSa.slots = [];
-        for (var i = 0; i < nDef; i++) {
-            var m = todos[i];
-            var rotM = !!(m && m.meta && typeof m.meta === 'object' && m.meta.rotada);
-            if (m) {
-                dcSa.slots.push({ key: m.id, id: m.id, numero: m.numero, rotada: rotM, x: 50, y: 50 });
-            } else {
-                dcSa.slots.push({ key: 't' + i, id: null, numero: null, rotada: false, x: 50, y: 50 });
-            }
-        }
-        dcSaDistribuirSlots();
-        for (var j = 0; j < nDef; j++) {
-            var mj = todos[j];
-            if (mj && mj.posicion_x != null && mj.posicion_y != null) {
-                var pxx = parseFloat(mj.posicion_x);
-                var pyy = parseFloat(mj.posicion_y);
-                if (!isNaN(pxx) && !isNaN(pyy) && dcSa.slots[j]) {
-                    dcSa.slots[j].x = pxx;
-                    dcSa.slots[j].y = pyy;
-                }
-            }
-        }
-        dcSaRenderPreview();
-    }
-
-    function aplicarSuperadminSalonUi() {
-        var box = document.getElementById('dc-superadmin-salon');
-        if (!box) return;
-        import('/js/auth-manager.js')
-            .then(function (auth) {
-                return auth.getRole();
-            })
-            .then(function (r) {
-                if (r.error || r.data !== 'superadmin') {
-                    box.style.display = 'none';
-                    return;
-                }
-                box.style.display = 'block';
-                dcSaCargarDesdeSupabase().catch(function (e) {
-                    console.error('[admin_sede] dcSa carga', e);
-                });
-            })
-            .catch(function () {
-                box.style.display = 'none';
-            });
-    }
-
-    async function dcSaGuardarSalon(apiMod) {
-        var club = getClubActivo();
-        if (!club || !club.codigo || !dcSa.salonId) return { ok: true, skip: true };
-        var authMod = await import('/js/auth-manager.js');
-        var rr = await authMod.getRole();
-        if (rr.error || rr.data !== 'superadmin') return { ok: true, skip: true };
-        var ma = dcSaLeerMetrajeInputs();
-        var cfgR = await dcSaResolveConfigRow(apiMod, club);
-        var cfg = cfgR.data;
-        if (!cfg || !cfg.id) return { ok: false, err: cfgR.error || 'Sin mesas_config' };
-        var targetN = Math.min(30, Math.max(1, parseInt(document.getElementById('inp-num-mesas').value, 10) || 1));
-        var met = cfg.metraje && typeof cfg.metraje === 'object' ? Object.assign({}, cfg.metraje) : {};
-        met.largo = ma.largo;
-        met.ancho = ma.ancho;
-        delete met.orientacion;
-        var ur = await apiMod.updateMesasConfig(cfg.id, {
-            metraje: met,
-            updated_at: new Date().toISOString()
-        });
-        if (ur.error) return { ok: false, err: ur.error };
-        while (true) {
-            var listR = await apiMod.listMesasBySalonId(dcSa.salonId);
-            var todos = (listR.data || []).slice().sort(function (a, b) {
-                return (a.numero || 0) - (b.numero || 0);
-            });
-            if (todos.length >= targetN) break;
-            var maxNum = 0;
-            for (var t = 0; t < todos.length; t++) {
-                if ((todos[t].numero || 0) > maxNum) maxNum = todos[t].numero;
-            }
-            var nextNum = maxNum + 1;
-            var ir = await apiMod.insertMesaRow({
-                club_id: club.codigo,
-                salon_id: dcSa.salonId,
-                numero: nextNum,
-                nombre: 'Mesa ' + nextNum,
-                tipo_instalacion: 'Mesa',
-                estado: 'libre',
-                tarifa_hora: 0
-            });
-            if (ir.error) return { ok: false, err: ir.error };
-        }
-        var listR2 = await apiMod.listMesasBySalonId(dcSa.salonId);
-        var todos2 = (listR2.data || []).slice().sort(function (a, b) {
-            return (a.numero || 0) - (b.numero || 0);
-        });
-        var surplus = todos2.slice(targetN);
-        var si;
-        for (si = 0; si < surplus.length; si++) {
-            var sr = await apiMod.updateMesa(surplus[si].id, {
-                estado: 'fuera_servicio',
-                updated_at: new Date().toISOString()
-            });
-            if (sr.error) return { ok: false, err: sr.error };
-        }
-        var active = todos2.slice(0, targetN);
-        for (var ai = 0; ai < active.length; ai++) {
-            var sl = dcSa.slots[ai];
-            if (!sl) continue;
-            var est = (active[ai].estado || 'libre').toLowerCase().replace(/ /g, '_');
-            var prevMeta = active[ai].meta;
-            var metaObj =
-                prevMeta && typeof prevMeta === 'object' && !Array.isArray(prevMeta)
-                    ? Object.assign({}, prevMeta)
-                    : {};
-            metaObj.rotada = !!sl.rotada;
-            var patch = {
-                posicion_x: Math.round(sl.x * 1000) / 1000,
-                posicion_y: Math.round(sl.y * 1000) / 1000,
-                nombre: 'Mesa ' + (active[ai].numero || ai + 1),
-                meta: metaObj,
-                updated_at: new Date().toISOString()
-            };
-            if (est === 'fuera_servicio') patch.estado = 'libre';
-            console.log('[save mesa]', active[ai].id, JSON.stringify(patch));
-            var ur2 = await apiMod.updateMesa(active[ai].id, patch);
-            if (ur2.error) return { ok: false, err: ur2.error };
-        }
-        return { ok: true };
-    }
-
-    window.previewLogo = function(input) {
-        var file = input && input.files && input.files[0];
-        var prev = document.getElementById('logo-preview');
-        var urlInp = document.getElementById('inp-logo-url');
-        if (urlInp) urlInp.value = '';
-        if (!file || !prev) return;
-        var reader = new FileReader();
-        reader.onload = function() {
-            prev.innerHTML = '<img src="' + reader.result + '" alt="Logo">';
-            prev.setAttribute('data-dataurl', reader.result);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    function cargarDatos() {
-        var club = getClubActivo();
-        if (!club) {
-            document.getElementById('codigo-display').textContent = 'No hay club activo. Crea o únete a un club desde Inicio.';
-            document.getElementById('btn-guardar').disabled = true;
-            var secNoClub = document.getElementById('dc-salon-acceso-section');
-            if (secNoClub) secNoClub.style.display = 'none';
-            var su0 = document.getElementById('dc-superadmin-salon');
-            if (su0) su0.style.display = 'none';
-            return;
-        }
-
-        document.getElementById('codigo-display').textContent = club.codigo || '—';
-        document.getElementById('inp-nombre').value = club.nombre || get('wl_club_nombre') || '';
-        document.getElementById('inp-ciudad').value = club.ciudad || '';
-        var cfg = getObj('CLUB_CONFIG') || {};
-        var color = club.color || get('wl_club_color') || cfg.color || COLORES[0];
-        renderColorChips(color);
-
-        var logoUrl = club.logo_url || get('wl_club_logo_url') || cfg.logoUrl || cfg.logo || '';
-        document.getElementById('inp-logo-url').value = logoUrl && logoUrl.indexOf('http') === 0 ? logoUrl : '';
-        var prev = document.getElementById('logo-preview');
-        if (logoUrl) {
-            if (logoUrl.indexOf('data:') === 0) {
-                prev.innerHTML = '<img src="' + logoUrl + '" alt="Logo">';
-                prev.setAttribute('data-dataurl', logoUrl);
-            } else {
-                prev.innerHTML = '<img src="' + logoUrl + '" alt="Logo" onerror="this.parentNode.innerHTML=\'<span class=ph>🟡</span>\'">';
-                prev.removeAttribute('data-dataurl');
-            }
-        } else {
-            prev.innerHTML = '<span class="ph">🟡</span>';
-            prev.removeAttribute('data-dataurl');
-        }
-
-        aplicarSalonAccesoUi();
-        aplicarSuperadminSalonUi();
-    }
-
-    function aplicarSalonAccesoUi() {
-        var wrap = document.getElementById('dc-salon-acceso-section');
-        var chk = document.getElementById('chk-salon-acceso-publico');
-        if (!wrap || !chk) return;
-        import('/js/auth-manager.js')
-            .then(function (auth) {
-                return Promise.all([auth.getSession(), auth.getRole(), auth.getClubId()]);
-            })
-            .then(function (r) {
-                var sess = r[0];
-                var roleR = r[1];
-                var clubIdR = r[2];
-                var esAdmin = !sess.error && sess.data && !roleR.error && roleR.data === 'club_admin';
-                if (!esAdmin) {
-                    wrap.style.display = 'none';
-                    return;
-                }
-                wrap.style.display = '';
-                var codigo = clubIdR.data != null ? String(clubIdR.data).trim() : '';
-                if (!codigo) {
-                    chk.checked = false;
-                    return;
-                }
-                return import('/js/supabase-client.js').then(function (m) {
-                    return m.supabase.from('clubs').select('salon_acceso_publico').eq('codigo', codigo).maybeSingle();
-                }).then(function (q) {
-                    if (q.error || !q.data) chk.checked = false;
-                    else chk.checked = !!q.data.salon_acceso_publico;
-                });
-            })
-            .catch(function () {
-                wrap.style.display = 'none';
-            });
-    }
-
-    function actualizarClubLocal(nombre, ciudad, color, logoUrl) {
-        var club = getClubActivo();
-        if (!club) return;
-        club.nombre = nombre;
-        club.ciudad = ciudad;
-        club.color = color;
-        club.logo_url = logoUrl || club.logo_url || '';
-        localStorage.setItem('club_activo', JSON.stringify(club));
-        var clubes = getObj('mis_clubes') || [];
-        var idx = clubes.findIndex(function(c) { return c.codigo === club.codigo; });
-        if (idx >= 0) {
-            clubes[idx] = club;
-            localStorage.setItem('mis_clubes', JSON.stringify(clubes));
-        }
-        set('wl_club_nombre', nombre);
-        set('wl_club_color', color);
-        if (logoUrl) set('wl_club_logo_url', logoUrl);
-        var cfg = getObj('CLUB_CONFIG') || {};
-        cfg.color = color;
-        cfg.logoUrl = logoUrl || cfg.logoUrl;
-        cfg.logo = logoUrl || cfg.logo;
-        localStorage.setItem('CLUB_CONFIG', JSON.stringify(cfg));
-        if (window.WL && window.WL.setClub) {
-            window.WL.setClub({ id: club.id, nombre: nombre, logo_url: logoUrl || club.logo_url, color_primario: color });
-        }
-        var perfil = getObj('mi_perfil') || {};
-        perfil.club = nombre;
-        perfil.club_logo_url = logoUrl || perfil.club_logo_url;
-        localStorage.setItem('mi_perfil', JSON.stringify(perfil));
-    }
-
-    window.guardarSede = async function() {
-        var authMod = await import('/js/auth-manager.js');
-        var sessG = await authMod.getSession();
-        var roleG = await authMod.getRole();
-        var puedeSalonToggle = !sessG.error && sessG.data && !roleG.error && roleG.data === 'club_admin';
-        var esSuperadmin = !roleG.error && roleG.data === 'superadmin';
-
-        var nombre = (document.getElementById('inp-nombre').value || '').trim();
-        var ciudad = (document.getElementById('inp-ciudad').value || '').trim();
-        var color = getColorSeleccionado();
-        var logoUrlInp = (document.getElementById('inp-logo-url').value || '').trim();
-        var prev = document.getElementById('logo-preview');
-        var dataUrl = prev && prev.getAttribute('data-dataurl');
-        var logoUrl = logoUrlInp || dataUrl || '';
-
-        if (!nombre) {
-            mostrarMsg('Escribe el nombre del club.', true);
-            return;
-        }
-
-        var club = getClubActivo();
-        if (!club) {
-            mostrarMsg('No hay club activo.', true);
-            return;
-        }
-
-        var btn = document.getElementById('btn-guardar');
-        btn.disabled = true;
-        mostrarMsg('Guardando…', false);
-
-        actualizarClubLocal(nombre, ciudad, color, logoUrl || undefined);
-
-        var id = club.id;
-        var codigo = club.codigo;
-        var payload = {
-            nombre: nombre,
-            ciudad: ciudad || null,
-            color_primario: color,
-            logo_url: logoUrl || null,
-            activo: true
-        };
-
-        async function persistSalonAccesoPublicoSiAdmin() {
-            if (!puedeSalonToggle) return;
-            var cr = await authMod.getClubId();
-            var codigoSupa = cr.data != null ? String(cr.data).trim() : '';
-            if (!codigoSupa) return;
-            var chk = document.getElementById('chk-salon-acceso-publico');
-            var valor = !!(chk && chk.checked);
-            var supaM = await import('/js/supabase-client.js');
-            var ur = await supaM.supabase.from('clubs').update({ salon_acceso_publico: valor }).eq('codigo', codigoSupa);
-            if (ur.error) console.error('[admin_sede] salon_acceso_publico', ur.error);
-        }
-
-        function onSuccess() {
-            mostrarMsg('✅ Cambios guardados. El código de invitación y el whitelabel se actualizarán.', false);
-            btn.disabled = false;
-            cargarDatos();
-        }
-        function onError(err) {
-            mostrarMsg('Guardado local correcto. Error al sincronizar con la nube: ' + (err || 'revisa conexión'), true);
-            btn.disabled = false;
-        }
-
-        import('/js/api/club-api.js').then(async function (api) {
-            if (id) {
-                var r = await api.patchClub(id, payload);
-                if (r.error) {
-                    onError(r.error.message || String(r.error));
-                    return;
-                }
-                if (esSuperadmin) {
-                    var gr = await dcSaGuardarSalon(api);
-                    if (!gr.ok && gr.err) console.error('[admin_sede] superadmin salón', gr.err);
-                }
-                await persistSalonAccesoPublicoSiAdmin();
-                onSuccess();
-            } else {
-                payload.codigo = codigo || ('CLB-' + Math.floor(Math.random() * 900 + 100));
-                var r2 = await api.insertClub(payload);
-                if (r2.error) {
-                    onError(r2.error.message || String(r2.error));
-                    return;
-                }
-                var fila = r2.data;
-                if (fila && fila.id) {
-                    club.id = fila.id;
-                    localStorage.setItem('club_activo', JSON.stringify(club));
-                    var clubes = getObj('mis_clubes') || [];
-                    var i = clubes.findIndex(function(c) { return c.codigo === club.codigo; });
-                    if (i >= 0) { clubes[i] = club; localStorage.setItem('mis_clubes', JSON.stringify(clubes)); }
-                    set('wl_club_id', fila.id);
-                    if (window.WL && window.WL.setClub) {
-                        window.WL.setClub({ id: fila.id, nombre: nombre, logo_url: logoUrl || null, color_primario: color });
-                    }
-                    if (esSuperadmin) {
-                        var gr2 = await dcSaGuardarSalon(api);
-                        if (!gr2.ok && gr2.err) console.error('[admin_sede] superadmin salón', gr2.err);
-                    }
-                    await persistSalonAccesoPublicoSiAdmin();
-                    onSuccess();
-                } else {
-                    onError('No se devolvió id del club');
-                }
-            }
-        }).catch(function (e) { onError(e && e.message ? e.message : String(e)); });
-    };
-
-    document.getElementById('inp-logo-url').addEventListener('change', function() {
-        var url = (this.value || '').trim();
-        var prev = document.getElementById('logo-preview');
-        if (!prev) return;
-        if (url) {
-            prev.removeAttribute('data-dataurl');
-            prev.innerHTML = '<img src="' + url + '" alt="Logo" onerror="this.parentNode.innerHTML=\'<span class=ph>🟡</span>\'">';
-        } else if (!prev.getAttribute('data-dataurl')) {
-            prev.innerHTML = '<span class="ph">🟡</span>';
-        }
-    });
-
-    // Prioridad: club del staff en Supabase (mi_perfil.club_id, sincronizado por el gate).
-    // Así no queda un club_activo viejo de la app jugador (ej. otro billar).
-    var perfilBoot = getObj('mi_perfil') || {};
-    var cidStaff = (perfilBoot.club_id && String(perfilBoot.club_id).trim()) || '';
-    if (!cidStaff && get('wl_club_id')) {
-        cidStaff = String(get('wl_club_id')).trim();
-    }
-    if (cidStaff) {
-        hidratarClubDesdeSupabase(cidStaff, cargarDatos);
-    } else if (getClubActivo()) {
-        cargarDatos();
-    } else {
-        cargarDatos();
-    }
+(function(){function soloNombreSinDigitos(el){if(!el||el._dcNm)return;el._dcNm=true;el.addEventListener('input',function(){var v=this.value;var n=v.replace(/[0-9]/g,'');if(v!==n)this.value=n;});el.addEventListener('keydown',function(e){if(e.ctrlKey||e.metaKey||e.altKey)return;if(e.key&&e.key.length===1&&/[0-9]/.test(e.key))e.preventDefault();});}document.addEventListener('DOMContentLoaded',function(){soloNombreSinDigitos(document.getElementById('inp-nombre'));soloNombreSinDigitos(document.getElementById('inp-ciudad'));});})();
+window.__salaBoot=function(){'use strict';
+var COLORES=['#c9a84c','#3498db','#e74c3c','#2ecc71','#9b59b6','#1abc9c','#e67e22','#34495e'];
+function get(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function set(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function getObj(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function getClubActivo(){var club=getObj('club_activo');if(club&&(club.nombre||club.codigo))return club;var clubes=getObj('mis_clubes')||[];return clubes.find(function(c){return c.admin===true;})||null;}
+function hidratarClubDesdeSupabase(clubId,hecho){if(!clubId){if(hecho)hecho();return;}import('/js/api/club-api.js').then(function(api){return api.getClubByIdOrCodigo(clubId);}).then(function(r){var row=r&&r.data;if((r&&r.error)||!row){if(hecho)hecho();return;}var codigo=row.codigo||'';var club={id:row.id,nombre:row.nombre||'',codigo:codigo,ciudad:row.ciudad||'',color:row.color_primario||'',logo_url:row.logo_url||'',admin:true};localStorage.setItem('club_activo',JSON.stringify(club));set('wl_club_id',row.id);if(row.nombre)set('wl_club_nombre',row.nombre);if(row.logo_url)set('wl_club_logo_url',row.logo_url);if(row.color_primario)set('wl_club_color',row.color_primario);if(hecho)hecho();}).catch(function(){if(hecho)hecho();});}
+function mostrarMsg(texto,esError){var el=document.getElementById('msg');if(!el)return;el.textContent=texto;el.className='dc-msg '+(esError?'err':'ok');}
+function renderColorChips(selColor){var cont=document.getElementById('color-chips');if(!cont)return;cont.innerHTML=COLORES.map(function(c){var sel=(c===selColor)?' sel':'';return '<div class="dc-chip'+sel+'" data-c="'+c+'" style="background:'+c+'" onclick="elegirColor(this)" role="button" tabindex="0"></div>';}).join('');}
+window.elegirColor=function(el){document.querySelectorAll('.dc-chip').forEach(function(c){c.classList.remove('sel');});el.classList.add('sel');};
+function getColorSeleccionado(){var sel=document.querySelector('.dc-chip.sel');return sel?sel.getAttribute('data-c'):COLORES[0];}
+var dcSa={salonId:null,clubIdKey:null,slots:[],drag:{idx:null,ptr:null,cont:null,el:null},_winMove:null,_winUp:null};
+function dcSaPctEnPlano(cont,clientX,clientY){var rect=cont.getBoundingClientRect();if(rect.width<1||rect.height<1)return{x:50,y:50};var x=((clientX-rect.left)/rect.width)*100;var y=((clientY-rect.top)/rect.height)*100;return{x:Math.max(0,Math.min(100,x)),y:Math.max(0,Math.min(100,y))};}
+var dcSaDragMoveOpts={capture:true,passive:false};
+function dcSaUnbindWindowDragListeners(){if(dcSa._winMove){document.removeEventListener('pointermove',dcSa._winMove,dcSaDragMoveOpts);dcSa._winMove=null;}if(dcSa._winUp){document.removeEventListener('pointerup',dcSa._winUp,true);document.removeEventListener('pointercancel',dcSa._winUp,true);dcSa._winUp=null;}}
+function dcSaPointerEventTargetEl(t){if(!t)return null;return t.nodeType===3?t.parentElement:t;}
+function dcSaTeardownDrag(){if(dcSa.drag.el){try{dcSa.drag.el.classList.remove('dc-sa-mesa--dragging');}catch(eT){}}dcSaUnbindWindowDragListeners();dcSa.drag.idx=null;dcSa.drag.ptr=null;dcSa.drag.cont=null;dcSa.drag.el=null;}
+function dcSaApplyDragToSlot(clientX,clientY){var cont=dcSa.drag.cont;var idx=dcSa.drag.idx;if(!cont||idx==null||!dcSa.slots[idx])return;var coords=dcSaPctEnPlano(cont,clientX,clientY);dcSa.slots[idx].x=coords.x;dcSa.slots[idx].y=coords.y;var el=dcSa.drag.el;if(el&&el.parentNode===cont){el.style.left=coords.x+'%';el.style.top=coords.y+'%';}}
+function dcSaOnWindowPointerMove(ev){if(dcSa.drag.idx==null||dcSa.drag.ptr!==ev.pointerId)return;ev.preventDefault();dcSaApplyDragToSlot(ev.clientX,ev.clientY);}
+function dcSaOnWindowPointerUp(ev){if(dcSa.drag.idx==null||dcSa.drag.ptr!==ev.pointerId)return;dcSaApplyDragToSlot(ev.clientX,ev.clientY);dcSaTeardownDrag();}
+function dcSaBindPreviewDrag(cont){if(!cont)return;cont.querySelectorAll('.dc-sa-mesa').forEach(function(node){node.addEventListener('pointerdown',function(ev){if(ev.pointerType==='mouse'&&ev.button!==0)return;var te=dcSaPointerEventTargetEl(ev.target);if(te&&typeof te.closest==='function'&&te.closest('.dc-sa-rotate'))return;ev.preventDefault();dcSaTeardownDrag();var idx=parseInt(node.getAttribute('data-dc-sa-idx'),10);if(isNaN(idx))return;dcSa.drag.idx=idx;dcSa.drag.ptr=ev.pointerId;dcSa.drag.cont=cont;dcSa.drag.el=node;try{node.classList.add('dc-sa-mesa--dragging');}catch(e1){}dcSa._winMove=dcSaOnWindowPointerMove;dcSa._winUp=dcSaOnWindowPointerUp;document.addEventListener('pointermove',dcSa._winMove,dcSaDragMoveOpts);document.addEventListener('pointerup',dcSa._winUp,true);document.addEventListener('pointercancel',dcSa._winUp,true);},true);});}
+function dcSaLeerMetrajeInputs(){var elL=document.getElementById('inp-largo-local');var elA=document.getElementById('inp-ancho-local');var L=parseFloat(elL&&elL.value)||20;var A=parseFloat(elA&&elA.value)||15;return{largo:Math.max(0.5,L),ancho:Math.max(0.5,A)};}
+function dcSaMesaBaseDimsPct(L,A){return{w:(2.84/L)*100,h:(1.42/A)*100};}
+function dcSaApplySlotVisualToEl(el,idx){if(!el||dcSa.slots[idx]==null)return;var ma=dcSaLeerMetrajeInputs();var d=dcSaMesaBaseDimsPct(ma.largo,ma.ancho);el.style.width=d.w+'%';el.style.height=d.h+'%';try{if(dcSa.slots[idx].rotada)el.classList.add('dc-sa-mesa--rotada');else el.classList.remove('dc-sa-mesa--rotada');}catch(eV){}}
+function dcSaBindRotateButtons(cont){if(!cont)return;cont.querySelectorAll('.dc-sa-rotate').forEach(function(btn){btn.addEventListener('pointerdown',function(ev){ev.stopPropagation();});btn.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();var idx=parseInt(btn.getAttribute('data-dc-sa-idx'),10);if(isNaN(idx)||!dcSa.slots[idx])return;dcSa.slots[idx].rotada=!dcSa.slots[idx].rotada;var mesaEl=cont.querySelector('.dc-sa-mesa[data-dc-sa-idx="'+idx+'"]');if(mesaEl)dcSaApplySlotVisualToEl(mesaEl,idx);});});}
+function dcSaGridDims(n){var N=Math.min(30,Math.max(1,parseInt(n,10)||1));var columnas=Math.ceil(Math.sqrt(N));var filas=Math.ceil(N/columnas);return{n:N,columnas:columnas,filas:filas};}
+function dcSaDistribuirSlots(){var n=dcSa.slots?dcSa.slots.length:0;if(n<1)return;var gd=dcSaGridDims(n);var cols=gd.columnas;var rows=gd.filas;var inset=5;var ux=100-2*inset;var uy=100-2*inset;for(var i=0;i<n;i++){var col=i%cols;var row=Math.floor(i/cols);dcSa.slots[i].x=inset+((col+0.5)/cols)*ux;dcSa.slots[i].y=inset+((row+0.5)/rows)*uy;}}
+function dcSaRenderPreview(){var cont=document.getElementById('dc-sa-preview-plano');if(!cont||!dcSa.salonId)return;dcSaTeardownDrag();var ma=dcSaLeerMetrajeInputs();cont.style.aspectRatio=ma.largo+' / '+ma.ancho;var L=ma.largo;var A=ma.ancho;var html='';for(var i=0;i<dcSa.slots.length;i++){var s=dcSa.slots[i];var d=dcSaMesaBaseDimsPct(L,A);var label=s.numero!=null?'Mesa '+s.numero:'Mesa '+(i+1);var rotCls=s.rotada?' dc-sa-mesa--rotada':'';html+='<div class="dc-sa-mesa'+rotCls+'" data-dc-sa-idx="'+i+'" style="left:'+s.x+'%;top:'+s.y+'%;width:'+d.w+'%;height:'+d.h+'%"><button type="button" class="dc-sa-rotate" data-dc-sa-idx="'+i+'" aria-label="Rotar mesa" title="Rotar">↻</button><span class="dc-sa-mesa-label">'+label+'</span></div>';}cont.innerHTML=html;dcSaBindPreviewDrag(cont);dcSaBindRotateButtons(cont);}
+function dcSaRebuildSlotsFromNumInput(){var inp=document.getElementById('inp-num-mesas');var newN=Math.min(30,Math.max(1,parseInt(inp&&inp.value,10)||1));if(inp)inp.value=String(newN);var prev=dcSa.slots||[];var nex=[];for(var i=0;i<newN;i++){var p=prev[i];nex.push({key:p&&p.key!=null?p.key:'t'+i,id:p&&p.id?p.id:null,numero:p&&p.numero!=null?p.numero:null,rotada:!!(p&&p.rotada),x:50,y:50});}dcSa.slots=nex;dcSaDistribuirSlots();dcSaRenderPreview();}
+var _dcSaInputsOnce=false;
+function dcSaBindInputsOnce(){if(_dcSaInputsOnce)return;_dcSaInputsOnce=true;var l=document.getElementById('inp-largo-local');var a=document.getElementById('inp-ancho-local');var n=document.getElementById('inp-num-mesas');if(l)l.addEventListener('input',function(){dcSaRenderPreview();});if(a)a.addEventListener('input',function(){dcSaRenderPreview();});if(n){n.addEventListener('change',function(){dcSaRebuildSlotsFromNumInput();});n.addEventListener('input',function(){dcSaRebuildSlotsFromNumInput();});}}
+async function dcSaResolveConfigRow(api,club){if(!club)return{data:null,error:null};var keys=[];if(club.codigo!=null&&String(club.codigo).trim())keys.push(String(club.codigo).trim());if(club.id!=null){var idStr=String(club.id).trim();if(keys.indexOf(idStr)<0)keys.push(idStr);}var lastErr=null;for(var ki=0;ki<keys.length;ki++){var r=await api.getFirstMesasConfigByClubId(keys[ki]);if(r.error)lastErr=r.error;if(r.data&&r.data.id)return r;}return{data:null,error:lastErr};}
+async function dcSaCargarDesdeSupabase(){var box=document.getElementById('dc-superadmin-salon');if(!box||box.style.display==='none')return;var club=getClubActivo();var sinEl=document.getElementById('dc-sa-sin-config');var host=document.getElementById('dc-sa-preview-host');if(!club||(!club.codigo&&!club.id)){dcSa.salonId=null;dcSa.clubIdKey=null;dcSa.slots=[];if(sinEl)sinEl.style.display='none';if(host)host.style.display='none';return;}dcSa.clubIdKey=club.codigo?String(club.codigo).trim():String(club.id);dcSaBindInputsOnce();var api=await import('/js/api/club-api.js');var cfgR=await dcSaResolveConfigRow(api,club);var row=cfgR.data;if(!row||!row.id){dcSa.salonId=null;dcSa.slots=[];if(sinEl){sinEl.style.display='block';sinEl.textContent=cfgR.error?'No se pudo leer mesas_config (red o RLS). Con sesión de superadmin, las políticas en Supabase deben permitir SELECT en mesas_config, o tu perfil debe tener club_id = código del club (ej. MVIP-001) para ver la fila del salón.':'No hay mesas_config para este club. Creá la configuración en Configurar instalaciones; después podrás ajustar metraje y mesas aquí.';}if(host)host.style.display='none';return;}dcSa.salonId=row.id;if(sinEl)sinEl.style.display='none';if(host)host.style.display='block';var met=row.metraje;var L=20,A=15;if(met&&typeof met==='object'){if(met.largo!=null)L=parseFloat(met.largo)||20;if(met.ancho!=null)A=parseFloat(met.ancho)||15;}var elL=document.getElementById('inp-largo-local');var elA=document.getElementById('inp-ancho-local');if(elL)elL.value=String(L);if(elA)elA.value=String(A);var lr=await api.listMesasBySalonId(dcSa.salonId);var todos=(lr.data||[]).slice().sort(function(a,b){return(a.numero||0)-(b.numero||0);});var nDef=Math.min(30,Math.max(1,todos.length||1));var elN=document.getElementById('inp-num-mesas');if(elN)elN.value=String(nDef);dcSa.slots=[];for(var i=0;i<nDef;i++){var m=todos[i];var rotM=!!(m&&m.meta&&typeof m.meta==='object'&&m.meta.rotada);if(m){dcSa.slots.push({key:m.id,id:m.id,numero:m.numero,rotada:rotM,x:50,y:50});}else{dcSa.slots.push({key:'t'+i,id:null,numero:null,rotada:false,x:50,y:50});}}dcSaDistribuirSlots();for(var j=0;j<nDef;j++){var mj=todos[j];if(mj&&mj.posicion_x!=null&&mj.posicion_y!=null){var pxx=parseFloat(mj.posicion_x);var pyy=parseFloat(mj.posicion_y);if(!isNaN(pxx)&&!isNaN(pyy)&&dcSa.slots[j]){dcSa.slots[j].x=pxx;dcSa.slots[j].y=pyy;}}}dcSaRenderPreview();}
+function aplicarSuperadminSalonUi(){var box=document.getElementById('dc-superadmin-salon');if(!box)return;import('/js/auth-manager.js').then(function(auth){return auth.getRole();}).then(function(r){if(r.error||r.data!=='superadmin'){box.style.display='none';return;}box.style.display='block';dcSaCargarDesdeSupabase().catch(function(e){console.error('[admin_sede] dcSa carga',e);});}).catch(function(){box.style.display='none';});}
+async function dcSaGuardarSalon(apiMod){var club=getClubActivo();if(!club||!club.codigo||!dcSa.salonId)return{ok:true,skip:true};var authMod=await import('/js/auth-manager.js');var rr=await authMod.getRole();if(rr.error||rr.data!=='superadmin')return{ok:true,skip:true};var ma=dcSaLeerMetrajeInputs();var cfgR=await dcSaResolveConfigRow(apiMod,club);var cfg=cfgR.data;if(!cfg||!cfg.id)return{ok:false,err:cfgR.error||'Sin mesas_config'};var targetN=Math.min(30,Math.max(1,parseInt(document.getElementById('inp-num-mesas').value,10)||1));var met=cfg.metraje&&typeof cfg.metraje==='object'?Object.assign({},cfg.metraje):{};met.largo=ma.largo;met.ancho=ma.ancho;delete met.orientacion;var ur=await apiMod.updateMesasConfig(cfg.id,{metraje:met,updated_at:new Date().toISOString()});if(ur.error)return{ok:false,err:ur.error};while(true){var listR=await apiMod.listMesasBySalonId(dcSa.salonId);var todos=(listR.data||[]).slice().sort(function(a,b){return(a.numero||0)-(b.numero||0);});if(todos.length>=targetN)break;var maxNum=0;for(var t=0;t<todos.length;t++){if((todos[t].numero||0)>maxNum)maxNum=todos[t].numero;}var nextNum=maxNum+1;var ir=await apiMod.insertMesaRow({club_id:club.codigo,salon_id:dcSa.salonId,numero:nextNum,nombre:'Mesa '+nextNum,tipo_instalacion:'Mesa',estado:'libre',tarifa_hora:0});if(ir.error)return{ok:false,err:ir.error};}var listR2=await apiMod.listMesasBySalonId(dcSa.salonId);var todos2=(listR2.data||[]).slice().sort(function(a,b){return(a.numero||0)-(b.numero||0);});var surplus=todos2.slice(targetN);for(var si=0;si<surplus.length;si++){var sr=await apiMod.updateMesa(surplus[si].id,{estado:'fuera_servicio',updated_at:new Date().toISOString()});if(sr.error)return{ok:false,err:sr.error};}var active=todos2.slice(0,targetN);for(var ai=0;ai<active.length;ai++){var sl=dcSa.slots[ai];if(!sl)continue;var est=(active[ai].estado||'libre').toLowerCase().replace(/ /g,'_');var prevMeta=active[ai].meta;var metaObj=prevMeta&&typeof prevMeta==='object'&&!Array.isArray(prevMeta)?Object.assign({},prevMeta):{};metaObj.rotada=!!sl.rotada;var patch={posicion_x:Math.round(sl.x*1000)/1000,posicion_y:Math.round(sl.y*1000)/1000,nombre:'Mesa '+(active[ai].numero||ai+1),meta:metaObj,updated_at:new Date().toISOString()};if(est==='fuera_servicio')patch.estado='libre';console.log('[save mesa]',active[ai].id,JSON.stringify(patch));var ur2=await apiMod.updateMesa(active[ai].id,patch);if(ur2.error)return{ok:false,err:ur2.error};}return{ok:true};}
+window.previewLogo=function(input){var file=input&&input.files&&input.files[0];var prev=document.getElementById('logo-preview');var urlInp=document.getElementById('inp-logo-url');if(urlInp)urlInp.value='';if(!file||!prev)return;var reader=new FileReader();reader.onload=function(){prev.innerHTML='<img src="'+reader.result+'" alt="Logo">';prev.setAttribute('data-dataurl',reader.result);};reader.readAsDataURL(file);};
+function cargarDatos(){var club=getClubActivo();if(!club){document.getElementById('codigo-display').textContent='No hay club activo. Crea o únete a un club desde Inicio.';document.getElementById('btn-guardar').disabled=true;var secNoClub=document.getElementById('dc-salon-acceso-section');if(secNoClub)secNoClub.style.display='none';var su0=document.getElementById('dc-superadmin-salon');if(su0)su0.style.display='none';return;}document.getElementById('codigo-display').textContent=club.codigo||'—';document.getElementById('inp-nombre').value=club.nombre||get('wl_club_nombre')||'';document.getElementById('inp-ciudad').value=club.ciudad||'';var cfg=getObj('CLUB_CONFIG')||{};var color=club.color||get('wl_club_color')||cfg.color||COLORES[0];renderColorChips(color);var logoUrl=club.logo_url||get('wl_club_logo_url')||cfg.logoUrl||cfg.logo||'';document.getElementById('inp-logo-url').value=logoUrl&&logoUrl.indexOf('http')===0?logoUrl:'';var prev=document.getElementById('logo-preview');if(logoUrl){if(logoUrl.indexOf('data:')===0){prev.innerHTML='<img src="'+logoUrl+'" alt="Logo">';prev.setAttribute('data-dataurl',logoUrl);}else{prev.innerHTML='<img src="'+logoUrl+'" alt="Logo" onerror="this.parentNode.innerHTML=\'<span class=ph>◆</span>\'">';prev.removeAttribute('data-dataurl');}}else{prev.innerHTML='<span class="ph">◆</span>';prev.removeAttribute('data-dataurl');}aplicarSalonAccesoUi();aplicarSuperadminSalonUi();}
+function aplicarSalonAccesoUi(){var wrap=document.getElementById('dc-salon-acceso-section');var chk=document.getElementById('chk-salon-acceso-publico');if(!wrap||!chk)return;import('/js/auth-manager.js').then(function(auth){return Promise.all([auth.getSession(),auth.getRole(),auth.getClubId()]);}).then(function(r){var sess=r[0];var roleR=r[1];var clubIdR=r[2];var esAdmin=!sess.error&&sess.data&&!roleR.error&&roleR.data==='club_admin';if(!esAdmin){wrap.style.display='none';return;}wrap.style.display='';var codigo=clubIdR.data!=null?String(clubIdR.data).trim():'';if(!codigo){chk.checked=false;return;}return import('/js/supabase-client.js').then(function(m){return m.supabase.from('clubs').select('salon_acceso_publico').eq('codigo',codigo).maybeSingle();}).then(function(q){if(q.error||!q.data)chk.checked=false;else chk.checked=!!q.data.salon_acceso_publico;});}).catch(function(){wrap.style.display='none';});}
+function actualizarClubLocal(nombre,ciudad,color,logoUrl){var club=getClubActivo();if(!club)return;club.nombre=nombre;club.ciudad=ciudad;club.color=color;club.logo_url=logoUrl||club.logo_url||'';localStorage.setItem('club_activo',JSON.stringify(club));var clubes=getObj('mis_clubes')||[];var idx=clubes.findIndex(function(c){return c.codigo===club.codigo;});if(idx>=0){clubes[idx]=club;localStorage.setItem('mis_clubes',JSON.stringify(clubes));}set('wl_club_nombre',nombre);set('wl_club_color',color);if(logoUrl)set('wl_club_logo_url',logoUrl);var cfg=getObj('CLUB_CONFIG')||{};cfg.color=color;cfg.logoUrl=logoUrl||cfg.logoUrl;cfg.logo=logoUrl||cfg.logo;localStorage.setItem('CLUB_CONFIG',JSON.stringify(cfg));if(window.WL&&window.WL.setClub){window.WL.setClub({id:club.id,nombre:nombre,logo_url:logoUrl||club.logo_url,color_primario:color});}var perfil=getObj('mi_perfil')||{};perfil.club=nombre;perfil.club_logo_url=logoUrl||perfil.club_logo_url;localStorage.setItem('mi_perfil',JSON.stringify(perfil));}
+window.guardarSede=async function(){var authMod=await import('/js/auth-manager.js');var sessG=await authMod.getSession();var roleG=await authMod.getRole();var puedeSalonToggle=!sessG.error&&sessG.data&&!roleG.error&&roleG.data==='club_admin';var esSuperadmin=!roleG.error&&roleG.data==='superadmin';var nombre=(document.getElementById('inp-nombre').value||'').trim();var ciudad=(document.getElementById('inp-ciudad').value||'').trim();var color=getColorSeleccionado();var logoUrlInp=(document.getElementById('inp-logo-url').value||'').trim();var prev=document.getElementById('logo-preview');var dataUrl=prev&&prev.getAttribute('data-dataurl');var logoUrl=logoUrlInp||dataUrl||'';if(!nombre){mostrarMsg('Escribe el nombre del club.',true);return;}var club=getClubActivo();if(!club){mostrarMsg('No hay club activo.',true);return;}var btn=document.getElementById('btn-guardar');btn.disabled=true;mostrarMsg('Guardando…',false);actualizarClubLocal(nombre,ciudad,color,logoUrl||undefined);var id=club.id;var codigo=club.codigo;var payload={nombre:nombre,ciudad:ciudad||null,color_primario:color,logo_url:logoUrl||null,activo:true};async function persistSalonAccesoPublicoSiAdmin(){if(!puedeSalonToggle)return;var cr=await authMod.getClubId();var codigoSupa=cr.data!=null?String(cr.data).trim():'';if(!codigoSupa)return;var chk=document.getElementById('chk-salon-acceso-publico');var valor=!!(chk&&chk.checked);var supaM=await import('/js/supabase-client.js');var ur=await supaM.supabase.from('clubs').update({salon_acceso_publico:valor}).eq('codigo',codigoSupa);if(ur.error)console.error('[admin_sede] salon_acceso_publico',ur.error);}function onSuccess(){mostrarMsg('✅ Cambios guardados. El código de invitación y el whitelabel se actualizarán.',false);btn.disabled=false;cargarDatos();}function onError(err){mostrarMsg('Guardado local correcto. Error al sincronizar con la nube: '+(err||'revisa conexión'),true);btn.disabled=false;}import('/js/api/club-api.js').then(async function(api){if(id){var r=await api.patchClub(id,payload);if(r.error){onError(r.error.message||String(r.error));return;}if(esSuperadmin){var gr=await dcSaGuardarSalon(api);if(!gr.ok&&gr.err)console.error('[admin_sede] superadmin salón',gr.err);}await persistSalonAccesoPublicoSiAdmin();onSuccess();}else{payload.codigo=codigo||('CLB-'+Math.floor(Math.random()*900+100));var r2=await api.insertClub(payload);if(r2.error){onError(r2.error.message||String(r2.error));return;}var fila=r2.data;if(fila&&fila.id){club.id=fila.id;localStorage.setItem('club_activo',JSON.stringify(club));var clubes=getObj('mis_clubes')||[];var i=clubes.findIndex(function(c){return c.codigo===club.codigo;});if(i>=0){clubes[i]=club;localStorage.setItem('mis_clubes',JSON.stringify(clubes));}set('wl_club_id',fila.id);if(window.WL&&window.WL.setClub){window.WL.setClub({id:fila.id,nombre:nombre,logo_url:logoUrl||null,color_primario:color});}if(esSuperadmin){var gr2=await dcSaGuardarSalon(api);if(!gr2.ok&&gr2.err)console.error('[admin_sede] superadmin salón',gr2.err);}await persistSalonAccesoPublicoSiAdmin();onSuccess();}else{onError('No se devolvió id del club');}}}).catch(function(e){onError(e&&e.message?e.message:String(e));});};
+document.getElementById('inp-logo-url').addEventListener('change',function(){var url=(this.value||'').trim();var prev=document.getElementById('logo-preview');if(!prev)return;if(url){prev.removeAttribute('data-dataurl');prev.innerHTML='<img src="'+url+'" alt="Logo" onerror="this.parentNode.innerHTML=\'<span class=ph>◆</span>\'">';}else if(!prev.getAttribute('data-dataurl')){prev.innerHTML='<span class="ph">◆</span>';}});
+var perfilBoot=getObj('mi_perfil')||{};var cidStaff=(perfilBoot.club_id&&String(perfilBoot.club_id).trim())||'';if(!cidStaff&&get('wl_club_id'))cidStaff=String(get('wl_club_id')).trim();if(cidStaff){hidratarClubDesdeSupabase(cidStaff,cargarDatos);}else{cargarDatos();}
+document.body.classList.add('dc-ready');
 };
-</script>
-
-
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
 </script>
 <script type="module">
 import { guardSalaPage } from '/js/sala-supabase-gate.js';
 await guardSalaPage({ pageTitle: 'Configurar sede' });
 </script>
-
 </body>
 </html>
