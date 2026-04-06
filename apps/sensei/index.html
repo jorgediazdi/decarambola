@@ -857,7 +857,7 @@ supabase.auth.onAuthStateChange((event, session) => {
         svg.parentNode.replaceChild(clone, svg);
     }
     
-const API="https://sensei-billar-api.onrender.com";
+const API="https://iwvogyloebvieloequzr.supabase.co/functions/v1/super-function";
     // Registro de uso: si está vacío no se envía nada (Sensei funciona igual). Para activar: 1) En terminal: cd sensei-backend && npm install && npm start  2) Poner aquí la URL, ej: 'http://localhost:3456' (o la URL de tu backend en producción).
     var SENSEI_USO_API = '';
 
@@ -986,13 +986,18 @@ const API="https://sensei-billar-api.onrender.com";
         btn.disabled=true;
         btn.innerHTML='<span class="loading"></span>';
         try{
-            const res=await fetch(API+"/chat",{
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({mensaje:text+" (Modalidad: "+modalidadActual+")"})
+            const res = await fetch(API, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "apikey": "sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J"
+                },
+                body: JSON.stringify({
+                    messages: [{ role: "user", content: text + " (Modalidad: " + modalidadActual + ")" }]
+                })
             });
             const data=await res.json();
-            addMsg(data.respuesta,"sensei",{ temaParaUso: text.slice(0,200) });
+            addMsg(data.content[0].text,"sensei",{ temaParaUso: text.slice(0,200) });
             registrarUso('chat', modalidadActual, text.slice(0,200), null);
             if(autoHablar) {
                 setTimeout(function() {
@@ -1016,13 +1021,18 @@ const API="https://sensei-billar-api.onrender.com";
         document.body.style.overflow = 'hidden';
         
         try {
-            const res = await fetch(API+"/chat", {
+            const res = await fetch(API, {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({mensaje: pregunta + " (Modalidad: " + modalidadActual + ")"})
+                headers: {
+                    "Content-Type": "application/json",
+                    "apikey": "sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J"
+                },
+                body: JSON.stringify({
+                    messages: [{ role: "user", content: pregunta + " (Modalidad: " + modalidadActual + ")" }]
+                })
             });
             const data = await res.json();
-            document.getElementById('modal-texto').innerHTML = data.respuesta;
+            document.getElementById('modal-texto').innerHTML = data.content[0].text;
         } catch(e) {
             document.getElementById('modal-texto').innerHTML = "Error de conexión. Por favor intenta de nuevo.";
         }
@@ -1043,13 +1053,18 @@ const API="https://sensei-billar-api.onrender.com";
         document.getElementById('modal-texto').innerHTML = textoActual + '<div style="margin-top:20px;padding-top:20px;border-top:1px solid rgba(201,168,76,0.2);"><div style="text-align:center;"><span class="loading"></span> Consultando...</div></div>';
         
         try {
-            const res = await fetch(API+"/chat", {
+            const res = await fetch(API, {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({mensaje: text + " (Modalidad: " + modalidadActual + ")"})
+                headers: {
+                    "Content-Type": "application/json",
+                    "apikey": "sb_publishable_wD_gKc2Doa_LXu8YLoZOcw_RczMuK-J"
+                },
+                body: JSON.stringify({
+                    messages: [{ role: "user", content: text + " (Modalidad: " + modalidadActual + ")" }]
+                })
             });
             const data = await res.json();
-            document.getElementById('modal-texto').innerHTML = textoActual + '<div style="margin-top:20px;padding-top:20px;border-top:1px solid rgba(201,168,76,0.2);"><b style="color:#c9a84c;">Tu pregunta:</b> ' + text + '<br><br>' + data.respuesta + '</div>';
+            document.getElementById('modal-texto').innerHTML = textoActual + '<div style="margin-top:20px;padding-top:20px;border-top:1px solid rgba(201,168,76,0.2);"><b style="color:#c9a84c;">Tu pregunta:</b> ' + text + '<br><br>' + data.content[0].text + '</div>';
         } catch(e) {
             document.getElementById('modal-texto').innerHTML = textoActual + '<div style="margin-top:20px;color:#e74c3c;">Error de conexión.</div>';
         }
