@@ -3,28 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0b0b0b">
+    <meta name="theme-color" content="#0a0a0a">
     <title>Solicitud de configuración de club — DeCarambola</title>
     <link rel="stylesheet" href="/css/ux-shell.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=Playfair+Display:wght@500;600&display=swap">
     <style>
-        :root { --oro: #d4af37; --g1: #1a1a1a; --g2: #111; --txt: #e8eaed; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --oro: #c9a84c;
+            --oro-dark: #8a7030;
+            --border: rgba(201, 168, 76, 0.15);
+            --azul: #4a9eff;
+            --azul-dim: rgba(74, 158, 255, 0.12);
+            --neon: #2eff70;
+            --neon-dim: rgba(46, 255, 112, 0.1);
+            --rojo: #e05252;
+            --rojo-dim: rgba(224, 82, 82, 0.12);
+            --bg: #0a0a0a;
+            --surface: #111111;
+            --g1: #1a1a1a;
+            --txt: #e0d8c8;
+            --muted: #888;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: #0b0b0b;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
             color: var(--txt);
             min-height: 100vh;
+            visibility: hidden;
             padding: calc(20px + env(safe-area-inset-top)) 18px calc(40px + env(safe-area-inset-bottom));
         }
+        body.dc-ready { visibility: visible; animation: fadeIn .35s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
         .wrap { max-width: 480px; margin: 0 auto; }
         h1 {
-            font-size: 1.05rem;
-            letter-spacing: 0.08em;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            letter-spacing: 0.04em;
             color: var(--oro);
             margin-bottom: 8px;
-            font-weight: 800;
+            font-weight: 600;
         }
-        .lead { font-size: 0.82rem; color: #888; line-height: 1.45; margin-bottom: 20px; }
+        .lead { font-size: 0.82rem; color: var(--muted); line-height: 1.45; margin-bottom: 20px; }
         .estado {
             border-radius: 14px;
             padding: 14px 16px;
@@ -32,14 +54,26 @@
             font-size: 0.85rem;
             line-height: 1.45;
             border: 1px solid var(--g1);
-            background: var(--g2);
+            background: var(--surface);
         }
-        .estado.pendiente { border-color: rgba(52, 152, 219, 0.35); color: #9cc; }
-        .estado.aprobada { border-color: rgba(46, 255, 112, 0.25); color: #9e9; }
-        .estado.rechazada { border-color: rgba(231, 76, 60, 0.35); color: #eaa; }
+        .estado.pendiente {
+            border-color: rgba(74, 158, 255, 0.35);
+            background: var(--azul-dim);
+            color: #a8c8e8;
+        }
+        .estado.aprobada {
+            border-color: rgba(46, 255, 112, 0.28);
+            background: var(--neon-dim);
+            color: #9ee9b5;
+        }
+        .estado.rechazada {
+            border-color: rgba(224, 82, 82, 0.4);
+            background: var(--rojo-dim);
+            color: #e8a8a8;
+        }
         .campo-ayuda { font-size: 0.72rem; color: #666; line-height: 1.35; margin-top: 6px; }
         #wrap-cambio label { text-transform: none; letter-spacing: normal; font-size: 0.85rem; color: #bbb; display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
-        #wrap-cambio input { width: auto; margin-top: 4px; }
+        #wrap-cambio input { width: auto; margin-top: 4px; accent-color: var(--oro); }
         label {
             display: block;
             font-size: 0.62rem;
@@ -53,10 +87,16 @@
             width: 100%;
             padding: 12px 14px;
             border-radius: 12px;
-            border: 1px solid var(--g1);
-            background: #0a0a0a;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03);
             color: #fff;
             font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--oro);
         }
         textarea { min-height: 72px; resize: vertical; }
         .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -66,22 +106,29 @@
             padding: 16px;
             border: none;
             border-radius: 14px;
-            background: linear-gradient(135deg, var(--oro), #a07800);
+            background: linear-gradient(135deg, var(--oro), var(--oro-dark));
             color: #000;
             font-weight: 800;
             letter-spacing: 0.08em;
             cursor: pointer;
             font-size: 0.85rem;
+            font-family: 'DM Sans', sans-serif;
         }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .err { color: #e74c3c; font-size: 0.82rem; margin-top: 10px; }
-        .ok { color: #2ecc71; font-size: 0.82rem; margin-top: 10px; }
-        .back { display: inline-block; margin-top: 20px; color: #666; font-size: 0.8rem; }
+        .err { color: var(--rojo); font-size: 0.82rem; margin-top: 10px; }
+        .ok { color: var(--neon); font-size: 0.82rem; margin-top: 10px; }
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.8rem;
+            text-decoration: none;
+            letter-spacing: 0.04em;
+        }
         .back:hover { color: var(--oro); }
     </style>
 </head>
 <body class="dc-ux dc-ux-skin">
-    <div class="stars" id="stars-bg" aria-hidden="true"></div>
     <div class="wrap">
         <h1>Solicitud de configuración de club</h1>
         <p class="lead">
@@ -132,6 +179,10 @@
         import { getSession, getRole } from '/js/auth-manager.js';
         import { club_getResumenPortal, club_enviarSolicitud } from '/js/solicitud-config.js';
 
+        function bodyReveal() {
+            document.body.classList.add('dc-ready');
+        }
+
         var form = document.getElementById('form-solicitud');
         var btn = document.getElementById('btn-enviar');
         var bloqueEstado = document.getElementById('bloque-estado');
@@ -158,6 +209,7 @@
                 bloqueEstado.textContent =
                     'Esta solicitud la completa el administrador del club (rol club_admin). Iniciá sesión con esa cuenta o pedí acceso en tu sede.';
                 form.style.display = 'none';
+                bodyReveal();
                 return;
             }
 
@@ -184,7 +236,7 @@
                     txt += '<br><span style="color:#bbb">Comentario: ' + escapeHtml(res.ultima.comentario_admin) + '</span>';
                 }
                 if (res.ultima.club_id) {
-                    txt += '<br><span style="color:#d4af37">Código de club: ' + escapeHtml(res.ultima.club_id) + '</span>';
+                    txt += '<br><span style="color:#c9a84c">Código de club: ' + escapeHtml(res.ultima.club_id) + '</span>';
                 }
                 bloqueEstado.innerHTML = txt;
             } else {
@@ -205,6 +257,7 @@
                     btn.textContent = chkCambio.checked ? 'Enviar solicitud de cambio' : 'Marcá «Solicitar cambio» y enviá';
                 };
             }
+            bodyReveal();
         }
 
         function escapeHtml(t) {
