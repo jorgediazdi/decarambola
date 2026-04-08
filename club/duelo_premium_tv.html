@@ -543,6 +543,12 @@
         body.tema-sol .salon-casual-controls-bar .btn-fin {
             border-color: rgba(90, 56, 0, 0.45);
         }
+        body.tema-sol .salon-casual-controls-bar .btn-obs-transmitir {
+            background: linear-gradient(180deg, #f0d78c 0%, #c9a84c 50%, #8a7028 100%) !important;
+            color: #1a1204 !important;
+            border-color: #5a4010 !important;
+            box-shadow: 0 0 12px rgba(90, 56, 0, 0.2);
+        }
         body.tema-sol .salon-casual-z2 {
             background: #f5f0e8 !important;
         }
@@ -794,6 +800,24 @@
         .salon-casual-controls-bar .btn-bolas-lados-casual,
         .salon-casual-controls-bar .btn-bolas-tv {
             font-size: 1.05rem;
+        }
+        .salon-casual-controls-bar .btn-obs-transmitir {
+            padding: 8px 14px;
+            font-size: 0.52rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #0a0a0a;
+            background: linear-gradient(180deg, #e8c86a 0%, #c9a84c 45%, #a08030 100%);
+            border: 1px solid rgba(201, 168, 76, 0.85);
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 0 14px rgba(201, 168, 76, 0.25);
+        }
+        .salon-casual-controls-bar .btn-obs-transmitir:disabled {
+            opacity: 0.45;
+            cursor: wait;
+            box-shadow: none;
         }
         .salon-casual-z2 {
             flex: 1;
@@ -2604,6 +2628,14 @@
         partidaTerminada = false;
         tvSession = null;
         proUltimoCambio = null;
+        if (salonTvOverlayPublishTimer) {
+            try {
+                clearTimeout(salonTvOverlayPublishTimer);
+            } catch (e) {}
+            salonTvOverlayPublishTimer = null;
+        }
+        salonOverlayMatchId = null;
+        salonTvOverlayLastPublish = 0;
         var pin = document.getElementById('p-inicio');
         if (pin) pin.classList.remove('oculta');
         resetPantallaProInicio();
@@ -2649,6 +2681,11 @@
     var partidaTotalPausedMs = 0;
     var pauseStartTime = 0;
     var partidaTerminada = false;
+    /** Overlay Supabase: match_id fijo por sesión de partida en TV salón. */
+    var salonOverlayMatchId = null;
+    var salonTvOverlayPublishTimer = null;
+    var salonTvOverlayLastPublish = 0;
+    var OVERLAY_STATE_THROTTLE_MS = 2000;
     /** Casual: último valor anotado por acción individual (solo uno “activo”; el otro en 0). */
     var ultimaJugadaJ1 = 0;
     var ultimaJugadaJ2 = 0;
@@ -2658,6 +2695,218 @@
         var nn = Math.max(0, n | 0);
         ultimaJugadaJ1 = j === 1 ? nn : 0;
         ultimaJugadaJ2 = j === 2 ? nn : 0;
+    }
+
+    async function publicarOverlayState() {
+        if (!tvSession || !salonOverlayMatchId) return;
+        var wl = leerClubWhiteLabel();
+        var row = {
+            match_id: salonOverlayMatchId,
+            club_nombre: (wl.nombre && String(wl.nombre).trim()) || null,
+            j1_nombre: nomJ1,
+            j2_nombre: nomJ2,
+            j1_carambolas: d.p1 | 0,
+            j2_carambolas: d.p2 | 0,
+            j1_entradas: d.e1 | 0,
+            j2_entradas: d.e2 | 0,
+            j1_promedio: d.e1 > 0 ? d.p1 / d.e1 : 0,
+            j2_promedio: d.e2 > 0 ? d.p2 / d.e2 : 0,
+            objetivo: cfg.meta1 | 0,
+            estado: partidaTerminada ? 'terminado' : 'en_juego',
+            mesa: (cfg.mesa && String(cfg.mesa).trim()) || 'SALÓN',
+            updated_at: new Date().toISOString()
+        };
+        try {
+            var r = await supabase.from('overlay_state').upsert(row, { onConflict: 'match_id' });
+            if (r.error && typeof console !== 'undefined' && console.warn) {
+                console.warn('[duelo_premium_tv] overlay_state:', r.error.message);
+            }
+        } catch (e) {
+            if (typeof console !== 'undefined' && console.warn) console.warn('[duelo_premium_tv] overlay_state', e);
+        }
+    }
+
+    function schedulePublicarOverlayStateThrottled() {
+        if (!tvSession || !salonOverlayMatchId) return;
+        var now = Date.now();
+        if (now - salonTvOverlayLastPublish >= OVERLAY_STATE_THROTTLE_MS) {
+            salonTvOverlayLastPublish = now;
+            publicarOverlayState();
+            return;
+        }
+        if (salonTvOverlayPublishTimer) return;
+        salonTvOverlayPublishTimer = setTimeout(function () {
+            salonTvOverlayPublishTimer = null;
+            salonTvOverlayLastPublish = Date.now();
+            publicarOverlayState();
+        }, OVERLAY_STATE_THROTTLE_MS - (now - salonTvOverlayLastPublish));
+    }
+
+    /** OBS Studio — obs-websocket 5.x: conectar e iniciar transmisión (StartStream). */
+    var salonObsWs = null;
+    var salonObsIdentified = false;
+    var salonObsPendingStartId = null;
+    var salonObsBtnUnlockTimer = null;
+
+    function salonObsBufToB64(buf) {
+        var bytes = new Uint8Array(buf);
+        var binary = '';
+        for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary);
+    }
+
+    function salonObsBuildAuth(password, salt, challenge) {
+        var enc = new TextEncoder();
+        return crypto.subtle
+            .digest('SHA-256', enc.encode(password + salt))
+            .then(function (h1) {
+                var b64sec = salonObsBufToB64(h1);
+                return crypto.subtle.digest('SHA-256', enc.encode(b64sec + challenge));
+            })
+            .then(function (h2) {
+                return salonObsBufToB64(h2);
+            });
+    }
+
+    function salonObsSend(ws, obj) {
+        ws.send(JSON.stringify(obj));
+    }
+
+    function salonObsUnlockBtnSoon(ms) {
+        var btn = document.getElementById('btn-obs-transmitir-vivo');
+        if (salonObsBtnUnlockTimer) clearTimeout(salonObsBtnUnlockTimer);
+        salonObsBtnUnlockTimer = setTimeout(function () {
+            salonObsBtnUnlockTimer = null;
+            if (btn) btn.disabled = false;
+        }, ms || 12000);
+    }
+
+    function salonObsStartStream(ws) {
+        var rid = 'dc-start-' + Date.now();
+        salonObsPendingStartId = rid;
+        salonObsUnlockBtnSoon(12000);
+        salonObsSend(ws, { op: 6, d: { requestType: 'StartStream', requestId: rid } });
+    }
+
+    function salonObsHandleMessage(ws, ev) {
+        var msg = JSON.parse(ev.data);
+        var op = msg.op;
+        var d = msg.d || {};
+        if (op === 7 && d.requestId && d.requestId === salonObsPendingStartId) {
+            salonObsPendingStartId = null;
+            if (salonObsBtnUnlockTimer) {
+                clearTimeout(salonObsBtnUnlockTimer);
+                salonObsBtnUnlockTimer = null;
+            }
+            var btn = document.getElementById('btn-obs-transmitir-vivo');
+            if (btn) btn.disabled = false;
+            if (d.requestStatus && d.requestStatus.result) {
+                alert('OBS: transmisión en vivo iniciada.');
+            } else {
+                var c = d.requestStatus && d.requestStatus.comment ? d.requestStatus.comment : '';
+                alert('OBS no pudo iniciar la transmisión. ' + (c || 'Revisá la configuración de emisión en OBS.'));
+            }
+            return;
+        }
+        if (op === 0) {
+            var rpc = d.rpcVersion != null ? d.rpcVersion : 1;
+            var sendId = function (authStr) {
+                var payload = { rpcVersion: rpc };
+                if (authStr) payload.authentication = authStr;
+                salonObsSend(ws, { op: 1, d: payload });
+            };
+            if (d.authentication && d.authentication.challenge && d.authentication.salt) {
+                var pwd = localStorage.getItem('decarambola_obs_ws_password');
+                if (pwd == null || pwd === '') {
+                    pwd =
+                        window.prompt(
+                            'Contraseña de obs-websocket (OBS → Ajustes → obs-websocket). Dejá vacío solo si no tenés contraseña:',
+                            ''
+                        ) || '';
+                    if (pwd) localStorage.setItem('decarambola_obs_ws_password', pwd);
+                }
+                if (!pwd) {
+                    alert('OBS pidió contraseña de obs-websocket. Configurala en OBS y volvé a intentar.');
+                    try {
+                        ws.close();
+                    } catch (e) {}
+                    return;
+                }
+                salonObsBuildAuth(pwd, d.authentication.salt, d.authentication.challenge)
+                    .then(sendId)
+                    .catch(function () {
+                        alert('Error al autenticar con OBS (Web Crypto). Probá abrir esta página desde http://localhost.');
+                        try {
+                            ws.close();
+                        } catch (e2) {}
+                    });
+            } else {
+                sendId(null);
+            }
+            return;
+        }
+        if (op === 2) {
+            salonObsIdentified = true;
+            salonObsStartStream(ws);
+            return;
+        }
+    }
+
+    function salonObsTransmitirEnVivoClick() {
+        var btn = document.getElementById('btn-obs-transmitir-vivo');
+        if (!window.WebSocket) {
+            alert('Tu navegador no soporta WebSocket.');
+            return;
+        }
+        if (!window.crypto || !window.crypto.subtle) {
+            alert('Se necesita Web Crypto (subtle). Abrí esta página desde https:// o http://localhost para conectar con contraseña de obs-websocket.');
+            return;
+        }
+        var url = (localStorage.getItem('decarambola_obs_ws_url') || 'ws://127.0.0.1:4455').trim();
+        if (btn) btn.disabled = true;
+
+        if (salonObsWs && salonObsWs.readyState === 1 && salonObsIdentified) {
+            salonObsStartStream(salonObsWs);
+            return;
+        }
+
+        try {
+            if (salonObsWs) {
+                try {
+                    salonObsWs.close();
+                } catch (e0) {}
+                salonObsWs = null;
+            }
+            salonObsIdentified = false;
+            var ws = new WebSocket(url);
+            salonObsWs = ws;
+            ws.onerror = function () {
+                if (btn) btn.disabled = false;
+                alert(
+                    'No se pudo conectar a OBS en ' +
+                        url +
+                        '. Activá obs-websocket en OBS (puerto 4455). Si la página es https://, puede bloquearse ws:// — usá http://localhost o configurá wss.'
+                );
+            };
+            ws.onclose = function () {
+                if (salonObsWs === ws) {
+                    salonObsWs = null;
+                    salonObsIdentified = false;
+                    var b2 = document.getElementById('btn-obs-transmitir-vivo');
+                    if (b2) b2.disabled = false;
+                }
+            };
+            ws.onmessage = function (ev) {
+                try {
+                    salonObsHandleMessage(ws, ev);
+                } catch (e1) {
+                    if (typeof console !== 'undefined' && console.warn) console.warn('[OBS ws]', e1);
+                }
+            };
+        } catch (e) {
+            if (btn) btn.disabled = false;
+            alert('WebSocket: ' + (e && e.message ? e.message : String(e)));
+        }
     }
 
     function actualizarUI() {
@@ -2692,6 +2941,7 @@
             actualizarPerfilHintsPro();
             actualizarHandicapSugeridoPro();
         }
+        schedulePublicarOverlayStateThrottled();
     }
 
     function promedioRegistroDesdeRow(row) {
@@ -3254,6 +3504,8 @@
         if (bIdent2) bIdent2.onclick = function () { premiumAbrirIdentificar(2); };
         var bTema = document.getElementById('btn-tema-salon');
         if (bTema) bTema.onclick = toggleTemaSalonCasual;
+        var bObs = document.getElementById('btn-obs-transmitir-vivo');
+        if (bObs) bObs.onclick = salonObsTransmitirEnVivoClick;
     }
 
     function iniciarMarcadorSalonTrasRender() {
@@ -3270,6 +3522,15 @@
         jugadorIdJ1 = tvSession.jugador && tvSession.jugador.id ? tvSession.jugador.id : null;
         jugadorIdJ2 = tvSession.jugador2 && tvSession.jugador2.id ? tvSession.jugador2.id : null;
         proUltimoCambio = null;
+        if (salonTvOverlayPublishTimer) {
+            try {
+                clearTimeout(salonTvOverlayPublishTimer);
+            } catch (e) {}
+            salonTvOverlayPublishTimer = null;
+        }
+        salonTvOverlayLastPublish = 0;
+        salonOverlayMatchId = 'mesa-tv-' + Date.now();
+        console.log('MATCH_ID:', salonOverlayMatchId);
         d = { p1: 0, p2: 0, e1: 0, e2: 0, s1: 0, s2: 0, ms1: 0, ms2: 0, t: 1 };
         ultimaJugadaJ1 = 0;
         ultimaJugadaJ2 = 0;
@@ -3685,6 +3946,8 @@
             html += '<div class="salon-casual-ctrl-cluster">';
             html +=
                 '<button type="button" class="btn-salir-config" id="btn-salir-a-config" title="Volver al inicio">← INICIO</button>';
+            html +=
+                '<button type="button" class="btn-obs-transmitir" id="btn-obs-transmitir-vivo" title="Conectar a OBS (obs-websocket, puerto 4455) e iniciar transmisión en vivo">▶ TRANSMITIR EN VIVO</button>';
             html += '</div>';
             html += '<div class="salon-casual-ctrl-cluster">';
             html +=
@@ -3791,6 +4054,8 @@
             html += '<div class="salon-casual-ctrl-cluster">';
             html +=
                 '<button type="button" class="btn-salir-config" id="btn-salir-a-config" title="Volver al inicio">← INICIO</button>';
+            html +=
+                '<button type="button" class="btn-obs-transmitir" id="btn-obs-transmitir-vivo" title="Conectar a OBS (obs-websocket, puerto 4455) e iniciar transmisión en vivo">▶ TRANSMITIR EN VIVO</button>';
             html += '</div>';
             html += '<div class="salon-casual-ctrl-cluster">';
             html +=
