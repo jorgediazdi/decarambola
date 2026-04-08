@@ -4,645 +4,748 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Overlay Marcador — DeCarambola</title>
-  <meta name="theme-color" content="#d4af37">
+  <meta name="theme-color" content="#c9a84c">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --oro: #d4af37;
-      --oro-claro: #f0d060;
-      --oro-oscuro: #8b6914;
-      --oro-sutil: rgba(212, 175, 55, 0.35);
-      --panel: rgba(6, 4, 1, 0.94);
-      --panel-mid: rgba(14, 10, 2, 0.96);
-      --texto: #f0ede4;
-      --muted: #7a7060;
+      --gold: #c9a84c;
+      --gold-dim: rgba(201, 168, 76, 0.4);
+      --gold-deep: #8a7028;
+      --bg-bar: #0a0a0a;
+      --white: #ffffff;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: transparent;
-      font-family: 'Oswald', sans-serif;
-      color: var(--texto);
+      font-family: 'Oswald', system-ui, sans-serif;
+      color: var(--white);
       width: 1920px;
       height: 1080px;
       overflow: hidden;
     }
+
+    @keyframes bc-live-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.65; }
+    }
+    @keyframes bc-pill-gold {
+      0%, 100% { box-shadow: 0 0 12px rgba(201, 168, 76, 0.75); }
+      50% { box-shadow: 0 0 4px rgba(201, 168, 76, 0.35); }
+    }
+
     .overlay-root {
       position: relative;
       width: 1920px;
       height: 1080px;
-      display: flex;
-      flex-direction: column;
       pointer-events: none;
     }
 
-    @keyframes slideDown {
-      from { transform: translateY(-100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    /* EN VIVO — fuera del top-bar */
+    .bc-live-badge {
+      position: absolute;
+      top: 1%;
+      left: 1.5%;
+      z-index: 25;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: rgba(10, 10, 10, 0.92);
+      border: 1px solid var(--gold);
     }
-    @keyframes slideUp {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    @keyframes rotar {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    @keyframes shimmerLine {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 200% 50%; }
-    }
-    @keyframes blinkDot {
-      0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--oro-claro); }
-      50% { opacity: 0.35; box-shadow: 0 0 4px var(--oro); }
+    .bc-live-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: bc-live-pulse 1.2s ease-in-out infinite;
     }
 
-    .header {
+    /* TOP BAR 11% */
+    .bc-topbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 11%;
+      display: grid;
+      grid-template-columns: 1fr 11% 1fr;
+      align-items: stretch;
+      background: var(--bg-bar);
+      z-index: 5;
+    }
+
+    .bc-top-j {
       position: relative;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 36px;
-      height: 64px;
-      flex-shrink: 0;
-      background: var(--panel);
-      border-bottom: 2px solid var(--oro-oscuro);
-      animation: slideDown 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+      align-items: stretch;
+      min-height: 0;
+      background: var(--bg-bar);
+      transition: box-shadow 0.35s ease, filter 0.35s ease;
     }
-    .header::after {
-      content: '';
+    .bc-top-j1 {
+      clip-path: polygon(0 0, calc(100% - 52px) 0, 100% 100%, 0 100%);
+    }
+    .bc-top-j2 {
+      clip-path: polygon(52px 0, 100% 0, 100% 100%, 0 100%);
+    }
+    #p1-panel.lider {
+      box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.35);
+      filter: brightness(1.06);
+    }
+    #p2-panel.lider {
+      box-shadow: inset 0 -3px 0 var(--gold);
+      filter: brightness(1.08);
+    }
+
+    .bc-top-j-inner {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+      min-width: 0;
+      padding: 10px 48px 12px 32px;
+      gap: 6px;
+    }
+    .bc-top-j2 .bc-top-j-inner {
+      align-items: flex-end;
+      text-align: right;
+      padding: 10px 32px 12px 48px;
+    }
+
+    .bc-ball {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .bc-ball--white {
+      background: radial-gradient(circle at 32% 28%, #fff 0%, #d4d4d4 45%, #5c5c5c 100%);
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.2);
+    }
+    .bc-ball--gold {
+      background: radial-gradient(circle at 32% 28%, #f0d78c 0%, var(--gold) 50%, var(--gold-deep) 100%);
+      border: 2px solid var(--gold-dim);
+      box-shadow: 0 0 18px rgba(201, 168, 76, 0.35);
+    }
+
+    #j1-nombre,
+    #j2-nombre {
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    #j1-nombre {
+      color: rgba(255, 255, 255, 0.92);
+    }
+    #j2-nombre {
+      color: var(--gold);
+    }
+
+    .bc-prog {
+      width: 100%;
+      max-width: 420px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+    .bc-top-j2 .bc-prog {
+      direction: rtl;
+    }
+    #j1-progress,
+    #j2-progress {
+      height: 100%;
+      width: 0%;
+      transition: width 0.45s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    #j1-progress {
+      background: linear-gradient(90deg, #555, var(--white));
+    }
+    #j2-progress {
+      background: linear-gradient(90deg, var(--gold-deep), var(--gold));
+    }
+
+    #j1-carambolas,
+    #j2-carambolas {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.2rem, 5.5vw, 4.8rem);
+      line-height: 0.9;
+      margin-top: 4px;
+    }
+    #j1-carambolas {
+      color: var(--white);
+      text-shadow: 0 0 28px rgba(255, 255, 255, 0.2);
+    }
+    #j2-carambolas {
+      color: var(--gold);
+      text-shadow: 0 0 24px rgba(201, 168, 76, 0.4);
+    }
+
+    /* Centro 11%: marca + club + META */
+    .bc-top-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 8px 8px;
+      background: var(--bg-bar);
+      border-bottom: 3px solid var(--gold);
+      z-index: 6;
+      min-width: 0;
+    }
+    .bc-brand {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(0.95rem, 1.1vw, 1.15rem);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.1;
+      text-align: center;
+    }
+    .bc-brand span {
+      color: var(--gold);
+    }
+    .bc-center-sep {
+      width: 70%;
+      max-width: 160px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+      margin: 2px 0;
+    }
+    #header-club {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--gold);
+      max-width: 100%;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+    .bc-meta-lbl {
+      font-size: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      color: rgba(255, 255, 255, 0.45);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    #objetivo-display {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.4rem, 4vw, 3.2rem);
+      line-height: 1;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(201, 168, 76, 0.35);
+    }
+
+    /* TORNEO BAR 4% @ top 11% */
+    .bc-torneo-bar {
+      position: absolute;
+      top: 11%;
+      left: 0;
+      right: 0;
+      height: 4%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 24px;
+      background: rgba(0, 0, 0, 0.5);
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.65);
+      z-index: 4;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .bc-torneo-bar span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #torneo-nombre {
+      max-width: 38%;
+    }
+    #ronda-nombre {
+      max-width: 28%;
+    }
+    #mesa-badge {
+      max-width: 28%;
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    /* BOTTOM BAR 10% */
+    .bc-bottom-bar {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--oro-claro), transparent);
-      opacity: 0.45;
-    }
-
-    .logo-wrap {
-      display: flex;
+      height: 10%;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      gap: 14px;
-      min-width: 280px;
+      gap: 12px;
+      padding: 0 36px;
+      background: var(--bg-bar);
+      border-top: 1px solid rgba(201, 168, 76, 0.35);
+      z-index: 8;
     }
-    .bola-3c {
-      width: 42px;
-      height: 42px;
-      flex-shrink: 0;
-      animation: rotar 8s linear infinite;
-      filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.45));
-    }
-    .logo-texto {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2rem;
-      letter-spacing: 4px;
-      color: var(--oro);
-      text-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
-      line-height: 1;
-    }
-    .logo-texto span { color: var(--texto); letter-spacing: 2px; }
-
-    .header-center {
-      flex: 1;
+    .bc-bot-cell {
       display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1 1 0;
+    }
+    .bc-bot-cell--j2 {
+      align-items: flex-end;
+      text-align: right;
+    }
+    .bc-bot-lbl {
+      font-size: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.4);
+    }
+    #j1-meta,
+    #j2-meta {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      line-height: 1.25;
+    }
+    #j1-meta {
+      color: rgba(255, 255, 255, 0.88);
+    }
+    #j2-meta {
+      color: rgba(201, 168, 76, 0.95);
+    }
+    .bc-bot-core {
+      display: flex;
+      flex-direction: row;
       align-items: center;
       justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      padding: 0 16px;
+      gap: 40px;
+      flex: 0 0 auto;
+      padding: 0 40px;
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
     }
-    .torneo-bloque {
+    .bc-bot-mid {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
-      max-width: 420px;
-    }
-    .torneo-nombre {
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: 2px;
-      color: var(--texto);
-      text-transform: uppercase;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
-    }
-    .ronda-linea {
-      font-size: 0.72rem;
-      font-weight: 500;
-      letter-spacing: 1.5px;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-    .header-chips {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
       justify-content: center;
+      gap: 4px;
     }
-    .chip-mesa {
-      font-size: 0.68rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      padding: 5px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--oro-sutil);
-      color: var(--oro-claro);
-      background: rgba(212, 175, 55, 0.08);
-    }
-    .crono-vivo {
+    #crono-vivo {
       font-family: ui-monospace, monospace;
-      font-size: 1.05rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      color: var(--oro);
-      min-width: 5.5em;
-      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--gold);
     }
     .pill-estado {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.68rem;
+      font-size: 0.58rem;
       font-weight: 600;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      padding: 6px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--oro-sutil);
-      background: var(--panel-mid);
-      color: var(--texto);
+      padding: 8px 18px;
+      border: 1px solid var(--gold-dim);
+      background: rgba(0, 0, 0, 0.55);
+      color: rgba(255, 255, 255, 0.92);
     }
     .pill-estado .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--muted);
+      background: rgba(255, 255, 255, 0.35);
       flex-shrink: 0;
     }
     .pill-estado.en-juego .dot {
-      background: #2ecc71;
-      animation: blinkDot 1.2s ease-in-out infinite;
+      background: var(--gold);
+      animation: bc-pill-gold 1.3s ease-in-out infinite;
     }
-    .pill-estado.pausado .dot { background: var(--oro); }
-    .pill-estado.finalizado .dot { background: #888; }
-
-    .header-club {
-      min-width: 260px;
-      text-align: right;
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      color: var(--muted);
-      text-transform: uppercase;
-      line-height: 1.35;
-      max-width: 320px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    .pill-estado.pausado .dot {
+      background: var(--white);
     }
-
-    .spacer-mesa {
-      flex: 1;
-      min-height: 0;
-    }
-
-    .score-section {
-      flex-shrink: 0;
-      padding: 14px 36px 22px;
-      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
-    }
-    .score-bar {
-      position: relative;
-      width: 100%;
-      max-width: 1680px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: stretch;
-      gap: 24px;
-      background: var(--panel-mid);
-      border-radius: 14px;
-      border: 1px solid var(--oro-sutil);
-      padding: 22px 28px;
-      box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.55);
-      overflow: hidden;
-    }
-    .score-bar::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        var(--oro-oscuro),
-        var(--oro-claro),
-        var(--oro),
-        var(--oro-claro),
-        var(--oro-oscuro),
-        transparent
-      );
-      background-size: 200% 100%;
-      animation: shimmerLine 4s linear infinite;
-      opacity: 0.85;
-    }
-
-    .player-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      border: 1px solid rgba(212, 175, 55, 0.22);
-      border-radius: 10px;
-      padding: 16px 18px;
-      transition: border-color 0.35s ease, box-shadow 0.35s ease, background 0.35s ease;
-    }
-    .player-panel.right { text-align: right; align-items: flex-end; }
-    .player-panel.lider {
-      border: 2px solid var(--oro-claro);
-      box-shadow: 0 0 24px rgba(240, 208, 96, 0.18);
-      background: rgba(212, 175, 55, 0.06);
-    }
-    .player-panel.lider .player-name { color: var(--oro-claro); }
-    .player-panel.lider .player-score-big {
-      color: var(--oro-claro);
-      text-shadow: 0 0 20px rgba(240, 208, 96, 0.35);
-    }
-
-    .player-name {
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      color: var(--texto);
-      text-transform: uppercase;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      transition: color 0.3s ease;
-    }
-    .player-score-big {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 4rem;
-      line-height: 0.95;
-      color: var(--oro);
-      transition: color 0.3s ease, transform 0.25s ease;
-    }
-    .player-meta {
-      font-size: 0.78rem;
-      font-weight: 400;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-    }
-    .progress-bar-wrap {
-      height: 8px;
-      width: 100%;
-      background: rgba(0, 0, 0, 0.45);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 4px;
-    }
-    .player-panel.right .progress-bar-wrap { direction: rtl; }
-    .progress-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--oro-oscuro), var(--oro), var(--oro-claro));
-      border-radius: 4px;
-      transition: width 0.45s cubic-bezier(0.33, 1, 0.68, 1);
-    }
-
-    .score-center {
-      min-width: 160px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding-top: 8px;
-    }
-    .vs-text {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.2rem;
-      letter-spacing: 6px;
-      color: var(--oro);
-      line-height: 1;
-    }
-    .objetivo-label {
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-    .objetivo-num {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.5rem;
-      color: var(--texto);
-      line-height: 1;
+    .pill-estado.finalizado .dot {
+      background: rgba(255, 255, 255, 0.45);
     }
   </style>
 </head>
 <body class="m-root-overlay">
   <div class="overlay-root" id="overlay-root">
-    <header class="header">
-      <div class="logo-wrap">
-        <svg class="bola-3c" viewBox="0 0 64 64" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="32" cy="22" r="10" fill="#2a2418" stroke="var(--oro)" stroke-width="1.5"/>
-          <circle cx="22" cy="38" r="10" fill="#1a1510" stroke="var(--oro-claro)" stroke-width="1.5"/>
-          <circle cx="42" cy="38" r="10" fill="#3d3428" stroke="var(--oro)" stroke-width="1.5"/>
-        </svg>
-        <div class="logo-texto">DE<span>CARAMBOLA</span></div>
-      </div>
-      <div class="header-center">
-        <div class="torneo-bloque">
-          <div class="torneo-nombre" id="torneo-nombre">—</div>
-          <div class="ronda-linea" id="ronda-nombre">Ronda</div>
+    <div class="bc-live-badge">EN VIVO</div>
+
+    <header class="bc-topbar" aria-label="Marcador">
+      <div class="bc-top-j bc-top-j1" id="p1-panel">
+        <div class="bc-top-j-inner">
+          <div class="bc-ball bc-ball--white" aria-hidden="true"></div>
+          <div id="j1-nombre">JUGADOR 1</div>
+          <div class="bc-prog"><div id="j1-progress"></div></div>
+          <div id="j1-carambolas">0</div>
         </div>
-        <div class="header-chips">
-          <span class="chip-mesa" id="mesa-badge">MESA —</span>
-          <span class="crono-vivo" id="crono-vivo">00:00</span>
+      </div>
+      <div class="bc-top-center">
+        <div class="bc-brand" aria-label="DeCarambola">DE<span>Carambola</span></div>
+        <div class="bc-center-sep" aria-hidden="true"></div>
+        <div id="header-club" title="">BILLARES MASTER V.I.P</div>
+        <div class="bc-meta-lbl">Meta</div>
+        <div id="objetivo-display">0</div>
+      </div>
+      <div class="bc-top-j bc-top-j2" id="p2-panel">
+        <div class="bc-top-j-inner">
+          <div class="bc-ball bc-ball--gold" aria-hidden="true"></div>
+          <div id="j2-nombre">JUGADOR 2</div>
+          <div class="bc-prog"><div id="j2-progress"></div></div>
+          <div id="j2-carambolas">0</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="bc-torneo-bar">
+      <span id="torneo-nombre">—</span>
+      <span aria-hidden="true">·</span>
+      <span id="ronda-nombre">Ronda</span>
+      <span aria-hidden="true">·</span>
+      <span id="mesa-badge">MESA —</span>
+    </div>
+
+    <footer class="bc-bottom-bar">
+      <div class="bc-bot-cell bc-bot-cell--j1">
+        <span class="bc-bot-lbl">Entrada · Promedio</span>
+        <div id="j1-meta">Entradas 0 · PROM 0.000</div>
+      </div>
+      <div class="bc-bot-core">
+        <div class="bc-bot-mid">
+          <span class="bc-bot-lbl">Tiempo</span>
+          <div id="crono-vivo">00:00</div>
+        </div>
+        <div class="bc-bot-mid">
+          <span class="bc-bot-lbl">Estado</span>
           <div class="pill-estado" id="pill-estado"><span class="dot" aria-hidden="true"></span><span id="pill-estado-texto">—</span></div>
         </div>
       </div>
-      <div class="header-club" id="header-club" title="">BILLARES MASTER V.I.P</div>
-    </header>
-
-    <div class="spacer-mesa" aria-hidden="true"></div>
-
-    <section class="score-section">
-      <div class="score-bar">
-        <div class="player-panel" id="p1-panel">
-          <div class="player-name" id="j1-nombre">Jugador 1</div>
-          <div class="player-score-big" id="j1-carambolas">0</div>
-          <div class="player-meta" id="j1-meta">Entradas 0 · PROM 0.000</div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" id="j1-progress"></div>
-          </div>
-        </div>
-        <div class="score-center">
-          <div class="vs-text">VS</div>
-          <div class="objetivo-label">Objetivo</div>
-          <div class="objetivo-num" id="objetivo-display">0</div>
-        </div>
-        <div class="player-panel right" id="p2-panel">
-          <div class="player-name" id="j2-nombre">Jugador 2</div>
-          <div class="player-score-big" id="j2-carambolas">0</div>
-          <div class="player-meta" id="j2-meta">Entradas 0 · PROM 0.000</div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" id="j2-progress"></div>
-          </div>
-        </div>
+      <div class="bc-bot-cell bc-bot-cell--j2">
+        <span class="bc-bot-lbl">Entrada · Promedio</span>
+        <div id="j2-meta">Entradas 0 · PROM 0.000</div>
       </div>
-    </section>
+    </footer>
   </div>
 
-  <script>
-    (function () {
-      'use strict';
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
 
-      var API_BASE = 'https://sensei-billar-api.onrender.com/overlay/state';
-      var POLL_MS = 3000;
-      var DEFAULT_CLUB = 'BILLARES MASTER V.I.P';
+    var API_BASE = 'https://sensei-billar-api.onrender.com/overlay/state';
+    var POLL_MS = 3000;
+    var DEFAULT_CLUB = 'BILLARES MASTER V.I.P';
 
-      var params = new URLSearchParams(window.location.search);
-      var pollTimer = null;
-      var cronoTick = null;
+    var params = new URLSearchParams(window.location.search);
+    var pollTimer = null;
+    var cronoTick = null;
 
-      var crono = {
-        running: false,
-        anchorMs: null,
-        frozenMs: 0,
-        lastEstadoNorm: ''
-      };
+    var crono = {
+      running: false,
+      anchorMs: null,
+      frozenMs: 0,
+      lastEstadoNorm: ''
+    };
 
-      function qs(id) { return document.getElementById(id); }
+    function qs(id) {
+      return document.getElementById(id);
+    }
 
-      function getMatchId() {
-        try {
-          var m = params.get('match_id');
-          return m && String(m).trim() ? String(m).trim() : null;
-        } catch (e) {
-          return null;
-        }
+    function getMatchId() {
+      try {
+        var m = params.get('match_id');
+        return m && String(m).trim() ? String(m).trim() : null;
+      } catch (e) {
+        return null;
       }
+    }
 
-      function normEstado(s) {
-        return String(s || '')
-          .trim()
-          .toUpperCase()
-          .replace(/\s+/g, '_');
+    function normEstado(s) {
+      return String(s || '')
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, '_');
+    }
+
+    function isPlayingEstado(n) {
+      return n === 'EN_JUEGO' || n === 'OCUPADA';
+    }
+
+    function isPausedEstado(n) {
+      return n === 'PAUSADO';
+    }
+
+    function isFinalEstado(n) {
+      return n === 'FINALIZADO';
+    }
+
+    function fmtCrono(ms) {
+      if (ms < 0) ms = 0;
+      var seg = Math.floor(ms / 1000);
+      var h = Math.floor(seg / 3600);
+      var mi = Math.floor((seg % 3600) / 60);
+      var s = seg % 60;
+      return (h ? h + ':' : '') + (mi < 10 ? '0' : '') + mi + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function cronoTickUpdate() {
+      var el = qs('crono-vivo');
+      if (!el) return;
+      if (!crono.running) {
+        el.textContent = fmtCrono(crono.frozenMs);
+        return;
       }
-
-      function isPlayingEstado(n) {
-        return n === 'EN_JUEGO' || n === 'OCUPADA';
+      if (crono.anchorMs == null) {
+        el.textContent = '00:00';
+        return;
       }
+      el.textContent = fmtCrono(Date.now() - crono.anchorMs);
+    }
 
-      function isPausedEstado(n) {
-        return n === 'PAUSADO';
+    function startCronoTick() {
+      if (cronoTick) return;
+      cronoTick = setInterval(cronoTickUpdate, 250);
+    }
+
+    function stopCronoTick() {
+      if (cronoTick) {
+        clearInterval(cronoTick);
+        cronoTick = null;
       }
+    }
 
-      function isFinalEstado(n) {
-        return n === 'FINALIZADO';
-      }
+    function updateCronoMachine(estadoRaw, matchIdChanged) {
+      var n = normEstado(estadoRaw);
+      if (!n || n === 'LIBRE') n = 'LIBRE';
 
-      function fmtCrono(ms) {
-        if (ms < 0) ms = 0;
-        var seg = Math.floor(ms / 1000);
-        var h = Math.floor(seg / 3600);
-        var mi = Math.floor((seg % 3600) / 60);
-        var s = seg % 60;
-        return (h ? h + ':' : '') + (mi < 10 ? '0' : '') + mi + ':' + (s < 10 ? '0' : '') + s;
-      }
-
-      function cronoTickUpdate() {
-        var el = qs('crono-vivo');
-        if (!el) return;
-        if (!crono.running) {
-          el.textContent = fmtCrono(crono.frozenMs);
-          return;
-        }
-        if (crono.anchorMs == null) {
-          el.textContent = '00:00';
-          return;
-        }
-        el.textContent = fmtCrono(Date.now() - crono.anchorMs);
-      }
-
-      function startCronoTick() {
-        if (cronoTick) return;
-        cronoTick = setInterval(cronoTickUpdate, 250);
-      }
-
-      function stopCronoTick() {
-        if (cronoTick) {
-          clearInterval(cronoTick);
-          cronoTick = null;
-        }
-      }
-
-      function updateCronoMachine(estadoRaw, matchIdChanged) {
-        var n = normEstado(estadoRaw);
-        if (!n || n === 'LIBRE') n = 'LIBRE';
-
-        if (matchIdChanged) {
-          crono.running = false;
-          crono.anchorMs = null;
-          crono.frozenMs = 0;
-          crono.lastEstadoNorm = '';
-        }
-
-        if (isFinalEstado(n)) {
-          if (crono.running && crono.anchorMs != null) {
-            crono.frozenMs = Date.now() - crono.anchorMs;
-          }
-          crono.running = false;
-          crono.anchorMs = null;
-          crono.lastEstadoNorm = n;
-          cronoTickUpdate();
-          return;
-        }
-
-        if (isPausedEstado(n)) {
-          if (crono.running && crono.anchorMs != null) {
-            crono.frozenMs = Date.now() - crono.anchorMs;
-          }
-          crono.running = false;
-          crono.anchorMs = null;
-          crono.lastEstadoNorm = n;
-          cronoTickUpdate();
-          return;
-        }
-
-        if (isPlayingEstado(n)) {
-          var prev = crono.lastEstadoNorm;
-          if (!crono.running) {
-            if (isPausedEstado(prev) && crono.frozenMs > 0) {
-              crono.anchorMs = Date.now() - crono.frozenMs;
-            } else {
-              crono.anchorMs = Date.now();
-              crono.frozenMs = 0;
-            }
-            crono.running = true;
-          }
-          crono.lastEstadoNorm = n;
-          cronoTickUpdate();
-          return;
-        }
-
+      if (matchIdChanged) {
         crono.running = false;
         crono.anchorMs = null;
         crono.frozenMs = 0;
+        crono.lastEstadoNorm = '';
+      }
+
+      if (isFinalEstado(n)) {
+        if (crono.running && crono.anchorMs != null) {
+          crono.frozenMs = Date.now() - crono.anchorMs;
+        }
+        crono.running = false;
+        crono.anchorMs = null;
         crono.lastEstadoNorm = n;
         cronoTickUpdate();
+        return;
       }
 
-      function setPillEstado(estadoRaw) {
-        var n = normEstado(estadoRaw);
-        var pill = qs('pill-estado');
-        var txt = qs('pill-estado-texto');
-        if (!pill || !txt) return;
-
-        pill.classList.remove('en-juego', 'pausado', 'finalizado');
-
-        if (isPlayingEstado(n)) {
-          txt.textContent = 'En juego';
-          pill.classList.add('en-juego');
-        } else if (isPausedEstado(n)) {
-          txt.textContent = 'Pausado';
-          pill.classList.add('pausado');
-        } else if (isFinalEstado(n)) {
-          txt.textContent = 'Finalizado';
-          pill.classList.add('finalizado');
-        } else {
-          txt.textContent = n === 'LIBRE' || !n ? 'Listo' : String(estadoRaw || '—').replace(/_/g, ' ');
+      if (isPausedEstado(n)) {
+        if (crono.running && crono.anchorMs != null) {
+          crono.frozenMs = Date.now() - crono.anchorMs;
         }
+        crono.running = false;
+        crono.anchorMs = null;
+        crono.lastEstadoNorm = n;
+        cronoTickUpdate();
+        return;
       }
 
-      function applyState(s, matchIdChanged) {
-        if (!s) return;
+      if (isPlayingEstado(n)) {
+        var prev = crono.lastEstadoNorm;
+        if (!crono.running) {
+          if (isPausedEstado(prev) && crono.frozenMs > 0) {
+            crono.anchorMs = Date.now() - crono.frozenMs;
+          } else {
+            crono.anchorMs = Date.now();
+            crono.frozenMs = 0;
+          }
+          crono.running = true;
+        }
+        crono.lastEstadoNorm = n;
+        cronoTickUpdate();
+        return;
+      }
 
-        var clubEl = qs('header-club');
-        if (clubEl) {
-          var cn = s.club_nombre != null && String(s.club_nombre).trim() !== ''
+      crono.running = false;
+      crono.anchorMs = null;
+      crono.frozenMs = 0;
+      crono.lastEstadoNorm = n;
+      cronoTickUpdate();
+    }
+
+    function setPillEstado(estadoRaw) {
+      var n = normEstado(estadoRaw);
+      var pill = qs('pill-estado');
+      var txt = qs('pill-estado-texto');
+      if (!pill || !txt) return;
+
+      pill.classList.remove('en-juego', 'pausado', 'finalizado');
+
+      if (isPlayingEstado(n)) {
+        txt.textContent = 'En juego';
+        pill.classList.add('en-juego');
+      } else if (isPausedEstado(n)) {
+        txt.textContent = 'Pausado';
+        pill.classList.add('pausado');
+      } else if (isFinalEstado(n)) {
+        txt.textContent = 'Finalizado';
+        pill.classList.add('finalizado');
+      } else {
+        txt.textContent = n === 'LIBRE' || !n ? 'Listo' : String(estadoRaw || '—').replace(/_/g, ' ');
+      }
+    }
+
+    function applyState(s, matchIdChanged) {
+      if (!s) return;
+
+      var clubEl = qs('header-club');
+      if (clubEl) {
+        var cn =
+          s.club_nombre != null && String(s.club_nombre).trim() !== ''
             ? String(s.club_nombre).trim()
             : DEFAULT_CLUB;
-          clubEl.textContent = cn;
-          clubEl.setAttribute('title', cn);
+        clubEl.textContent = cn;
+        clubEl.setAttribute('title', cn);
+      }
+
+      qs('torneo-nombre').textContent = s.torneo_nombre != null ? String(s.torneo_nombre) : '—';
+      qs('ronda-nombre').textContent = s.ronda_nombre != null ? String(s.ronda_nombre) : 'Ronda';
+      qs('mesa-badge').textContent = s.mesa != null ? 'MESA ' + s.mesa : 'MESA —';
+
+      var c1 = s.j1_carambolas != null ? Number(s.j1_carambolas) : 0;
+      var c2 = s.j2_carambolas != null ? Number(s.j2_carambolas) : 0;
+      var obj = s.objetivo != null ? Number(s.objetivo) : 0;
+      var e1 = s.j1_entradas != null ? Number(s.j1_entradas) : 0;
+      var e2 = s.j2_entradas != null ? Number(s.j2_entradas) : 0;
+      var pr1 = s.j1_promedio != null ? Number(s.j1_promedio) : 0;
+      var pr2 = s.j2_promedio != null ? Number(s.j2_promedio) : 0;
+
+      qs('j1-nombre').textContent = (s.j1_nombre != null ? String(s.j1_nombre) : 'Jugador 1').toUpperCase();
+      qs('j2-nombre').textContent = (s.j2_nombre != null ? String(s.j2_nombre) : 'Jugador 2').toUpperCase();
+      qs('j1-carambolas').textContent = c1;
+      qs('j2-carambolas').textContent = c2;
+      qs('j1-meta').textContent = 'Entradas ' + e1 + ' · PROM ' + pr1.toFixed(3);
+      qs('j2-meta').textContent = 'Entradas ' + e2 + ' · PROM ' + pr2.toFixed(3);
+      qs('objetivo-display').textContent = obj;
+
+      var pct1 = obj > 0 ? Math.min(100, (c1 / obj) * 100) : 0;
+      var pct2 = obj > 0 ? Math.min(100, (c2 / obj) * 100) : 0;
+      qs('j1-progress').style.width = pct1 + '%';
+      qs('j2-progress').style.width = pct2 + '%';
+
+      var p1 = qs('p1-panel');
+      var p2 = qs('p2-panel');
+      p1.classList.remove('lider');
+      p2.classList.remove('lider');
+      if (c1 > c2) p1.classList.add('lider');
+      else if (c2 > c1) p2.classList.add('lider');
+
+      setPillEstado(s.estado);
+      updateCronoMachine(s.estado, !!matchIdChanged);
+    }
+
+    /** Mapea fila public.overlay_state al formato que espera applyState (cronómetro / píldora). */
+    function mapOverlayRowToApplyState(row) {
+      if (!row) return null;
+      var up = normEstado(row.estado);
+      var estadoUi = row.estado;
+      if (up === 'TERMINADO' || up === 'FINALIZADO') estadoUi = 'FINALIZADO';
+      else if (up === 'EN_JUEGO') estadoUi = 'EN_JUEGO';
+      return {
+        club_nombre: row.club_nombre,
+        torneo_nombre:
+          row.torneo_nombre != null && String(row.torneo_nombre).trim() !== '' ? row.torneo_nombre : '—',
+        ronda_nombre:
+          row.ronda_nombre != null && String(row.ronda_nombre).trim() !== '' ? row.ronda_nombre : 'Ronda',
+        mesa: row.mesa,
+        j1_carambolas: row.j1_carambolas,
+        j2_carambolas: row.j2_carambolas,
+        j1_entradas: row.j1_entradas,
+        j2_entradas: row.j2_entradas,
+        j1_promedio: row.j1_promedio,
+        j2_promedio: row.j2_promedio,
+        j1_nombre: row.j1_nombre,
+        j2_nombre: row.j2_nombre,
+        objetivo: row.objetivo,
+        estado: estadoUi
+      };
+    }
+
+    function fetchStateFromApiFallback(matchId, matchIdChanged) {
+      var url = API_BASE + '?match_id=' + encodeURIComponent(matchId);
+      fetch(url)
+        .then(function (res) {
+          return res.ok ? res.json() : null;
+        })
+        .then(function (data) {
+          if (data) applyState(data, matchIdChanged);
+        })
+        .catch(function () {});
+    }
+
+    var lastMatchId = null;
+
+    async function fetchState() {
+      var matchId = getMatchId();
+      if (!matchId) return;
+
+      var matchIdChanged = matchId !== lastMatchId;
+      lastMatchId = matchId;
+
+      try {
+        if (supabase && typeof supabase.from === 'function') {
+          var r = await supabase.from('overlay_state').select('*').eq('match_id', matchId).single();
+          console.log('Supabase fetch result:', r.data, r.error);
+          if (!r.error && r.data) {
+            var mapped = mapOverlayRowToApplyState(r.data);
+            if (mapped) {
+              applyState(mapped, matchIdChanged);
+              return;
+            }
+          }
         }
+      } catch (e) {}
 
-        qs('torneo-nombre').textContent = s.torneo_nombre != null ? String(s.torneo_nombre) : '—';
-        qs('ronda-nombre').textContent = s.ronda_nombre != null ? String(s.ronda_nombre) : 'Ronda';
-        qs('mesa-badge').textContent = s.mesa != null ? 'MESA ' + s.mesa : 'MESA —';
+      fetchStateFromApiFallback(matchId, matchIdChanged);
+    }
 
-        var c1 = s.j1_carambolas != null ? Number(s.j1_carambolas) : 0;
-        var c2 = s.j2_carambolas != null ? Number(s.j2_carambolas) : 0;
-        var obj = s.objetivo != null ? Number(s.objetivo) : 0;
-        var e1 = s.j1_entradas != null ? Number(s.j1_entradas) : 0;
-        var e2 = s.j2_entradas != null ? Number(s.j2_entradas) : 0;
-        var pr1 = s.j1_promedio != null ? Number(s.j1_promedio) : 0;
-        var pr2 = s.j2_promedio != null ? Number(s.j2_promedio) : 0;
+    function start() {
+      startCronoTick();
+      fetchState();
+      pollTimer = setInterval(fetchState, POLL_MS);
+    }
 
-        qs('j1-nombre').textContent = (s.j1_nombre != null ? String(s.j1_nombre) : 'Jugador 1').toUpperCase();
-        qs('j2-nombre').textContent = (s.j2_nombre != null ? String(s.j2_nombre) : 'Jugador 2').toUpperCase();
-        qs('j1-carambolas').textContent = c1;
-        qs('j2-carambolas').textContent = c2;
-        qs('j1-meta').textContent = 'Entradas ' + e1 + ' · PROM ' + pr1.toFixed(3);
-        qs('j2-meta').textContent = 'Entradas ' + e2 + ' · PROM ' + pr2.toFixed(3);
-        qs('objetivo-display').textContent = obj;
-
-        var pct1 = obj > 0 ? Math.min(100, (c1 / obj) * 100) : 0;
-        var pct2 = obj > 0 ? Math.min(100, (c2 / obj) * 100) : 0;
-        qs('j1-progress').style.width = pct1 + '%';
-        qs('j2-progress').style.width = pct2 + '%';
-
-        var p1 = qs('p1-panel');
-        var p2 = qs('p2-panel');
-        p1.classList.remove('lider');
-        p2.classList.remove('lider');
-        if (c1 > c2) p1.classList.add('lider');
-        else if (c2 > c1) p2.classList.add('lider');
-
-        setPillEstado(s.estado);
-        updateCronoMachine(s.estado, !!matchIdChanged);
-      }
-
-      var lastMatchId = null;
-
-      function fetchState() {
-        var matchId = getMatchId();
-        if (!matchId) return;
-
-        var matchIdChanged = matchId !== lastMatchId;
-        lastMatchId = matchId;
-
-        var url = API_BASE + '?match_id=' + encodeURIComponent(matchId);
-        fetch(url)
-          .then(function (res) { return res.ok ? res.json() : null; })
-          .then(function (data) {
-            if (data) applyState(data, matchIdChanged);
-          })
-          .catch(function () {});
-      }
-
-      function start() {
-        startCronoTick();
-        fetchState();
-        pollTimer = setInterval(fetchState, POLL_MS);
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', start);
-      } else {
-        start();
-      }
-    })();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start);
+    } else {
+      start();
+    }
   </script>
 </body>
 </html>
