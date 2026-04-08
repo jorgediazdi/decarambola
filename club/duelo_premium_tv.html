@@ -2686,6 +2686,11 @@
     var salonTvOverlayPublishTimer = null;
     var salonTvOverlayLastPublish = 0;
     var OVERLAY_STATE_THROTTLE_MS = 2000;
+    /** Mientras sea mayor que Date.now(), publicarOverlayState fuerza estado "transmitir" (puente Node en el Mac con OBS). */
+    var salonTransmitirVentanaHasta = 0;
+    var salonForceStreamPendiente = false;
+    var salonTransmitTimer = null;
+    var salonTransmitUnsub = null;
     /** Casual: último valor anotado por acción individual (solo uno “activo”; el otro en 0). */
     var ultimaJugadaJ1 = 0;
     var ultimaJugadaJ2 = 0;
@@ -2700,6 +2705,16 @@
     async function publicarOverlayState() {
         if (!tvSession || !salonOverlayMatchId) return;
         var wl = leerClubWhiteLabel();
+        var cid = obtenerClubKeyParaConsultaClubs();
+        var mergeSb = null;
+        try {
+            var sel = await supabase
+                .from('overlay_state')
+                .select('stream_bridge_status, stream_bridge_at')
+                .eq('match_id', salonOverlayMatchId)
+                .maybeSingle();
+            if (!sel.error && sel.data) mergeSb = sel.data;
+        } catch (e) {}
         var row = {
             match_id: salonOverlayMatchId,
             club_nombre: (wl.nombre && String(wl.nombre).trim()) || null,
@@ -2712,17 +2727,34 @@
             j1_promedio: d.e1 > 0 ? d.p1 / d.e1 : 0,
             j2_promedio: d.e2 > 0 ? d.p2 / d.e2 : 0,
             objetivo: cfg.meta1 | 0,
-            estado: partidaTerminada ? 'terminado' : 'en_juego',
+            estado:
+                Date.now() < salonTransmitirVentanaHasta
+                    ? 'transmitir'
+                    : partidaTerminada
+                      ? 'terminado'
+                      : 'en_juego',
             mesa: (cfg.mesa && String(cfg.mesa).trim()) || 'SALÓN',
             updated_at: new Date().toISOString()
         };
+        if (cid && String(cid).trim()) row.club_id = String(cid).trim();
+        if (mergeSb && mergeSb.stream_bridge_status != null && mergeSb.stream_bridge_status !== '') {
+            row.stream_bridge_status = mergeSb.stream_bridge_status;
+            if (mergeSb.stream_bridge_at != null) row.stream_bridge_at = mergeSb.stream_bridge_at;
+        }
+        if (salonForceStreamPendiente) {
+            row.stream_bridge_status = 'pendiente';
+            row.stream_bridge_at = new Date().toISOString();
+            salonForceStreamPendiente = false;
+        }
         try {
             var r = await supabase.from('overlay_state').upsert(row, { onConflict: 'match_id' });
             if (r.error && typeof console !== 'undefined' && console.warn) {
                 console.warn('[duelo_premium_tv] overlay_state:', r.error.message);
             }
+            return r;
         } catch (e) {
             if (typeof console !== 'undefined' && console.warn) console.warn('[duelo_premium_tv] overlay_state', e);
+            throw e;
         }
     }
 
@@ -2742,171 +2774,92 @@
         }, OVERLAY_STATE_THROTTLE_MS - (now - salonTvOverlayLastPublish));
     }
 
-    /** OBS Studio — obs-websocket 5.x: conectar e iniciar transmisión (StartStream). */
-    var salonObsWs = null;
-    var salonObsIdentified = false;
-    var salonObsPendingStartId = null;
-    var salonObsBtnUnlockTimer = null;
-
-    function salonObsBufToB64(buf) {
-        var bytes = new Uint8Array(buf);
-        var binary = '';
-        for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-        return btoa(binary);
+    function salonLimpiarWatchTransmitir() {
+        if (salonTransmitTimer) {
+            clearTimeout(salonTransmitTimer);
+            salonTransmitTimer = null;
+        }
+        if (salonTransmitUnsub) {
+            try {
+                salonTransmitUnsub();
+            } catch (e) {}
+            salonTransmitUnsub = null;
+        }
     }
 
-    function salonObsBuildAuth(password, salt, challenge) {
-        var enc = new TextEncoder();
-        return crypto.subtle
-            .digest('SHA-256', enc.encode(password + salt))
-            .then(function (h1) {
-                var b64sec = salonObsBufToB64(h1);
-                return crypto.subtle.digest('SHA-256', enc.encode(b64sec + challenge));
-            })
-            .then(function (h2) {
-                return salonObsBufToB64(h2);
-            });
-    }
-
-    function salonObsSend(ws, obj) {
-        ws.send(JSON.stringify(obj));
-    }
-
-    function salonObsUnlockBtnSoon(ms) {
+    /**
+     * Un toque: upsert estado transmitir + pendiente; el bridge (Node en el Mac con OBS) hace OBS/YouTube.
+     */
+    async function salonSolicitarTransmitirObs() {
         var btn = document.getElementById('btn-obs-transmitir-vivo');
-        if (salonObsBtnUnlockTimer) clearTimeout(salonObsBtnUnlockTimer);
-        salonObsBtnUnlockTimer = setTimeout(function () {
-            salonObsBtnUnlockTimer = null;
-            if (btn) btn.disabled = false;
-        }, ms || 12000);
-    }
-
-    function salonObsStartStream(ws) {
-        var rid = 'dc-start-' + Date.now();
-        salonObsPendingStartId = rid;
-        salonObsUnlockBtnSoon(12000);
-        salonObsSend(ws, { op: 6, d: { requestType: 'StartStream', requestId: rid } });
-    }
-
-    function salonObsHandleMessage(ws, ev) {
-        var msg = JSON.parse(ev.data);
-        var op = msg.op;
-        var d = msg.d || {};
-        if (op === 7 && d.requestId && d.requestId === salonObsPendingStartId) {
-            salonObsPendingStartId = null;
-            if (salonObsBtnUnlockTimer) {
-                clearTimeout(salonObsBtnUnlockTimer);
-                salonObsBtnUnlockTimer = null;
-            }
-            var btn = document.getElementById('btn-obs-transmitir-vivo');
-            if (btn) btn.disabled = false;
-            if (d.requestStatus && d.requestStatus.result) {
-                alert('OBS: transmisión en vivo iniciada.');
-            } else {
-                var c = d.requestStatus && d.requestStatus.comment ? d.requestStatus.comment : '';
-                alert('OBS no pudo iniciar la transmisión. ' + (c || 'Revisá la configuración de emisión en OBS.'));
-            }
+        var lab = document.getElementById('btn-obs-transmitir-label');
+        if (!tvSession || !salonOverlayMatchId) {
+            alert('Iniciá una partida primero para tener match_id.');
             return;
         }
-        if (op === 0) {
-            var rpc = d.rpcVersion != null ? d.rpcVersion : 1;
-            var sendId = function (authStr) {
-                var payload = { rpcVersion: rpc };
-                if (authStr) payload.authentication = authStr;
-                salonObsSend(ws, { op: 1, d: payload });
-            };
-            if (d.authentication && d.authentication.challenge && d.authentication.salt) {
-                var pwd = localStorage.getItem('decarambola_obs_ws_password');
-                if (pwd == null || pwd === '') {
-                    pwd =
-                        window.prompt(
-                            'Contraseña de obs-websocket (OBS → Ajustes → obs-websocket). Dejá vacío solo si no tenés contraseña:',
-                            ''
-                        ) || '';
-                    if (pwd) localStorage.setItem('decarambola_obs_ws_password', pwd);
-                }
-                if (!pwd) {
-                    alert('OBS pidió contraseña de obs-websocket. Configurala en OBS y volvé a intentar.');
-                    try {
-                        ws.close();
-                    } catch (e) {}
-                    return;
-                }
-                salonObsBuildAuth(pwd, d.authentication.salt, d.authentication.challenge)
-                    .then(sendId)
-                    .catch(function () {
-                        alert('Error al autenticar con OBS (Web Crypto). Probá abrir esta página desde http://localhost.');
-                        try {
-                            ws.close();
-                        } catch (e2) {}
-                    });
-            } else {
-                sendId(null);
-            }
+        if (!supabase || typeof supabase.from !== 'function') {
+            alert('Sin cliente Supabase. No se puede enviar la señal.');
             return;
         }
-        if (op === 2) {
-            salonObsIdentified = true;
-            salonObsStartStream(ws);
-            return;
-        }
-    }
-
-    function salonObsTransmitirEnVivoClick() {
-        var btn = document.getElementById('btn-obs-transmitir-vivo');
-        if (!window.WebSocket) {
-            alert('Tu navegador no soporta WebSocket.');
-            return;
-        }
-        if (!window.crypto || !window.crypto.subtle) {
-            alert('Se necesita Web Crypto (subtle). Abrí esta página desde https:// o http://localhost para conectar con contraseña de obs-websocket.');
-            return;
-        }
-        var url = (localStorage.getItem('decarambola_obs_ws_url') || 'ws://127.0.0.1:4455').trim();
+        salonLimpiarWatchTransmitir();
+        if (lab) lab.textContent = 'Conectando...';
         if (btn) btn.disabled = true;
-
-        if (salonObsWs && salonObsWs.readyState === 1 && salonObsIdentified) {
-            salonObsStartStream(salonObsWs);
+        salonTransmitirVentanaHasta = Date.now() + 120000;
+        salonForceStreamPendiente = true;
+        var mid = salonOverlayMatchId;
+        try {
+            await publicarOverlayState();
+            if (typeof console !== 'undefined' && console.log) {
+                console.log('[TV] transmitir + pendiente match_id=', mid);
+            }
+        } catch (e) {
+            if (lab) lab.textContent = 'Error OBS no conectado';
+            if (btn) btn.disabled = false;
+            if (typeof console !== 'undefined' && console.warn) {
+                console.warn('[TV] publicar transmitir:', e);
+            }
             return;
         }
 
-        try {
-            if (salonObsWs) {
-                try {
-                    salonObsWs.close();
-                } catch (e0) {}
-                salonObsWs = null;
-            }
-            salonObsIdentified = false;
-            var ws = new WebSocket(url);
-            salonObsWs = ws;
-            ws.onerror = function () {
+        var ch = supabase
+            .channel('tv-tr-' + mid + '-' + Date.now())
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'overlay_state',
+                    filter: 'match_id=eq.' + mid
+                },
+                function (p) {
+                    var st = p.new && p.new.stream_bridge_status;
+                    if (!st) return;
+                    if (st === 'live') {
+                        if (lab) lab.textContent = '● EN VIVO';
+                        if (btn) btn.disabled = false;
+                        salonLimpiarWatchTransmitir();
+                    }
+                    if (st === 'error_obs') {
+                        if (lab) lab.textContent = 'Error OBS no conectado';
+                        if (btn) btn.disabled = false;
+                        salonLimpiarWatchTransmitir();
+                    }
+                }
+            )
+            .subscribe();
+        salonTransmitUnsub = function () {
+            try {
+                supabase.removeChannel(ch);
+            } catch (e2) {}
+        };
+
+        salonTransmitTimer = setTimeout(function () {
+            if (lab && lab.textContent === 'Conectando...') {
+                lab.textContent = 'Error OBS no conectado';
                 if (btn) btn.disabled = false;
-                alert(
-                    'No se pudo conectar a OBS en ' +
-                        url +
-                        '. Activá obs-websocket en OBS (puerto 4455). Si la página es https://, puede bloquearse ws:// — usá http://localhost o configurá wss.'
-                );
-            };
-            ws.onclose = function () {
-                if (salonObsWs === ws) {
-                    salonObsWs = null;
-                    salonObsIdentified = false;
-                    var b2 = document.getElementById('btn-obs-transmitir-vivo');
-                    if (b2) b2.disabled = false;
-                }
-            };
-            ws.onmessage = function (ev) {
-                try {
-                    salonObsHandleMessage(ws, ev);
-                } catch (e1) {
-                    if (typeof console !== 'undefined' && console.warn) console.warn('[OBS ws]', e1);
-                }
-            };
-        } catch (e) {
-            if (btn) btn.disabled = false;
-            alert('WebSocket: ' + (e && e.message ? e.message : String(e)));
-        }
+            }
+            salonLimpiarWatchTransmitir();
+        }, 45000);
     }
 
     function actualizarUI() {
@@ -3505,7 +3458,7 @@
         var bTema = document.getElementById('btn-tema-salon');
         if (bTema) bTema.onclick = toggleTemaSalonCasual;
         var bObs = document.getElementById('btn-obs-transmitir-vivo');
-        if (bObs) bObs.onclick = salonObsTransmitirEnVivoClick;
+        if (bObs) bObs.onclick = function () { salonSolicitarTransmitirObs(); };
     }
 
     function iniciarMarcadorSalonTrasRender() {
@@ -3947,7 +3900,7 @@
             html +=
                 '<button type="button" class="btn-salir-config" id="btn-salir-a-config" title="Volver al inicio">← INICIO</button>';
             html +=
-                '<button type="button" class="btn-obs-transmitir" id="btn-obs-transmitir-vivo" title="Conectar a OBS (obs-websocket, puerto 4455) e iniciar transmisión en vivo">▶ TRANSMITIR EN VIVO</button>';
+                '<button type="button" class="btn-obs-transmitir" id="btn-obs-transmitir-vivo" title="Transmisión: un toque; configuración OBS en club/obs-setup y puente pm2 en el Mac"><span id="btn-obs-transmitir-label">▶ TRANSMITIR EN VIVO</span></button>';
             html += '</div>';
             html += '<div class="salon-casual-ctrl-cluster">';
             html +=
@@ -4055,7 +4008,7 @@
             html +=
                 '<button type="button" class="btn-salir-config" id="btn-salir-a-config" title="Volver al inicio">← INICIO</button>';
             html +=
-                '<button type="button" class="btn-obs-transmitir" id="btn-obs-transmitir-vivo" title="Conectar a OBS (obs-websocket, puerto 4455) e iniciar transmisión en vivo">▶ TRANSMITIR EN VIVO</button>';
+                '<button type="button" class="btn-obs-transmitir" id="btn-obs-transmitir-vivo" title="Transmisión: un toque; configuración OBS en club/obs-setup y puente pm2 en el Mac"><span id="btn-obs-transmitir-label">▶ TRANSMITIR EN VIVO</span></button>';
             html += '</div>';
             html += '<div class="salon-casual-ctrl-cluster">';
             html +=

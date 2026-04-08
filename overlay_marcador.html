@@ -497,7 +497,7 @@
     }
 
     function isPlayingEstado(n) {
-      return n === 'EN_JUEGO' || n === 'OCUPADA';
+      return n === 'EN_JUEGO' || n === 'OCUPADA' || n === 'TRANSMITIR';
     }
 
     function isPausedEstado(n) {
@@ -677,6 +677,7 @@
       var estadoUi = row.estado;
       if (up === 'TERMINADO' || up === 'FINALIZADO') estadoUi = 'FINALIZADO';
       else if (up === 'EN_JUEGO') estadoUi = 'EN_JUEGO';
+      else if (up === 'TRANSMITIR') estadoUi = 'EN_JUEGO';
       return {
         club_nombre: row.club_nombre,
         torneo_nombre:

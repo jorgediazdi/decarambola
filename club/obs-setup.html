@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+import { guardSalaPage } from '/js/sala-supabase-gate.js';
+await guardSalaPage({
+    pageTitle: 'Configuración OBS (técnico)',
+    allowedRoles: ['club_admin', 'superadmin', 'organizador'],
+});
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#c9a84c">
+    <title>OBS — DeCarambola</title>
+    <link rel="stylesheet" href="/css/dc-system.css">
+    <style>
+        :root { --oro: #d4af37; --ok: #2ecc71; --err: #e74c3c; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #0a0a0a;
+            color: #e8e4dc;
+            font-family: system-ui, -apple-system, "DM Sans", sans-serif;
+            padding: clamp(20px, 4vw, 40px);
+            line-height: 1.5;
+        }
+        .wrap { max-width: 520px; margin: 0 auto; }
+        h1 { font-size: 1.35rem; font-weight: 600; color: var(--oro); margin-bottom: 0.35em; }
+        .sub { color: #888; font-size: 0.88rem; margin-bottom: 1.5rem; }
+        label { display: block; font-size: 0.8rem; color: #9a9a9a; margin-bottom: 6px; }
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            background: #141414;
+            color: #eee;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: rgba(201, 168, 76, 0.55);
+        }
+        .field { margin-bottom: 1.1rem; }
+        .row-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 1.25rem;
+        }
+        button {
+            cursor: pointer;
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(201, 168, 76, 0.4);
+            background: linear-gradient(180deg, #2a2418, #1a1810);
+            color: var(--oro);
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button.secondary {
+            background: #1c1c1c;
+            color: #bbb;
+            border-color: #333;
+        }
+        #msg {
+            margin-top: 1.25rem;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            display: none;
+        }
+        #msg.show { display: block; }
+        #msg.ok { background: rgba(46, 204, 113, 0.12); border: 1px solid rgba(46, 204, 113, 0.35); color: #8eeca8; }
+        #msg.err { background: rgba(231, 76, 60, 0.12); border: 1px solid rgba(231, 76, 60, 0.35); color: #f4a69d; }
+        .hint { font-size: 0.78rem; color: #666; margin-top: 1.5rem; line-height: 1.45; }
+        .back { margin-top: 2rem; }
+        .back a { color: var(--oro); }
+        #club-badge { font-size: 0.75rem; color: #555; margin-bottom: 1rem; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>OBS WebSocket en el Mac del club</h1>
+        <p class="sub">
+            Una sola vez: contraseña del servidor WebSocket de OBS y el nombre exacto del Browser Source.
+            El operador en la TV no ve esto; solo el técnico.
+        </p>
+        <div id="club-badge"></div>
+
+        <div class="field">
+            <label for="obs-ws-pwd">Contraseña WebSocket (OBS → herramientas → obs-websocket)</label>
+            <input id="obs-ws-pwd" type="password" autocomplete="current-password" placeholder="Dejar vacío si no tiene contraseña">
+        </div>
+        <div class="field">
+            <label for="obs-browser-name">Nombre del Browser Source</label>
+            <input id="obs-browser-name" type="text" value="Overlay DeCarambola" autocomplete="off">
+        </div>
+
+        <div class="row-btns">
+            <button type="button" id="btn-test" class="secondary">Probar conexión OBS</button>
+            <button type="button" id="btn-save">Guardar</button>
+        </div>
+
+        <div id="msg" role="status"></div>
+
+        <p class="hint">
+            <strong>Probar conexión</strong> debe ejecutarse en el mismo Mac donde corre OBS (navegador → <code>ws://127.0.0.1:4455</code>).
+            Si abrís esta página en otro equipo, el test fallará aunque OBS esté bien.
+        </p>
+
+        <p class="back"><a href="/club/index.html">← Portal club</a></p>
+    </div>
+
+    <script type="module">
+import OBSWebSocket from 'https://cdn.jsdelivr.net/npm/obs-websocket-js@5.0.6/+esm';
+import { supabase } from '/js/supabase-client.js';
+
+function clubIdDesdeStorage() {
+    try {
+        var u = new URLSearchParams(window.location.search || '');
+        var q = String(u.get('club_id') || '').trim();
+        if (q) return q;
+    } catch (e) {}
+    try {
+        var p = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        return String(p.club_id || '').trim();
+    } catch (e2) {
+        return '';
+    }
+}
+
+function setMsg(text, kind) {
+    var el = document.getElementById('msg');
+    el.textContent = text || '';
+    el.className = 'show ' + (kind === 'ok' ? 'ok' : kind === 'err' ? 'err' : '');
+    if (!text) el.classList.remove('show');
+}
+
+var clubId = clubIdDesdeStorage();
+var badge = document.getElementById('club-badge');
+if (clubId) badge.textContent = 'Club (profiles.club_id): ' + clubId;
+else badge.textContent = 'Sin club_id en perfil: solo superadmin puede guardar filas arbitrarias; el resto necesita club asignado.';
+
+async function cargarConfig() {
+    if (!clubId) return;
+    var r = await supabase.from('club_obs_config').select('obs_ws_password, obs_browser_source_name').eq('club_id', clubId).maybeSingle();
+    if (r.error) {
+        setMsg('No se pudo leer la configuración: ' + r.error.message, 'err');
+        return;
+    }
+    if (r.data) {
+        var pwd = document.getElementById('obs-ws-pwd');
+        var nm = document.getElementById('obs-browser-name');
+        /* No mostramos la contraseña guardada por seguridad; el técnico reescribe si cambia. */
+        if (r.data.obs_browser_source_name) nm.value = String(r.data.obs_browser_source_name);
+    }
+}
+
+document.getElementById('btn-test').addEventListener('click', async function () {
+    var btn = document.getElementById('btn-test');
+    var pwd = document.getElementById('obs-ws-pwd').value;
+    setMsg('');
+    btn.disabled = true;
+    var obs = new OBSWebSocket();
+    try {
+        await obs.connect('ws://127.0.0.1:4455', pwd ? pwd : undefined);
+        await obs.disconnect();
+        setMsg('OBS respondió correctamente en este equipo.', 'ok');
+    } catch (e) {
+        setMsg(
+            'No se pudo conectar: ' + (e && e.message ? e.message : String(e)) +
+                '. Revisá que OBS esté abierto, WebSocket en puerto 4455 y la contraseña; ejecutá la prueba en el Mac del club.',
+            'err',
+        );
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+document.getElementById('btn-save').addEventListener('click', async function () {
+    setMsg('');
+    if (!clubId) {
+        setMsg('No hay club_id en tu perfil. Asigná club en Supabase o iniciá sesión con una cuenta del club.', 'err');
+        return;
+    }
+    var pwd = document.getElementById('obs-ws-pwd').value;
+    var name = (document.getElementById('obs-browser-name').value || '').trim() || 'Overlay DeCarambola';
+    var btn = document.getElementById('btn-save');
+    btn.disabled = true;
+    var row = {
+        club_id: clubId,
+        obs_browser_source_name: name,
+        updated_at: new Date().toISOString(),
+    };
+    if (pwd !== '') row.obs_ws_password = pwd;
+    var r = await supabase.from('club_obs_config').upsert(row, { onConflict: 'club_id' });
+    btn.disabled = false;
+    if (r.error) {
+        setMsg('Error al guardar: ' + r.error.message, 'err');
+        return;
+    }
+    setMsg('Configuración guardada. El puente (pm2) la leerá en el próximo ciclo o al reiniciarlo.', 'ok');
+});
+
+cargarConfig();
+    </script>
+</body>
+</html>
