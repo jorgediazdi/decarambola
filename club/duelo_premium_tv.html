@@ -3397,10 +3397,16 @@
             '<button type="button" id="btn-emitir-certi" style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:14px 24px;border-radius:14px;font-size:0.85rem;font-weight:bold;cursor:pointer;">📄 EMITIR CERTIFICADO (QR)</button>' +
             '<button type="button" id="btn-no-certi" style="background:#222;color:#aaa;border:1px solid #333;padding:14px 24px;border-radius:14px;font-size:0.8rem;cursor:pointer;">No certificar / Nueva partida</button>' +
             '</div>';
-        ov.querySelector('#btn-emitir-certi').onclick = function () {
+        ov.querySelector('#btn-emitir-certi').onclick = async function () {
             document.body.removeChild(ov);
-            guardarPartidaTVEnHistorial();
-            mostrarOverlayQRSalon();
+            var res = await guardarPartidaTVEnHistorial();
+            if (!res.partida_id_ganador && typeof console !== 'undefined' && console.warn) {
+                console.warn(
+                    '[duelo_premium_tv] Certificado: sin partida_id del ganador tras guardar (HISTORIAL o Supabase).',
+                    res
+                );
+            }
+            mostrarOverlayQRSalon(res.partida_id_ganador || null);
         };
         ov.querySelector('#btn-no-certi').onclick = function () {
             document.body.removeChild(ov);
@@ -3410,16 +3416,22 @@
         document.body.appendChild(ov);
     }
 
-    function guardarPartidaTVEnHistorial() {
+    async function guardarPartidaTVEnHistorial() {
+        var vacio = {
+            ok: false,
+            partida_id_ganador: null,
+            partida_id_j1: null,
+            partida_id_j2: null
+        };
         try {
-            if (typeof window.HISTORIAL === 'undefined' || !window.HISTORIAL.guardarPartida) return;
+            if (typeof window.HISTORIAL === 'undefined' || !window.HISTORIAL.guardarPartida) return vacio;
             var nom1 = nomJ1;
             var nom2 = nomJ2;
             var fecha = new Date().toISOString();
             var entradaObj = cfg.meta1 || 0;
             var prom1 = d.e1 > 0 ? d.p1 / d.e1 : 0;
             var prom2 = d.e2 > 0 ? d.p2 / d.e2 : 0;
-            HISTORIAL.guardarPartida({
+            var r1 = await HISTORIAL.guardarPartida({
                 jugador_id: jugadorIdJ1,
                 jugador_nombre: nom1,
                 rival_nombre: nom2,
@@ -3434,7 +3446,7 @@
                 serie_mayor: d.ms1,
                 fecha: fecha
             });
-            HISTORIAL.guardarPartida({
+            var r2 = await HISTORIAL.guardarPartida({
                 jugador_id: jugadorIdJ2,
                 jugador_nombre: nom2,
                 rival_nombre: nom1,
@@ -3449,16 +3461,32 @@
                 serie_mayor: d.ms2,
                 fecha: fecha
             });
-        } catch (e) {}
+            var idJ1 = r1 && r1.partida_id != null ? r1.partida_id : null;
+            var idJ2 = r2 && r2.partida_id != null ? r2.partida_id : null;
+            var gana1;
+            if (d.p1 >= d.p2) gana1 = true;
+            else if (d.p2 >= d.p1) gana1 = false;
+            else gana1 = d.ms1 >= d.ms2;
+            var partida_id_ganador = gana1 ? idJ1 : idJ2;
+            return {
+                ok: true,
+                partida_id_ganador: partida_id_ganador,
+                partida_id_j1: idJ1,
+                partida_id_j2: idJ2
+            };
+        } catch (e) {
+            if (typeof console !== 'undefined' && console.warn) console.warn('[duelo_premium_tv] guardarPartidaTVEnHistorial:', e);
+            return vacio;
+        }
     }
 
-    function mostrarOverlayQRSalon() {
+    function mostrarOverlayQRSalon(partidaIdCert) {
         var el1 = document.getElementById('lbl1-sb');
         var el2 = document.getElementById('lbl2-sb');
         var nom1 = el1 && el1.innerText ? el1.innerText.trim() : nomJ1;
         var nom2 = el2 && el2.innerText ? el2.innerText.trim() : nomJ2;
         var ganador = d.p1 >= d.p2 ? nom1 : d.p2 >= d.p1 ? nom2 : d.ms1 >= d.ms2 ? nom1 : nom2;
-        var base = getWlPublicBaseUrl() + '/Certificados.html';
+        var base = getWlPublicBaseUrl() + '/apps/organizador/Certificados.html';
         var qs =
             '?n1=' +
             encodeURIComponent(nom1) +
@@ -3482,7 +3510,10 @@
             encodeURIComponent(cfg.ced1 || '') +
             '&c2=' +
             encodeURIComponent(cfg.ced2 || '');
+        if (partidaIdCert != null && String(partidaIdCert).trim())
+            qs += '&partida_id=' + encodeURIComponent(String(partidaIdCert).trim());
         var urlCerti = base + qs;
+        if (typeof console !== 'undefined' && console.log) console.log('[duelo_premium_tv] urlCerti (QR):', urlCerti);
         var qrSrc =
             'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(urlCerti);
         var avisoCel =
