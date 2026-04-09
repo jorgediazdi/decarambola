@@ -326,6 +326,14 @@
             font-family:'Courier New',monospace;
             font-size:1.05rem;
         }
+        .barra-indicadores .marcador-url-chip {
+            font-size:0.72rem;
+            letter-spacing:0.06em;
+            color:#888;
+        }
+        .barra-indicadores .marcador-url-chip .ind-val {
+            font-size:0.95rem;
+        }
 
         /* ── CUERPO: por defecto vertical (TV/mesa); ?modo=movil → fila J1|J2 (ver body.duelo-modo-movil) ── */
         .tv-main {
@@ -813,6 +821,8 @@
             </div>
         </div>
         <div class="barra-indicadores">
+            <span id="marcador-reto-wrap" class="marcador-url-chip" style="display:none;" aria-live="polite">RETO <span class="ind-val" id="ind-reto-codigo"></span></span>
+            <span id="marcador-modalidad-wrap" class="marcador-url-chip" style="display:none;">MOD. <span class="ind-val" id="ind-modalidad"></span></span>
             <span>MESA <span class="ind-val" id="ind-mesa">—</span></span>
             <span>TIEMPO <span class="ind-val" id="ind-transcurrido">0:00</span></span>
         </div>
@@ -1668,6 +1678,9 @@
 
     async function iniciarMarcadorMovilDesdeUrl() {
         var p = new URLSearchParams(window.location.search);
+        var retoCodigo = (p.get('reto') || '').trim();
+        var modalidadTxt = (p.get('modalidad') || '').trim();
+
         cfg.mesa = (p.get('mesa') || '').trim() || '-';
         var streamQ = (p.get('stream') || '').trim();
         if (streamQ) cfg.streamUrl = streamQ;
@@ -1679,6 +1692,14 @@
         if (wmQ) cfg.wmMode = wmQ;
         var tq = parseInt(p.get('tiempo'), 10);
         if (isFinite(tq) && tq >= 20 && tq <= 300) cfg.tiempo = tq;
+
+        var mq = parseInt(p.get('meta'), 10);
+        if (isFinite(mq) && mq >= 1 && mq <= 99) {
+            cfg.meta1 = mq;
+            cfg.meta2 = mq;
+        }
+        var mRiv = parseInt(p.get('meta_rival'), 10);
+        if (isFinite(mRiv) && mRiv >= 1 && mRiv <= 99) cfg.meta2 = mRiv;
         var m1q = parseInt(p.get('meta1'), 10);
         if (isFinite(m1q) && m1q >= 1 && m1q <= 99) cfg.meta1 = m1q;
         var m2q = parseInt(p.get('meta2'), 10);
@@ -1698,6 +1719,39 @@
         var s2 = document.getElementById('lbl2-sb');
         nomJ1 = (s1 && s1.textContent || '').trim() || 'JUGADOR A';
         nomJ2 = (s2 && s2.textContent || '').trim() || 'JUGADOR B';
+        var retador = (p.get('retador') || '').trim();
+        if (retador) {
+            nomJ1 = retador;
+            if (s1) s1.textContent = retador;
+        }
+        var rival = (p.get('rival') || '').trim();
+        if (rival) {
+            nomJ2 = rival;
+            if (s2) s2.textContent = rival;
+        }
+
+        var wr = document.getElementById('marcador-reto-wrap');
+        var ir = document.getElementById('ind-reto-codigo');
+        if (wr && ir) {
+            if (retoCodigo) {
+                ir.textContent = retoCodigo;
+                wr.style.display = '';
+            } else {
+                ir.textContent = '';
+                wr.style.display = 'none';
+            }
+        }
+        var wm = document.getElementById('marcador-modalidad-wrap');
+        var im = document.getElementById('ind-modalidad');
+        if (wm && im) {
+            if (modalidadTxt) {
+                im.textContent = modalidadTxt;
+                wm.style.display = '';
+            } else {
+                im.textContent = '';
+                wm.style.display = 'none';
+            }
+        }
 
         cfg.ced1 = '';
         cfg.ced2 = '';
