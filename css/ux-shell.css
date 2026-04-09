@@ -81,7 +81,7 @@ body.dc-ux-skin .club-hub-main {
     z-index: 10;
 }
 
-/* duelo-tv.html: fase registro + marcador por encima del cielo de estrellas */
+/* duelo-movil.html: fase registro + marcador por encima del cielo de estrellas */
 body.dc-ux-skin #fase1,
 body.dc-ux-skin #fase2 {
     position: relative;

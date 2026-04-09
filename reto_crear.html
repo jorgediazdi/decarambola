@@ -152,15 +152,9 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       </select>
     </div>
 
-    <div class="row">
-      <div class="field">
-        <label for="fecha">Fecha</label>
-        <input id="fecha" type="date">
-      </div>
-      <div class="field">
-        <label for="hora">Hora</label>
-        <input id="hora" type="time">
-      </div>
+    <div class="field">
+      <label for="fecha-hora">Fecha y hora</label>
+      <input id="fecha-hora" type="datetime-local">
     </div>
 
     <div class="field">
@@ -194,7 +188,7 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
 <nav class="bottom-nav" aria-label="Navegación inferior">
   <a class="bottom-nav__item" href="/index.html"><span class="bottom-nav__icon">🏠</span><span>Inicio</span></a>
   <a class="bottom-nav__item" href="/apps/organizador/torneos.html"><span class="bottom-nav__icon">🏆</span><span>Torneos</span></a>
-  <a class="bottom-nav__item" href="/duelo-tv.html?modo=movil"><span class="bottom-nav__icon">🎱</span><span>Jugar</span></a>
+  <a class="bottom-nav__item" href="/duelo-movil.html?modo=movil"><span class="bottom-nav__icon">🎱</span><span>Jugar</span></a>
   <a class="bottom-nav__item" href="/ranking.html"><span class="bottom-nav__icon">📊</span><span>Ranking</span></a>
   <a class="bottom-nav__item" href="/perfil.html"><span class="bottom-nav__icon">👤</span><span>Perfil</span></a>
 </nav>
@@ -224,8 +218,7 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
     u.set('modalidad', payload.modalidad || '');
     u.set('meta', String(payload.meta != null ? payload.meta : ''));
     u.set('formato', payload.formato || '');
-    u.set('fecha', payload.fecha || '');
-    u.set('hora', payload.hora || '');
+    if (payload.fechaHora) u.set('fecha_hora', payload.fechaHora);
     u.set('retador', payload.retador || '');
     u.set('tipo', payload.tipo || 'publico');
     if (payload.rival) u.set('rival', payload.rival);
@@ -250,10 +243,12 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
     }
   }
 
-  function fmtFechaInvite(isoYmd) {
-    if (!isoYmd || !/^\d{4}-\d{2}-\d{2}$/.test(isoYmd)) return isoYmd || '—';
-    var p = isoYmd.split('-');
-    return p[2] + '/' + p[1] + '/' + p[0];
+  function fmtDateTimeInvite(fechaHora) {
+    if (!fechaHora || !String(fechaHora).trim()) return '—';
+    var s = String(fechaHora).trim();
+    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+    if (m) return m[3] + '/' + m[2] + '/' + m[1] + ' ' + m[4] + ':' + m[5];
+    return s;
   }
 
   /** Mapea fila retos (columnas planas o json en detalle/payload). */
@@ -276,13 +271,17 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       }
     }
     if (d && typeof d === 'object' && !Array.isArray(d)) {
+      var fh = d.fechaHora != null ? String(d.fechaHora) : d.fecha_hora != null ? String(d.fecha_hora) : '';
+      if (!fh && d.fecha) {
+        var hh = d.hora != null && String(d.hora).trim() ? String(d.hora).trim() : '00:00';
+        fh = d.fecha + 'T' + hh;
+      }
       return {
         retador: d.retador || '',
         modalidad: d.modalidad || '',
         meta: d.meta != null ? String(d.meta) : '',
         formato: d.formato || '',
-        fecha: d.fecha || '',
-        hora: d.hora || '',
+        fechaHora: fh,
         tipo: d.tipo || 'publico',
         rival: d.rival || '',
         handicap: !!d.handicap,
@@ -290,13 +289,17 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
         bolsa: d.bolsa != null ? String(d.bolsa) : '',
       };
     }
+    var fhRow = row.fecha_hora != null ? String(row.fecha_hora) : row.fechaHora != null ? String(row.fechaHora) : '';
+    if (!fhRow && row.fecha) {
+      var hRow = row.hora != null && String(row.hora).trim() ? String(row.hora).trim() : '00:00';
+      fhRow = row.fecha + 'T' + hRow;
+    }
     return {
       retador: row.retador_nombre || row.retador || '',
       modalidad: row.modalidad || '',
       meta: row.meta != null ? String(row.meta) : '',
       formato: row.formato || '',
-      fecha: row.fecha || '',
-      hora: row.hora || '',
+      fechaHora: fhRow,
       tipo: row.tipo || 'publico',
       rival: row.rival_nombre || row.rival || '',
       handicap: !!(row.con_handicap || row.handicap),
@@ -313,13 +316,28 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       return '';
     }
     var tipoRaw = pickUrlOrDet('tipo', det.tipo) || 'publico';
+    var fechaHora = '';
+    var fhUrl = p.get('fecha_hora');
+    if (fhUrl != null && String(fhUrl).trim() !== '') {
+      fechaHora = String(fhUrl).trim();
+    } else {
+      var pf = p.get('fecha');
+      var ph = p.get('hora');
+      if (pf && ph) fechaHora = pf + 'T' + ph;
+      else if (pf) fechaHora = pf + 'T00:00';
+    }
+    if (!fechaHora && det.fechaHora != null && String(det.fechaHora).trim() !== '') {
+      fechaHora = String(det.fechaHora).trim();
+    } else if (!fechaHora && det.fecha) {
+      var dh = det.hora != null && String(det.hora).trim() ? String(det.hora).trim() : '00:00';
+      fechaHora = det.fecha + 'T' + dh;
+    }
     return {
       retador: pickUrlOrDet('retador', det.retador),
       modalidad: pickUrlOrDet('modalidad', det.modalidad),
       meta: pickUrlOrDet('meta', det.meta),
       formato: pickUrlOrDet('formato', det.formato),
-      fecha: pickUrlOrDet('fecha', det.fecha),
-      hora: pickUrlOrDet('hora', det.hora),
+      fechaHora: fechaHora,
       tipo: tipoRaw,
       rival: pickUrlOrDet('rival', det.rival),
       handicap: p.get('handicap') === '1' || !!det.handicap,
@@ -343,7 +361,6 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
     $('paso3').classList.add('hide');
     $('reto-invite').classList.remove('hide');
 
-    $('inv-codigo').textContent = code;
     var box = $('inv-detalles');
     box.innerHTML = '<p class="mini">Cargando datos del reto…</p>';
 
@@ -360,8 +377,7 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       addLine('Modalidad', m.modalidad);
       addLine('Meta', m.meta);
       addLine('Formato', m.formato);
-      addLine('Fecha', fmtFechaInvite(m.fecha));
-      addLine('Hora', m.hora);
+      addLine('Fecha y hora', fmtDateTimeInvite(m.fechaHora));
       addLine('Tipo', m.tipo === 'directo' ? 'A un jugador específico' : 'Abierto al club');
       if (m.rival) addLine('Rival indicado', m.rival);
       if (m.handicap) {
@@ -377,16 +393,18 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
         q.set('reto', code);
         if (m.modalidad) q.set('modalidad', m.modalidad);
         if (m.meta) q.set('meta', m.meta);
-        window.location.href = '/duelo-tv.html?' + q.toString();
+        window.location.href = '/duelo-movil.html?' + q.toString();
       };
     }
 
     var sb = window.__DC_SB;
     if (!sb || typeof sb.from !== 'function') {
+      $('inv-codigo').textContent = code;
       renderMerged(mergeInviteFields(p, {}));
       wireAceptar(mergeInviteFields(p, {}));
       return true;
     }
+    $('inv-codigo').textContent = code;
     sb
       .from('retos')
       .select('*')
@@ -407,8 +425,22 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
     return true;
   }
 
-  if (initInviteMode()) return;
+  function whenSupabaseReady(cb) {
+    var deadline = Date.now() + 10000;
+    (function poll() {
+      if (window.__DC_SB && typeof window.__DC_SB.from === 'function') {
+        cb();
+        return;
+      }
+      if (Date.now() >= deadline) {
+        cb();
+        return;
+      }
+      setTimeout(poll, 50);
+    })();
+  }
 
+  function startCreatorFlow() {
   function setStep(n) {
     $('paso1').classList.toggle('hide', n !== 1);
     $('paso2').classList.toggle('hide', n !== 2);
@@ -443,9 +475,8 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   };
 
   $('btn-publicar').onclick = function () {
-    var fecha = $('fecha').value;
-    var hora = $('hora').value;
-    if (!fecha || !hora) return alert('Define fecha y hora');
+    var fechaHora = $('fecha-hora').value;
+    if (!fechaHora) return alert('Define fecha y hora');
     if ($('con-handicap').checked && (!$('meta-rival').value || Number($('meta-rival').value) < 1)) {
       return alert('Define la meta rival para handicap');
     }
@@ -455,8 +486,7 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       modalidad: $('modalidad').value,
       meta: $('meta').value,
       formato: $('formato').value,
-      fecha: $('fecha').value,
-      hora: $('hora').value,
+      fechaHora: fechaHora,
       retador: retadorNombreSync(),
       tipo: estado.tipo === 'directo' ? 'directo' : 'publico',
       rival:
@@ -509,12 +539,49 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
 
   $('btn-next3').onclick = function () { setStep(3); };
   $('btn-confirmar').onclick = function () { alert('Presencia confirmada ✅'); };
-  $('btn-iniciar').onclick = function () { window.location.href = '/duelo-tv.html'; };
+  $('btn-iniciar').onclick = function () { window.location.href = '/duelo-movil.html'; };
 
-  // mínima fecha permitida: hoy
-  var minDate = new Date();
   var pad = function (n) { return String(n).padStart(2, '0'); };
-  $('fecha').min = minDate.getFullYear() + '-' + pad(minDate.getMonth() + 1) + '-' + pad(minDate.getDate());
+  var minDt = new Date();
+  $('fecha-hora').min =
+    minDt.getFullYear() +
+    '-' +
+    pad(minDt.getMonth() + 1) +
+    '-' +
+    pad(minDt.getDate()) +
+    'T' +
+    pad(minDt.getHours()) +
+    ':' +
+    pad(minDt.getMinutes());
+  }
+
+  function bootstrap() {
+    var inviteCode = new URLSearchParams(window.location.search).get('reto');
+    if (inviteCode) {
+      function runInvite() {
+        whenSupabaseReady(function () {
+          initInviteMode();
+        });
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', runInvite);
+      } else {
+        runInvite();
+      }
+      return;
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function onReady() {
+        document.removeEventListener('DOMContentLoaded', onReady);
+        if (initInviteMode()) return;
+        startCreatorFlow();
+      });
+    } else {
+      if (initInviteMode()) return;
+      startCreatorFlow();
+    }
+  }
+  bootstrap();
 })();
 </script>
 

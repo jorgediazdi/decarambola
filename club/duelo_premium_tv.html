@@ -318,7 +318,7 @@
             display: flex;
             flex-direction: column;
         }
-        /* Mismo bloque que duelo-tv.html (.panel-video + .video-frame) */
+        /* Mismo bloque que duelo-movil.html (.panel-video + .video-frame) */
         .col-video .panel-video {
             background: #050505;
             border: none;
@@ -2183,7 +2183,7 @@
         }
     }
 
-    /** Base pública para URLs relativas (misma idea que duelo-tv.html / certificados). */
+    /** Base pública para URLs relativas (misma idea que duelo-movil.html / certificados). */
     function getWlPublicBaseUrl() {
         return (
             (typeof localStorage !== 'undefined' && localStorage.getItem('wl_cert_base_url')) ||
@@ -2204,7 +2204,7 @@
     }
 
     /**
-     * White label: CLUB_CONFIG + wl_club_nombre / wl_club_logo(_url), alineado con duelo-tv.html (window.WL).
+     * White label: CLUB_CONFIG + wl_club_nombre / wl_club_logo(_url), alineado con duelo-movil.html (window.WL).
      */
     function leerClubWhiteLabel() {
         var cfg = getObjLocalStorage('CLUB_CONFIG');
@@ -4250,7 +4250,7 @@
     }
 
     /**
-     * Misma lógica que duelo-tv.html → initVideoPanel():
+     * Misma lógica que duelo-movil.html → initVideoPanel():
      * ?stream= en URL o URL por mesa; si hay stream → iframe.src = stream y display block;
      * si no → getUserMedia (cámara del dispositivo) o placeholder si deniega / no hay API.
      * data-header-idle en .panel-video restaura el título del bloque (MESA vs SALÓN).

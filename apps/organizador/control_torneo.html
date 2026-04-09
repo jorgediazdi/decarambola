@@ -738,13 +738,13 @@ function iniciar(partidaId, j1, j2) {
         tiempoEntrada: torneo.tiempoEntrada || 40,
         entradaObjetivo: torneo.entradaObjetivo || 0
     }));
-    location.href = '/duelo-tv.html';
+    location.href = '/duelo-movil.html';
 }
 
 function copiarLinkArbitro(partidaIdEnc) {
     var partidaId = decodeURIComponent(partidaIdEnc || '');
     if (!torneo || !torneo.id) { alert('No hay torneo activo'); return; }
-    var u = new URL('/duelo-tv.html', window.location.href);
+    var u = new URL('/duelo-movil.html', window.location.href);
     u.searchParams.set('torneo', torneo.id);
     u.searchParams.set('partida', partidaId);
     u.searchParams.set('arbitro', '1');

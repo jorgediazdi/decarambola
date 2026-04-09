@@ -1252,7 +1252,7 @@ const HISTORIAL = {
 
     // ─────────────────────────────────────────
     // GUARDAR RESULTADO DE PARTIDA DEL JUGADOR
-    // Llamar desde duelo-tv.html al terminar cada partida
+    // Llamar desde duelo-movil.html al terminar cada partida
     // ─────────────────────────────────────────
     guardarPartida: async function(datos) {
         /*
