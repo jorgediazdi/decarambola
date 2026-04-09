@@ -199,7 +199,7 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   var estado = { tipo: 'publico', codigo: null, sharePayload: null };
   var $ = function (id) { return document.getElementById(id); };
 
-  function retadorNombreSync() {
+  function retadorNombreDesdeLocalStorage() {
     try {
       var mp = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
       if (mp.nombre && String(mp.nombre).trim()) return String(mp.nombre).trim();
@@ -209,7 +209,44 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       var pj = JSON.parse(localStorage.getItem('perfil_jugador') || '{}');
       if (pj.nombre_completo && String(pj.nombre_completo).trim()) return String(pj.nombre_completo).trim();
     } catch (e2) {}
-    return 'Jugador';
+    return '';
+  }
+
+  /** Misma lógica que antes: solo localStorage, con respaldo "Jugador". */
+  function retadorNombreSync() {
+    return retadorNombreDesdeLocalStorage() || 'Jugador';
+  }
+
+  function retadorNombreDesdeAuthUser(user) {
+    if (!user) return '';
+    var md = user.user_metadata || {};
+    if (md.full_name && String(md.full_name).trim()) return String(md.full_name).trim();
+    if (md.nombre_completo && String(md.nombre_completo).trim()) return String(md.nombre_completo).trim();
+    if (md.name && String(md.name).trim()) return String(md.name).trim();
+    if (md.nickname && String(md.nickname).trim()) return String(md.nickname).trim();
+    if (user.email && String(user.email).trim()) {
+      var at = String(user.email).trim().split('@')[0];
+      if (at) return at;
+    }
+    return '';
+  }
+
+  /**
+   * Nombre para el retador: prioriza usuario autenticado (getUser) si hay cliente Supabase;
+   * si no hay nombre en auth, usa localStorage; último recurso "Jugador".
+   */
+  async function retadorNombreParaReto() {
+    var fallback = retadorNombreSync();
+    var sb = window.__DC_SB;
+    if (!sb || typeof sb.auth.getUser !== 'function') return fallback;
+    try {
+      var res = await sb.auth.getUser();
+      var u = res && res.data && res.data.user;
+      var authNom = retadorNombreDesdeAuthUser(u);
+      return authNom || fallback;
+    } catch (e) {
+      return fallback;
+    }
   }
 
   function buildShareLink(codigo, payload) {
@@ -481,46 +518,53 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       return alert('Define la meta rival para handicap');
     }
     if (estado.tipo === 'directo' && !String($('rival').value || '').trim()) return alert('Ingresa el jugador rival');
-    estado.codigo = genCodigo();
-    estado.sharePayload = {
-      modalidad: $('modalidad').value,
-      meta: $('meta').value,
-      formato: $('formato').value,
-      fechaHora: fechaHora,
-      retador: retadorNombreSync(),
-      tipo: estado.tipo === 'directo' ? 'directo' : 'publico',
-      rival:
-        estado.tipo === 'directo' ? String($('rival').value || '').trim() : '',
-      handicap: !!$('con-handicap').checked,
-      metaRival: $('con-handicap').checked ? $('meta-rival').value : '',
-      bolsa: $('bolsa').value || '',
-    };
-    $('codigo').textContent = estado.codigo;
-    syncQrReto();
-    setStep(2);
-    var sb = window.__DC_SB;
-    if (sb && typeof sb.from === 'function' && typeof sb.auth.getSession === 'function') {
-      sb.auth.getSession().then(function (res) {
-        var uid = res.data && res.data.session && res.data.session.user && res.data.session.user.id;
-        var clubId = '';
-        try {
-          clubId = String(JSON.parse(localStorage.getItem('mi_perfil') || '{}').club_id || '').trim();
-        } catch (e) {}
-        var row = {
-          codigo: estado.codigo,
-          club_id: clubId || null,
-          retador_id: uid || null,
-          retado_id: null,
-          estado: 'pendiente',
-          detalle: estado.sharePayload,
+    retadorNombreParaReto()
+      .then(function (nomRetador) {
+        estado.codigo = genCodigo();
+        estado.sharePayload = {
+          modalidad: $('modalidad').value,
+          meta: $('meta').value,
+          formato: $('formato').value,
+          fechaHora: fechaHora,
+          retador: nomRetador,
+          tipo: estado.tipo === 'directo' ? 'directo' : 'publico',
+          rival:
+            estado.tipo === 'directo' ? String($('rival').value || '').trim() : '',
+          handicap: !!$('con-handicap').checked,
+          metaRival: $('con-handicap').checked ? $('meta-rival').value : '',
+          bolsa: $('bolsa').value || '',
         };
-        return sb.from('retos').insert(row);
-      }).then(function (ins) {
+        $('codigo').textContent = estado.codigo;
+        syncQrReto();
+        setStep(2);
+        var sb = window.__DC_SB;
+        if (sb && typeof sb.from === 'function' && typeof sb.auth.getSession === 'function') {
+          return sb.auth.getSession().then(function (res) {
+            var uid = res.data && res.data.session && res.data.session.user && res.data.session.user.id;
+            var clubId = '';
+            try {
+              clubId = String(JSON.parse(localStorage.getItem('mi_perfil') || '{}').club_id || '').trim();
+            } catch (e) {}
+            var row = {
+              codigo: estado.codigo,
+              club_id: clubId || null,
+              retador_id: uid || null,
+              retado_id: null,
+              estado: 'pendiente',
+              detalle: estado.sharePayload,
+            };
+            return sb.from('retos').insert(row);
+          });
+        }
+      })
+      .then(function (ins) {
         if (ins && ins.error && typeof console !== 'undefined' && console.warn) {
           console.warn('[reto_crear] guardar retos:', ins.error.message);
         }
+      })
+      .catch(function (e) {
+        if (typeof console !== 'undefined' && console.error) console.error('[reto_crear] publicar:', e);
       });
-    }
   };
 
   $('btn-wa').onclick = function () {
