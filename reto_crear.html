@@ -6,7 +6,11 @@ import { supabase } from '/js/supabase-client.js';
 
 const { data: sess } = await supabase.auth.getSession();
 if (!sess?.session) {
-  window.location.replace('/auth.html?next=' + encodeURIComponent(window.location.pathname));
+  window.location.replace(
+    '/auth.html?next=' + encodeURIComponent(window.location.pathname + window.location.search)
+  );
+} else {
+  window.__DC_SB = supabase;
 }
 </script>
 <meta charset="UTF-8">
@@ -72,6 +76,15 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
 </header>
 <div class="wrap">
   <p class="reto-lead">Crea, comparte y juega tu reto en 3 pasos.</p>
+
+  <section id="reto-invite" class="card hide" aria-live="polite">
+    <h2>Reto para vos</h2>
+    <p class="mini">Revisá los datos y aceptá para pasar a jugar.</p>
+    <div class="codigo" id="inv-codigo">DC-0000</div>
+    <div id="inv-detalles"></div>
+    <button type="button" class="btn btn-gold" id="btn-aceptar-reto">ACEPTAR RETO</button>
+    <a class="btn btn-dark" href="/jugador/index.html">← Volver a mi espacio</a>
+  </section>
 
   <div class="steps">
     <div class="step-dot on" id="dot1">1 · CONFIGURA</div>
@@ -176,8 +189,198 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
 
 <script>
 (function () {
-  var estado = { tipo: 'publico', codigo: null };
+  var PUBLIC_RETO_ORIGIN = 'https://decarambola.com';
+  var estado = { tipo: 'publico', codigo: null, sharePayload: null };
   var $ = function (id) { return document.getElementById(id); };
+
+  function retadorNombreSync() {
+    try {
+      var mp = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+      if (mp.nombre && String(mp.nombre).trim()) return String(mp.nombre).trim();
+      if (mp.nombre_completo && String(mp.nombre_completo).trim()) return String(mp.nombre_completo).trim();
+    } catch (e) {}
+    try {
+      var pj = JSON.parse(localStorage.getItem('perfil_jugador') || '{}');
+      if (pj.nombre_completo && String(pj.nombre_completo).trim()) return String(pj.nombre_completo).trim();
+    } catch (e2) {}
+    return 'Jugador';
+  }
+
+  function buildShareLink(codigo, payload) {
+    var u = new URLSearchParams();
+    u.set('reto', codigo);
+    u.set('modalidad', payload.modalidad || '');
+    u.set('meta', String(payload.meta != null ? payload.meta : ''));
+    u.set('formato', payload.formato || '');
+    u.set('fecha', payload.fecha || '');
+    u.set('hora', payload.hora || '');
+    u.set('retador', payload.retador || '');
+    u.set('tipo', payload.tipo || 'publico');
+    if (payload.rival) u.set('rival', payload.rival);
+    u.set('handicap', payload.handicap ? '1' : '0');
+    if (payload.metaRival != null && payload.metaRival !== '') u.set('meta_rival', String(payload.metaRival));
+    if (payload.bolsa != null && payload.bolsa !== '') u.set('bolsa', String(payload.bolsa));
+    return PUBLIC_RETO_ORIGIN + '/reto_crear.html?' + u.toString();
+  }
+
+  function fmtFechaInvite(isoYmd) {
+    if (!isoYmd || !/^\d{4}-\d{2}-\d{2}$/.test(isoYmd)) return isoYmd || '—';
+    var p = isoYmd.split('-');
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+
+  /** Mapea fila retos (columnas planas o json en detalle/payload). */
+  function detalleDesdeRow(row) {
+    if (!row) return {};
+    var d = row.detalle != null ? row.detalle : row.payload != null ? row.payload : null;
+    if (
+      d == null &&
+      row.meta != null &&
+      typeof row.meta === 'object' &&
+      !Array.isArray(row.meta)
+    ) {
+      d = row.meta;
+    }
+    if (typeof d === 'string') {
+      try {
+        d = JSON.parse(d);
+      } catch (e) {
+        d = null;
+      }
+    }
+    if (d && typeof d === 'object' && !Array.isArray(d)) {
+      return {
+        retador: d.retador || '',
+        modalidad: d.modalidad || '',
+        meta: d.meta != null ? String(d.meta) : '',
+        formato: d.formato || '',
+        fecha: d.fecha || '',
+        hora: d.hora || '',
+        tipo: d.tipo || 'publico',
+        rival: d.rival || '',
+        handicap: !!d.handicap,
+        metaRival: d.metaRival != null ? String(d.metaRival) : '',
+        bolsa: d.bolsa != null ? String(d.bolsa) : '',
+      };
+    }
+    return {
+      retador: row.retador_nombre || row.retador || '',
+      modalidad: row.modalidad || '',
+      meta: row.meta != null ? String(row.meta) : '',
+      formato: row.formato || '',
+      fecha: row.fecha || '',
+      hora: row.hora || '',
+      tipo: row.tipo || 'publico',
+      rival: row.rival_nombre || row.rival || '',
+      handicap: !!(row.con_handicap || row.handicap),
+      metaRival: row.meta_rival != null ? String(row.meta_rival) : '',
+      bolsa: row.bolsa != null ? String(row.bolsa) : '',
+    };
+  }
+
+  function mergeInviteFields(p, det) {
+    function pickUrlOrDet(urlKey, detVal) {
+      var u = p.get(urlKey);
+      if (u != null && String(u).trim() !== '') return String(u).trim();
+      if (detVal != null && String(detVal).trim() !== '') return String(detVal).trim();
+      return '';
+    }
+    var tipoRaw = pickUrlOrDet('tipo', det.tipo) || 'publico';
+    return {
+      retador: pickUrlOrDet('retador', det.retador),
+      modalidad: pickUrlOrDet('modalidad', det.modalidad),
+      meta: pickUrlOrDet('meta', det.meta),
+      formato: pickUrlOrDet('formato', det.formato),
+      fecha: pickUrlOrDet('fecha', det.fecha),
+      hora: pickUrlOrDet('hora', det.hora),
+      tipo: tipoRaw,
+      rival: pickUrlOrDet('rival', det.rival),
+      handicap: p.get('handicap') === '1' || !!det.handicap,
+      metaRival: pickUrlOrDet('meta_rival', det.metaRival),
+      bolsa: pickUrlOrDet('bolsa', det.bolsa),
+    };
+  }
+
+  function initInviteMode() {
+    var p = new URLSearchParams(window.location.search);
+    var code = p.get('reto');
+    if (!code) return false;
+    var lead = document.querySelector('.wrap > p.reto-lead');
+    if (lead) lead.textContent = 'Te compartieron un reto en DeCarambola.';
+    var ht = document.querySelector('header.header h1');
+    if (ht) ht.textContent = 'ACEPTAR RETO';
+    var steps = document.querySelector('.wrap > .steps');
+    if (steps) steps.classList.add('hide');
+    $('paso1').classList.add('hide');
+    $('paso2').classList.add('hide');
+    $('paso3').classList.add('hide');
+    $('reto-invite').classList.remove('hide');
+
+    $('inv-codigo').textContent = code;
+    var box = $('inv-detalles');
+    box.innerHTML = '<p class="mini">Cargando datos del reto…</p>';
+
+    function renderMerged(m) {
+      box.innerHTML = '';
+      function addLine(label, val) {
+        var el = document.createElement('p');
+        el.className = 'mini';
+        var display = val != null && String(val).trim() !== '' ? String(val).trim() : '—';
+        el.textContent = label + ': ' + display;
+        box.appendChild(el);
+      }
+      addLine('Quién reta', m.retador);
+      addLine('Modalidad', m.modalidad);
+      addLine('Meta', m.meta);
+      addLine('Formato', m.formato);
+      addLine('Fecha', fmtFechaInvite(m.fecha));
+      addLine('Hora', m.hora);
+      addLine('Tipo', m.tipo === 'directo' ? 'A un jugador específico' : 'Abierto al club');
+      if (m.rival) addLine('Rival indicado', m.rival);
+      if (m.handicap) {
+        addLine('Handicap', 'Sí' + (m.metaRival ? ' (meta rival: ' + m.metaRival + ')' : ''));
+      }
+      if (m.bolsa) addLine('Bolsa', '$' + m.bolsa);
+    }
+
+    function wireAceptar(m) {
+      $('btn-aceptar-reto').onclick = function () {
+        var q = new URLSearchParams();
+        q.set('modo', 'movil');
+        q.set('reto', code);
+        if (m.modalidad) q.set('modalidad', m.modalidad);
+        if (m.meta) q.set('meta', m.meta);
+        window.location.href = '/duelo-tv.html?' + q.toString();
+      };
+    }
+
+    var sb = window.__DC_SB;
+    if (!sb || typeof sb.from !== 'function') {
+      renderMerged(mergeInviteFields(p, {}));
+      wireAceptar(mergeInviteFields(p, {}));
+      return true;
+    }
+    sb
+      .from('retos')
+      .select('*')
+      .eq('codigo', code)
+      .maybeSingle()
+      .then(function (res) {
+        var det = {};
+        if (!res.error && res.data) det = detalleDesdeRow(res.data);
+        var m = mergeInviteFields(p, det);
+        renderMerged(m);
+        wireAceptar(m);
+      })
+      .catch(function () {
+        var m = mergeInviteFields(p, {});
+        renderMerged(m);
+        wireAceptar(m);
+      });
+    return true;
+  }
+
+  if (initInviteMode()) return;
 
   function setStep(n) {
     $('paso1').classList.toggle('hide', n !== 1);
@@ -221,20 +424,57 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
     }
     if (estado.tipo === 'directo' && !String($('rival').value || '').trim()) return alert('Ingresa el jugador rival');
     estado.codigo = genCodigo();
+    estado.sharePayload = {
+      modalidad: $('modalidad').value,
+      meta: $('meta').value,
+      formato: $('formato').value,
+      fecha: $('fecha').value,
+      hora: $('hora').value,
+      retador: retadorNombreSync(),
+      tipo: estado.tipo === 'directo' ? 'directo' : 'publico',
+      rival:
+        estado.tipo === 'directo' ? String($('rival').value || '').trim() : '',
+      handicap: !!$('con-handicap').checked,
+      metaRival: $('con-handicap').checked ? $('meta-rival').value : '',
+      bolsa: $('bolsa').value || '',
+    };
     $('codigo').textContent = estado.codigo;
     setStep(2);
+    var sb = window.__DC_SB;
+    if (sb && typeof sb.from === 'function' && typeof sb.auth.getSession === 'function') {
+      sb.auth.getSession().then(function (res) {
+        var uid = res.data && res.data.session && res.data.session.user && res.data.session.user.id;
+        var clubId = '';
+        try {
+          clubId = String(JSON.parse(localStorage.getItem('mi_perfil') || '{}').club_id || '').trim();
+        } catch (e) {}
+        var row = {
+          codigo: estado.codigo,
+          club_id: clubId || null,
+          retador_id: uid || null,
+          retado_id: null,
+          estado: 'pendiente',
+          detalle: estado.sharePayload,
+        };
+        return sb.from('retos').insert(row);
+      }).then(function (ins) {
+        if (ins && ins.error && typeof console !== 'undefined' && console.warn) {
+          console.warn('[reto_crear] guardar retos:', ins.error.message);
+        }
+      });
+    }
   };
 
   $('btn-wa').onclick = function () {
-    if (!estado.codigo) return;
-    var link = window.location.origin + window.location.pathname + '?reto=' + encodeURIComponent(estado.codigo);
-    var msg = '🟡 Reto Caserito\\nCódigo: ' + estado.codigo + '\\n' + link;
+    if (!estado.codigo || !estado.sharePayload) return;
+    var link = buildShareLink(estado.codigo, estado.sharePayload);
+    var msg = '🟡 Reto Caserito\nCódigo: ' + estado.codigo + '\n' + link;
     window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
   };
 
   $('btn-copy').onclick = function () {
-    if (!estado.codigo) return;
-    var link = window.location.origin + window.location.pathname + '?reto=' + encodeURIComponent(estado.codigo);
+    if (!estado.codigo || !estado.sharePayload) return;
+    var link = buildShareLink(estado.codigo, estado.sharePayload);
     if (navigator.clipboard) navigator.clipboard.writeText(link).then(function () { alert('Link copiado'); });
     else prompt('Copia este link:', link);
   };
