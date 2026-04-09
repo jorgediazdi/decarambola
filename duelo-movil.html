@@ -27,229 +27,79 @@
         }
         body.tv-activo { height: 100vh; overflow: hidden; }
 
-        /* Navegación flujo jugador (solo fase registro) */
-        .jug-f1-nav {
-            width: 100%;
-            max-width: 420px;
-            margin: 0 auto 16px;
-            padding: 12px 14px;
-            background: #000;
-            border: 1px solid #1a1a1a;
-            border-radius: 14px;
-            flex-shrink: 0;
-        }
-        .jug-f1-nav .header-actions {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 6px;
-            width: 100%;
-        }
-        .jug-f1-nav .btn-hdr {
-            background: rgba(10,10,10,0.95);
-            border: 1px solid #1a1a1a;
-            color: #888;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 0.52rem;
-            cursor: pointer;
-            text-decoration: none;
-            font-family: 'var(--dc-font-body)', sans-serif;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            transition: border-color 0.15s, color 0.15s;
-        }
-        .jug-f1-nav .btn-hdr:hover,
-        .jug-f1-nav .btn-hdr:focus-visible {
-            border-color: rgba(212,175,55,0.35);
+        /* Encima del fondo de estrellas (ux-shell) */
+        #fase2 { position: relative; z-index: 5; }
+        .movil-top-home {
+            font-size: 0.58rem;
+            letter-spacing: 0.08em;
             color: var(--oro);
-            outline: none;
+            text-decoration: none;
+            padding: 4px 8px;
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 8px;
+            white-space: nowrap;
         }
-
-        /* ═══ FASE 1: REGISTRO (responsive, diseño mejorado) ═══ */
-        #fase1 {
-            min-height: 100vh;
+        .movil-top-home:hover, .movil-top-home:focus-visible { color: #eee; outline: none; }
+        .panel-head-movil {
+            width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: clamp(12px, 3vw, 24px) clamp(16px, 4vw, 24px) 80px;
-            overflow-y: auto;
-            position: relative;
-            z-index: 5;
+            gap: 6px;
         }
-        #fase1.oculta { display: none !important; }
-        /* Encima del fondo de estrellas (ux-shell) */
-        #fase2 { position: relative; z-index: 5; }
-        .f1-movil-hint {
-            width: 100%;
-            max-width: 420px;
-            margin: 0 auto 14px;
-            padding: 12px 14px;
-            background: rgba(46, 255, 112, 0.07);
-            border: 1px solid rgba(46, 255, 112, 0.28);
-            border-radius: 14px;
-            color: #7a9;
-            font-size: clamp(0.52rem, 2.2vw, 0.62rem);
-            line-height: 1.45;
-            text-align: center;
-            letter-spacing: 0.04em;
-        }
-        .f1-movil-hint strong { color: #9c9; }
-        /* Menú: en móvil ya no ocupa toda la pantalla */
-        .duelo-nav-fold {
-            width: 100%;
-            max-width: 420px;
-            margin: 0 auto 8px;
-            border-radius: 14px;
-            border: 1px solid #222;
-            background: #080808;
-            overflow: hidden;
-        }
-        .duelo-nav-fold > summary {
-            list-style: none;
-            cursor: pointer;
-            padding: 12px 14px;
-            font-size: 0.58rem;
-            letter-spacing: 0.1em;
-            color: var(--oro);
-            text-align: center;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .duelo-nav-fold > summary::-webkit-details-marker { display: none; }
-        .duelo-nav-fold > summary::marker { content: ''; }
-        .duelo-nav-fold[open] > summary {
-            border-bottom: 1px solid #1a1a1a;
+        .panel-jugador .panel-nombre-editable {
+            font-size: clamp(0.55rem, 2vw, 0.75rem);
+            letter-spacing: 2px;
             color: #ccc;
-        }
-        .duelo-nav-fold .header-actions {
-            padding: 10px 12px 12px;
-        }
-        .f1-titulo {
-            color: var(--oro);
-            font-size: clamp(1rem, 4vw, 1.35rem);
-            letter-spacing: 0.2em;
+            margin: 0;
             text-align: center;
-            margin-bottom: 4px;
+            word-break: break-word;
+            line-height: 1.2;
+            font-family: 'var(--dc-font-body)', sans-serif;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
         }
-        .f1-sub {
-            color: #444;
-            font-size: clamp(0.5rem, 2vw, 0.62rem);
-            letter-spacing: 0.15em;
+        .panel-jugador .panel-nombre-editable span {
+            border-bottom: 1px dashed rgba(201, 168, 76, 0.35);
+            pointer-events: none;
+        }
+        .panel-jugador .panel-nombre-inp {
+            display: none;
+            width: 100%;
+            padding: 8px 10px;
+            font-size: clamp(0.65rem, 2.2vw, 0.85rem);
+            font-family: inherit;
             text-align: center;
-            margin-bottom: clamp(16px, 4vw, 24px);
-        }
-        .f1-cfg-status {
-            width: 100%;
-            max-width: 420px;
-            margin: -8px auto 14px;
-            padding: 10px 14px;
-            background: rgba(212,175,55,0.06);
-            border: 1px solid rgba(212,175,55,0.2);
-            border-radius: 12px;
-            color: #888;
-            font-size: clamp(0.45rem, 1.8vw, 0.52rem);
-            letter-spacing: 0.08em;
-            line-height: 1.5;
-            text-align: center;
-        }
-        .f1-politica-p1 {
-            width: 100%;
-            max-width: 420px;
-            margin: 0 auto 12px;
-            padding: 10px 12px;
-            background: rgba(52,152,219,0.07);
-            border: 1px solid rgba(52,152,219,0.22);
-            border-radius: 12px;
-            color: #777;
-            font-size: clamp(0.42rem, 1.6vw, 0.5rem);
-            letter-spacing: 0.06em;
-            line-height: 1.45;
-            text-align: left;
-        }
-        .f1-politica-p1 strong { color: #9fb7c9; }
-        .f1-card {
-            width: 100%;
-            max-width: 420px;
-            background: #0f0f0f;
-            border: 1px solid #1a1a1a;
-            border-radius: 20px;
-            padding: clamp(14px, 3vw, 20px);
-            margin-bottom: 14px;
-        }
-        .f1-card h3 {
-            color: #555;
-            font-size: 0.5rem;
-            letter-spacing: 0.2em;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-        }
-        .f1-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        @media (max-width: 380px) { .f1-row { grid-template-columns: 1fr; } }
-        .f1-field { margin-bottom: 12px; }
-        .f1-field label {
-            display: block;
-            color: #555;
-            font-size: 0.48rem;
-            letter-spacing: 0.12em;
-            margin-bottom: 6px;
-        }
-        .f1-field input, .f1-field select {
-            width: 100%;
             background: #111;
-            border: 1px solid #222;
-            border-radius: 12px;
-            color: #fff;
-            padding: 12px 14px;
-            font-size: clamp(0.85rem, 2.5vw, 1rem);
-            font-family: 'var(--dc-font-body)', sans-serif;
-            outline: none;
+            border: 1px solid var(--oro);
+            border-radius: 8px;
+            color: #eee;
+            box-sizing: border-box;
         }
-        .f1-field input::placeholder { color: #444; }
-        .f1-field input:focus, .f1-field select:focus { border-color: var(--oro); }
-        .f1-field input.f1-cedula-invalid { border-color: var(--rojo) !important; }
-        .f1-field-cedula-err {
-            font-size: clamp(0.4rem, 1.5vw, 0.48rem);
-            color: var(--rojo);
-            margin-top: 6px;
-            min-height: 1.15em;
-            letter-spacing: 0.04em;
-            line-height: 1.3;
-        }
-        .f1-btn-iniciar {
+        .panel-jugador .panel-nombre-inp:focus { outline: none; }
+        .movil-meta-editable {
+            cursor: pointer;
+            user-select: none;
             width: 100%;
-            max-width: 420px;
-            padding: clamp(16px, 4vw, 22px);
-            background: linear-gradient(135deg, var(--oro), #a07800);
-            color: #000;
-            border: none;
-            border-radius: 20px;
-            font-size: clamp(0.95rem, 2.8vw, 1.1rem);
-            font-weight: bold;
-            letter-spacing: 0.15em;
-            cursor: pointer;
-            font-family: 'var(--dc-font-body)', sans-serif;
-            margin-bottom: 10px;
-            box-shadow: 0 6px 20px rgba(212,175,55,0.2);
+            text-align: center;
         }
-        .f1-btn-iniciar:active { transform: scale(0.98); }
-        .f1-back {
-            background: none;
-            border: none;
-            color: #444;
-            padding: 12px;
-            font-size: 0.6rem;
-            cursor: pointer;
-            font-family: 'var(--dc-font-body)', sans-serif;
+        .movil-meta-editable .movil-meta-static { display: inline; }
+        .movil-meta-inp {
+            display: none;
+            max-width: 72px;
+            margin-left: 6px;
+            text-align: center;
+            font-size: clamp(0.65rem, 2vw, 0.8rem);
+            padding: 4px 6px;
+            background: #111;
+            border: 1px solid var(--oro);
+            border-radius: 8px;
+            color: #fff;
         }
-        .f1-back:hover { color: var(--oro); }
+        .movil-meta-inp:focus { outline: none; }
 
-        /* Layout TV: fase 2 (marcador + video) */
-        #fase2.oculta { display: none !important; }
+        /* Layout TV: marcador + video */
         .tv-root {
             width: 100vw;
             height: 100vh;
@@ -685,30 +535,6 @@
         body.duelo-modo-movil .stat-value {
             font-size: clamp(0.85rem, 3vw, 1.15rem);
         }
-        /* Fase 1: en móvil jugador no se muestran URLs YouTube (solo staff / producción) */
-        body.duelo-modo-movil .f1-stream-pro-only {
-            display: none !important;
-        }
-        body:not(.duelo-modo-movil) .f1-movil-autoriza {
-            display: none !important;
-        }
-        .f1-movil-autoriza label {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            color: #888;
-            font-size: clamp(0.48rem, 2vw, 0.55rem);
-            letter-spacing: 0.06em;
-            line-height: 1.45;
-            cursor: pointer;
-        }
-        .f1-movil-autoriza input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
         .dc-transmision-segura-strip {
             display: none;
             margin: 0 10px 8px;
@@ -951,108 +777,7 @@
     <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
 <body class="dc-app dc-ux dc-ux-skin m-root-legacy">
-<!-- FASE 1: Registro de jugadores y configuración -->
-<section id="fase1" class="dc-reveal">
-    <nav class="jug-f1-nav" aria-label="Menú">
-        <div class="hdr-top-nav" style="max-width:640px;margin:0 auto;padding:0 18px;">
-            <a href="/index.html" class="btn-nav-home">← Inicio</a>
-        </div>
-    </nav>
-    <p class="f1-movil-hint"><strong>Estás en el lugar correcto.</strong> Abajo configurás los 2 jugadores y tocás <strong>INICIAR PARTIDA</strong> para ver el marcador y el teclado. No es “TV vacía”: primero hay que iniciar.</p>
-    <h1 class="f1-titulo">DUELO MÓVIL / TV</h1>
-    <p class="f1-sub">Dos jugadores · marcador · bajá con el dedo si no ves el botón verde</p>
-    <p class="f1-cfg-status" id="cfg-mesa-status">—</p>
-    <div class="f1-card">
-        <h3>Jugadores</h3>
-        <div class="f1-row">
-            <div class="f1-field">
-                <label for="reg-n1">Jugador 1</label>
-                <input type="text" id="reg-n1" placeholder="Nombre (solo letras)" maxlength="40" autocomplete="name" data-dc-nombre="1">
-            </div>
-            <div class="f1-field">
-                <label for="reg-n2">Jugador 2</label>
-                <input type="text" id="reg-n2" placeholder="Nombre (solo letras)" maxlength="40" autocomplete="name" data-dc-nombre="1">
-            </div>
-        </div>
-        <div class="f1-row">
-            <div class="f1-field">
-                <label for="reg-c1">Cédula J1 (opcional)</label>
-                <input type="text" id="reg-c1" placeholder="Solo números" maxlength="16" inputmode="numeric" pattern="[0-9]*" data-dc-cedula="1" autocomplete="off" aria-describedby="reg-c1-err">
-                <div class="f1-field-cedula-err" id="reg-c1-err" role="alert"></div>
-            </div>
-            <div class="f1-field">
-                <label for="reg-c2">Cédula J2 (opcional)</label>
-                <input type="text" id="reg-c2" placeholder="Solo números" maxlength="16" inputmode="numeric" pattern="[0-9]*" data-dc-cedula="1" autocomplete="off" aria-describedby="reg-c2-err">
-                <div class="f1-field-cedula-err" id="reg-c2-err" role="alert"></div>
-            </div>
-        </div>
-    </div>
-    <div class="f1-card">
-        <h3>Partida</h3>
-        <div class="f1-row">
-            <div class="f1-field">
-                <label for="reg-meta1">Meta J1 (entradas)</label>
-                <input type="number" id="reg-meta1" min="1" max="99" value="3" placeholder="3">
-            </div>
-            <div class="f1-field">
-                <label for="reg-meta2">Meta J2 (entradas)</label>
-                <input type="number" id="reg-meta2" min="1" max="99" value="3" placeholder="3">
-            </div>
-        </div>
-        <div class="f1-row">
-            <div class="f1-field">
-                <label for="reg-tiempo">Tiempo por entrada (seg)</label>
-                <input type="number" id="reg-tiempo" min="20" max="300" value="40" placeholder="40">
-            </div>
-            <div class="f1-field">
-                <label for="reg-mesa">Mesa (opcional)</label>
-                <input type="text" id="reg-mesa" placeholder="Ej: 1" maxlength="20">
-            </div>
-        </div>
-        <div class="f1-field f1-movil-autoriza" id="f1-movil-autoriza">
-            <label for="reg-autoriza-stream">
-                <input type="checkbox" id="reg-autoriza-stream" />
-                <span>Autorizo usar la transmisión que el club configuró para esta mesa (opcional). No ves URLs: solo el club/mesa las define.</span>
-            </label>
-        </div>
-        <div class="f1-stream-pro-only">
-        <div class="f1-field">
-            <label for="reg-stream">URL del stream (opcional)</label>
-            <input type="text" id="reg-stream" placeholder="YouTube: https://www.youtube.com/embed/VIDEO_ID" maxlength="500">
-        </div>
-        <div class="f1-field">
-            <label for="reg-youtube-live">YouTube Live Control Room (opcional)</label>
-            <input type="text" id="reg-youtube-live" placeholder="https://studio.youtube.com/..." maxlength="500">
-        </div>
-        <div class="f1-field" style="display:flex;align-items:center;gap:8px;">
-            <input type="checkbox" id="reg-live-assist" style="width:16px;height:16px;">
-            <label for="reg-live-assist" style="margin:0;">Modo transmisión asistida (abrir YouTube al iniciar)</label>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-            <button type="button" class="btn-video-tool" id="btn-guardar-mesa" style="font-size:0.5rem;">💾 Guardar configuración de esta mesa</button>
-            <button type="button" class="btn-video-tool" id="btn-abrir-youtube" style="font-size:0.5rem;">🔴 Abrir YouTube Live</button>
-        </div>
-        <div class="f1-politica-p1" id="f1-politica-p1">
-            <strong>Punto 1 · Operación:</strong> no compartir la clave de transmisión de YouTube. Canal <strong>DeCarambola</strong> solo en eventos oficiales organizados; en cada local, OBS debe usar el <strong>canal de ese club</strong> para el resto de eventos.
-        </div>
-        </div>
-        <div class="f1-field">
-            <label for="reg-wm">Marca de agua</label>
-            <select id="reg-wm">
-                <option value="club">Club afiliado (auto)</option>
-                <option value="deca">Solo DeCarambola.com</option>
-                <option value="off">Sin marca de agua</option>
-            </select>
-        </div>
-        <div style="color:#666;font-size:0.48rem;line-height:1.4;margin-top:6px;">
-            Puedes iniciar sin cédulas y sin stream. Todo es opcional.
-        </div>
-    </div>
-    <button type="button" class="f1-btn-iniciar" id="btn-iniciar-partida">Iniciar partida</button>
-    <button type="button" class="f1-back" id="btn-f1-back">Volver</button>
-</section>
-
-<div class="tv-root oculta dc-reveal" id="fase2">
+<div class="tv-root dc-reveal" id="fase2">
     <div class="dc-transmision-segura-strip" id="dc-transmision-segura-strip" role="status">
         <strong>Modo transmisión segura</strong> · Dirigí la cámara y la grabación solo al flujo autorizado del club (OBS, servidor de streaming o embed acordado). Esta página no incluye accesos a redes sociales y <strong>no puede impedir</strong> que abras otras apps en el dispositivo: el operador debe mantener el teléfono enfocado en la transmisión oficial.
     </div>
@@ -1064,7 +789,8 @@
     <!-- CABEZOTE TV -->
     <div class="barra-top">
         <div class="barra-top-inner">
-            <button type="button" class="btn-salir-config" id="btn-salir-a-config" title="Volver a la pantalla de configuración (marcador se reinicia)">← CONFIG</button>
+            <a href="/index.html" class="movil-top-home">← Inicio</a>
+            <button type="button" class="btn-salir-config" id="btn-salir-a-config" title="Reiniciar marcador (puntos y entradas de esta partida)">↻ REINICIO</button>
             <div class="meta-info">
                 <span class="meta-lbl" id="lbl-meta1-top">META J1</span>
                 <span class="meta-val" id="lbl-pts-meta1">— / —</span>
@@ -1081,7 +807,7 @@
                     <button class="btn-bolas-tv" id="btn-bolas-tv" title="Intercambiar bolas blanca/dorada">⚪⇄🟡</button>
                     <button class="btn-siguiente-entrada-top" onclick="cambio()">► SIG. ENTRADA</button>
                     <button class="btn-siguiente-set" id="btn-siguiente-set">▶ SIG. SET</button>
-                    <button class="btn-fin" id="btn-fin" title="Salir al menú de configuración (reinicia marcador)">🏁 SALIR</button>
+                    <button class="btn-fin" id="btn-fin" title="Reiniciar marcador (puntos y entradas)">🏁 REINICIO</button>
                 </div>
                 <span class="meta-val" style="font-size:0.75rem;" id="lbl-pts-meta2">— / —</span>
             </div>
@@ -1096,9 +822,13 @@
     <div class="tv-main">
         <!-- Panel Jugador 1 -->
         <div class="panel-jugador" id="panel-j1">
-            <div>
-                <h2 id="lbl1-sb">JUGADOR A</h2>
-                <div class="panel-meta">META <span id="meta1-sb">0</span></div>
+            <div class="panel-head-movil">
+                <h2 class="panel-nombre-editable" id="nombre-editable-wrap-j1"><span id="lbl1-sb">JUGADOR A</span></h2>
+                <input type="text" class="panel-nombre-inp" id="inp-nombre-j1" maxlength="48" autocomplete="off" />
+                <div class="panel-meta movil-meta-editable" id="wrap-meta-movil-j1" title="Tocar para editar meta">
+                    <span class="movil-meta-static">META <span id="meta1-sb">3</span></span>
+                    <input type="number" class="movil-meta-inp" id="inp-meta-j1" min="1" max="99" step="1" />
+                </div>
             </div>
             <div class="bola bola-blanca" id="bola1-sb">
                 <div class="pts" id="pts1-sb">0</div>
@@ -1145,9 +875,13 @@
 
         <!-- Panel Jugador 2 -->
         <div class="panel-jugador" id="panel-j2">
-            <div>
-                <h2 id="lbl2-sb">JUGADOR B</h2>
-                <div class="panel-meta">META <span id="meta2-sb">0</span></div>
+            <div class="panel-head-movil">
+                <h2 class="panel-nombre-editable" id="nombre-editable-wrap-j2"><span id="lbl2-sb">JUGADOR B</span></h2>
+                <input type="text" class="panel-nombre-inp" id="inp-nombre-j2" maxlength="48" autocomplete="off" />
+                <div class="panel-meta movil-meta-editable" id="wrap-meta-movil-j2" title="Tocar para editar meta">
+                    <span class="movil-meta-static">META <span id="meta2-sb">3</span></span>
+                    <input type="number" class="movil-meta-inp" id="inp-meta-j2" min="1" max="99" step="1" />
+                </div>
             </div>
             <div class="bola bola-dorada" id="bola2-sb">
                 <div class="pts" id="pts2-sb">0</div>
@@ -1228,14 +962,13 @@
     // Estado
     let bolasInvertidas = false;
     let d = { p1:0,p2:0,e1:0,e2:0,s1:0,s2:0,ms1:0,ms2:0,t:1 };
-    let cfg = { meta1:3,meta2:3,tiempo:40,mesa:'',streamUrl:'',ced1:'',ced2:'',wmMode:'club',youtubeLiveUrl:'',liveAssist:false };
+    let cfg = { meta1:3,meta2:3,tiempo:40,mesa:'-',streamUrl:'',ced1:'',ced2:'',wmMode:'club',youtubeLiveUrl:'',liveAssist:false };
     /** Realtime / operario: actualiza iframe de stream sin recargar la TV */
     window.__dueloSetStreamUrl = function (url) {
         cfg.streamUrl = (url && String(url).trim()) || '';
         try { initVideoPanel(); } catch (e) {}
     };
     let nomJ1 = 'JUGADOR A', nomJ2 = 'JUGADOR B';
-    /** Resueltos vía getJugadorByCedula al hacer blur en reg-c1 / reg-c2 */
     let jugadorIdJ1 = null;
     let jugadorIdJ2 = null;
     let localCameraStream = null;
@@ -1280,68 +1013,19 @@
         }
     }
 
-    function actualizarEtiquetaConfigMesa() {
-        var el = document.getElementById('cfg-mesa-status');
-        if (!el) return;
-        var mesa = (document.getElementById('reg-mesa') && document.getElementById('reg-mesa').value || '').trim() || '-';
-        var club = getClubNombreDisplay();
-        var k = getMesaCfgKey(mesa);
+    /** Aplica stream / wm guardados en localStorage para la mesa actual (cfg.mesa). */
+    function aplicarCfgGuardadaParaMesaActual() {
+        var mesa = (cfg.mesa || '-').trim() || '-';
         var all = leerCfgMesas();
-        var c = all[k];
-        var line = 'Club: ' + club + ' · Mesa: ' + mesa;
-        if (c) {
-            line += ' · Perfil guardado';
-            line += c.liveAssist ? ' · Asistida ON' : ' · Asistida OFF';
-        } else {
-            line += ' · Sin perfil guardado (usa 💾 si quieres recordar esta mesa)';
+        var c = all[getMesaCfgKey(mesa)];
+        if (!c) return;
+        if (c.streamUrl && !cfg.streamUrl) cfg.streamUrl = c.streamUrl || '';
+        if (c.youtubeLiveUrl) cfg.youtubeLiveUrl = c.youtubeLiveUrl || '';
+        cfg.liveAssist = !!c.liveAssist;
+        if (c.wmMode) {
+            cfg.wmMode = c.wmMode;
+            try { sessionStorage.setItem('duelo_tv_wm_mode', cfg.wmMode); } catch (e) {}
         }
-        el.textContent = line;
-    }
-
-    function aplicarConfigMesa() {
-        var inpM = document.getElementById('reg-mesa');
-        if (!inpM) return;
-        var mesa = (inpM.value || '').trim() || '-';
-        var all = leerCfgMesas();
-        var k = getMesaCfgKey(mesa);
-        var c = all[k];
-        if (!c) {
-            actualizarEtiquetaConfigMesa();
-            return;
-        }
-        if (document.getElementById('reg-stream')) document.getElementById('reg-stream').value = c.streamUrl || '';
-        if (document.getElementById('reg-youtube-live')) document.getElementById('reg-youtube-live').value = c.youtubeLiveUrl || '';
-        if (document.getElementById('reg-live-assist')) document.getElementById('reg-live-assist').checked = !!c.liveAssist;
-        if (document.getElementById('reg-wm') && c.wmMode) document.getElementById('reg-wm').value = c.wmMode;
-        actualizarEtiquetaConfigMesa();
-    }
-
-    function guardarConfigMesa() {
-        var mesa = (document.getElementById('reg-mesa').value || '').trim() || '-';
-        var streamUrl = (document.getElementById('reg-stream').value || '').trim();
-        var youtubeLiveUrl = (document.getElementById('reg-youtube-live').value || '').trim();
-        var liveAssist = !!(document.getElementById('reg-live-assist').checked);
-        var wmMode = (document.getElementById('reg-wm').value || 'club').trim();
-        var all = leerCfgMesas();
-        var k = getMesaCfgKey(mesa);
-        all[k] = {
-            streamUrl: streamUrl,
-            youtubeLiveUrl: youtubeLiveUrl,
-            liveAssist: liveAssist,
-            wmMode: wmMode
-        };
-        guardarCfgMesas(all);
-        actualizarEtiquetaConfigMesa();
-        alert('Configuración guardada para la mesa ' + mesa + '.');
-    }
-
-    function abrirYoutubeLive() {
-        var url = (document.getElementById('reg-youtube-live').value || '').trim();
-        if (!url) {
-            alert('Ingresa la URL de YouTube Live Control Room.');
-            return;
-        }
-        window.open(url, '_blank', 'noopener');
     }
 
     let tiempoRestante = cfg.tiempo;
@@ -1407,7 +1091,8 @@
         // Barra superior
         document.getElementById('lbl-pts-meta1').innerText = d.p1 + '/' + cfg.meta1;
         document.getElementById('lbl-pts-meta2').innerText = d.p2 + '/' + cfg.meta2;
-        document.getElementById('ind-mesa').innerText = 'Mesa ' + cfg.mesa;
+        document.getElementById('ind-mesa').innerText =
+            cfg.mesa && cfg.mesa !== '-' ? 'Mesa ' + String(cfg.mesa) : '—';
 
         actualizarTecladoHeader();
     }
@@ -1666,7 +1351,7 @@
         document.getElementById('lbl-ent-top').innerText = 'ENTRADA 1';
     }
 
-    // Inicializar panel de video: ?stream= en URL o cfg.streamUrl (Fase 1).
+    // Panel de video: ?stream= en URL o cfg.streamUrl / mesa (Supabase).
     function initVideoPanel() {
         const params = new URLSearchParams(window.location.search);
         const streamFromUrl = params.get('stream');
@@ -1826,7 +1511,7 @@
     }
 
     function volverPartidaASeleccion() {
-        if (!confirm('¿Volver a la configuración del duelo? El marcador actual se reiniciará.')) return;
+        if (!confirm('¿Reiniciar el marcador? Se borran puntos y entradas de esta partida.')) return;
         try { clearInterval(timer); } catch (e) {}
         try { quitarStream(); } catch (e2) {}
         try {
@@ -1838,11 +1523,16 @@
             }
         } catch (e4) {}
         partidaTerminada = false;
-        var f1 = document.getElementById('fase1');
-        var f2 = document.getElementById('fase2');
-        if (f2) f2.classList.add('oculta');
-        if (f1) f1.classList.remove('oculta');
-        document.body.classList.remove('tv-activo');
+        d = { p1: 0, p2: 0, e1: 0, e2: 0, s1: 0, s2: 0, ms1: 0, ms2: 0, t: 1 };
+        tiempoRestante = cfg.tiempo;
+        partidaStartTime = Date.now();
+        partidaTotalPausedMs = 0;
+        document.body.classList.add('tv-activo');
+        var le = document.getElementById('lbl-ent-top');
+        if (le) le.innerText = 'ENTRADA 1';
+        actualizarUI();
+        initVideoPanel();
+        iniciarReloj();
     }
 
     function grabarDesdeCelularCore() {
@@ -1889,130 +1579,153 @@
         });
     }
 
-    function filtrarNombreJugador(ev) {
-        var el = ev.target;
-        if (!el) return;
-        el.value = el.value.replace(/[0-9]/g, '');
-    }
-    function filtrarCedulaJugador(ev) {
-        var el = ev.target;
-        if (!el) return;
-        el.value = el.value.replace(/[^0-9]/g, '');
+    /** Nombres tocando el título (misma idea que duelo_premium_tv casual). */
+    function setupNombresMovilEdicion() {
+        [1, 2].forEach(function (j) {
+            var h2 = document.getElementById('nombre-editable-wrap-j' + j);
+            var span = document.getElementById(j === 1 ? 'lbl1-sb' : 'lbl2-sb');
+            var inp = document.getElementById('inp-nombre-j' + j);
+            if (!h2 || !span || !inp) return;
+            function commitNombre() {
+                var raw = (inp.value || '').replace(/[0-9]/g, '').trim();
+                var def = j === 1 ? 'JUGADOR A' : 'JUGADOR B';
+                var v = raw || def;
+                span.textContent = v;
+                h2.style.display = '';
+                inp.style.display = 'none';
+                if (j === 1) nomJ1 = v;
+                else nomJ2 = v;
+                actualizarUI();
+            }
+            h2.addEventListener('click', function () {
+                h2.style.display = 'none';
+                inp.style.display = 'block';
+                inp.value = span.textContent.trim();
+                inp.focus();
+                inp.select();
+            });
+            inp.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    inp.blur();
+                }
+                if (e.key === 'Escape') {
+                    inp.value = span.textContent;
+                    inp.blur();
+                }
+            });
+            inp.addEventListener('blur', commitNombre);
+        });
     }
 
-    function setCedulaFieldError(inputId, errId, message) {
-        var inp = document.getElementById(inputId);
-        var err = document.getElementById(errId);
-        if (inp) {
-            inp.classList.toggle('f1-cedula-invalid', !!message);
-            if (message) inp.setAttribute('aria-invalid', 'true');
-            else inp.removeAttribute('aria-invalid');
-        }
-        if (err) err.textContent = message || '';
+    /** Meta por jugador: tocar la línea META en cada columna. */
+    function setupMetaEditableMovil() {
+        [1, 2].forEach(function (j) {
+            var wrap = document.getElementById('wrap-meta-movil-j' + j);
+            var inp = document.getElementById('inp-meta-j' + j);
+            if (!wrap || !inp) return;
+            var staticEl = wrap.querySelector('.movil-meta-static');
+            function showStatic() {
+                if (staticEl) staticEl.style.display = '';
+                inp.style.display = 'none';
+            }
+            function openEd() {
+                if (staticEl) staticEl.style.display = 'none';
+                inp.style.display = 'inline-block';
+                inp.value = String(j === 1 ? cfg.meta1 : cfg.meta2);
+                try {
+                    inp.focus();
+                    inp.select();
+                } catch (e) {}
+            }
+            function commitMeta() {
+                var n = parseInt(inp.value, 10);
+                var prev = j === 1 ? cfg.meta1 : cfg.meta2;
+                if (!isFinite(n) || n < 1) n = prev;
+                n = Math.min(99, Math.max(1, n));
+                if (j === 1) cfg.meta1 = n;
+                else cfg.meta2 = n;
+                showStatic();
+                actualizarUI();
+            }
+            wrap.addEventListener('click', function (e) {
+                if (e.target === inp) return;
+                openEd();
+            });
+            inp.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    inp.blur();
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    showStatic();
+                }
+            });
+            inp.addEventListener('blur', commitMeta);
+        });
     }
 
-    function onInputCedulaDuelo(which) {
-        var inputId = which === 'j1' ? 'reg-c1' : 'reg-c2';
-        var errId = which === 'j1' ? 'reg-c1-err' : 'reg-c2-err';
-        if (which === 'j1') jugadorIdJ1 = null;
-        else jugadorIdJ2 = null;
-        setCedulaFieldError(inputId, errId, '');
-    }
-
-    async function onBlurCedulaDuelo(which) {
-        var inputId = which === 'j1' ? 'reg-c1' : 'reg-c2';
-        var errId = which === 'j1' ? 'reg-c1-err' : 'reg-c2-err';
-        var inp = document.getElementById(inputId);
-        if (!inp) return;
-        filtrarCedulaJugador({ target: inp });
-        var c = (inp.value || '').trim();
-        if (which === 'j1') jugadorIdJ1 = null;
-        else jugadorIdJ2 = null;
-        setCedulaFieldError(inputId, errId, '');
-        if (!c) return;
+    async function iniciarMarcadorMovilDesdeUrl() {
+        var p = new URLSearchParams(window.location.search);
+        cfg.mesa = (p.get('mesa') || '').trim() || '-';
+        var streamQ = (p.get('stream') || '').trim();
+        if (streamQ) cfg.streamUrl = streamQ;
         try {
-            var jm = await import('/js/api/jugador-api.js');
-            var r = await jm.getJugadorByCedula(c);
-            if (r.error) {
-                setCedulaFieldError(inputId, errId, 'No se pudo buscar. Reintentá.');
-                return;
-            }
-            if (!r.data) {
-                setCedulaFieldError(inputId, errId, 'Cédula no registrada');
-                return;
-            }
-            if (which === 'j1') jugadorIdJ1 = r.data.id;
-            else jugadorIdJ2 = r.data.id;
-        } catch (e) {
-            setCedulaFieldError(inputId, errId, 'Error de red. Reintentá.');
-        }
-    }
+            var wmSaved = sessionStorage.getItem('duelo_tv_wm_mode');
+            if (wmSaved) cfg.wmMode = wmSaved;
+        } catch (e) {}
+        var wmQ = (p.get('wm') || '').trim();
+        if (wmQ) cfg.wmMode = wmQ;
+        var tq = parseInt(p.get('tiempo'), 10);
+        if (isFinite(tq) && tq >= 20 && tq <= 300) cfg.tiempo = tq;
+        var m1q = parseInt(p.get('meta1'), 10);
+        if (isFinite(m1q) && m1q >= 1 && m1q <= 99) cfg.meta1 = m1q;
+        var m2q = parseInt(p.get('meta2'), 10);
+        if (isFinite(m2q) && m2q >= 1 && m2q <= 99) cfg.meta2 = m2q;
 
-    async function iniciarDesdeFase1() {
-        await onBlurCedulaDuelo('j1');
-        await onBlurCedulaDuelo('j2');
-        var n1 = (document.getElementById('reg-n1').value || '').trim() || 'JUGADOR A';
-        var n2 = (document.getElementById('reg-n2').value || '').trim() || 'JUGADOR B';
-        var meta1 = parseInt(document.getElementById('reg-meta1').value, 10) || 3;
-        var meta2 = parseInt(document.getElementById('reg-meta2').value, 10) || 3;
-        var tiempo = parseInt(document.getElementById('reg-tiempo').value, 10) || 40;
-        var mesa = (document.getElementById('reg-mesa').value || '').trim() || '-';
-        var streamUrl = '';
-        var youtubeLiveUrl = '';
-        var liveAssist = false;
-        var esMovil = document.body.classList.contains('duelo-modo-movil');
-        if (esMovil) {
-            var autoriza = document.getElementById('reg-autoriza-stream') && document.getElementById('reg-autoriza-stream').checked;
-            if (autoriza) {
-                streamUrl = (document.getElementById('reg-stream').value || '').trim();
-                youtubeLiveUrl = (document.getElementById('reg-youtube-live').value || '').trim();
-                liveAssist = !!(document.getElementById('reg-live-assist') && document.getElementById('reg-live-assist').checked);
-            }
-        } else {
-            streamUrl = (document.getElementById('reg-stream').value || '').trim();
-            youtubeLiveUrl = (document.getElementById('reg-youtube-live').value || '').trim();
-            liveAssist = !!(document.getElementById('reg-live-assist').checked);
-        }
+        aplicarCfgGuardadaParaMesaActual();
+
         var clubIdForStream = (typeof MasterVIP !== 'undefined' && MasterVIP.getClubId) ? MasterVIP.getClubId() : '';
-        var mesaNum = parseInt(String(mesa).replace(/\D/g, ''), 10);
-        if (!streamUrl && mesa && mesa !== '-' && !isNaN(mesaNum) && typeof MasterVIP !== 'undefined' && MasterVIP.getStreamUrlMesa) {
+        var mesaNum = parseInt(String(cfg.mesa).replace(/\D/g, ''), 10);
+        if (!cfg.streamUrl && cfg.mesa && cfg.mesa !== '-' && !isNaN(mesaNum) && typeof MasterVIP !== 'undefined' && MasterVIP.getStreamUrlMesa) {
             try {
-                streamUrl = (await MasterVIP.getStreamUrlMesa(clubIdForStream, mesaNum)) || '';
+                cfg.streamUrl = (await MasterVIP.getStreamUrlMesa(clubIdForStream, mesaNum)) || '';
             } catch (e) {}
         }
-        var ced1 = (document.getElementById('reg-c1').value || '').trim();
-        var ced2 = (document.getElementById('reg-c2').value || '').trim();
-        var wmMode = (document.getElementById('reg-wm').value || 'club').trim();
-        try { sessionStorage.setItem('duelo_tv_wm_mode', wmMode); } catch (e) {}
-        nomJ1 = n1;
-        nomJ2 = n2;
-        cfg = { meta1: meta1, meta2: meta2, tiempo: tiempo, mesa: mesa, streamUrl: streamUrl, ced1: ced1, ced2: ced2, wmMode: wmMode, youtubeLiveUrl: youtubeLiveUrl, liveAssist: liveAssist };
+
+        var s1 = document.getElementById('lbl1-sb');
+        var s2 = document.getElementById('lbl2-sb');
+        nomJ1 = (s1 && s1.textContent || '').trim() || 'JUGADOR A';
+        nomJ2 = (s2 && s2.textContent || '').trim() || 'JUGADOR B';
+
+        cfg.ced1 = '';
+        cfg.ced2 = '';
+        jugadorIdJ1 = null;
+        jugadorIdJ2 = null;
+
         d = { p1: 0, p2: 0, e1: 0, e2: 0, s1: 0, s2: 0, ms1: 0, ms2: 0, t: 1 };
         tiempoRestante = cfg.tiempo;
         partidaStartTime = Date.now();
         partidaTotalPausedMs = 0;
         partidaTerminada = false;
 
-        document.getElementById('lbl1-sb').innerText = nomJ1;
-        document.getElementById('lbl2-sb').innerText = nomJ2;
-        document.getElementById('fase1').classList.add('oculta');
-        document.getElementById('fase2').classList.remove('oculta');
         document.body.classList.add('tv-activo');
-
         actualizarUI();
         initWatermark();
         initVideoPanel();
         iniciarReloj();
+
         if (cfg.liveAssist && cfg.youtubeLiveUrl) {
             window.open(cfg.youtubeLiveUrl, '_blank', 'noopener');
         }
         try {
             await import('/js/duelo-tv-mesa-realtime.js');
             if (typeof window.DC_startDueloTvMesaRealtime === 'function') {
-                window.DC_startDueloTvMesaRealtime({ mesa: String(!isNaN(mesaNum) ? mesaNum : mesa) });
+                window.DC_startDueloTvMesaRealtime({ mesa: String(!isNaN(mesaNum) ? mesaNum : cfg.mesa) });
             }
         } catch (eRt) {
-            if (typeof console !== 'undefined' && console.warn) console.warn('[duelo-tv] realtime mesa:', eRt);
+            if (typeof console !== 'undefined' && console.warn) console.warn('[duelo-movil] realtime mesa:', eRt);
         }
     }
 
@@ -2059,70 +1772,18 @@
                 avisoModo.innerHTML = t;
                 avisoModo.style.display = 'block';
             }
-            if (pInit.get('hidepolicy') === '1') {
-                var pol = document.getElementById('f1-politica-p1');
-                if (pol) pol.style.display = 'none';
-            }
         } catch (e) {}
         if (dcTransmisionSeguraOk()) {
             dcMarcarTransmisionSegura();
         }
-        initWatermark();
-        try {
-            var wmSaved = sessionStorage.getItem('duelo_tv_wm_mode');
-            if (wmSaved && document.getElementById('reg-wm')) {
-                document.getElementById('reg-wm').value = wmSaved;
-            }
-        } catch (e) {}
-        var inpMesa = document.getElementById('reg-mesa');
-        if (inpMesa) {
-            inpMesa.addEventListener('blur', aplicarConfigMesa);
-            inpMesa.addEventListener('input', actualizarEtiquetaConfigMesa);
-        }
-        aplicarConfigMesa();
-        setTimeout(actualizarEtiquetaConfigMesa, 400);
+        setupNombresMovilEdicion();
+        setupMetaEditableMovil();
         window.addEventListener('decarambola-club-sync', function () {
-            actualizarEtiquetaConfigMesa();
             initWatermark();
         });
-        var btnGuardarMesa = document.getElementById('btn-guardar-mesa');
-        if (btnGuardarMesa) btnGuardarMesa.onclick = guardarConfigMesa;
-        var btnAbrirYoutube = document.getElementById('btn-abrir-youtube');
-        if (btnAbrirYoutube) btnAbrirYoutube.onclick = abrirYoutubeLive;
-        var f1 = document.getElementById('fase1');
-        var f2 = document.getElementById('fase2');
-        if (f1 && f2) {
-            f1.classList.remove('oculta');
-            f2.classList.add('oculta');
-        }
-        var btnIni = document.getElementById('btn-iniciar-partida');
-        if (btnIni) btnIni.onclick = function () { iniciarDesdeFase1().catch(function (e) { if (typeof console !== 'undefined' && console.error) console.error(e); }); };
-        var btnBack = document.getElementById('btn-f1-back');
-        if (btnBack) btnBack.onclick = function() { window.location.href = '/jugador/'; };
-        ['reg-n1', 'reg-n2'].forEach(function (rid) {
-            var el = document.getElementById(rid);
-            if (el) {
-                el.addEventListener('input', filtrarNombreJugador);
-                el.addEventListener('blur', filtrarNombreJugador);
-            }
+        iniciarMarcadorMovilDesdeUrl().catch(function (e) {
+            if (typeof console !== 'undefined' && console.error) console.error(e);
         });
-        ['reg-c1', 'reg-c2'].forEach(function (rid) {
-            var el = document.getElementById(rid);
-            if (el) {
-                el.addEventListener('input', filtrarCedulaJugador);
-                el.addEventListener('blur', filtrarCedulaJugador);
-            }
-        });
-        var elC1 = document.getElementById('reg-c1');
-        if (elC1) {
-            elC1.addEventListener('input', function () { onInputCedulaDuelo('j1'); });
-            elC1.addEventListener('blur', function () { onBlurCedulaDuelo('j1'); });
-        }
-        var elC2 = document.getElementById('reg-c2');
-        if (elC2) {
-            elC2.addEventListener('input', function () { onInputCedulaDuelo('j2'); });
-            elC2.addEventListener('blur', function () { onBlurCedulaDuelo('j2'); });
-        }
     })();
 </script>
 
