@@ -2695,6 +2695,90 @@
             if (ind) ind.textContent = '';
         }
         aplicarMarcaClubTV();
+        limpiarPartidaActivaTv();
+    }
+
+    var DC_PARTIDA_ACTIVA_KEY = 'dc_partida_activa';
+    var DC_PARTIDA_ACTIVA_MAX_MS = 4 * 60 * 60 * 1000;
+    var DC_PARTIDA_ACTIVA_CONT_SESSION = 'dc_partida_activa_cont';
+
+    function guardarPartidaActivaTv() {
+        if (!salonOverlayMatchId) return;
+        try {
+            localStorage.setItem(
+                DC_PARTIDA_ACTIVA_KEY,
+                JSON.stringify({
+                    match_id: salonOverlayMatchId,
+                    timestamp: Date.now(),
+                    url: window.location.href
+                })
+            );
+        } catch (e) {}
+    }
+
+    function limpiarPartidaActivaTv() {
+        try {
+            localStorage.removeItem(DC_PARTIDA_ACTIVA_KEY);
+        } catch (e) {}
+    }
+
+    function leerPartidaActivaTvReciente() {
+        try {
+            var raw = localStorage.getItem(DC_PARTIDA_ACTIVA_KEY);
+            if (!raw) return null;
+            var o = JSON.parse(raw);
+            if (!o || typeof o !== 'object') return null;
+            var ts = typeof o.timestamp === 'number' ? o.timestamp : parseInt(o.timestamp, 10);
+            if (!isFinite(ts)) return null;
+            if (Date.now() - ts > DC_PARTIDA_ACTIVA_MAX_MS) {
+                localStorage.removeItem(DC_PARTIDA_ACTIVA_KEY);
+                return null;
+            }
+            return o;
+        } catch (e2) {
+            return null;
+        }
+    }
+
+    function mostrarOverlayPartidaActivaTv(data) {
+        var ov = document.createElement('div');
+        ov.id = 'dc-overlay-partida-activa';
+        ov.style.cssText =
+            'position:fixed;inset:0;z-index:10050;background:rgba(10,8,2,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;';
+        ov.innerHTML =
+            '<div style="border:1px solid var(--oro);border-radius:16px;padding:24px 22px;max-width:min(92vw,380px);width:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:16px;">' +
+            '<p style="margin:0;color:#eaeaea;font-size:1rem;font-weight:700;text-align:center;line-height:1.35;">Ya hay una partida activa en este dispositivo</p>' +
+            '<div style="display:flex;flex-direction:column;gap:10px;">' +
+            '<button type="button" id="dc-btn-cont-partida" style="min-height:48px;background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:14px 20px;border-radius:12px;font-size:0.85rem;font-weight:bold;cursor:pointer;">CONTINUAR PARTIDA ACTIVA</button>' +
+            '<button type="button" id="dc-btn-nueva-partida" style="min-height:48px;background:#111;color:#ccc;border:1px solid #333;padding:14px 20px;border-radius:12px;font-size:0.82rem;cursor:pointer;">NUEVA PARTIDA</button>' +
+            '</div></div>';
+        ov.querySelector('#dc-btn-cont-partida').onclick = function () {
+            try {
+                sessionStorage.setItem(DC_PARTIDA_ACTIVA_CONT_SESSION, '1');
+            } catch (e3) {}
+            var u = data && data.url != null && String(data.url).trim() ? String(data.url).trim() : window.location.href;
+            window.location.href = u;
+        };
+        ov.querySelector('#dc-btn-nueva-partida').onclick = function () {
+            limpiarPartidaActivaTv();
+            try {
+                ov.remove();
+            } catch (e4) {}
+        };
+        document.body.appendChild(ov);
+    }
+
+    function verificarPartidaActivaAlCargar() {
+        if (tvSession) return;
+        try {
+            if (sessionStorage.getItem(DC_PARTIDA_ACTIVA_CONT_SESSION) === '1') {
+                sessionStorage.removeItem(DC_PARTIDA_ACTIVA_CONT_SESSION);
+                return;
+            }
+        } catch (e5) {}
+        var data = leerPartidaActivaTvReciente();
+        if (!data) return;
+        mostrarOverlayPartidaActivaTv(data);
     }
 
     var bolasInvertidas = false;
@@ -3567,6 +3651,7 @@
         salonTvOverlayLastPublish = 0;
         salonOverlayMatchId = 'mesa-tv-' + Date.now();
         console.log('MATCH_ID:', salonOverlayMatchId);
+        guardarPartidaActivaTv();
         d = { p1: 0, p2: 0, e1: 0, e2: 0, s1: 0, s2: 0, ms1: 0, ms2: 0, t: 1 };
         ultimaJugadaJ1 = 0;
         ultimaJugadaJ2 = 0;
@@ -4579,6 +4664,8 @@
     }
 
     window.navMesa = navMesa;
+
+    verificarPartidaActivaAlCargar();
 
     var btnCasual = document.getElementById('btn-iniciar-casual');
     var btnProFlujo = document.getElementById('btn-iniciar-pro');
