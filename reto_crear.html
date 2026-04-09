@@ -65,6 +65,16 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   font-size: 1.9rem; letter-spacing: 0.14em; text-align: center; color: var(--dc-gold); margin: 6px 0 12px;
 }
 .mini { color: #777; font-size: 0.72rem; text-align: center; margin-bottom: 10px; }
+.reto-qr-wrap { text-align: center; margin: 14px 0; }
+#qr-reto {
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+  border: 2px solid var(--dc-gold);
+  border-radius: 8px;
+  vertical-align: middle;
+  background: #0a0a0a;
+}
 @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -164,6 +174,9 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   <section id="paso2" class="card hide">
     <h2>Paso 2 — Comparte</h2>
     <div class="codigo" id="codigo">DC-0000</div>
+    <div class="reto-qr-wrap">
+      <img id="qr-reto" class="hide" alt="Código QR del link del reto" width="200" height="200" decoding="async" />
+    </div>
     <div class="mini">Comparte este código o link para que acepten el reto.</div>
     <button class="btn btn-gold" id="btn-wa">COMPARTIR WHATSAPP</button>
     <button class="btn btn-dark" id="btn-copy">COPIAR LINK</button>
@@ -220,6 +233,21 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
     if (payload.metaRival != null && payload.metaRival !== '') u.set('meta_rival', String(payload.metaRival));
     if (payload.bolsa != null && payload.bolsa !== '') u.set('bolsa', String(payload.bolsa));
     return PUBLIC_RETO_ORIGIN + '/reto_crear.html?' + u.toString();
+  }
+
+  function syncQrReto() {
+    var el = $('qr-reto');
+    if (!el) return;
+    if (estado.codigo && estado.sharePayload) {
+      var link = buildShareLink(estado.codigo, estado.sharePayload);
+      el.src =
+        'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' +
+        encodeURIComponent(link);
+      el.classList.remove('hide');
+    } else {
+      el.removeAttribute('src');
+      el.classList.add('hide');
+    }
   }
 
   function fmtFechaInvite(isoYmd) {
@@ -438,6 +466,7 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       bolsa: $('bolsa').value || '',
     };
     $('codigo').textContent = estado.codigo;
+    syncQrReto();
     setStep(2);
     var sb = window.__DC_SB;
     if (sb && typeof sb.from === 'function' && typeof sb.auth.getSession === 'function') {
