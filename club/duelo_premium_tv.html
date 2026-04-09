@@ -1146,6 +1146,49 @@
             color: #ececec;
             transform: scale(1);
         }
+        .premium-salon-duelo .salon-casual-score-view {
+            display: inline-flex;
+            align-items: baseline;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0;
+        }
+        .premium-salon-duelo .salon-hdr-meta-editable {
+            cursor: pointer;
+            min-width: 44px;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: -6px 0 -6px 2px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            -webkit-tap-highlight-color: rgba(201, 168, 76, 0.2);
+            touch-action: manipulation;
+            border-bottom: 2px dashed rgba(201, 168, 76, 0.45);
+            box-sizing: border-box;
+            font-weight: 800;
+            color: var(--oro);
+        }
+        .premium-salon-duelo .salon-casual-score-big .salon-meta-inp-hdr {
+            width: 4.2rem;
+            max-width: 30vw;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        .premium-salon-duelo .salon-pro-hdr-score-line {
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .premium-salon-duelo .salon-pro-hdr-score-line .salon-meta-inp-hdr {
+            width: 3.2rem;
+            font-size: max(0.85rem, 2.4vw);
+            font-weight: 700;
+            text-align: center;
+        }
         .premium-salon-duelo .panel-jugador-casual-mid .panel-nombre-editable {
             font-family: 'Playfair Display', Georgia, serif;
             font-size: max(2rem, 3.5vw);
@@ -2884,8 +2927,18 @@
         if (f1) f1.style.width = cfg.meta1 > 0 ? Math.min(100, (d.p1 / cfg.meta1) * 100) + '%' : '0%';
         var f2 = document.getElementById('fill2-sb');
         if (f2) f2.style.width = cfg.meta2 > 0 ? Math.min(100, (d.p2 / cfg.meta2) * 100) + '%' : '0%';
-        tvSetText('lbl-pts-meta1', d.p1 + '/' + cfg.meta1);
-        tvSetText('lbl-pts-meta2', d.p2 + '/' + cfg.meta2);
+        (function actualizarHdrPtsMetaSpans() {
+            for (var hj = 1; hj <= 2; hj++) {
+                var hp = document.getElementById('hdr-pts' + hj);
+                var lm = document.getElementById(hj === 1 ? 'lbl-meta1-top' : 'lbl-meta2-top');
+                var inpH = document.getElementById('inp-meta-hdr-j' + hj);
+                var pts = hj === 1 ? d.p1 : d.p2;
+                var met = hj === 1 ? cfg.meta1 : cfg.meta2;
+                if (hp) hp.textContent = String(pts);
+                var editandoHdrMeta = inpH && document.activeElement === inpH;
+                if (lm && !editandoHdrMeta) lm.textContent = String(met);
+            }
+        })();
         tvSetText('lbl-pro-marcador1', d.p1 + '/' + cfg.meta1);
         tvSetText('lbl-pro-marcador2', d.p2 + '/' + cfg.meta2);
         actualizarCasualScoreBigEstilos();
@@ -3535,6 +3588,7 @@
             setupNombresProTv();
             setupMetaEditablePro();
         }
+        setupMetaHeaderEditableTv();
         window.sumar = sumar;
         window.sumarParaJugador = sumarParaJugador;
         window.sumarCasualBolaTap = sumarCasualBolaTap;
@@ -3679,6 +3733,62 @@
                 }
             });
             inp.addEventListener('blur', function () {
+                commit();
+            });
+        });
+    }
+
+    /** Meta numérica en cabecera (puntos/meta): tocar el valor de meta abre input inline (casual y PRO). */
+    function setupMetaHeaderEditableTv() {
+        if (!tvSession) return;
+        [1, 2].forEach(function (j) {
+            var metaTap = document.getElementById(j === 1 ? 'lbl-meta1-top' : 'lbl-meta2-top');
+            var inp = document.getElementById('inp-meta-hdr-j' + j);
+            if (!metaTap || !inp) return;
+            function showView() {
+                metaTap.style.display = '';
+                inp.style.display = 'none';
+            }
+            function commit() {
+                var n = parseInt(inp.value, 10);
+                if (!isFinite(n) || n < 1) n = j === 1 ? cfg.meta1 : cfg.meta2;
+                n = Math.min(999, Math.max(1, n));
+                if (j === 1) cfg.meta1 = n;
+                else cfg.meta2 = n;
+                tvSession.meta = Math.max(cfg.meta1 | 0, cfg.meta2 | 0);
+                metaTap.textContent = String(n);
+                showView();
+                actualizarUI();
+                actualizarIndicadorTvSalon();
+            }
+            metaTap.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                metaTap.style.display = 'none';
+                inp.style.display = 'inline-block';
+                inp.value = String(j === 1 ? cfg.meta1 : cfg.meta2);
+                try {
+                    inp.focus();
+                    inp.select();
+                } catch (ex) {}
+            });
+            inp.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    inp.blur();
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    inp.dataset.skipMetaHdrCommit = '1';
+                    inp.blur();
+                }
+            });
+            inp.addEventListener('blur', function () {
+                if (inp.dataset.skipMetaHdrCommit === '1') {
+                    inp.dataset.skipMetaHdrCommit = '';
+                    showView();
+                    return;
+                }
                 commit();
             });
         });
@@ -3952,7 +4062,13 @@
                 '<input type="text" class="panel-nombre-inp" id="inp-nombre-j1" maxlength="48" autocomplete="off" />';
             html += '</div>';
             html += '<div class="salon-casual-mid-stack">';
-            html += '<div class="salon-casual-score-big" id="lbl-pts-meta1">0/40</div>';
+            html +=
+                '<div class="salon-casual-score-big" id="lbl-pts-meta1">' +
+                '<span class="salon-casual-score-view">' +
+                '<span id="hdr-pts1">0</span>/<span class="salon-hdr-meta-editable" id="lbl-meta1-top" title="Tocar para editar meta" role="button" tabindex="0">40</span>' +
+                '</span>' +
+                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j1" style="display:none;" />' +
+                '</div>';
             html +=
                 '<div class="bola bola-blanca bola-casual-mid" id="bola1-sb" role="button" tabindex="0" title="+1 J1" onclick="sumarCasualBolaTap(1)"><div class="pts" id="pts1-sb">0</div></div>';
             html +=
@@ -3988,7 +4104,13 @@
                 '<input type="text" class="panel-nombre-inp" id="inp-nombre-j2" maxlength="48" autocomplete="off" />';
             html += '</div>';
             html += '<div class="salon-casual-mid-stack">';
-            html += '<div class="salon-casual-score-big" id="lbl-pts-meta2">0/40</div>';
+            html +=
+                '<div class="salon-casual-score-big" id="lbl-pts-meta2">' +
+                '<span class="salon-casual-score-view">' +
+                '<span id="hdr-pts2">0</span>/<span class="salon-hdr-meta-editable" id="lbl-meta2-top" title="Tocar para editar meta" role="button" tabindex="0">40</span>' +
+                '</span>' +
+                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j2" style="display:none;" />' +
+                '</div>';
             html +=
                 '<div class="bola bola-dorada bola-casual-mid" id="bola2-sb" role="button" tabindex="0" title="+1 J2" onclick="sumarCasualBolaTap(2)"><div class="pts" id="pts2-sb">0</div></div>';
             html +=
@@ -4022,7 +4144,17 @@
                 '<span class="salon-casual-reloj-ent salon-pro-hdr-ent" id="lbl-ent-top">ENTRADA 1</span>';
             html += '<span class="salon-casual-hdr-sep">·</span>';
             html +=
-                '<span class="salon-pro-hdr-scores" title="Marcador"><span id="lbl-pts-meta1">0/40</span><span class="salon-casual-hdr-sep">·</span><span id="lbl-pts-meta2">0/40</span></span>';
+                '<span class="salon-pro-hdr-scores" title="Marcador">' +
+                '<span id="lbl-pts-meta1" class="salon-pro-hdr-score-line">' +
+                '<span id="hdr-pts1">0</span>/<span class="salon-hdr-meta-editable" id="lbl-meta1-top" title="Tocar para editar meta J1" role="button" tabindex="0">40</span>' +
+                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j1" style="display:none;" />' +
+                '</span>' +
+                '<span class="salon-casual-hdr-sep">·</span>' +
+                '<span id="lbl-pts-meta2" class="salon-pro-hdr-score-line">' +
+                '<span id="hdr-pts2">0</span>/<span class="salon-hdr-meta-editable" id="lbl-meta2-top" title="Tocar para editar meta J2" role="button" tabindex="0">40</span>' +
+                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j2" style="display:none;" />' +
+                '</span>' +
+                '</span>';
             html += '<span class="salon-casual-hdr-sep">·</span>';
             html += '<div class="salon-casual-hdr-reloj-wrap">';
             html += '<div id="reloj">40</div>';
