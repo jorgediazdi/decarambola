@@ -76,6 +76,87 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   background: #0a0a0a;
 }
 @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+
+/* Fecha/hora reto — botones táctiles (móvil) */
+.reto-fh-field .reto-fh-field-label {
+  display: block;
+  font-size: 0.66rem;
+  color: #888;
+  margin-bottom: 8px;
+}
+.reto-fh-sub {
+  font-size: 0.6rem;
+  color: #666;
+  letter-spacing: 0.06em;
+  margin: 10px 0 6px;
+}
+.reto-fh-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+.reto-fh-btn {
+  flex: 1 1 auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--dc-gold);
+  background: #0a0a0a;
+  color: var(--dc-gold);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.reto-fh-btn.on,
+.reto-fh-btn:focus-visible {
+  background: rgba(201, 168, 76, 0.22);
+  color: #f5ebd4;
+  outline: none;
+}
+.reto-fh-btn:active {
+  transform: scale(0.98);
+}
+.reto-fh-native-wrap {
+  margin-top: 8px;
+}
+.reto-fh-native-wrap input[type='date'],
+.reto-fh-native-wrap input[type='time'] {
+  width: 100%;
+  min-height: 44px;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  color: #fff;
+  padding: 10px;
+  font-size: 0.9rem;
+}
+.reto-fh-resumen {
+  text-align: center;
+  color: #aaa;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid #2a2a2a;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 </style>
 </head>
 <body class="dc-app dc-ux dc-ux-skin m-root-legacy">
@@ -152,9 +233,31 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
       </select>
     </div>
 
-    <div class="field">
-      <label for="fecha-hora">Fecha y hora del reto</label>
-      <input id="fecha-hora" type="datetime-local">
+    <div class="field reto-fh-field">
+      <span class="reto-fh-field-label">Fecha y hora del reto</span>
+      <p class="reto-fh-sub">Fecha</p>
+      <div class="reto-fh-row" role="group" aria-label="Día del reto">
+        <button type="button" class="reto-fh-btn reto-fh-fecha" data-fecha="hoy">HOY</button>
+        <button type="button" class="reto-fh-btn reto-fh-fecha" data-fecha="manana">MAÑANA</button>
+        <button type="button" class="reto-fh-btn reto-fh-fecha" data-fecha="otro">OTRO DÍA</button>
+      </div>
+      <div id="fecha-otro-wrap" class="reto-fh-native-wrap hide">
+        <label class="sr-only" for="fecha-otro">Elegir día</label>
+        <input type="date" id="fecha-otro" />
+      </div>
+      <p class="reto-fh-sub">Hora</p>
+      <div class="reto-fh-row" role="group" aria-label="Franja u hora">
+        <button type="button" class="reto-fh-btn reto-fh-hslot" data-slot="8-12">MAÑANA 8–12</button>
+        <button type="button" class="reto-fh-btn reto-fh-hslot" data-slot="12-18">TARDE 12–18</button>
+        <button type="button" class="reto-fh-btn reto-fh-hslot" data-slot="18-22">NOCHE 18–22</button>
+        <button type="button" class="reto-fh-btn reto-fh-hslot" data-slot="otra">OTRA HORA</button>
+      </div>
+      <div id="hora-otra-wrap" class="reto-fh-native-wrap hide">
+        <label class="sr-only" for="hora-otra">Elegir hora</label>
+        <input type="time" id="hora-otra" />
+      </div>
+      <p class="reto-fh-resumen" id="fecha-hora-resumen">Elegí fecha y franja u hora.</p>
+      <input type="hidden" id="fecha-hora" value="" />
     </div>
 
     <div class="field">
@@ -511,9 +614,138 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
     $('meta-rival-wrap').classList.toggle('hide', !this.checked);
   };
 
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  var retoFh = { ymd: '', hm: '' };
+
+  function todayYmdReto() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function tomorrowYmdReto() {
+    var d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function syncRetoFhHiddenAndResumen() {
+    var inp = $('fecha-hora');
+    if (!inp) return;
+    if (retoFh.ymd && retoFh.hm) inp.value = retoFh.ymd + 'T' + retoFh.hm;
+    else inp.value = '';
+    var r = $('fecha-hora-resumen');
+    if (r) {
+      if (!retoFh.ymd || !retoFh.hm) r.textContent = 'Elegí fecha y franja u hora.';
+      else r.textContent = fmtDateTimeInvite(retoFh.ymd + 'T' + retoFh.hm);
+    }
+  }
+
+  function setFechaBtnsActive(mode) {
+    document.querySelectorAll('.reto-fh-fecha').forEach(function (b) {
+      b.classList.toggle('on', b.getAttribute('data-fecha') === mode);
+    });
+  }
+  function setHoraBtnsActive(slot) {
+    document.querySelectorAll('.reto-fh-hslot').forEach(function (b) {
+      b.classList.toggle('on', b.getAttribute('data-slot') === slot);
+    });
+  }
+
+  function setRetoFechaMode(mode) {
+    var wrap = $('fecha-otro-wrap');
+    var fo = $('fecha-otro');
+    setFechaBtnsActive(mode);
+    if (mode === 'hoy') {
+      retoFh.ymd = todayYmdReto();
+      if (wrap) wrap.classList.add('hide');
+      if (fo) fo.value = retoFh.ymd;
+    } else if (mode === 'manana') {
+      retoFh.ymd = tomorrowYmdReto();
+      if (wrap) wrap.classList.add('hide');
+      if (fo) fo.value = retoFh.ymd;
+    } else if (mode === 'otro') {
+      if (wrap) wrap.classList.remove('hide');
+      if (fo) {
+        var tmin = todayYmdReto();
+        if (!fo.value || fo.value < tmin) fo.value = tmin;
+        retoFh.ymd = fo.value;
+        try {
+          if (typeof fo.showPicker === 'function') fo.showPicker();
+        } catch (e1) {
+          fo.focus();
+        }
+      }
+    }
+    syncRetoFhHiddenAndResumen();
+  }
+
+  function setRetoHoraSlot(slotKey, hm) {
+    var hw = $('hora-otra-wrap');
+    var ho = $('hora-otra');
+    setHoraBtnsActive(slotKey);
+    if (slotKey === 'otra') {
+      if (hw) hw.classList.remove('hide');
+      if (ho) {
+        if (!ho.value) ho.value = '10:00';
+        retoFh.hm = ho.value;
+        try {
+          if (typeof ho.showPicker === 'function') ho.showPicker();
+        } catch (e2) {
+          ho.focus();
+        }
+      }
+    } else {
+      if (hw) hw.classList.add('hide');
+      retoFh.hm = hm;
+    }
+    syncRetoFhHiddenAndResumen();
+  }
+
+  document.querySelectorAll('.reto-fh-fecha').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setRetoFechaMode(btn.getAttribute('data-fecha'));
+    });
+  });
+  document.querySelectorAll('.reto-fh-hslot').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var s = btn.getAttribute('data-slot');
+      if (s === '8-12') setRetoHoraSlot('8-12', '09:00');
+      else if (s === '12-18') setRetoHoraSlot('12-18', '15:00');
+      else if (s === '18-22') setRetoHoraSlot('18-22', '20:00');
+      else if (s === 'otra')
+        setRetoHoraSlot('otra', (($('hora-otra') && $('hora-otra').value) || '10:00'));
+    });
+  });
+
+  var foEl = $('fecha-otro');
+  if (foEl) {
+    foEl.min = todayYmdReto();
+    function onFechaOtroPick() {
+      retoFh.ymd = (foEl.value || '').trim();
+      setFechaBtnsActive('otro');
+      syncRetoFhHiddenAndResumen();
+    }
+    foEl.addEventListener('change', onFechaOtroPick);
+    foEl.addEventListener('input', onFechaOtroPick);
+  }
+  var hoEl = $('hora-otra');
+  if (hoEl) {
+    function onHoraOtraPick() {
+      retoFh.hm = (hoEl.value || '').trim();
+      setHoraBtnsActive('otra');
+      syncRetoFhHiddenAndResumen();
+    }
+    hoEl.addEventListener('change', onHoraOtraPick);
+    hoEl.addEventListener('input', onHoraOtraPick);
+  }
+
+  syncRetoFhHiddenAndResumen();
+
   $('btn-publicar').onclick = function () {
     var fechaHora = $('fecha-hora').value;
     if (!fechaHora) return alert('Define fecha y hora');
+    var dtMs = new Date(fechaHora).getTime();
+    if (isNaN(dtMs)) return alert('Define fecha y hora válidas');
+    if (dtMs < Date.now() - 90 * 1000) return alert('El reto debe ser en fecha y hora futura.');
     if ($('con-handicap').checked && (!$('meta-rival').value || Number($('meta-rival').value) < 1)) {
       return alert('Define la meta rival para handicap');
     }
@@ -585,18 +817,6 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   $('btn-confirmar').onclick = function () { alert('Presencia confirmada ✅'); };
   $('btn-iniciar').onclick = function () { window.location.href = '/duelo-movil.html'; };
 
-  var pad = function (n) { return String(n).padStart(2, '0'); };
-  var minDt = new Date();
-  $('fecha-hora').min =
-    minDt.getFullYear() +
-    '-' +
-    pad(minDt.getMonth() + 1) +
-    '-' +
-    pad(minDt.getDate()) +
-    'T' +
-    pad(minDt.getHours()) +
-    ':' +
-    pad(minDt.getMinutes());
   }
 
   function bootstrap() {
