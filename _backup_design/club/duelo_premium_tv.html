@@ -1,0 +1,4473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#c9a84c">
+    <title>TV Salón — DeCarambola</title>
+    <link rel="stylesheet" href="/css/dc-system.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --oro: #d4af37;
+            --neon: #2eff70;
+            --rojo: #e74c3c;
+            --azul: #3498db;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0a0a0a;
+            color: var(--dc-text, #f0f0f0);
+            font-family: var(--dc-font-body, "DM Sans", system-ui, sans-serif);
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #p-inicio {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(16px, 4vw, 32px);
+        }
+        #p-inicio.oculta {
+            display: none !important;
+        }
+        .p-inicio-inner {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .p-inicio-wl-logo-wrap {
+            text-align: center;
+            min-height: 0;
+        }
+        .p-inicio-wl-logo-wrap[hidden] {
+            display: none !important;
+        }
+        @keyframes p-inicio-wl-pulse {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.9;
+                transform: scale(1.04);
+            }
+        }
+        .p-inicio-wl-logo-img {
+            max-height: 160px;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+            animation: p-inicio-wl-pulse 2.8s ease-in-out infinite;
+        }
+        .p-inicio-wl-nombre {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(1rem, 3.2vw, 1.35rem);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #c9a84c;
+            text-align: center;
+            line-height: 1.25;
+        }
+        .p-inicio-wl-nombre[hidden] {
+            display: none !important;
+        }
+        .p-inicio-tit {
+            font-size: clamp(1rem, 3.5vw, 1.35rem);
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #c9a84c;
+            text-align: center;
+        }
+        .btn-casual {
+            width: 100%;
+            padding: 18px 22px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #0a0a0a;
+            background: #c9a84c;
+            border: 2px solid rgba(201, 168, 76, 0.5);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: filter 0.15s, transform 0.12s;
+        }
+        .btn-casual:hover { filter: brightness(1.08); }
+        .btn-casual:active { transform: scale(0.99); }
+        .btn-bolas-lados-casual {
+            padding: 8px 12px;
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #e8e0d0;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(201, 168, 76, 0.4);
+            border-radius: 10px;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .btn-bolas-lados-casual:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .btn-bolas-lados-casual:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .btn-pro-grande {
+            width: 100%;
+            padding: 18px 22px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #c9a84c;
+            background: rgba(201, 168, 76, 0.08);
+            border: 2px solid #c9a84c;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: filter 0.15s, transform 0.12s, background 0.15s;
+        }
+        .btn-pro-grande:hover {
+            filter: brightness(1.06);
+            background: rgba(201, 168, 76, 0.14);
+        }
+        .btn-pro-grande:active { transform: scale(0.99); }
+        .pro-flow-oculto {
+            display: none !important;
+        }
+        .pro-flow-visible {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+        }
+        .p-inicio-sep {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 0.72rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+        .p-inicio-sep::before,
+        .p-inicio-sep::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(201, 168, 76, 0.25);
+        }
+        .pro-busca-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+        .pro-busca-row input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px 14px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: #f0f0f0;
+            background: #111;
+            border: 1px solid rgba(201, 168, 76, 0.22);
+            border-radius: 10px;
+        }
+        .pro-busca-row input::placeholder { color: #666; }
+        .pro-busca-row input:focus {
+            outline: none;
+            border-color: #c9a84c;
+        }
+        .btn-buscar-pro {
+            flex-shrink: 0;
+            padding: 12px 18px;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #c9a84c;
+            background: rgba(201, 168, 76, 0.1);
+            border: 1px solid rgba(201, 168, 76, 0.45);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-buscar-pro:hover { background: rgba(201, 168, 76, 0.18); }
+        .pro-msg {
+            min-height: 1.25em;
+            font-size: 0.85rem;
+            color: #e66;
+            text-align: center;
+        }
+        #dc-tv-grid {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: none;
+        }
+        #dc-tv-grid.grid-listo {
+            display: block;
+        }
+        /* Una mesa activa a la vez; misma geometría que duelo móvil + columna video al centro */
+        .card {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            inset: 0;
+            flex-direction: column;
+        }
+        .card.activa {
+            display: flex;
+        }
+        .premium-row {
+            flex: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(280px, 1.35fr) minmax(0, 1fr);
+            grid-template-rows: 1fr;
+            gap: 10px;
+            padding: 10px 12px 14px;
+            min-height: 0;
+            align-items: stretch;
+        }
+        @media (max-width: 900px) {
+            .premium-row:not(.premium-salon-duelo) {
+                grid-template-columns: minmax(0, 1fr) minmax(200px, 1.2fr) minmax(0, 1fr);
+                gap: 6px;
+                padding: 6px;
+            }
+        }
+        .col-side {
+            background: var(--dc-surface, #111111);
+            border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 14px 10px;
+            min-width: 0;
+            min-height: 0;
+        }
+        .col-side.der { border-color: rgba(201, 168, 76, 0.2); }
+        .col-side .lbl {
+            font-family: var(--dc-font-display, "Playfair Display", Georgia, serif);
+            font-size: 0.58rem;
+            letter-spacing: 0.18em;
+            color: var(--dc-text-muted, #888);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .col-side .nombre {
+            font-size: clamp(0.85rem, 1.8vw, 1.15rem);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: var(--dc-text, #f0f0f0);
+            line-height: 1.25;
+            word-break: break-word;
+            max-width: 100%;
+        }
+        .col-side .crono-big {
+            font-family: var(--dc-font-mono, "JetBrains Mono", monospace);
+            font-size: clamp(1.4rem, 3.2vw, 2.1rem);
+            color: var(--dc-gold, #c9a84c);
+            margin-top: 10px;
+            text-shadow: 0 0 12px rgba(201, 168, 76, 0.22);
+            transition: color 0.2s ease;
+        }
+        .col-side .mesa-num {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            font-family: var(--dc-font-mono, "JetBrains Mono", monospace);
+            color: var(--dc-gold, #c9a84c);
+            line-height: 1;
+        }
+        .col-side .mesa-sub {
+            font-size: 0.72rem;
+            color: var(--dc-text-muted, #888);
+            margin-top: 8px;
+            letter-spacing: 0.1em;
+        }
+        .col-video {
+            background: #000;
+            border: 1px solid var(--g1);
+            border-radius: 12px;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Mismo bloque que duelo-tv.html (.panel-video + .video-frame) */
+        .col-video .panel-video {
+            background: #050505;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            padding: 10px 8px;
+            align-items: center;
+            justify-content: flex-start;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
+        .col-video .panel-video h3 {
+            font-size: 0.6rem;
+            color: #777;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+        .col-video .video-frame {
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .col-video .video-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .col-video .video-frame video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: none;
+            background: #000;
+        }
+        .col-video .video-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+        }
+        /* Marcador TV salón: PRO y CASUAL comparten 3 zonas (header / grid 3 cols / footer); PRO tecla en footer */
+        .card.activa.premium-salon-card {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        /* ——— Casual: header fijo ~80px, medio flex:1 (3 cols iguales), footer fijo ~120px (teclado) ——— */
+        .salon-casual-root {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-height: 100vh;
+            min-height: 0;
+            box-sizing: border-box;
+            background: #0a0a0a;
+        }
+        /* Casual header: TIEMPO · $COSTO · cronómetro */
+        .salon-casual-z1 {
+            flex: 0 0 auto;
+            min-height: 64px;
+            background: #000;
+            border-bottom: 1px solid #1a1a1a;
+            box-sizing: border-box;
+            padding: 10px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .salon-casual-header-simple {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(10px, 2vw, 18px);
+            flex-wrap: wrap;
+            row-gap: 8px;
+            font-size: clamp(1rem, 2.4vw, 1.5rem);
+            font-weight: 600;
+            color: #b8b8b8;
+            letter-spacing: 0.02em;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .salon-casual-header-simple .salon-casual-hdr-reloj-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .salon-casual-header-simple .salon-casual-reloj-ent {
+            font-size: 0.72em;
+            color: #777;
+            letter-spacing: 0.1em;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .salon-casual-header-simple #reloj {
+            font-size: clamp(1.2rem, 3vw, 1.85rem);
+            color: var(--neon);
+            font-family: 'Courier New', monospace;
+            min-width: 44px;
+            text-align: center;
+            line-height: 1;
+        }
+        .salon-casual-header-simple .btn-pausa {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+        .salon-casual-header-simple .salon-casual-hdr-sep {
+            color: #444;
+            font-weight: 400;
+            user-select: none;
+        }
+        .salon-casual-header-simple .salon-casual-hdr-strong {
+            color: #f0f0f0;
+            font-family: 'Courier New', monospace;
+            font-weight: 800;
+        }
+        .salon-casual-header-simple .salon-casual-hdr-oro {
+            color: var(--oro);
+            font-family: 'Courier New', monospace;
+            font-weight: 800;
+        }
+        .salon-casual-header-simple .salon-casual-hdr-costo {
+            color: #9a9a9a;
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+        }
+        .btn-tema-salon-casual {
+            padding: 6px 10px;
+            font-size: 1.35rem;
+            line-height: 1;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            vertical-align: middle;
+        }
+        .btn-tema-salon-casual:active {
+            transform: scale(0.96);
+        }
+        .btn-tema-salon-inicio {
+            width: 100%;
+        }
+        /* MODO SOL ☀️ — body.tema-sol; localStorage dc_tema_salon: sol | oscuro (claro hereda a sol) */
+        body.tema-sol {
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+        body.tema-sol #p-inicio {
+            background: #ffffff;
+        }
+        body.tema-sol .p-inicio-tit {
+            color: #5a3800;
+        }
+        body.tema-sol .p-inicio-wl-nombre {
+            color: #8a6200;
+        }
+        body.tema-sol .p-inicio-sep {
+            color: rgba(90, 56, 0, 0.4);
+        }
+        body.tema-sol .pro-busca-row input {
+            background: #fff;
+            color: #1a1a1a;
+            border-color: #ccc;
+        }
+        body.tema-sol .btn-tema-salon-casual,
+        body.tema-sol .btn-tema-salon-inicio {
+            background: rgba(90, 56, 0, 0.08);
+            color: #5a3800;
+            border: 1px solid rgba(201, 168, 76, 0.55);
+        }
+        body.tema-sol .salon-casual-root {
+            background: #ffffff;
+            color: #1a1a1a;
+        }
+        body.tema-sol .salon-casual-z1,
+        body.tema-sol .salon-casual-z3 {
+            background: #c9a84c;
+            color: #5a3800;
+            border-color: rgba(90, 56, 0, 0.18);
+        }
+        body.tema-sol .salon-casual-header-simple,
+        body.tema-sol .salon-casual-header-simple .salon-casual-hdr-sep,
+        body.tema-sol .salon-casual-header-simple .salon-casual-hdr-oro,
+        body.tema-sol .salon-casual-header-simple .salon-casual-hdr-costo {
+            color: #5a3800;
+        }
+        body.tema-sol .salon-casual-controls-bar {
+            background: #b8922e;
+            border-bottom-color: rgba(90, 56, 0, 0.25);
+        }
+        body.tema-sol .salon-casual-controls-bar .btn-salir-config,
+        body.tema-sol .salon-casual-controls-bar .btn-siguiente-set,
+        body.tema-sol .salon-casual-controls-bar .btn-fin,
+        body.tema-sol .salon-casual-controls-bar .btn-bolas-lados-casual,
+        body.tema-sol .salon-casual-controls-bar .btn-bolas-tv {
+            border-color: rgba(90, 56, 0, 0.35);
+            color: #5a3800;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        body.tema-sol .salon-casual-controls-bar #btn-bolas-tv {
+            width: 28px;
+            height: 28px;
+            filter: brightness(1.5);
+            border: 2px solid #8a6200 !important;
+            box-sizing: border-box;
+        }
+        body.tema-sol .salon-casual-controls-bar .btn-fin {
+            border-color: rgba(90, 56, 0, 0.45);
+        }
+        body.tema-sol .salon-casual-controls-bar .btn-obs-transmitir {
+            background: linear-gradient(180deg, #f0d78c 0%, #c9a84c 50%, #8a7028 100%) !important;
+            color: #1a1204 !important;
+            border-color: #5a4010 !important;
+            box-shadow: 0 0 12px rgba(90, 56, 0, 0.2);
+        }
+        body.tema-sol .salon-casual-z2 {
+            background: #f5f0e8 !important;
+        }
+        body.tema-sol .salon-casual-root:not(.salon-pro-root) aside.salon-casual-col.salon-casual-col-j1.col-side,
+        body.tema-sol .salon-casual-root:not(.salon-pro-root) aside.salon-casual-col.salon-casual-col-j2.col-side {
+            background: #ffffff !important;
+            border: 1px solid rgba(201, 168, 76, 0.15) !important;
+            box-shadow: none !important;
+        }
+        body.tema-sol
+            .salon-casual-root:not(.salon-pro-root)
+            aside.salon-casual-col-j1.col-side:has(#panel-j1.activo),
+        body.tema-sol
+            .salon-casual-root:not(.salon-pro-root)
+            aside.salon-casual-col-j2.col-side:has(#panel-j2.activo) {
+            border: 3px solid #c9a84c !important;
+            box-shadow: none !important;
+        }
+        body.tema-sol
+            .salon-casual-root:not(.salon-pro-root)
+            .premium-salon-duelo
+            .salon-casual-col-j1
+            .panel-jugador.panel-jugador-casual-mid,
+        body.tema-sol
+            .salon-casual-root:not(.salon-pro-root)
+            .premium-salon-duelo
+            .salon-casual-col-j2
+            .panel-jugador.panel-jugador-casual-mid {
+            background: #ffffff !important;
+        }
+        body.tema-sol
+            .salon-casual-root:not(.salon-pro-root)
+            .premium-salon-duelo
+            .salon-casual-col-j1
+            .panel-jugador.panel-jugador-casual-mid.activo,
+        body.tema-sol
+            .salon-casual-root:not(.salon-pro-root)
+            .premium-salon-duelo
+            .salon-casual-col-j2
+            .panel-jugador.panel-jugador-casual-mid.activo {
+            background: rgba(212, 175, 55, 0.12) !important;
+        }
+        body.tema-sol .salon-pro-root aside.salon-casual-col-j1.col-side:has(#panel-j1.activo),
+        body.tema-sol .salon-pro-root aside.salon-casual-col-j2.col-side:has(#panel-j2.activo) {
+            background: #fdf8ec !important;
+            border: 3px solid #c9a84c !important;
+            box-shadow: none !important;
+        }
+        body.tema-sol .salon-pro-root aside.salon-casual-col-j1.col-side:not(:has(#panel-j1.activo)),
+        body.tema-sol .salon-pro-root aside.salon-casual-col-j2.col-side:not(:has(#panel-j2.activo)) {
+            background: #ffffff !important;
+            border: 1px solid rgba(201, 168, 76, 0.15) !important;
+            box-shadow: none !important;
+        }
+        body.tema-sol .salon-pro-root .panel-jugador-pro-mid,
+        body.tema-sol .salon-pro-root .panel-jugador-pro-mid.activo {
+            background: transparent !important;
+        }
+        body.tema-sol .salon-pro-root .panel-head-pro-mid .panel-meta {
+            color: #555;
+        }
+        body.tema-sol .salon-pro-root .salon-pro-stat-val {
+            color: #5a3800 !important;
+            font-size: 1.2rem !important;
+            font-weight: 700 !important;
+        }
+        body.tema-sol .salon-pro-stat-lbl {
+            color: #7a5c00 !important;
+        }
+        body.tema-sol .salon-pro-hdr-scores {
+            color: #5a3800;
+        }
+        body.tema-sol .salon-pro-hdr-ent {
+            color: #777;
+        }
+        body.tema-sol .salon-pro-stat-cell {
+            background: #f5f0e8 !important;
+            border: 1px solid rgba(201, 168, 76, 0.35) !important;
+        }
+        body.tema-sol .premium-salon-duelo .panel-jugador-casual-mid .panel-nombre-editable,
+        body.tema-sol .premium-salon-duelo .panel-jugador-casual-mid .panel-nombre-editable span,
+        body.tema-sol .premium-salon-duelo .panel-jugador-pro-mid .panel-nombre-editable,
+        body.tema-sol .premium-salon-duelo .panel-jugador-pro-mid .panel-nombre-editable span {
+            color: #0a0a0a !important;
+        }
+        body.tema-sol .premium-salon-duelo .panel-nombre-inp {
+            color: #0a0a0a !important;
+            background: #fff;
+            border: 1px solid #ccc;
+        }
+        body.tema-sol .premium-salon-duelo .salon-casual-score-big.salon-casual-score-big--lider {
+            color: #7a5c00 !important;
+        }
+        body.tema-sol .premium-salon-duelo .salon-casual-score-big.salon-casual-score-big--perdiendo {
+            color: #aaa !important;
+        }
+        body.tema-sol .salon-pro-root .salon-pro-col-marcador.salon-casual-score-big--lider,
+        body.tema-sol .salon-pro-root .salon-pro-col-marcador.salon-casual-score-big--perdiendo {
+            color: #7a5c00 !important;
+        }
+        body.tema-sol .premium-salon-duelo .btn-mini-num:not(.btn-mini-restar) {
+            background: #c9a84c;
+            color: #1a1a1a;
+            border: 1px solid #a07820;
+        }
+        body.tema-sol .premium-salon-duelo .btn-mini-restar {
+            background: #c0392b;
+            color: #fff;
+            border: 1px solid #962d22;
+        }
+        body:not(.tema-sol) .salon-casual-mini-tecl .btn-mini-restar {
+            display: none;
+        }
+        body.tema-sol .premium-salon-duelo .btn-ident-pro-col {
+            border-color: rgba(90, 56, 0, 0.4);
+            color: #3a2810;
+        }
+        body.tema-sol .salon-casual-col-cam {
+            background: #1a4a2e;
+            border: 1px solid rgba(0, 0, 0, 0.25);
+        }
+        body.tema-sol .salon-casual-col-cam .premium-salon-casual-mesa-video .panel-casual-mesa {
+            background: transparent;
+        }
+        body.tema-sol .salon-casual-col-cam .lbl-video-header {
+            color: rgba(255, 255, 255, 0.92);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        }
+        body.tema-sol .salon-casual-col-cam .video-frame-mesa-21 {
+            background: rgba(0, 0, 0, 0.12);
+            border-radius: 10px;
+        }
+        body.tema-sol .salon-casual-col-cam .video-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 16px;
+            min-height: 120px;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            background:
+                radial-gradient(ellipse 92% 48% at 50% 48%, rgba(45, 110, 72, 0.95) 0%, #1a4a2e 52%, #0f2d1c 100%),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 14px,
+                    rgba(0, 0, 0, 0.04) 14px,
+                    rgba(0, 0, 0, 0.04) 15px
+                ),
+                #1a4a2e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.25);
+        }
+        body.tema-sol .salon-casual-z3 .btn-cancel-jugada {
+            background: #fff0f0 !important;
+            border: 1px solid rgba(180, 50, 50, 0.4) !important;
+            color: #c0392b !important;
+        }
+        body.tema-sol .premium-salon-duelo .bola-casual-mid.bola-blanca {
+            background: radial-gradient(
+                    circle at 32% 28%,
+                    #ffffff 0%,
+                    #f0f0f0 30%,
+                    #cccccc 65%,
+                    #888888 100%
+                )
+                !important;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3), inset 0 -4px 8px rgba(0, 0, 0, 0.15) !important;
+            border: 2px solid #cccccc !important;
+        }
+        body.tema-sol .premium-salon-duelo .bola-casual-mid.bola-blanca::after {
+            top: 28%;
+            left: 32%;
+            width: 34%;
+            height: 24%;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.2) 45%, transparent 72%);
+        }
+        body.tema-sol .premium-salon-duelo .bola-casual-mid.bola-dorada {
+            box-shadow:
+                inset -10px -10px 22px rgba(0, 0, 0, 0.35),
+                inset 3px 3px 12px rgba(255, 230, 120, 0.45),
+                8px 12px 26px rgba(0, 0, 0, 0.28),
+                0 0 0 2px rgba(120, 90, 20, 0.2);
+        }
+        body.tema-sol #btn-pausa {
+            background: #8a6200 !important;
+            color: #ffffff !important;
+            border: 2px solid #5a3800 !important;
+        }
+        body.tema-sol .btn-restar:not(.salon-pro-btn-cancel-entrada) {
+            background: #c0392b !important;
+            color: #ffffff !important;
+            border-color: #7a1a1a !important;
+        }
+        body.tema-sol .mesa-indicator {
+            color: rgba(90, 56, 0, 0.45);
+        }
+        body.tema-sol .empty {
+            color: #666;
+        }
+        /* Barra táctil secundaria: operador (no cuenta como “header” visual principal) */
+        .salon-casual-controls-bar {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+            padding: 6px 10px;
+            background: #050505;
+            border-bottom: 1px solid #151515;
+        }
+        .salon-casual-controls-bar .salon-casual-ctrl-cluster {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .salon-casual-controls-bar .salon-casual-reloj-ent {
+            color: #555;
+            font-size: 0.55rem;
+            letter-spacing: 0.08em;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .salon-casual-controls-bar #reloj {
+            font-size: clamp(0.95rem, 2vw, 1.25rem);
+            color: var(--neon);
+            font-family: 'Courier New', monospace;
+            min-width: 36px;
+            text-align: center;
+        }
+        .salon-casual-controls-bar .btn-pausa {
+            width: 36px;
+            height: 36px;
+            font-size: 0.95rem;
+        }
+        .salon-casual-controls-bar .btn-salir-config,
+        .salon-casual-controls-bar .btn-siguiente-set,
+        .salon-casual-controls-bar .btn-fin,
+        .salon-casual-controls-bar .btn-bolas-lados-casual,
+        .salon-casual-controls-bar .btn-bolas-tv {
+            padding: 8px 12px;
+            font-size: 0.58rem;
+        }
+        .salon-casual-controls-bar .btn-bolas-lados-casual,
+        .salon-casual-controls-bar .btn-bolas-tv {
+            font-size: 1.05rem;
+        }
+        .salon-casual-controls-bar .btn-obs-transmitir {
+            padding: 8px 14px;
+            font-size: 0.52rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #0a0a0a;
+            background: linear-gradient(180deg, #e8c86a 0%, #c9a84c 45%, #a08030 100%);
+            border: 1px solid rgba(201, 168, 76, 0.85);
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 0 14px rgba(201, 168, 76, 0.25);
+        }
+        .salon-casual-controls-bar .btn-obs-transmitir:disabled {
+            opacity: 0.45;
+            cursor: wait;
+            box-shadow: none;
+        }
+        .salon-casual-z2 {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+            gap: 10px;
+            padding: 10px 12px;
+            box-sizing: border-box;
+            align-items: stretch;
+        }
+        .salon-casual-col {
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .premium-salon-duelo .salon-casual-col-j1,
+        .premium-salon-duelo .salon-casual-col-j2 {
+            border: 1px solid rgba(201, 168, 76, 0.15);
+            border-radius: 12px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .premium-salon-duelo aside.salon-casual-col-j1.col-side:has(#panel-j1.activo),
+        .premium-salon-duelo aside.salon-casual-col-j2.col-side:has(#panel-j2.activo) {
+            border: 3px solid #c9a84c;
+            box-sizing: border-box;
+        }
+        .premium-salon-duelo .salon-casual-col-j1 .panel-jugador-casual-mid,
+        .premium-salon-duelo .salon-casual-col-j2 .panel-jugador-casual-mid {
+            border: none;
+            border-radius: 0;
+        }
+        .premium-salon-duelo .panel-jugador-casual-mid {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 10px 8px;
+            gap: 0.5rem;
+        }
+        .premium-salon-duelo .panel-jugador-casual-mid .panel-head-casual {
+            flex-shrink: 0;
+            width: 100%;
+            text-align: center;
+        }
+        .premium-salon-duelo .salon-casual-mid-stack {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        /* Salón TV — modo PRO: mismo grid 3 cols que casual; borde dorado 3px solo en columna con #panel-j*.activo */
+        .premium-salon-duelo .salon-casual-col-j1 .panel-jugador-pro-mid,
+        .premium-salon-duelo .salon-casual-col-j2 .panel-jugador-pro-mid {
+            border: none;
+            border-radius: 0;
+        }
+        .premium-salon-duelo .panel-jugador-pro-mid {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 10px 8px;
+            gap: 0.5rem;
+        }
+        .salon-pro-root .panel-jugador-pro-mid.activo {
+            border-color: transparent !important;
+            box-shadow: none !important;
+            background: rgba(212, 175, 55, 0.1);
+        }
+        .panel-head-pro-mid {
+            flex-shrink: 0;
+            width: 100%;
+            text-align: center;
+        }
+        .panel-head-pro-mid .panel-meta {
+            margin: 6px 0 4px;
+        }
+        .premium-salon-duelo .panel-jugador-pro-mid .panel-nombre-editable {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: max(1.75rem, 3.3vw);
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            color: #ececec;
+            line-height: 1.12;
+            margin: 0;
+            padding: 6px 10px;
+            min-height: 44px;
+            word-break: break-word;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(201, 168, 76, 0.15);
+        }
+        .premium-salon-duelo .panel-jugador-pro-mid .panel-nombre-editable span {
+            border-bottom: 1px dashed rgba(201, 168, 76, 0.35);
+            pointer-events: none;
+        }
+        .premium-salon-duelo .panel-jugador-pro-mid .panel-nombre-inp {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: max(1.15rem, 2rem);
+        }
+        .salon-pro-mid-stack {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .salon-pro-turno-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .salon-pro-turno-nombre {
+            color: #c9a84c;
+            font-weight: 900;
+            font-family: 'Arial Black', sans-serif;
+            letter-spacing: 0.06em;
+            font-size: clamp(0.8rem, 2vw, 1.05rem);
+            line-height: 1.1;
+            max-width: min(220px, 42vw);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .salon-pro-hdr-scores {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78em;
+            color: #b8b8b8;
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+        }
+        .salon-pro-hdr-scores .salon-casual-hdr-oro {
+            color: var(--oro);
+        }
+        .salon-pro-stats-tri {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .salon-pro-stat-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-width: 0;
+            min-height: 76px;
+            background: #1a1a1a;
+            border: 1px solid rgba(201, 168, 76, 0.32);
+            border-radius: 10px;
+            padding: 10px 4px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .salon-pro-stat-val {
+            font-size: clamp(1.05rem, 3.4vw, 1.45rem);
+            font-weight: 800;
+            font-family: 'Courier New', monospace;
+            color: #f0e6d2;
+            line-height: 1;
+            letter-spacing: 0.02em;
+        }
+        .salon-pro-stat-lbl {
+            font-size: 0.62rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #c9a84c;
+            opacity: 0.95;
+            line-height: 1.2;
+        }
+        .salon-pro-root .salon-pro-col-marcador {
+            flex-shrink: 0;
+            width: 100%;
+            text-align: center;
+            line-height: 1;
+            margin: 4px 0 2px;
+        }
+        .salon-pro-mid-stack .bola-casual-mid {
+            min-height: clamp(140px, 22vh, 220px);
+        }
+        .salon-pro-mid-stack .bola-casual-mid .pts {
+            font-size: max(4.2rem, 12vw);
+            font-weight: 900;
+        }
+        .salon-pro-footer-teclado {
+            min-height: 120px;
+            padding: 10px 12px 12px;
+        }
+        .salon-pro-teclado-wrap {
+            max-width: 520px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+        .salon-pro-teclado-fila-siguiente {
+            width: 100%;
+            flex: 0 0 auto;
+            display: block;
+        }
+        .salon-pro-teclado-fila-acciones {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr) minmax(44px, 0.9fr) minmax(52px, 1.1fr);
+            gap: 6px;
+            align-items: stretch;
+        }
+        .salon-pro-teclado-fila-acciones .btn-num,
+        .salon-pro-teclado-fila-acciones .btn-restar,
+        .salon-pro-teclado-fila-acciones .salon-pro-btn-cancel-entrada {
+            min-height: 52px;
+            font-size: 1.25rem;
+        }
+        .salon-pro-btn-cancel-entrada {
+            font-family: 'Arial Black', sans-serif;
+            font-size: clamp(0.58rem, 1.65vw, 0.72rem) !important;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            padding: 6px 4px;
+            border-radius: 10px;
+            cursor: pointer;
+            user-select: none;
+            background: #4a1518 !important;
+            border: 1px solid #6b1f24 !important;
+            color: #f0c4c4 !important;
+            touch-action: manipulation;
+        }
+        .salon-pro-btn-cancel-entrada:active {
+            filter: brightness(1.08);
+            transform: scale(0.97);
+        }
+        .salon-pro-teclado-fila-acciones .btn-restar:not(.salon-pro-btn-cancel-entrada) {
+            background: rgba(180, 35, 35, 0.35);
+            border: 1px solid rgba(231, 76, 60, 0.55);
+            color: #ff8a80;
+            padding: 6px 2px;
+            line-height: 1;
+        }
+        .salon-pro-btn-sig-full {
+            width: 100%;
+            min-height: 48px;
+            height: auto;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        body.tema-sol .salon-pro-btn-cancel-entrada {
+            background: #8b2929 !important;
+            border: 1px solid #6b2020 !important;
+            color: #fff5f5 !important;
+        }
+        .salon-pro-perfil-prom {
+            font-size: 0.58rem;
+            color: rgba(180, 170, 150, 0.95);
+            letter-spacing: 0.06em;
+            text-align: center;
+            margin: 2px 0 4px;
+            line-height: 1.25;
+        }
+        body.tema-sol .salon-pro-root .salon-pro-perfil-prom {
+            color: #6a5a40;
+        }
+        .salon-pro-meta-editable {
+            cursor: pointer;
+            user-select: none;
+        }
+        .salon-pro-meta-editable .salon-pro-meta-static {
+            display: inline;
+        }
+        .salon-pro-meta-inp {
+            display: none;
+            max-width: 72px;
+            margin-left: 6px;
+            text-align: center;
+            font-size: clamp(0.65rem, 1.8vw, 0.82rem);
+        }
+        .salon-pro-handicap-sugerido {
+            font-size: 0.62rem;
+            color: #c9a84c;
+            text-align: center;
+            margin: 4px 0 0;
+            letter-spacing: 0.04em;
+            line-height: 1.25;
+            min-height: 1.1em;
+            font-weight: 700;
+        }
+        body.tema-sol .salon-pro-handicap-sugerido {
+            color: #7a5c00;
+        }
+        .premium-salon-duelo .salon-casual-score-big {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ececec;
+            line-height: 1;
+            font-family: 'Arial Black', system-ui, sans-serif;
+            letter-spacing: 0.02em;
+            transition: color 0.2s, transform 0.2s;
+        }
+        .premium-salon-duelo .salon-casual-score-big.salon-casual-score-big--lider {
+            color: #c9a84c;
+            transform: scale(1.1);
+            transform-origin: center center;
+        }
+        .premium-salon-duelo .salon-casual-score-big.salon-casual-score-big--perdiendo {
+            color: #ececec;
+            transform: scale(1);
+        }
+        .premium-salon-duelo .panel-jugador-casual-mid .panel-nombre-editable {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: max(2rem, 3.5vw);
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            color: #ececec;
+            line-height: 1.15;
+            padding: 8px 12px;
+            min-height: 48px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(201, 168, 76, 0.15);
+        }
+        .premium-salon-duelo .panel-jugador-casual-mid .panel-nombre-editable span {
+            border-bottom-color: rgba(201, 168, 76, 0.35);
+            pointer-events: none;
+        }
+        .premium-salon-duelo .panel-jugador-casual-mid .panel-nombre-inp {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: max(1.25rem, 2rem);
+        }
+        .premium-salon-duelo .panel-jugador-casual-mid .btn-ident-pro-col {
+            flex-shrink: 0;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: #0c0c0c;
+            background: linear-gradient(180deg, #eed78a 0%, #c9a84c 55%, #a88a3c 100%);
+            border: 1px solid rgba(230, 200, 120, 0.65);
+            border-radius: 8px;
+            padding: 8px 16px;
+            margin-top: 2px;
+        }
+        .premium-salon-duelo .panel-jugador-casual-mid .btn-ident-pro-col:hover {
+            filter: brightness(1.06);
+            color: #0c0c0c;
+            border-color: rgba(230, 200, 120, 0.85);
+        }
+        .premium-salon-duelo .salon-casual-mini-tecl {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: min(440px, 100%);
+            margin-top: 6px;
+        }
+        .premium-salon-duelo .btn-mini-num {
+            flex: 0 0 auto;
+            min-width: 60px;
+            min-height: 60px;
+            width: 60px;
+            height: 60px;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #eaeaea;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            border-radius: 12px;
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .premium-salon-duelo .btn-mini-num:active {
+            background: rgba(201, 168, 76, 0.2);
+        }
+        .premium-salon-duelo .salon-casual-mid-stack .bola-casual-mid {
+            margin: 0 auto;
+        }
+        .premium-salon-duelo .bola-casual-mid {
+            height: 55%;
+            width: auto;
+            max-width: 100%;
+            aspect-ratio: 1;
+            flex-shrink: 0;
+            min-height: 0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transform-origin: center center;
+        }
+        .premium-salon-duelo .bola-casual-mid .pts {
+            font-size: max(5rem, 14vw);
+            font-weight: 900;
+        }
+        @keyframes bola-casual-bump {
+            0% {
+                transform: scale(1);
+                filter: brightness(1);
+            }
+            50% {
+                transform: scale(1.18);
+                filter: brightness(1.5);
+            }
+            100% {
+                transform: scale(1);
+                filter: brightness(1);
+            }
+        }
+        .premium-salon-duelo .bola-casual-mid.bola-casual-bump {
+            animation: bola-casual-bump 0.25s ease-in-out;
+        }
+        .salon-casual-col-cam {
+            background: #050505;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: center;
+            min-height: 0;
+        }
+        .salon-casual-col-cam .premium-salon-casual-mesa-video {
+            border-bottom: none;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+        }
+        .salon-casual-col-cam .premium-salon-casual-mesa-video .panel-casual-mesa {
+            flex: 1;
+            min-height: 0;
+            justify-content: center;
+            padding: 8px;
+        }
+        .salon-casual-col-cam .video-frame-mesa-21 {
+            max-height: none;
+            width: 100%;
+            aspect-ratio: 2 / 1;
+            max-width: 100%;
+        }
+        .salon-casual-z3 {
+            flex: 0 0 auto;
+            min-height: 200px;
+            background: #000;
+            border-top: 1px solid #1a1a1a;
+            padding: 10px 12px 12px;
+            box-sizing: border-box;
+        }
+        .salon-casual-z3.salon-casual-footer-solo-cancel {
+            min-height: 0;
+            padding: 6px 12px 10px;
+        }
+        .salon-casual-cancel-wrap {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            max-width: min(900px, 100%);
+            margin: 0 auto;
+        }
+        .salon-casual-teclado-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: min(900px, 100%);
+            margin: 0 auto;
+        }
+        .salon-casual-z3 .teclado-header {
+            min-height: 26px;
+            padding: 0 2px;
+        }
+        .salon-casual-z3 .teclado {
+            flex: none;
+        }
+        .salon-casual-z3 .teclado-fila-principal {
+            flex: none;
+            min-height: 70px;
+        }
+        .salon-casual-z3 .btn-num,
+        .salon-casual-z3 .teclado-fila-principal .btn-restar {
+            min-height: 70px;
+            font-size: 2rem;
+            font-weight: 700;
+            padding: 10px 6px;
+        }
+        .salon-casual-z3 .btn-sig {
+            width: 100%;
+            min-height: 48px;
+            flex-shrink: 0;
+            margin: 0;
+            font-size: 0.85rem;
+        }
+        .salon-casual-z3 .btn-cancel-jugada {
+            margin: 0;
+            background: #1a1a1a;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: #666;
+            font-size: 0.55rem;
+            font-weight: 600;
+            padding: 6px 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .salon-casual-z3 .btn-cancel-jugada:active {
+            background: #222;
+            color: #777;
+            transform: scale(0.995);
+        }
+        @media (max-width: 900px) {
+            .salon-casual-z2 {
+                padding: 8px 6px;
+                gap: 6px;
+            }
+            .salon-casual-controls-bar .btn-siguiente-set {
+                padding: 6px 8px;
+                font-size: 0.52rem;
+            }
+        }
+        .premium-row.premium-salon-duelo {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+            grid-template-rows: 1fr;
+            height: 100vh;
+            max-height: 100vh;
+            min-height: 0;
+            box-sizing: border-box;
+            gap: 10px;
+            padding: 10px 12px 14px;
+            align-items: stretch;
+            align-content: stretch;
+        }
+        .premium-salon-duelo > .col-side {
+            justify-content: flex-start;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .premium-salon-duelo > .col-side .panel-jugador {
+            width: 100%;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        .premium-salon-col-centro {
+            min-width: 0;
+        }
+        .premium-salon-col-centro .premium-duelo-centro {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        @media (max-width: 900px) {
+            .premium-row.premium-salon-duelo {
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+                padding: 6px;
+                gap: 6px;
+            }
+        }
+        .premium-duelo-centro {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 0;
+            background: #000;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .premium-salon-duelo .barra-top {
+            background: #000;
+            border-bottom: 1px solid #1a1a1a;
+            flex-shrink: 0;
+        }
+        .premium-salon-duelo .barra-top-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            min-height: 52px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .premium-salon-duelo .meta-lbl { color: #333; font-size: 0.5rem; letter-spacing: 2px; }
+        .premium-salon-duelo .meta-val { color: var(--oro); font-size: 0.78rem; }
+        .premium-salon-duelo .reloj-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .premium-salon-duelo .reloj-ent { color: #333; font-size: 0.52rem; letter-spacing: 2px; }
+        .premium-salon-duelo #reloj {
+            font-size: clamp(1.4rem, 3.5vw, 2rem);
+            color: var(--neon);
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 12px var(--neon);
+            line-height: 1;
+            min-width: 48px;
+            text-align: center;
+        }
+        .premium-salon-duelo #reloj.urgente {
+            color: var(--rojo);
+            text-shadow: 0 0 12px var(--rojo);
+            animation: parpadeo 0.5s infinite;
+        }
+        @keyframes parpadeo { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+        .premium-salon-duelo .btn-pausa {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid #333;
+            color: #aaa;
+            font-size: 1rem;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .premium-salon-duelo .btn-fin {
+            background: rgba(231, 76, 60, 0.12);
+            border: 1px solid rgba(231, 76, 60, 0.4);
+            color: #e88;
+            padding: 6px 10px;
+            border-radius: 14px;
+            font-size: 0.58rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .premium-salon-duelo .btn-siguiente-set {
+            background: rgba(46, 255, 112, 0.1);
+            border: 1px solid rgba(46, 255, 112, 0.35);
+            color: var(--neon);
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 0.58rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .premium-salon-duelo .btn-siguiente-entrada-top {
+            background: linear-gradient(135deg, var(--azul), #1460a0);
+            border: 1px solid rgba(52, 152, 219, 0.45);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 0.56rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: 'Arial Black', sans-serif;
+            white-space: nowrap;
+        }
+        .premium-salon-duelo .btn-bolas-tv {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            color: #ddd;
+            padding: 5px 8px;
+            border-radius: 12px;
+            font-size: 0.55rem;
+            cursor: pointer;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .premium-salon-duelo .btn-salir-config {
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            color: var(--oro);
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 0.52rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            cursor: pointer;
+            font-family: 'Arial Black', sans-serif;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .premium-salon-duelo .barra-indicadores {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 6px 12px 8px;
+            font-size: 0.75rem;
+            color: #666;
+            letter-spacing: 1px;
+            border-top: 1px solid #111;
+            flex-wrap: wrap;
+        }
+        .premium-salon-duelo .barra-indicadores .ind-val {
+            color: var(--oro);
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+        .premium-salon-duelo .panel-jugador {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 8px 10px;
+            min-height: 0;
+            min-width: 0;
+        }
+        .premium-salon-duelo .panel-jugador.activo {
+            background: rgba(212, 175, 55, 0.12);
+            border: 2px solid var(--oro);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.28), inset 0 0 0 1px rgba(212, 175, 55, 0.12);
+        }
+        .premium-salon-duelo .panel-jugador h2 {
+            font-size: clamp(0.55rem, 2vw, 0.75rem);
+            letter-spacing: 2px;
+            color: #ccc;
+            margin-bottom: 8px;
+            text-align: center;
+            word-break: break-word;
+            line-height: 1.2;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .premium-salon-duelo .panel-meta {
+            font-size: 0.5rem;
+            color: #555;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .premium-salon-duelo .panel-meta span { color: var(--oro); }
+        .premium-salon-duelo .bola {
+            width: min(88%, 140px);
+            height: min(88%, 140px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .premium-salon-duelo .bola-blanca {
+            background: radial-gradient(circle at 35% 32%,
+                #fff 0%, #f0f0f0 15%, #d0d0d0 35%, #999 60%, #555 85%, #1a1a1a 100%);
+            box-shadow:
+                inset -12px -12px 24px rgba(0, 0, 0, 0.65),
+                inset 4px 4px 12px rgba(255, 255, 255, 0.35),
+                6px 8px 20px rgba(0, 0, 0, 0.9),
+                0 0 0 2px #111;
+        }
+        .premium-salon-duelo .bola-dorada {
+            background: radial-gradient(circle at 35% 32%,
+                #fffde0 0%, #fce84a 12%, #e8c020 30%, #c89a00 55%, #7a5500 80%, #2a1800 100%);
+            box-shadow:
+                inset -12px -12px 24px rgba(0, 0, 0, 0.6),
+                inset 4px 4px 12px rgba(255, 230, 80, 0.4),
+                6px 8px 20px rgba(0, 0, 0, 0.9),
+                0 0 0 2px #111,
+                0 0 18px rgba(212, 175, 55, 0.16);
+        }
+        .premium-salon-duelo .bola::after {
+            content: '';
+            position: absolute;
+            top: 12%;
+            left: 18%;
+            width: 30%;
+            height: 22%;
+            background: radial-gradient(ellipse, rgba(255, 255, 255, 0.75) 0%, transparent 80%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .premium-salon-duelo .bola .pts {
+            font-size: clamp(1.25rem, 5vw, 2.2rem);
+            font-weight: 900;
+            color: #111;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.25);
+            font-family: 'Arial Black', sans-serif;
+        }
+        .premium-salon-duelo .stats-grid {
+            margin-top: 6px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 10px;
+            font-size: 0.65rem;
+            color: #aaa;
+        }
+        .premium-salon-duelo .stat-label {
+            font-size: 0.52rem;
+            color: #777;
+            letter-spacing: 1px;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .premium-salon-duelo .stat-value {
+            font-family: 'Courier New', monospace;
+            font-weight: 900;
+            color: #fff;
+            font-size: clamp(0.85rem, 2.8vw, 1.25rem);
+        }
+        .premium-salon-duelo .panel-meta-bar {
+            width: 100%;
+            height: 4px;
+            background: #111;
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .premium-salon-duelo .panel-meta-fill {
+            height: 100%;
+            background: var(--oro);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .premium-salon-duelo .teclado-wrap {
+            position: relative;
+            bottom: auto;
+            left: auto;
+            right: auto;
+            z-index: 2;
+            background: #000;
+            border-top: 1px solid #1a1a1a;
+            padding: 8px 8px 10px;
+            flex: 1;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .premium-salon-duelo .teclado-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2px;
+            min-height: 34px;
+            flex-shrink: 0;
+        }
+        .premium-salon-duelo .turno-quien { display: flex; align-items: center; gap: 6px; }
+        .premium-salon-duelo .turno-bola {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .premium-salon-duelo .turno-bola.blanca {
+            background: radial-gradient(circle at 33% 33%, #fff, #999, #333);
+            box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.5), 2px 2px 6px rgba(0, 0, 0, 0.8);
+        }
+        .premium-salon-duelo .turno-bola.dorada {
+            background: radial-gradient(circle at 33% 33%, #ffe, var(--oro), #553);
+            box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.5), 2px 2px 6px rgba(0, 0, 0, 0.8);
+        }
+        .premium-salon-duelo .turno-nombre {
+            font-size: 0.72rem;
+            color: var(--oro);
+            letter-spacing: 1px;
+            line-height: 1;
+            font-weight: 900;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .premium-salon-duelo .turno-sub {
+            font-size: 0.48rem;
+            color: #555;
+            letter-spacing: 2px;
+            margin-top: 2px;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .premium-salon-duelo .turno-metas { display: flex; align-items: center; gap: 4px; }
+        .premium-salon-duelo .turno-meta-item {
+            display: flex;
+            align-items: baseline;
+            gap: 2px;
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 3px 8px;
+        }
+        .premium-salon-duelo .turno-meta-item.activo {
+            border-color: var(--oro);
+            background: rgba(212, 175, 55, 0.07);
+        }
+        .premium-salon-duelo .tm-val {
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+        }
+        .premium-salon-duelo .tm-tot {
+            font-size: 0.65rem;
+            color: #555;
+            font-family: 'Courier New', monospace;
+        }
+        .premium-salon-duelo .tm-sep { color: #333; font-size: 0.65rem; margin: 0 1px; }
+        .premium-salon-duelo .teclado {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            min-height: 0;
+        }
+        .premium-salon-duelo .teclado-fila-principal {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr) minmax(36px, 0.68fr);
+            gap: 5px;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
+        }
+        /* Vídeo 2:1 tipo mesa (solo bloque casual en columna central) */
+        .premium-salon-casual-mesa-video {
+            flex-shrink: 0;
+            width: 100%;
+            border-bottom: 1px solid #1a1a1a;
+            background: #050505;
+        }
+        .premium-salon-casual-mesa-video .panel-casual-mesa {
+            display: flex;
+            flex-direction: column;
+            padding: 6px 8px 8px;
+            width: 100%;
+        }
+        .premium-salon-casual-mesa-video .panel-casual-mesa h3 {
+            font-size: 0.55rem;
+            color: #777;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .premium-salon-casual-mesa-video .video-frame-mesa-21 {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 2 / 1;
+            max-height: min(40vh, 320px);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .salon-video-wm-club {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            z-index: 8;
+            max-height: 44px;
+            height: auto;
+            width: auto;
+            max-width: min(45%, 140px);
+            object-fit: contain;
+            pointer-events: none;
+            filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
+        }
+        .salon-video-wm-deca {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            z-index: 8;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 0.62rem;
+            letter-spacing: 0.12em;
+            color: rgba(201, 168, 76, 0.7);
+            white-space: nowrap;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+            pointer-events: none;
+            max-width: calc(100% - 16px);
+        }
+        .salon-video-wm-deca strong {
+            color: rgba(201, 168, 76, 0.85);
+            font-weight: 700;
+        }
+        .dc-salon-brand-fixed {
+            position: fixed;
+            bottom: 12px;
+            right: 16px;
+            z-index: 250;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            color: rgba(201, 168, 76, 0.6);
+            pointer-events: none;
+        }
+        .dc-salon-brand-fixed strong {
+            color: #c9a84c;
+            font-weight: 700;
+        }
+        .premium-salon-casual-mesa-video .video-frame-mesa-21 iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .premium-salon-casual-mesa-video .video-frame-mesa-21 video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .premium-salon-casual-mesa-video .video-placeholder {
+            color: #444;
+            font-size: 0.62rem;
+            letter-spacing: 0.08em;
+            text-align: center;
+            padding: 12px;
+        }
+        .premium-salon-duelo .panel-head-casual {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .premium-salon-duelo .panel-nombre-editable {
+            font-size: clamp(0.55rem, 2vw, 0.75rem);
+            letter-spacing: 2px;
+            color: #ccc;
+            margin: 0;
+            text-align: center;
+            word-break: break-word;
+            line-height: 1.2;
+            font-family: 'Arial Black', sans-serif;
+            cursor: pointer;
+            width: 100%;
+        }
+        .premium-salon-duelo .panel-nombre-editable span {
+            border-bottom: 1px dashed rgba(201, 168, 76, 0.25);
+        }
+        .premium-salon-duelo .panel-nombre-inp {
+            display: none;
+            width: 100%;
+            padding: 6px 8px;
+            font-size: clamp(0.6rem, 2vw, 0.8rem);
+            font-family: inherit;
+            text-align: center;
+            background: #111;
+            border: 1px solid var(--oro);
+            border-radius: 8px;
+            color: #eee;
+            box-sizing: border-box;
+        }
+        .premium-salon-duelo .panel-nombre-inp:focus {
+            outline: none;
+        }
+        .premium-salon-duelo .btn-ident-pro-col {
+            font-size: 0.52rem;
+            letter-spacing: 0.06em;
+            padding: 4px 8px;
+            margin: 0;
+            background: transparent;
+            color: rgba(180, 180, 180, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--dc-font-body, 'DM Sans', sans-serif);
+            white-space: nowrap;
+        }
+        .premium-salon-duelo .btn-ident-pro-col:hover {
+            color: rgba(201, 168, 76, 0.9);
+            border-color: rgba(201, 168, 76, 0.2);
+            background: rgba(201, 168, 76, 0.05);
+        }
+        .premium-salon-duelo .btn-num {
+            background: #111;
+            border: 1px solid #1c1c1c;
+            color: #fff;
+            border-radius: 10px;
+            font-size: clamp(1.1rem, 3vw, 1.45rem);
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.1s;
+            font-family: 'Arial Black', sans-serif;
+            user-select: none;
+            padding: 8px 4px;
+        }
+        .premium-salon-duelo .btn-num:active {
+            background: #252525;
+            transform: scale(0.95);
+            border-color: var(--oro);
+        }
+        .premium-salon-duelo .teclado-fila-principal .btn-restar {
+            background: rgba(180, 35, 35, 0.35);
+            border: 1px solid rgba(231, 76, 60, 0.55);
+            color: #ff8a80;
+            font-size: clamp(0.95rem, 2.9vw, 1.22rem);
+            padding: 6px 2px;
+            line-height: 1;
+        }
+        .premium-salon-duelo .teclado-fila-principal .btn-restar:active {
+            background: rgba(200, 50, 50, 0.45);
+            border-color: var(--rojo);
+        }
+        .premium-salon-duelo .btn-cancel-jugada {
+            flex-shrink: 0;
+            width: 100%;
+            box-sizing: border-box;
+            background: #3d1010;
+            border: 1px solid #5c1a1a;
+            color: #e8c8c8;
+            border-radius: 10px;
+            font-size: clamp(0.48rem, 1.5vw, 0.62rem);
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.1s;
+            font-family: 'Arial Black', sans-serif;
+            user-select: none;
+            padding: 10px 8px;
+            line-height: 1.2;
+            letter-spacing: 0.06em;
+            text-align: center;
+        }
+        .premium-salon-duelo .btn-cancel-jugada:active {
+            background: #2a0b0b;
+            transform: scale(0.99);
+            border-color: #7a2424;
+        }
+        .premium-salon-duelo .btn-sig {
+            height: 36px;
+            background: linear-gradient(135deg, var(--azul), #1460a0);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.72rem;
+            font-weight: 900;
+            cursor: pointer;
+            letter-spacing: 1px;
+            font-family: 'Arial Black', sans-serif;
+        }
+        .premium-salon-duelo .tv-exit-links { display: none; }
+        #modal-identificar-pro {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            background: rgba(0, 0, 0, 0.82);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #modal-identificar-pro.abierto {
+            display: flex;
+        }
+        .modal-ident-inner {
+            width: 100%;
+            max-width: 400px;
+            background: #111;
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            border-radius: 16px;
+            padding: 22px;
+        }
+        .modal-ident-inner h2 {
+            font-size: 0.85rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #c9a84c;
+            margin-bottom: 14px;
+        }
+        .modal-ident-inner .pro-busca-row {
+            margin-bottom: 12px;
+        }
+        .modal-ident-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 14px;
+        }
+        .btn-modal-cerrar {
+            font-family: inherit;
+            font-size: 0.72rem;
+            padding: 10px 14px;
+            background: #222;
+            color: #aaa;
+            border: 1px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .overlay-mda {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .overlay-logo-club {
+            position: absolute;
+            top: 12px;
+            left: 14px;
+            opacity: 0.35;
+            max-width: 180px;
+            font-size: 0.68rem;
+            color: var(--dc-gold, #c9a84c);
+            letter-spacing: 0.12em;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .overlay-logo-club.overlay-club--off {
+            display: none !important;
+        }
+        .overlay-club-logo-img {
+            max-height: 64px;
+            width: auto;
+            max-width: 180px;
+            object-fit: contain;
+            display: block;
+            opacity: 0.95;
+        }
+        body.tema-sol .overlay-logo-club {
+            opacity: 0.85;
+        }
+        .overlay-marca {
+            position: absolute;
+            bottom: 10px;
+            right: 14px;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.12em;
+            font-weight: 600;
+        }
+        .nav-mesas {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+            pointer-events: all;
+            background: rgba(0, 0, 0, 0.45);
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            padding: 12px 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            opacity: 0.55;
+            transition: opacity 0.2s;
+        }
+        .nav-mesas:hover { opacity: 1; }
+        .nav-prev { left: 8px; }
+        .nav-next { right: 8px; }
+        .nav-mesas.oculto { display: none; }
+        .mesa-indicator {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            font-size: 0.62rem;
+            color: rgba(255, 255, 255, 0.45);
+            letter-spacing: 0.14em;
+            pointer-events: none;
+        }
+        .empty {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #555;
+            font-size: 0.8rem;
+            max-width: 90vw;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+<div id="p-inicio">
+    <div class="p-inicio-inner">
+        <div class="p-inicio-wl-logo-wrap" id="p-inicio-wl-logo-wrap" hidden>
+            <img class="p-inicio-wl-logo-img" id="p-inicio-wl-logo" alt="" />
+        </div>
+        <div class="p-inicio-tit">TV Salón</div>
+        <button type="button" class="btn-tema-salon-casual btn-tema-salon-inicio" id="btn-tema-salon-inicio" title="Modo sol" aria-pressed="false">☀️</button>
+        <div class="p-inicio-wl-nombre" id="p-inicio-wl-nombre" hidden></div>
+        <button type="button" class="btn-casual" id="btn-iniciar-casual">INICIAR CASUAL</button>
+        <button type="button" class="btn-pro-grande" id="btn-iniciar-pro">INICIAR PRO</button>
+        <p class="pro-msg" id="pro-msg" aria-live="polite"></p>
+    </div>
+</div>
+<button type="button" class="nav-mesas nav-prev oculto" id="btn-prev" onclick="navMesa(-1)">‹</button>
+<button type="button" class="nav-mesas nav-next oculto" id="btn-next" onclick="navMesa(1)">›</button>
+<div class="mesa-indicator" id="mesa-indicator"></div>
+<div id="dc-tv-grid"></div>
+<div id="modal-identificar-pro" aria-hidden="true">
+    <div class="modal-ident-inner">
+        <h2>Identificar jugador (PRO)</h2>
+        <div class="pro-busca-row">
+            <input type="search" id="modal-pro-input" autocomplete="off" placeholder="Cédula o nombre" />
+            <button type="button" class="btn-buscar-pro" id="modal-pro-buscar">BUSCAR</button>
+        </div>
+        <p class="pro-msg" id="modal-pro-msg"></p>
+        <div class="modal-ident-actions">
+            <button type="button" class="btn-modal-cerrar" id="modal-pro-cerrar">Cerrar</button>
+        </div>
+    </div>
+</div>
+<div class="overlay-mda">
+    <div class="overlay-logo-club" id="overlay-club">CLUB</div>
+    <div class="overlay-marca">decarambola.com</div>
+</div>
+<script type="module">
+    import { supabase } from '../js/supabase-client.js';
+
+    function getClubIdFromPage() {
+        try {
+            var q = new URLSearchParams(window.location.search).get('club');
+            if (q && String(q).trim()) return String(q).trim();
+        } catch (e) {}
+        try {
+            var p = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+            if (p && p.club_id) return String(p.club_id).trim();
+        } catch (e2) {}
+        return '';
+    }
+
+    function urlStreamingMesa(m) {
+        if (!m) return '';
+        var u = (m.url_camara || '').trim();
+        if (!u && m.urls_camaras && m.urls_camaras.length) {
+            var first = m.urls_camaras[0];
+            u = (first && typeof first === 'object' && first.url) ? String(first.url).trim() : (typeof first === 'string' ? first.trim() : '');
+        }
+        return u || '';
+    }
+
+    function escAttr(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;');
+    }
+    function escHtml(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function getObjLocalStorage(key) {
+        try {
+            return JSON.parse(localStorage.getItem(key) || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    /** Base pública para URLs relativas (misma idea que duelo-tv.html / certificados). */
+    function getWlPublicBaseUrl() {
+        return (
+            (typeof localStorage !== 'undefined' && localStorage.getItem('wl_cert_base_url')) ||
+            window.location.origin ||
+            ''
+        )
+            .replace(/\/$/, '');
+    }
+
+    function absolutizarClubLogoUrl(url) {
+        var u = String(url || '').trim();
+        if (!u) return '';
+        if (/^https?:\/\//i.test(u) || /^data:/i.test(u) || /^blob:/i.test(u)) return u;
+        var base = getWlPublicBaseUrl();
+        if (!base) return u;
+        if (u.charAt(0) === '/') return base + u;
+        return base + '/' + u;
+    }
+
+    /**
+     * White label: CLUB_CONFIG + wl_club_nombre / wl_club_logo(_url), alineado con duelo-tv.html (window.WL).
+     */
+    function leerClubWhiteLabel() {
+        var cfg = getObjLocalStorage('CLUB_CONFIG');
+        var nombre = '';
+        try {
+            nombre =
+                (window.WL && window.WL.getNombreClub && String(window.WL.getNombreClub() || '').trim()) ||
+                (localStorage.getItem('wl_club_nombre') || '').trim() ||
+                (cfg.nombre && String(cfg.nombre).trim()) ||
+                '';
+        } catch (e) {
+            nombre = '';
+        }
+        if (!nombre) {
+            try {
+                var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+                if (perfil && perfil.club) nombre = String(perfil.club).trim();
+            } catch (e2) {}
+        }
+        var clubActivo = getObjLocalStorage('club_activo');
+        var logoRaw = '';
+        try {
+            logoRaw =
+                (window.WL && window.WL.getLogoUrl && String(window.WL.getLogoUrl() || '').trim()) ||
+                (localStorage.getItem('wl_club_logo_url') || '').trim() ||
+                (localStorage.getItem('wl_club_logo') || '').trim() ||
+                (clubActivo.logo_url && String(clubActivo.logo_url).trim()) ||
+                (clubActivo.logoUrl && String(clubActivo.logoUrl).trim()) ||
+                (cfg.logoUrl && String(cfg.logoUrl).trim()) ||
+                (cfg.logo && String(cfg.logo).trim()) ||
+                '';
+        } catch (e3) {
+            logoRaw = '';
+        }
+        return {
+            nombre: nombre,
+            logo: absolutizarClubLogoUrl(logoRaw)
+        };
+    }
+
+    /** Logo de prueba MVIP si no hay club_id en perfil (fallback). */
+    var MVIP_FALLBACK_LOGO_URL =
+        'https://iwvogyloebvieloequzr.supabase.co/storage/v1/object/public/imagen_maste_v_i_p_.png/imagen%20maste%20v.i.p..png';
+
+    function isClubKeyLikelyUuid(key) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+            String(key || '').trim()
+        );
+    }
+
+    function clubActivoObjSafe() {
+        try {
+            var raw = localStorage.getItem('club_activo');
+            if (!raw || raw === 'null') return {};
+            var o = JSON.parse(raw);
+            return o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    /** true si ya hay URL de logo en localStorage (mismas fuentes que leerClubWhiteLabel). */
+    function tieneLogoClubEnLocalStorage() {
+        try {
+            if (window.WL && window.WL.getLogoUrl && String(window.WL.getLogoUrl() || '').trim()) return true;
+        } catch (e) {}
+        if ((localStorage.getItem('wl_club_logo_url') || '').trim()) return true;
+        if ((localStorage.getItem('wl_club_logo') || '').trim()) return true;
+        var cfg = getObjLocalStorage('CLUB_CONFIG');
+        if (cfg && typeof cfg === 'object') {
+            if ((cfg.logoUrl && String(cfg.logoUrl).trim()) || (cfg.logo && String(cfg.logo).trim())) return true;
+        }
+        var ca = clubActivoObjSafe();
+        if ((ca.logo_url && String(ca.logo_url).trim()) || (ca.logoUrl && String(ca.logoUrl).trim())) return true;
+        return false;
+    }
+
+    /** club_id de perfil: mi_perfil.club_id o club_activo.id */
+    function obtenerClubKeyParaConsultaClubs() {
+        try {
+            var p = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+            if (p && p.club_id) return String(p.club_id).trim();
+        } catch (e) {}
+        var ca = clubActivoObjSafe();
+        if (ca.id) return String(ca.id).trim();
+        return '';
+    }
+
+    function guardarClubConfigMerge(partial) {
+        var cfg = getObjLocalStorage('CLUB_CONFIG');
+        if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) cfg = {};
+        Object.keys(partial || {}).forEach(function (k) {
+            var v = partial[k];
+            if (v !== undefined && v !== null && String(v).trim() !== '') cfg[k] = v;
+        });
+        try {
+            localStorage.setItem('CLUB_CONFIG', JSON.stringify(cfg));
+        } catch (e) {}
+    }
+
+    /**
+     * Si no hay logo en localStorage, lee clubs en Supabase y guarda CLUB_CONFIG
+     * (nombre, logo ← logo_url, color_primario). Sin club_id: solo logo MVIP de prueba.
+     */
+    async function hidratarClubConfigDesdeSupabaseSiFaltaLogo() {
+        if (tieneLogoClubEnLocalStorage()) return;
+        var key = obtenerClubKeyParaConsultaClubs();
+        if (!key) {
+            guardarClubConfigMerge({
+                logo: MVIP_FALLBACK_LOGO_URL,
+                logoUrl: MVIP_FALLBACK_LOGO_URL
+            });
+            return;
+        }
+        var sel = 'nombre,logo_url,color_primario';
+        var row = null;
+        try {
+            if (isClubKeyLikelyUuid(key)) {
+                var byId = await supabase.from('clubs').select(sel).eq('id', key).maybeSingle();
+                if (!byId.error && byId.data) row = byId.data;
+                if (!row) {
+                    var byCod = await supabase.from('clubs').select(sel).eq('codigo', key).maybeSingle();
+                    if (!byCod.error && byCod.data) row = byCod.data;
+                }
+            } else {
+                var byCode = await supabase.from('clubs').select(sel).eq('codigo', key).maybeSingle();
+                if (!byCode.error && byCode.data) row = byCode.data;
+            }
+        } catch (e) {
+            row = null;
+        }
+        if (!row) return;
+        var logo = (row.logo_url && String(row.logo_url).trim()) || '';
+        var patch = {
+            nombre: row.nombre != null ? String(row.nombre).trim() : '',
+            logo: logo,
+            logoUrl: logo,
+            color_primario: row.color_primario != null ? String(row.color_primario).trim() : ''
+        };
+        guardarClubConfigMerge(patch);
+        try {
+            if (patch.nombre) localStorage.setItem('wl_club_nombre', patch.nombre);
+            if (logo) localStorage.setItem('wl_club_logo_url', logo);
+            if (patch.color_primario) localStorage.setItem('wl_club_color', patch.color_primario);
+        } catch (e2) {}
+    }
+
+    function aplicarWhiteLabelPInicio() {
+        var w = leerClubWhiteLabel();
+        var wrap = document.getElementById('p-inicio-wl-logo-wrap');
+        var img = document.getElementById('p-inicio-wl-logo');
+        var nomEl = document.getElementById('p-inicio-wl-nombre');
+        if (w.logo && img && wrap) {
+            img.src = w.logo;
+            img.alt = w.nombre || 'Club';
+            wrap.hidden = false;
+        } else if (wrap && img) {
+            wrap.hidden = true;
+            img.removeAttribute('src');
+            img.alt = '';
+        }
+        if (nomEl) {
+            if (w.nombre) {
+                nomEl.textContent = w.nombre;
+                nomEl.hidden = false;
+            } else {
+                nomEl.textContent = '';
+                nomEl.hidden = true;
+            }
+        }
+    }
+
+    /** Esquina superior izquierda durante partida; oculto en pantalla de inicio (logo ya en #p-inicio). */
+    function aplicarWhiteLabelOverlay() {
+        var el = document.getElementById('overlay-club');
+        if (!el) return;
+        el.classList.remove('overlay-club--off');
+        el.innerHTML = '';
+        el.style.opacity = '';
+        var pin = document.getElementById('p-inicio');
+        var inicioVisible = pin && !pin.classList.contains('oculta');
+        if (inicioVisible) {
+            el.classList.add('overlay-club--off');
+            return;
+        }
+        var w = leerClubWhiteLabel();
+        if (tvSession && w.logo) {
+            var im = document.createElement('img');
+            im.className = 'overlay-club-logo-img';
+            im.src = w.logo;
+            im.alt = w.nombre || 'Club';
+            el.appendChild(im);
+            el.style.opacity = '1';
+        } else if (tvSession && w.nombre) {
+            el.textContent = w.nombre.toUpperCase();
+            el.style.opacity = '0.9';
+        } else {
+            el.textContent = 'CLUB';
+        }
+        var om = document.querySelector('.overlay-marca');
+        if (om) om.style.display = tvSession ? 'none' : '';
+    }
+
+    function aplicarMarcaClubTV() {
+        aplicarWhiteLabelPInicio();
+        aplicarWhiteLabelOverlay();
+    }
+
+    var clubId = getClubIdFromPage();
+    var mesasById = {};
+    var sesionesByMesa = {};
+    var tickTimer = null;
+    /** Sesión iniciada desde la pantalla de inicio (casual o PRO). */
+    var tvSession = null;
+    /** Columna desde la que se abrió el modal Identificar PRO (1 = J1, 2 = J2). */
+    var identificarProSlot = 1;
+
+    function tvSetText(id, text) {
+        var el = document.getElementById(id);
+        if (el) el.innerText = text;
+    }
+
+    function actualizarIndicadorTvSalon() {
+        if (!tvSession) return;
+        var ind = document.getElementById('mesa-indicator');
+        if (!ind) return;
+        var meta = tvSession.meta != null ? tvSession.meta : 40;
+        if (tvSession.type === 'pro') {
+            ind.textContent =
+                'PRO · ' +
+                (tvSession.jugador && tvSession.jugador.nombre ? tvSession.jugador.nombre : '') +
+                ' · Meta ' +
+                meta;
+        } else {
+            ind.textContent =
+                'CASUAL · ' + (tvSession.j1 || '') + ' vs ' + (tvSession.j2 || '') + ' · Meta ' + meta;
+        }
+    }
+
+    function minutosTranscurridosPartidaSalon() {
+        if (!partidaStartTime) return 0;
+        var elapsedMs = pausado
+            ? pauseStartTime - partidaStartTime - partidaTotalPausedMs
+            : Date.now() - partidaStartTime - partidaTotalPausedMs;
+        return Math.max(0, elapsedMs / 60000);
+    }
+
+    function formatPesosSalon(valor) {
+        var n = Math.round(Number(valor));
+        if (!isFinite(n)) n = 0;
+        return '$' + n.toLocaleString('es-CO', { maximumFractionDigits: 0 });
+    }
+
+    function actualizarCasualCostoHeader() {
+        if (!tvSession || tvSession.type !== 'casual') return;
+        var el = document.getElementById('salon-casual-costo');
+        if (!el) return;
+        var tarifa = tvSession.tarifaHora;
+        if (tarifa != null && isFinite(tarifa) && tarifa > 0) {
+            var minutos = minutosTranscurridosPartidaSalon();
+            var importe = minutos * (tarifa / 60);
+            el.textContent = formatPesosSalon(importe);
+            return;
+        }
+        var c =
+            tvSession.costoSalon != null ? String(tvSession.costoSalon).trim() : '';
+        if (!c || c === '—') {
+            el.textContent = '$—';
+            return;
+        }
+        el.textContent = c.charAt(0) === '$' ? c : '$' + c;
+    }
+
+    var LS_TEMA_SALON = 'dc_tema_salon';
+
+    function getTemaSalonPreferido() {
+        try {
+            var v = (localStorage.getItem(LS_TEMA_SALON) || '').trim();
+            if (v === 'sol' || v === 'claro') return 'sol';
+            return 'oscuro';
+        } catch (e) {
+            return 'oscuro';
+        }
+    }
+
+    function syncTemaSalonBotones(esSol) {
+        var icon = esSol ? '🌙' : '☀️';
+        var title = esSol ? 'Modo oscuro' : 'Modo sol ☀️';
+        var pressed = esSol ? 'true' : 'false';
+        ['btn-tema-salon', 'btn-tema-salon-inicio'].forEach(function (id) {
+            var b = document.getElementById(id);
+            if (b) {
+                b.textContent = icon;
+                b.title = title;
+                b.setAttribute('aria-pressed', pressed);
+            }
+        });
+    }
+
+    function aplicarTemaSalon() {
+        var esSol = getTemaSalonPreferido() === 'sol';
+        document.body.classList.toggle('tema-sol', esSol);
+        syncTemaSalonBotones(esSol);
+    }
+
+    function aplicarTemaSalonCasual() {
+        aplicarTemaSalon();
+    }
+
+    function toggleTemaSalonCasual() {
+        var next = getTemaSalonPreferido() === 'sol' ? 'oscuro' : 'sol';
+        try {
+            localStorage.setItem(LS_TEMA_SALON, next);
+        } catch (e) {}
+        aplicarTemaSalon();
+    }
+
+    function entrarSalonDesdeInicio() {
+        var pin = document.getElementById('p-inicio');
+        if (pin) pin.classList.add('oculta');
+        var g = document.getElementById('dc-tv-grid');
+        if (g) g.classList.add('grid-listo');
+        aplicarWhiteLabelOverlay();
+    }
+
+    function resetPantallaProInicio() {
+        var pm = document.getElementById('pro-msg');
+        if (pm) pm.textContent = '';
+    }
+
+    function iniciarPro() {
+        resetPantallaProInicio();
+        tvSession = {
+            type: 'pro',
+            meta: 40,
+            j1: 'Jugador A',
+            j2: 'Jugador B',
+            jugador: null,
+            jugador2: null
+        };
+        entrarSalonDesdeInicio();
+        render();
+    }
+    window.iniciarPro = iniciarPro;
+
+    function abrirFlujoProDesdeInicio() {
+        iniciarPro();
+    }
+    window.abrirFlujoProDesdeInicio = abrirFlujoProDesdeInicio;
+
+    function ilikeBusquedaSegura(q) {
+        return String(q || '').replace(/[%_\\]/g, '').trim();
+    }
+
+    async function buscarJugadorProDesdeTexto(qRaw) {
+        if (!qRaw || !String(qRaw).trim()) return { row: null, err: 'Ingresá cédula o nombre.', multi: false };
+        var row = null;
+        var cedTry = qRaw.replace(/\s/g, '');
+        var rCed = await supabase.from('jugadores').select('*').eq('cedula', cedTry).maybeSingle();
+        if (!rCed.error) row = rCed.data;
+        if (!row) {
+            var digits = qRaw.replace(/\D/g, '');
+            if (digits.length >= 4) {
+                var rDig = await supabase.from('jugadores').select('*').eq('cedula', digits).maybeSingle();
+                if (!rDig.error) row = rDig.data;
+            }
+        }
+        if (!row) {
+            var safe = ilikeBusquedaSegura(qRaw);
+            if (!safe) return { row: null, err: 'Ingresá cédula o nombre.', multi: false };
+            var qNom = supabase.from('jugadores').select('*').ilike('nombre', '%' + safe + '%').limit(8);
+            if (clubId) qNom = qNom.eq('club_id', clubId);
+            var rNom = await qNom;
+            if (rNom.error) return { row: null, err: 'No se pudo buscar. Reintentá.', multi: false };
+            var rows = rNom.data || [];
+            if (rows.length === 0) return { row: null, err: 'No se encontró jugador.', multi: false };
+            if (rows.length > 1) return { row: null, err: 'Varios resultados. Afiná el nombre o usá la cédula.', multi: true };
+            row = rows[0];
+        }
+        if (!row) return { row: null, err: 'No se encontró jugador.', multi: false };
+        return { row: row, err: null, multi: false };
+    }
+
+    async function buscarPro() {
+        iniciarPro();
+    }
+    window.buscarPro = buscarPro;
+
+    function iniciarCasual() {
+        var pm = document.getElementById('pro-msg');
+        if (pm) pm.textContent = '';
+        resetPantallaProInicio();
+        var costoQ = '';
+        var tarifaHora = null;
+        try {
+            var params = new URLSearchParams(window.location.search);
+            costoQ = (params.get('costo') || '').trim();
+            var tRaw = (params.get('tarifa_hora') || params.get('tarifa') || '').trim().replace(',', '.');
+            var tNum = parseFloat(tRaw);
+            if (isFinite(tNum) && tNum > 0) tarifaHora = tNum;
+        } catch (e) {}
+        tvSession = {
+            type: 'casual',
+            meta: 40,
+            j1: 'Jugador A',
+            j2: 'Jugador B',
+            costoSalon: costoQ || '—',
+            tarifaHora: tarifaHora
+        };
+        entrarSalonDesdeInicio();
+        render();
+    }
+    window.iniciarCasual = iniciarCasual;
+
+    function salonSalirInicio(skipConfirm) {
+        if (!skipConfirm && !confirm('¿Salir al inicio? El marcador se reiniciará.')) return;
+        try {
+            clearInterval(timer);
+        } catch (e) {}
+        timer = null;
+        partidaTerminada = false;
+        tvSession = null;
+        proUltimoCambio = null;
+        if (salonTvOverlayPublishTimer) {
+            try {
+                clearTimeout(salonTvOverlayPublishTimer);
+            } catch (e) {}
+            salonTvOverlayPublishTimer = null;
+        }
+        salonOverlayMatchId = null;
+        salonTvOverlayLastPublish = 0;
+        var pin = document.getElementById('p-inicio');
+        if (pin) pin.classList.remove('oculta');
+        resetPantallaProInicio();
+        var g = document.getElementById('dc-tv-grid');
+        if (g) {
+            g.classList.remove('grid-listo');
+            g.innerHTML = '';
+        }
+        mesasOcupadas = [];
+        mesaActualIdx = 0;
+        if (clubId) cargarSnapshot();
+        else {
+            var ind = document.getElementById('mesa-indicator');
+            if (ind) ind.textContent = '';
+        }
+        aplicarMarcaClubTV();
+    }
+
+    var bolasInvertidas = false;
+    /** PRO: último cambio de entrada (SIG. ENTRADA) para deshacer con CANCEL. */
+    var proUltimoCambio = null;
+    var d = { p1: 0, p2: 0, e1: 0, e2: 0, s1: 0, s2: 0, ms1: 0, ms2: 0, t: 1 };
+    var cfg = {
+        meta1: 40,
+        meta2: 40,
+        tiempo: 40,
+        mesa: 'SALÓN',
+        streamUrl: '',
+        ced1: '',
+        ced2: '',
+        wmMode: 'club',
+        youtubeLiveUrl: '',
+        liveAssist: false
+    };
+    var nomJ1 = 'JUGADOR A';
+    var nomJ2 = 'JUGADOR B';
+    var jugadorIdJ1 = null;
+    var jugadorIdJ2 = null;
+    var tiempoRestante = 40;
+    var timer = null;
+    var pausado = false;
+    var partidaStartTime = Date.now();
+    var partidaTotalPausedMs = 0;
+    var pauseStartTime = 0;
+    var partidaTerminada = false;
+    /** Overlay Supabase: match_id fijo por sesión de partida en TV salón. */
+    var salonOverlayMatchId = null;
+    var salonTvOverlayPublishTimer = null;
+    var salonTvOverlayLastPublish = 0;
+    var OVERLAY_STATE_THROTTLE_MS = 2000;
+    /** Mientras sea mayor que Date.now(), publicarOverlayState fuerza estado "transmitir" (puente Node en el Mac con OBS). */
+    var salonTransmitirVentanaHasta = 0;
+    var salonForceStreamPendiente = false;
+    var salonTransmitTimer = null;
+    var salonTransmitUnsub = null;
+    /** Casual: último valor anotado por acción individual (solo uno “activo”; el otro en 0). */
+    var ultimaJugadaJ1 = 0;
+    var ultimaJugadaJ2 = 0;
+
+    function registrarUltimaJugadaCasual(j, n) {
+        if (!tvSession || tvSession.type !== 'casual') return;
+        var nn = Math.max(0, n | 0);
+        ultimaJugadaJ1 = j === 1 ? nn : 0;
+        ultimaJugadaJ2 = j === 2 ? nn : 0;
+    }
+
+    async function publicarOverlayState() {
+        if (!tvSession || !salonOverlayMatchId) return;
+        var wl = leerClubWhiteLabel();
+        var cid = obtenerClubKeyParaConsultaClubs();
+        var mergeSb = null;
+        try {
+            var sel = await supabase
+                .from('overlay_state')
+                .select('stream_bridge_status, stream_bridge_at')
+                .eq('match_id', salonOverlayMatchId)
+                .maybeSingle();
+            if (!sel.error && sel.data) mergeSb = sel.data;
+        } catch (e) {}
+        var row = {
+            match_id: salonOverlayMatchId,
+            club_nombre: (wl.nombre && String(wl.nombre).trim()) || null,
+            j1_nombre: nomJ1,
+            j2_nombre: nomJ2,
+            j1_carambolas: d.p1 | 0,
+            j2_carambolas: d.p2 | 0,
+            j1_entradas: d.e1 | 0,
+            j2_entradas: d.e2 | 0,
+            j1_promedio: d.e1 > 0 ? d.p1 / d.e1 : 0,
+            j2_promedio: d.e2 > 0 ? d.p2 / d.e2 : 0,
+            objetivo: cfg.meta1 | 0,
+            estado:
+                Date.now() < salonTransmitirVentanaHasta
+                    ? 'transmitir'
+                    : partidaTerminada
+                      ? 'terminado'
+                      : 'en_juego',
+            mesa: (cfg.mesa && String(cfg.mesa).trim()) || 'SALÓN',
+            updated_at: new Date().toISOString()
+        };
+        row.club_id =
+            cid && String(cid).trim()
+                ? String(cid).trim()
+                : 'ab2314a3-095b-4a2f-be97-ed7433196f87';
+        if (mergeSb && mergeSb.stream_bridge_status != null && mergeSb.stream_bridge_status !== '') {
+            row.stream_bridge_status = mergeSb.stream_bridge_status;
+            if (mergeSb.stream_bridge_at != null) row.stream_bridge_at = mergeSb.stream_bridge_at;
+        }
+        if (salonForceStreamPendiente) {
+            row.stream_bridge_status = 'pendiente';
+            row.stream_bridge_at = new Date().toISOString();
+            salonForceStreamPendiente = false;
+        }
+        try {
+            var r = await supabase.from('overlay_state').upsert(row, { onConflict: 'match_id' });
+            if (r.error && typeof console !== 'undefined' && console.warn) {
+                console.warn('[duelo_premium_tv] overlay_state:', r.error.message);
+            }
+            return r;
+        } catch (e) {
+            if (typeof console !== 'undefined' && console.warn) console.warn('[duelo_premium_tv] overlay_state', e);
+            throw e;
+        }
+    }
+
+    function schedulePublicarOverlayStateThrottled() {
+        if (!tvSession || !salonOverlayMatchId) return;
+        var now = Date.now();
+        if (now - salonTvOverlayLastPublish >= OVERLAY_STATE_THROTTLE_MS) {
+            salonTvOverlayLastPublish = now;
+            publicarOverlayState();
+            return;
+        }
+        if (salonTvOverlayPublishTimer) return;
+        salonTvOverlayPublishTimer = setTimeout(function () {
+            salonTvOverlayPublishTimer = null;
+            salonTvOverlayLastPublish = Date.now();
+            publicarOverlayState();
+        }, OVERLAY_STATE_THROTTLE_MS - (now - salonTvOverlayLastPublish));
+    }
+
+    function salonLimpiarWatchTransmitir() {
+        if (salonTransmitTimer) {
+            clearTimeout(salonTransmitTimer);
+            salonTransmitTimer = null;
+        }
+        if (salonTransmitUnsub) {
+            try {
+                salonTransmitUnsub();
+            } catch (e) {}
+            salonTransmitUnsub = null;
+        }
+    }
+
+    /**
+     * Un toque: upsert estado transmitir + pendiente; el bridge (Node en el Mac con OBS) hace OBS/YouTube.
+     */
+    async function salonSolicitarTransmitirObs() {
+        var btn = document.getElementById('btn-obs-transmitir-vivo');
+        var lab = document.getElementById('btn-obs-transmitir-label');
+        if (!tvSession || !salonOverlayMatchId) {
+            alert('Iniciá una partida primero para tener match_id.');
+            return;
+        }
+        if (!supabase || typeof supabase.from !== 'function') {
+            alert('Sin cliente Supabase. No se puede enviar la señal.');
+            return;
+        }
+        salonLimpiarWatchTransmitir();
+        if (lab) lab.textContent = 'Conectando...';
+        if (btn) btn.disabled = true;
+        salonTransmitirVentanaHasta = Date.now() + 120000;
+        salonForceStreamPendiente = true;
+        var mid = salonOverlayMatchId;
+        try {
+            await publicarOverlayState();
+            if (typeof console !== 'undefined' && console.log) {
+                console.log('[TV] transmitir + pendiente match_id=', mid);
+            }
+        } catch (e) {
+            if (lab) lab.textContent = 'Error OBS no conectado';
+            if (btn) btn.disabled = false;
+            if (typeof console !== 'undefined' && console.warn) {
+                console.warn('[TV] publicar transmitir:', e);
+            }
+            return;
+        }
+
+        var ch = supabase
+            .channel('tv-tr-' + mid + '-' + Date.now())
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'overlay_state',
+                    filter: 'match_id=eq.' + mid
+                },
+                function (p) {
+                    var st = p.new && p.new.stream_bridge_status;
+                    if (!st) return;
+                    if (st === 'live') {
+                        if (lab) lab.textContent = '● EN VIVO';
+                        if (btn) btn.disabled = false;
+                        salonLimpiarWatchTransmitir();
+                    }
+                    if (st === 'error_obs') {
+                        if (lab) lab.textContent = 'Error OBS no conectado';
+                        if (btn) btn.disabled = false;
+                        salonLimpiarWatchTransmitir();
+                    }
+                }
+            )
+            .subscribe();
+        salonTransmitUnsub = function () {
+            try {
+                supabase.removeChannel(ch);
+            } catch (e2) {}
+        };
+
+        salonTransmitTimer = setTimeout(function () {
+            if (lab && lab.textContent === 'Conectando...') {
+                lab.textContent = 'Error OBS no conectado';
+                if (btn) btn.disabled = false;
+            }
+            salonLimpiarWatchTransmitir();
+        }, 45000);
+    }
+
+    function actualizarUI() {
+        tvSetText('lbl1-sb', nomJ1);
+        tvSetText('lbl2-sb', nomJ2);
+        tvSetText('pts1-sb', String(d.p1));
+        tvSetText('pts2-sb', String(d.p2));
+        tvSetText('ent1-sb', d.e1);
+        tvSetText('ent2-sb', d.e2);
+        tvSetText('prom1-sb', d.e1 > 0 ? (d.p1 / d.e1).toFixed(3) : '0.000');
+        tvSetText('prom2-sb', d.e2 > 0 ? (d.p2 / d.e2).toFixed(3) : '0.000');
+        tvSetText('serie1-sb', d.s1);
+        tvSetText('serie2-sb', d.s2);
+        tvSetText('ms1-sb', d.ms1);
+        tvSetText('ms2-sb', d.ms2);
+        tvSetText('meta1-sb', cfg.meta1);
+        tvSetText('meta2-sb', cfg.meta2);
+        var f1 = document.getElementById('fill1-sb');
+        if (f1) f1.style.width = cfg.meta1 > 0 ? Math.min(100, (d.p1 / cfg.meta1) * 100) + '%' : '0%';
+        var f2 = document.getElementById('fill2-sb');
+        if (f2) f2.style.width = cfg.meta2 > 0 ? Math.min(100, (d.p2 / cfg.meta2) * 100) + '%' : '0%';
+        tvSetText('lbl-pts-meta1', d.p1 + '/' + cfg.meta1);
+        tvSetText('lbl-pts-meta2', d.p2 + '/' + cfg.meta2);
+        tvSetText('lbl-pro-marcador1', d.p1 + '/' + cfg.meta1);
+        tvSetText('lbl-pro-marcador2', d.p2 + '/' + cfg.meta2);
+        actualizarCasualScoreBigEstilos();
+        actualizarProColMarcadorEstilos();
+        tvSetText('ind-mesa', cfg.mesa || '—');
+        actualizarTecladoHeader();
+        actualizarBotonIntercambioLadosCasual();
+        if (tvSession && tvSession.type === 'pro') {
+            actualizarPerfilHintsPro();
+            actualizarHandicapSugeridoPro();
+        }
+        schedulePublicarOverlayStateThrottled();
+    }
+
+    function promedioRegistroDesdeRow(row) {
+        if (!row || row.promedio == null || row.promedio === '') return null;
+        var p = parseFloat(row.promedio);
+        return isFinite(p) && p > 0 ? p : null;
+    }
+
+    /** Handicap orientativo: carambolas sugeridas a favor del jugador con promedio registro más bajo. */
+    function calcHandicapSugeridoPromedios(pr1, pr2, meta) {
+        var diff = Math.abs(pr1 - pr2);
+        if (diff < 0.001 || meta < 1) return null;
+        var X = Math.round(diff * (meta / 40) * 10);
+        X = Math.max(0, Math.min(X, Math.max(1, meta) - 1));
+        if (X < 1) return null;
+        var weakerIs1 = pr1 < pr2;
+        return { x: X, weakerIs1: weakerIs1 };
+    }
+
+    function actualizarHandicapSugeridoPro() {
+        var e1 = document.getElementById('salon-pro-handicap-line');
+        var e2 = document.getElementById('salon-pro-handicap-line-2');
+        var text = '';
+        if (tvSession && tvSession.type === 'pro' && tvSession.jugador && tvSession.jugador2) {
+            var pr1 = promedioRegistroDesdeRow(tvSession.jugador);
+            var pr2 = promedioRegistroDesdeRow(tvSession.jugador2);
+            if (pr1 != null && pr2 != null) {
+                var h = calcHandicapSugeridoPromedios(pr1, pr2, cfg.meta1);
+                if (h) {
+                    var nomDeb = h.weakerIs1 ? nomJ1 : nomJ2;
+                    text = 'Handicap sugerido: ' + nomDeb + ' +' + h.x;
+                }
+            }
+        }
+        if (e1) e1.textContent = text;
+        if (e2) e2.textContent = text;
+    }
+
+    function actualizarPerfilHintsPro() {
+        if (!tvSession || tvSession.type !== 'pro') return;
+        function setLine(side, row) {
+            var el = document.getElementById('salon-pro-perfil-j' + side);
+            if (!el) return;
+            var p = promedioRegistroDesdeRow(row);
+            if (row && p != null) {
+                var cat = row.categoria != null && String(row.categoria).trim() ? String(row.categoria).trim() : '';
+                el.removeAttribute('hidden');
+                el.textContent = 'Registro · ' + p.toFixed(3) + (cat ? ' · ' + cat : '');
+            } else {
+                el.setAttribute('hidden', '');
+                el.textContent = '';
+            }
+        }
+        setLine(1, tvSession.jugador);
+        setLine(2, tvSession.jugador2);
+    }
+
+    function actualizarCasualScoreBigEstilos() {
+        if (!tvSession || tvSession.type !== 'casual') return;
+        var el1 = document.getElementById('lbl-pts-meta1');
+        var el2 = document.getElementById('lbl-pts-meta2');
+        if (!el1 || !el2) return;
+        el1.classList.remove('salon-casual-score-big--lider', 'salon-casual-score-big--perdiendo');
+        el2.classList.remove('salon-casual-score-big--lider', 'salon-casual-score-big--perdiendo');
+        if (d.p1 > d.p2) {
+            el1.classList.add('salon-casual-score-big--lider');
+            el2.classList.add('salon-casual-score-big--perdiendo');
+        } else if (d.p2 > d.p1) {
+            el2.classList.add('salon-casual-score-big--lider');
+            el1.classList.add('salon-casual-score-big--perdiendo');
+        } else {
+            el1.classList.add('salon-casual-score-big--perdiendo');
+            el2.classList.add('salon-casual-score-big--perdiendo');
+        }
+    }
+
+    function actualizarProColMarcadorEstilos() {
+        if (!tvSession || tvSession.type !== 'pro') return;
+        var el1 = document.getElementById('lbl-pro-marcador1');
+        var el2 = document.getElementById('lbl-pro-marcador2');
+        if (!el1 || !el2) return;
+        el1.classList.remove('salon-casual-score-big--lider', 'salon-casual-score-big--perdiendo');
+        el2.classList.remove('salon-casual-score-big--lider', 'salon-casual-score-big--perdiendo');
+        if (d.p1 > d.p2) {
+            el1.classList.add('salon-casual-score-big--lider');
+            el2.classList.add('salon-casual-score-big--perdiendo');
+        } else if (d.p2 > d.p1) {
+            el2.classList.add('salon-casual-score-big--lider');
+            el1.classList.add('salon-casual-score-big--perdiendo');
+        } else {
+            el1.classList.add('salon-casual-score-big--perdiendo');
+            el2.classList.add('salon-casual-score-big--perdiendo');
+        }
+    }
+
+    function actualizarBotonIntercambioLadosCasual() {
+        if (!tvSession || tvSession.type !== 'casual') return;
+        var b = document.getElementById('btn-bolas-lados-casual');
+        if (!b) return;
+        var lock = d.p1 > 0 || d.p2 > 0;
+        b.disabled = !!lock;
+    }
+
+    function actualizarTecladoHeader() {
+        var p1 = document.getElementById('panel-j1');
+        var p2 = document.getElementById('panel-j2');
+        if (tvSession && tvSession.type === 'casual') {
+            if (p1) p1.classList.toggle('activo', d.t === 1);
+            if (p2) p2.classList.toggle('activo', d.t === 2);
+            return;
+        }
+        var tkNom = document.getElementById('tk-nombre');
+        if (!tkNom) return;
+        var nomActivo = d.t === 1 ? nomJ1 : nomJ2;
+        var bola = document.getElementById('tk-bola');
+        var colorTurno = d.t === 1 ? 'blanca' : 'dorada';
+        if (bolasInvertidas) colorTurno = colorTurno === 'blanca' ? 'dorada' : 'blanca';
+        if (bola) bola.className = 'turno-bola ' + colorTurno;
+        tkNom.innerText = nomActivo;
+        tvSetText('tk-entrada', 'ENTRADA ' + (d['e' + d.t] + 1));
+        tvSetText('lbl-ent-top', 'ENTRADA ' + (d['e' + d.t] + 1));
+        tvSetText('tk-v1', d.p1);
+        tvSetText('tk-t1', cfg.meta1 > 0 ? cfg.meta1 : '∞');
+        tvSetText('tk-v2', d.p2);
+        tvSetText('tk-t2', cfg.meta2 > 0 ? cfg.meta2 : '∞');
+        var tm1 = document.getElementById('tk-meta1');
+        var tm2 = document.getElementById('tk-meta2');
+        if (tm1) tm1.className = 'turno-meta-item' + (d.t === 1 ? ' activo' : '');
+        if (tm2) tm2.className = 'turno-meta-item' + (d.t === 2 ? ' activo' : '');
+        if (p1) p1.classList.toggle('activo', d.t === 1);
+        if (p2) p2.classList.toggle('activo', d.t === 2);
+    }
+
+    function actualizarIndicadoresTiempo() {
+        if (!partidaStartTime) return;
+        var elapsedMs = pausado
+            ? pauseStartTime - partidaStartTime - partidaTotalPausedMs
+            : Date.now() - partidaStartTime - partidaTotalPausedMs;
+        var elapsedSec = Math.max(0, Math.floor(elapsedMs / 1000));
+        var m = Math.floor(elapsedSec / 60);
+        var s = elapsedSec % 60;
+        var txt = m + ':' + (s < 10 ? '0' : '') + s;
+        var el = document.getElementById('ind-transcurrido');
+        if (el) el.innerText = txt;
+        if (tvSession && tvSession.type === 'casual') actualizarCasualCostoHeader();
+    }
+
+    function iniciarReloj() {
+        clearInterval(timer);
+        pausado = false;
+        if (tvSession && tvSession.type === 'casual') {
+            timer = setInterval(function () {
+                actualizarIndicadoresTiempo();
+            }, 1000);
+            actualizarIndicadoresTiempo();
+            return;
+        }
+        var rel = document.getElementById('reloj');
+        if (rel) {
+            rel.classList.remove('urgente');
+            rel.style.opacity = '1';
+        }
+        var btnP = document.getElementById('btn-pausa');
+        if (btnP) {
+            btnP.innerText = '⏸';
+            btnP.style.color = '#aaa';
+            btnP.style.borderColor = '#333';
+        }
+        if (rel) rel.innerText = tiempoRestante;
+        timer = setInterval(function () {
+            if (pausado) return;
+            tiempoRestante--;
+            var r = document.getElementById('reloj');
+            if (r) {
+                r.innerText = tiempoRestante;
+                if (tiempoRestante <= 10) r.classList.add('urgente');
+            }
+            if (tiempoRestante <= 0) {
+                clearInterval(timer);
+                cambio();
+            }
+            actualizarIndicadoresTiempo();
+        }, 1000);
+        actualizarIndicadoresTiempo();
+    }
+
+    function togglePausa() {
+        var btn = document.getElementById('btn-pausa');
+        var rel = document.getElementById('reloj');
+        if (!btn || !rel) return;
+        pausado = !pausado;
+        if (pausado) {
+            pauseStartTime = Date.now();
+            btn.innerText = '▶';
+            btn.style.color = '#2eff70';
+            btn.style.borderColor = '#2eff70';
+            rel.style.opacity = '0.4';
+        } else {
+            partidaTotalPausedMs += Date.now() - pauseStartTime;
+            btn.innerText = '⏸';
+            btn.style.color = '#aaa';
+            btn.style.borderColor = '#333';
+            rel.style.opacity = '1';
+        }
+        actualizarIndicadoresTiempo();
+    }
+
+    function animarBolaCasualBump(jugador) {
+        if (!tvSession || tvSession.type !== 'casual') return;
+        var j = jugador === 2 ? 2 : 1;
+        var el = document.getElementById(j === 2 ? 'bola2-sb' : 'bola1-sb');
+        if (!el) return;
+        el.classList.remove('bola-casual-bump');
+        void el.offsetWidth;
+        el.classList.add('bola-casual-bump');
+    }
+
+    function sumarCasualBolaTap(jugador) {
+        var j = jugador === 2 ? 2 : 1;
+        sumarParaJugador(j, 1);
+    }
+
+    function sumarParaJugador(jugador, n) {
+        var j = jugador === 2 ? 2 : 1;
+        if (partidaTerminada) return;
+        var meta = j === 1 ? cfg.meta1 : cfg.meta2;
+        if (meta > 0 && d['p' + j] >= meta) return;
+        if (tvSession && tvSession.type === 'casual') animarBolaCasualBump(j);
+        if (meta > 0 && d['p' + j] + n >= meta) {
+            mostrarConfirmacionMeta(n, j);
+            return;
+        }
+        d['p' + j] += n;
+        d['s' + j] += n;
+        if (d['s' + j] > d['ms' + j]) d['ms' + j] = d['s' + j];
+        registrarUltimaJugadaCasual(j, n);
+        actualizarUI();
+    }
+
+    function sumar(n) {
+        sumarParaJugador(d.t, n);
+    }
+
+    function restar() {
+        if (partidaTerminada) return;
+        if (d['p' + d.t] > 0) {
+            d['p' + d.t]--;
+            if (d['s' + d.t] > 0) d['s' + d.t]--;
+        }
+        actualizarUI();
+    }
+
+    /** Casual: resta 1 al jugador de esa columna (mini teclado − en modo sol). */
+    function restarCasualColumna(jugador) {
+        if (!tvSession || tvSession.type !== 'casual') return;
+        if (partidaTerminada) return;
+        var j = jugador === 2 ? 2 : 1;
+        if (d['p' + j] <= 0) return;
+        d['p' + j]--;
+        if (d['s' + j] > 0) d['s' + j]--;
+        actualizarUI();
+    }
+
+    /** PRO: deshace la última “SIGUIENTE ENTRADA” (CANCEL). Casual: revierte la última anotación del mini teclado. */
+    function cancelarJugadaEntrada() {
+        if (partidaTerminada) return;
+        if (tvSession && tvSession.type === 'casual') {
+            var j = ultimaJugadaJ1 > 0 ? 1 : ultimaJugadaJ2 > 0 ? 2 : 0;
+            var quitar = j === 1 ? ultimaJugadaJ1 : j === 2 ? ultimaJugadaJ2 : 0;
+            if (j === 0 || quitar <= 0) return;
+            d['p' + j] -= quitar;
+            if (d['p' + j] < 0) d['p' + j] = 0;
+            d['s' + j] = Math.max(0, d['s' + j] - quitar);
+            ultimaJugadaJ1 = 0;
+            ultimaJugadaJ2 = 0;
+            actualizarUI();
+            return;
+        }
+        if (tvSession && tvSession.type === 'pro') {
+            if (!proUltimoCambio) return;
+            var finisher = proUltimoCambio.finisher;
+            var pts = proUltimoCambio.puntos | 0;
+            if (finisher !== 1 && finisher !== 2) return;
+            d['p' + finisher] -= pts;
+            if (d['p' + finisher] < 0) d['p' + finisher] = 0;
+            if (d['e' + finisher] > 0) d['e' + finisher]--;
+            d['s' + finisher] = pts;
+            d.t = finisher;
+            proUltimoCambio = null;
+            tiempoRestante = cfg.tiempo;
+            iniciarReloj();
+            actualizarUI();
+            return;
+        }
+        var t = d.t;
+        var quitar = d['s' + t];
+        if (quitar <= 0) return;
+        d['p' + t] -= quitar;
+        if (d['p' + t] < 0) d['p' + t] = 0;
+        d['s' + t] = 0;
+        actualizarUI();
+    }
+
+    function mostrarConfirmacionMeta(n, jugadorOpt) {
+        var t = jugadorOpt === 1 || jugadorOpt === 2 ? jugadorOpt : d.t;
+        var meta = t === 1 ? cfg.meta1 : cfg.meta2;
+        var nom = t === 1 ? nomJ1 : nomJ2;
+        var overlay = document.createElement('div');
+        overlay.style.cssText =
+            'position:fixed;inset:0;z-index:998;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;';
+        overlay.innerHTML =
+            '<div style="font-size:2.5rem;">🟡</div>' +
+            '<div style="color:#aaa;font-size:0.55rem;letter-spacing:3px;">¿ALCANZÓ LA META?</div>' +
+            '<div style="color:var(--oro);font-size:1.1rem;letter-spacing:2px;text-align:center;">' +
+            nom +
+            ' llegó a ' +
+            meta +
+            ' carambolas</div>' +
+            '<div style="color:#666;font-size:0.6rem;text-align:center;max-width:280px;">Confirmar ganador para terminar, o subir meta para seguir jugando.</div>' +
+            '<div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;">' +
+            '<button type="button" id="btn-conf-ganador" style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:14px 24px;border-radius:14px;font-size:0.85rem;font-weight:bold;cursor:pointer;">✓ CONFIRMAR GANADOR</button>' +
+            '<button type="button" id="btn-subir-meta" style="background:rgba(46,255,112,0.15);color:#2eff70;border:1px solid rgba(46,255,112,0.4);padding:14px 24px;border-radius:14px;font-size:0.8rem;cursor:pointer;">Subir meta +5 y seguir</button>' +
+            '</div>';
+        overlay.querySelector('#btn-conf-ganador').onclick = function () {
+            document.body.removeChild(overlay);
+            partidaTerminada = true;
+            clearInterval(timer);
+            d['p' + t] += n;
+            d['s' + t] += n;
+            if (d['s' + t] > d['ms' + t]) d['ms' + t] = d['s' + t];
+            registrarUltimaJugadaCasual(t, n);
+            actualizarUI();
+            mostrarOpcionesCertificado();
+        };
+        overlay.querySelector('#btn-subir-meta').onclick = function () {
+            document.body.removeChild(overlay);
+            if (t === 1) cfg.meta1 += 5;
+            else cfg.meta2 += 5;
+            d['p' + t] += n;
+            d['s' + t] += n;
+            if (d['s' + t] > d['ms' + t]) d['ms' + t] = d['s' + t];
+            registrarUltimaJugadaCasual(t, n);
+            actualizarUI();
+        };
+        document.body.appendChild(overlay);
+    }
+
+    function mostrarOpcionesCertificado() {
+        var nom = d.p1 >= d.p2 ? nomJ1 : d.p2 >= d.p1 ? nomJ2 : d.ms1 >= d.ms2 ? nomJ1 : nomJ2;
+        var ov = document.createElement('div');
+        ov.style.cssText =
+            'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;';
+        ov.innerHTML =
+            '<div style="font-size:3rem;">🏆</div>' +
+            '<div style="color:var(--oro);font-size:1.3rem;letter-spacing:3px;">¡GANÓ ' +
+            nom +
+            '!</div>' +
+            '<div style="color:#666;font-size:0.6rem;text-align:center;max-width:280px;">¿Emitir certificado? Si certifica, la partida se guarda en historial y cuenta para el promedio. Si no certifica, no se guarda ni cuenta.</div>' +
+            '<div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px;">' +
+            '<button type="button" id="btn-emitir-certi" style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:14px 24px;border-radius:14px;font-size:0.85rem;font-weight:bold;cursor:pointer;">📄 EMITIR CERTIFICADO (QR)</button>' +
+            '<button type="button" id="btn-no-certi" style="background:#222;color:#aaa;border:1px solid #333;padding:14px 24px;border-radius:14px;font-size:0.8rem;cursor:pointer;">No certificar / Nueva partida</button>' +
+            '</div>';
+        ov.querySelector('#btn-emitir-certi').onclick = function () {
+            document.body.removeChild(ov);
+            guardarPartidaTVEnHistorial();
+            mostrarOverlayQRSalon();
+        };
+        ov.querySelector('#btn-no-certi').onclick = function () {
+            document.body.removeChild(ov);
+            partidaTerminada = false;
+            siguienteSet();
+        };
+        document.body.appendChild(ov);
+    }
+
+    function guardarPartidaTVEnHistorial() {
+        try {
+            if (typeof window.HISTORIAL === 'undefined' || !window.HISTORIAL.guardarPartida) return;
+            var nom1 = nomJ1;
+            var nom2 = nomJ2;
+            var fecha = new Date().toISOString();
+            var entradaObj = cfg.meta1 || 0;
+            var prom1 = d.e1 > 0 ? d.p1 / d.e1 : 0;
+            var prom2 = d.e2 > 0 ? d.p2 / d.e2 : 0;
+            HISTORIAL.guardarPartida({
+                jugador_id: jugadorIdJ1,
+                jugador_nombre: nom1,
+                rival_nombre: nom2,
+                rival_promedio: prom2,
+                entrada_objetivo: entradaObj,
+                entradas_jugador: d.e1,
+                carambolas_jugador: d.p1,
+                promedio_partida: prom1,
+                gano: d.p1 >= d.p2,
+                tipo: 'duelo',
+                torneo_nombre: null,
+                serie_mayor: d.ms1,
+                fecha: fecha
+            });
+            HISTORIAL.guardarPartida({
+                jugador_id: jugadorIdJ2,
+                jugador_nombre: nom2,
+                rival_nombre: nom1,
+                rival_promedio: prom1,
+                entrada_objetivo: entradaObj,
+                entradas_jugador: d.e2,
+                carambolas_jugador: d.p2,
+                promedio_partida: prom2,
+                gano: d.p2 >= d.p1,
+                tipo: 'duelo',
+                torneo_nombre: null,
+                serie_mayor: d.ms2,
+                fecha: fecha
+            });
+        } catch (e) {}
+    }
+
+    function mostrarOverlayQRSalon() {
+        var el1 = document.getElementById('lbl1-sb');
+        var el2 = document.getElementById('lbl2-sb');
+        var nom1 = el1 && el1.innerText ? el1.innerText.trim() : nomJ1;
+        var nom2 = el2 && el2.innerText ? el2.innerText.trim() : nomJ2;
+        var ganador = d.p1 >= d.p2 ? nom1 : d.p2 >= d.p1 ? nom2 : d.ms1 >= d.ms2 ? nom1 : nom2;
+        var base = getWlPublicBaseUrl() + '/Certificados.html';
+        var qs =
+            '?n1=' +
+            encodeURIComponent(nom1) +
+            '&n2=' +
+            encodeURIComponent(nom2) +
+            '&p1=' +
+            d.p1 +
+            '&p2=' +
+            d.p2 +
+            '&e1=' +
+            d.e1 +
+            '&e2=' +
+            d.e2 +
+            '&ms1=' +
+            d.ms1 +
+            '&ms2=' +
+            d.ms2 +
+            '&ganador=' +
+            encodeURIComponent(ganador) +
+            '&c1=' +
+            encodeURIComponent(cfg.ced1 || '') +
+            '&c2=' +
+            encodeURIComponent(cfg.ced2 || '');
+        var urlCerti = base + qs;
+        var qrSrc =
+            'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(urlCerti);
+        var avisoCel =
+            '<div style="color:#888;font-size:0.55rem;text-align:center;">Partida guardada. El jugador escanea el QR o abre el enlace desde el celular.</div>';
+        var ov = document.createElement('div');
+        ov.style.cssText =
+            'position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;';
+        ov.innerHTML =
+            '<div style="color:var(--oro);font-size:0.7rem;letter-spacing:3px;">CERTIFICADO EMITIDO</div>' +
+            avisoCel +
+            '<img src="' +
+            qrSrc +
+            '" alt="QR certificado" style="width:200px;height:200px;border:4px solid var(--oro);border-radius:12px;">' +
+            '<div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">' +
+            '<button type="button" id="btn-nueva-despues-qr" style="background:linear-gradient(135deg,var(--oro),#a07800);color:#000;border:none;padding:14px 28px;border-radius:14px;font-size:0.9rem;font-weight:bold;cursor:pointer;">Nueva partida</button>' +
+            '<button type="button" id="btn-menu-despues-qr" style="background:#111;color:#bbb;border:1px solid #333;padding:12px 20px;border-radius:12px;font-size:0.78rem;cursor:pointer;">Volver al inicio TV</button>' +
+            '</div>';
+        ov.querySelector('#btn-nueva-despues-qr').onclick = function () {
+            try {
+                document.body.removeChild(ov);
+            } catch (e) {}
+            partidaTerminada = false;
+            siguienteSet();
+        };
+        ov.querySelector('#btn-menu-despues-qr').onclick = function () {
+            try {
+                document.body.removeChild(ov);
+            } catch (e) {}
+            salonSalirInicio(true);
+        };
+        document.body.appendChild(ov);
+    }
+
+    function cambio() {
+        var finisher = d.t;
+        var puntosEntrada = d['s' + finisher] | 0;
+        d['e' + finisher]++;
+        d['s' + finisher] = 0;
+        d.t = d.t === 1 ? 2 : 1;
+        if (tvSession && tvSession.type === 'pro') {
+            proUltimoCambio = { finisher: finisher, puntos: puntosEntrada };
+        }
+        tiempoRestante = cfg.tiempo;
+        iniciarReloj();
+        actualizarUI();
+        var le = document.getElementById('lbl-ent-top');
+        if (le) le.innerText = 'ENTRADA ' + (d['e' + d.t] + 1);
+    }
+
+    function intercambiarBolasTv() {
+        if (tvSession && tvSession.type === 'casual') {
+            intercambiarLadosCasualCompleto();
+            return;
+        }
+        bolasInvertidas = !bolasInvertidas;
+        var b1 = document.getElementById('bola1-sb');
+        var b2 = document.getElementById('bola2-sb');
+        function swap(el, a, b) {
+            if (!el) return;
+            if (el.classList.contains(a)) {
+                el.classList.remove(a);
+                el.classList.add(b);
+            } else if (el.classList.contains(b)) {
+                el.classList.remove(b);
+                el.classList.add(a);
+            }
+        }
+        swap(b1, 'bola-blanca', 'bola-dorada');
+        swap(b2, 'bola-blanca', 'bola-dorada');
+        actualizarTecladoHeader();
+    }
+
+    function siguienteSet() {
+        partidaTerminada = false;
+        proUltimoCambio = null;
+        d = { p1: 0, p2: 0, e1: 0, e2: 0, s1: 0, s2: 0, ms1: 0, ms2: 0, t: 1 };
+        ultimaJugadaJ1 = 0;
+        ultimaJugadaJ2 = 0;
+        tiempoRestante = cfg.tiempo;
+        iniciarReloj();
+        actualizarUI();
+        var le = document.getElementById('lbl-ent-top');
+        if (le) le.innerText = 'ENTRADA 1';
+    }
+
+    function bindSalonMarcadorHandlers() {
+        var bp = document.getElementById('btn-pausa');
+        if (bp) bp.onclick = togglePausa;
+        var bb = document.getElementById('btn-bolas-tv');
+        if (bb) bb.onclick = intercambiarBolasTv;
+        var bLados = document.getElementById('btn-bolas-lados-casual');
+        if (bLados)
+            bLados.onclick = function () {
+                if (bLados.disabled) return;
+                intercambiarLadosCasualCompleto();
+            };
+        var bs = document.getElementById('btn-siguiente-set');
+        if (bs) bs.onclick = siguienteSet;
+        var bc = document.getElementById('btn-salir-a-config');
+        if (bc)
+            bc.onclick = function () {
+                salonSalirInicio(false);
+            };
+        var bf = document.getElementById('btn-fin');
+        if (bf)
+            bf.onclick = function () {
+                salonSalirInicio(false);
+            };
+        var bIdent1 = document.getElementById('btn-ident-pro-j1');
+        if (bIdent1) bIdent1.onclick = function () { premiumAbrirIdentificar(1); };
+        var bIdent2 = document.getElementById('btn-ident-pro-j2');
+        if (bIdent2) bIdent2.onclick = function () { premiumAbrirIdentificar(2); };
+        var bTema = document.getElementById('btn-tema-salon');
+        if (bTema) bTema.onclick = toggleTemaSalonCasual;
+        var bObs = document.getElementById('btn-obs-transmitir-vivo');
+        if (bObs) bObs.onclick = function () { salonSolicitarTransmitirObs(); };
+    }
+
+    function iniciarMarcadorSalonTrasRender() {
+        var meta = tvSession.meta != null ? tvSession.meta : 40;
+        nomJ1 = tvSession.j1;
+        nomJ2 = tvSession.j2;
+        cfg.meta1 = meta;
+        cfg.meta2 = meta;
+        cfg.tiempo = 40;
+        cfg.mesa = 'SALÓN';
+        cfg.ced1 = tvSession.jugador && tvSession.jugador.cedula ? String(tvSession.jugador.cedula) : '';
+        cfg.ced2 =
+            tvSession.jugador2 && tvSession.jugador2.cedula ? String(tvSession.jugador2.cedula) : '';
+        jugadorIdJ1 = tvSession.jugador && tvSession.jugador.id ? tvSession.jugador.id : null;
+        jugadorIdJ2 = tvSession.jugador2 && tvSession.jugador2.id ? tvSession.jugador2.id : null;
+        proUltimoCambio = null;
+        if (salonTvOverlayPublishTimer) {
+            try {
+                clearTimeout(salonTvOverlayPublishTimer);
+            } catch (e) {}
+            salonTvOverlayPublishTimer = null;
+        }
+        salonTvOverlayLastPublish = 0;
+        salonOverlayMatchId = 'mesa-tv-' + Date.now();
+        console.log('MATCH_ID:', salonOverlayMatchId);
+        d = { p1: 0, p2: 0, e1: 0, e2: 0, s1: 0, s2: 0, ms1: 0, ms2: 0, t: 1 };
+        ultimaJugadaJ1 = 0;
+        ultimaJugadaJ2 = 0;
+        tiempoRestante = cfg.tiempo;
+        partidaStartTime = Date.now();
+        partidaTotalPausedMs = 0;
+        pausado = false;
+        partidaTerminada = false;
+        try {
+            clearInterval(timer);
+        } catch (e) {}
+        timer = null;
+        resetBolasCasualLayoutDefault();
+        actualizarUI();
+        iniciarReloj();
+        bindSalonMarcadorHandlers();
+        setupNombresCasualTv();
+        if (tvSession.type === 'pro') {
+            setupNombresProTv();
+            setupMetaEditablePro();
+        }
+        window.sumar = sumar;
+        window.sumarParaJugador = sumarParaJugador;
+        window.sumarCasualBolaTap = sumarCasualBolaTap;
+        window.restarCasualColumna = restarCasualColumna;
+        window.restar = restar;
+        window.cancelarJugadaEntrada = cancelarJugadaEntrada;
+        window.cambio = cambio;
+        if (tvSession.type === 'casual') {
+            aplicarTemaSalonCasual();
+            actualizarCasualCostoHeader();
+            var rootVid = document.getElementById('salon-casual-video-panel');
+            if (rootVid) {
+                var streamCasual = (new URLSearchParams(window.location.search).get('stream') || '').trim();
+                initVideoPanelForCard(rootVid, streamCasual);
+            }
+        } else if (tvSession.type === 'pro') {
+            aplicarTemaSalon();
+            var rootVidPro = document.getElementById('salon-pro-video-panel');
+            if (rootVidPro) {
+                var streamPro = (new URLSearchParams(window.location.search).get('stream') || '').trim();
+                initVideoPanelForCard(rootVidPro, streamPro);
+            }
+        }
+    }
+
+    function setupNombresCasualTv() {
+        if (!tvSession || tvSession.type !== 'casual') return;
+        [1, 2].forEach(function (j) {
+            var h2 = document.getElementById('nombre-editable-wrap-j' + j);
+            var span = document.getElementById(j === 1 ? 'lbl1-sb' : 'lbl2-sb');
+            var inp = document.getElementById('inp-nombre-j' + j);
+            if (!h2 || !span || !inp) return;
+            function commit() {
+                var raw = (inp.value || '').trim();
+                var def = j === 1 ? 'Jugador A' : 'Jugador B';
+                var v = raw || def;
+                span.textContent = v;
+                h2.style.display = '';
+                inp.style.display = 'none';
+                if (j === 1) {
+                    nomJ1 = v;
+                    tvSession.j1 = v;
+                } else {
+                    nomJ2 = v;
+                    tvSession.j2 = v;
+                }
+                actualizarUI();
+                actualizarIndicadorTvSalon();
+            }
+            h2.addEventListener('click', function () {
+                h2.style.display = 'none';
+                inp.style.display = 'block';
+                inp.value = span.textContent;
+                inp.focus();
+                inp.select();
+            });
+            inp.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    inp.blur();
+                }
+                if (e.key === 'Escape') {
+                    inp.value = span.textContent;
+                    inp.blur();
+                }
+            });
+            inp.addEventListener('blur', commit);
+        });
+    }
+
+    function setupNombresProTv() {
+        if (!tvSession || tvSession.type !== 'pro') return;
+        [1, 2].forEach(function (j) {
+            var h2 = document.getElementById('nombre-pro-wrap-j' + j);
+            var span = document.getElementById(j === 1 ? 'lbl1-sb' : 'lbl2-sb');
+            var inp = document.getElementById('inp-pro-j' + j);
+            if (!h2 || !span || !inp) return;
+            function showView() {
+                h2.style.display = '';
+                inp.style.display = 'none';
+            }
+            async function commit() {
+                var qRaw = (inp.value || '').trim();
+                showView();
+                if (!qRaw || qRaw === span.textContent.trim()) {
+                    inp.value = '';
+                    return;
+                }
+                var res = await buscarJugadorProDesdeTexto(qRaw);
+                if (res.err || !res.row) {
+                    span.textContent = qRaw;
+                    if (j === 1) {
+                        nomJ1 = qRaw;
+                        tvSession.j1 = qRaw;
+                        tvSession.jugador = null;
+                        jugadorIdJ1 = null;
+                        cfg.ced1 = '';
+                    } else {
+                        nomJ2 = qRaw;
+                        tvSession.j2 = qRaw;
+                        tvSession.jugador2 = null;
+                        jugadorIdJ2 = null;
+                        cfg.ced2 = '';
+                    }
+                } else {
+                    var nom = res.row.nombre || qRaw;
+                    span.textContent = nom;
+                    if (j === 1) {
+                        nomJ1 = nom;
+                        tvSession.j1 = nom;
+                        tvSession.jugador = res.row;
+                        jugadorIdJ1 = res.row.id || null;
+                        cfg.ced1 = res.row.cedula ? String(res.row.cedula) : '';
+                    } else {
+                        nomJ2 = nom;
+                        tvSession.j2 = nom;
+                        tvSession.jugador2 = res.row;
+                        jugadorIdJ2 = res.row.id || null;
+                        cfg.ced2 = res.row.cedula ? String(res.row.cedula) : '';
+                    }
+                }
+                inp.value = '';
+                actualizarUI();
+                actualizarIndicadorTvSalon();
+            }
+            h2.addEventListener('click', function () {
+                h2.style.display = 'none';
+                inp.style.display = 'block';
+                inp.placeholder = 'Cédula o nombre';
+                inp.value = span.textContent.trim();
+                inp.focus();
+                inp.select();
+            });
+            inp.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    inp.blur();
+                }
+                if (e.key === 'Escape') {
+                    inp.value = span.textContent;
+                    inp.blur();
+                }
+            });
+            inp.addEventListener('blur', function () {
+                commit();
+            });
+        });
+    }
+
+    function setupMetaEditablePro() {
+        if (!tvSession || tvSession.type !== 'pro') return;
+        var inp = document.getElementById('inp-meta-pro');
+        var w1 = document.getElementById('wrap-meta-pro-primary');
+        var w2 = document.getElementById('wrap-meta-pro-secondary');
+        if (!inp || !w1 || !w2) return;
+        function showStatic() {
+            inp.style.display = 'none';
+            var s1 = w1.querySelector('.salon-pro-meta-static');
+            var s2 = w2.querySelector('.salon-pro-meta-static');
+            if (s1) s1.style.display = '';
+            if (s2) s2.style.display = '';
+        }
+        function openEditor() {
+            var s1 = w1.querySelector('.salon-pro-meta-static');
+            var s2 = w2.querySelector('.salon-pro-meta-static');
+            if (s1) s1.style.display = 'none';
+            if (s2) s2.style.display = 'none';
+            inp.style.display = 'inline-block';
+            inp.value = String(cfg.meta1);
+            try {
+                inp.focus();
+                inp.select();
+            } catch (e) {}
+        }
+        function commitMeta() {
+            var n = parseInt(inp.value, 10);
+            if (!isFinite(n) || n < 1) n = cfg.meta1;
+            n = Math.min(999, Math.max(1, n));
+            cfg.meta1 = n;
+            cfg.meta2 = n;
+            tvSession.meta = n;
+            showStatic();
+            actualizarUI();
+        }
+        w1.addEventListener('click', function (e) {
+            if (e.target === inp) return;
+            openEditor();
+        });
+        w2.addEventListener('click', function (e) {
+            if (e.target === inp) return;
+            openEditor();
+        });
+        inp.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                inp.blur();
+            }
+            if (e.key === 'Escape') {
+                inp.value = String(cfg.meta1);
+                inp.blur();
+            }
+        });
+        inp.addEventListener('blur', commitMeta);
+    }
+
+    function premiumAbrirIdentificar(slot) {
+        identificarProSlot = slot === 2 ? 2 : 1;
+        var m = document.getElementById('modal-identificar-pro');
+        if (!m) return;
+        var msg = document.getElementById('modal-pro-msg');
+        if (msg) msg.textContent = '';
+        var inp = document.getElementById('modal-pro-input');
+        if (inp) inp.value = '';
+        m.classList.add('abierto');
+        m.setAttribute('aria-hidden', 'false');
+    }
+
+    function premiumCerrarIdentificar() {
+        var m = document.getElementById('modal-identificar-pro');
+        if (!m) return;
+        m.classList.remove('abierto');
+        m.setAttribute('aria-hidden', 'true');
+    }
+
+    async function aplicarProDesdeModal() {
+        var msg = document.getElementById('modal-pro-msg');
+        if (msg) msg.textContent = '';
+        var input = document.getElementById('modal-pro-input');
+        var qRaw = input && input.value ? String(input.value).trim() : '';
+        var res = await buscarJugadorProDesdeTexto(qRaw);
+        if (res.err) {
+            if (msg) msg.textContent = res.err;
+            return;
+        }
+        if (!tvSession) return;
+        premiumCerrarIdentificar();
+        if (identificarProSlot === 2) {
+            tvSession.j2 = res.row.nombre || 'Jugador PRO';
+            tvSession.jugador2 = res.row;
+            nomJ2 = tvSession.j2;
+            jugadorIdJ2 = res.row.id || null;
+            cfg.ced2 = res.row.cedula ? String(res.row.cedula) : '';
+            var l2 = document.getElementById('lbl2-sb');
+            if (l2) l2.innerText = nomJ2;
+        } else {
+            tvSession.type = 'pro';
+            tvSession.j1 = res.row.nombre || 'Jugador PRO';
+            tvSession.jugador = res.row;
+            nomJ1 = tvSession.j1;
+            jugadorIdJ1 = res.row.id || null;
+            cfg.ced1 = res.row.cedula ? String(res.row.cedula) : '';
+            var l1 = document.getElementById('lbl1-sb');
+            if (l1) l1.innerText = nomJ1;
+        }
+        actualizarUI();
+        actualizarIndicadorTvSalon();
+    }
+
+    /** Fila [1]–[5] bajo cada columna casual; suma siempre al jugador de esa columna. */
+    function htmlCasualMiniTeclado(j) {
+        var h =
+            '<div class="salon-casual-mini-tecl" role="group" aria-label="Sumar carambolas jugador ' +
+            j +
+            '">';
+        for (var n = 1; n <= 5; n++) {
+            h +=
+                '<button type="button" class="btn-mini-num" onclick="sumarParaJugador(' +
+                j +
+                ',' +
+                n +
+                ')">' +
+                n +
+                '</button>';
+        }
+        h +=
+            '<button type="button" class="btn-mini-num btn-mini-restar" onclick="restarCasualColumna(' +
+            j +
+            ')" title="Restar 1">−</button>';
+        return h + '</div>';
+    }
+
+    /** Intercambia jugadores en sesión casual: nombres, PRO vinculados y cfg; opcionalmente el marcador en curso. */
+    function swapCasualLadosEnSesionYConfig(conMarcador) {
+        var t;
+        t = tvSession.j1;
+        tvSession.j1 = tvSession.j2;
+        tvSession.j2 = t;
+        var jg = tvSession.jugador;
+        tvSession.jugador = tvSession.jugador2;
+        tvSession.jugador2 = jg;
+        t = nomJ1;
+        nomJ1 = nomJ2;
+        nomJ2 = t;
+        t = cfg.ced1;
+        cfg.ced1 = cfg.ced2;
+        cfg.ced2 = t;
+        t = cfg.meta1;
+        cfg.meta1 = cfg.meta2;
+        cfg.meta2 = t;
+        t = jugadorIdJ1;
+        jugadorIdJ1 = jugadorIdJ2;
+        jugadorIdJ2 = t;
+        if (conMarcador && d) {
+            t = d.p1;
+            d.p1 = d.p2;
+            d.p2 = t;
+            t = d.e1;
+            d.e1 = d.e2;
+            d.e2 = t;
+            t = d.s1;
+            d.s1 = d.s2;
+            d.s2 = t;
+            t = d.ms1;
+            d.ms1 = d.ms2;
+            d.ms2 = t;
+            d.t = d.t === 1 ? 2 : 1;
+            t = ultimaJugadaJ1;
+            ultimaJugadaJ1 = ultimaJugadaJ2;
+            ultimaJugadaJ2 = t;
+        }
+    }
+
+    function resetBolasCasualLayoutDefault() {
+        bolasInvertidas = false;
+        var b1 = document.getElementById('bola1-sb');
+        var b2 = document.getElementById('bola2-sb');
+        if (b1) {
+            b1.classList.remove('bola-dorada');
+            b1.classList.add('bola-blanca');
+        }
+        if (b2) {
+            b2.classList.remove('bola-blanca');
+            b2.classList.add('bola-dorada');
+        }
+    }
+
+    /** Casual: intercambia lados (nombres + bola blanca/dorada por columna) y, si aplica, el estado del marcador. */
+    function intercambiarLadosCasualCompleto() {
+        if (!tvSession || tvSession.type !== 'casual') return;
+        swapCasualLadosEnSesionYConfig(true);
+        resetBolasCasualLayoutDefault();
+        actualizarUI();
+        actualizarIndicadorTvSalon();
+        actualizarTecladoHeader();
+    }
+
+    function htmlSalonVideoWatermarkOverlay() {
+        var wl = leerClubWhiteLabel();
+        var img = '';
+        if (wl.logo) {
+            img =
+                '<img class="salon-video-wm-club" src="' +
+                escAttr(wl.logo) +
+                '" alt="' +
+                escAttr(wl.nombre || 'Club') +
+                '" aria-hidden="true" />';
+        }
+        return (
+            img +
+            '<span class="salon-video-wm-deca" aria-hidden="true">De<strong>Carambola</strong>.com</span>'
+        );
+    }
+
+    function htmlDcSalonBrandFixed() {
+        return '<div class="dc-salon-brand-fixed">De<strong>Carambola</strong>.com</div>';
+    }
+
+    function renderTvSession() {
+        var grid = document.getElementById('dc-tv-grid');
+        if (!grid || !tvSession) return;
+
+        var j1 = escHtml(tvSession.j1);
+        var j2 = escHtml(tvSession.j2);
+        var isCasual = tvSession.type === 'casual';
+        var videoWm = htmlSalonVideoWatermarkOverlay();
+        var brandFixed = htmlDcSalonBrandFixed();
+
+        var html = '';
+
+        if (isCasual) {
+            html += '<div class="card activa premium-salon-card salon-casual-root" data-tv-session="1">';
+            html += '<header class="salon-casual-z1 premium-salon-duelo">';
+            html += '<div class="salon-casual-header-simple">';
+            html += '<span>TIEMPO <span class="salon-casual-hdr-oro" id="ind-transcurrido">0:00</span></span>';
+            html += '<span class="salon-casual-hdr-sep">·</span>';
+            html += '<span class="salon-casual-hdr-costo" id="salon-casual-costo">$—</span>';
+            html += '<span class="salon-casual-hdr-sep">·</span>';
+            html +=
+                '<button type="button" class="btn-tema-salon-casual" id="btn-tema-salon" title="Modo sol" aria-pressed="false">☀️</button>';
+            html += '</div></header>';
+            html += '<div class="salon-casual-controls-bar premium-salon-duelo">';
+            html += '<div class="salon-casual-ctrl-cluster">';
+            html +=
+                '<button type="button" class="btn-salir-config" id="btn-salir-a-config" title="Volver al inicio">← INICIO</button>';
+            html +=
+                '<button type="button" class="btn-obs-transmitir" id="btn-obs-transmitir-vivo" title="Transmisión: un toque; configuración OBS en club/obs-setup y puente pm2 en el Mac"><span id="btn-obs-transmitir-label">▶ TRANSMITIR EN VIVO</span></button>';
+            html += '</div>';
+            html += '<div class="salon-casual-ctrl-cluster">';
+            html +=
+                '<button type="button" class="btn-bolas-lados-casual" id="btn-bolas-lados-casual" title="Intercambiar lados: nombres y bola blanca/dorada">⚪⇄🟡</button>';
+            html += '<button type="button" class="btn-siguiente-set" id="btn-siguiente-set">▶ SIG.SET</button>';
+            html += '<button type="button" class="btn-fin" id="btn-fin">🏁 SALIR</button>';
+            html += '</div>';
+            html += '</div>';
+
+            html += '<div class="salon-casual-z2 premium-salon-duelo">';
+            html += '<aside class="salon-casual-col salon-casual-col-j1 col-side">';
+            html += '<div class="panel-jugador panel-jugador-casual-mid" id="panel-j1">';
+            html += '<div class="panel-head-casual">';
+            html +=
+                '<h2 class="panel-nombre-editable" id="nombre-editable-wrap-j1"><span id="lbl1-sb">' +
+                j1 +
+                '</span></h2>';
+            html +=
+                '<input type="text" class="panel-nombre-inp" id="inp-nombre-j1" maxlength="48" autocomplete="off" />';
+            html += '</div>';
+            html += '<div class="salon-casual-mid-stack">';
+            html += '<div class="salon-casual-score-big" id="lbl-pts-meta1">0/40</div>';
+            html +=
+                '<div class="bola bola-blanca bola-casual-mid" id="bola1-sb" role="button" tabindex="0" title="+1 J1" onclick="sumarCasualBolaTap(1)"><div class="pts" id="pts1-sb">0</div></div>';
+            html +=
+                '<button type="button" class="btn-ident-pro-col" id="btn-ident-pro-j1" title="Identificar como PRO">+ PRO</button>';
+            html += htmlCasualMiniTeclado(1);
+            html += '</div>';
+            html += '</div></aside>';
+
+            html += '<div class="salon-casual-col salon-casual-col-cam">';
+            html += '<div class="premium-salon-casual-mesa-video">';
+            html +=
+                '<div class="panel-video panel-casual-mesa" id="salon-casual-video-panel" data-casual-video="1" data-header-idle="SALÓN — VIDEO / CÁMARA">';
+            html += '<h3 class="lbl-video-header">SALÓN — VIDEO / CÁMARA</h3>';
+            html += '<div class="video-frame video-frame-mesa-21">';
+            html +=
+                '<div class="video-placeholder">Conecte stream (?stream=) o la cámara de la mesa</div>';
+            html +=
+                '<iframe class="stream-iframe" style="display:none;" title="Transmisión"></iframe>';
+            html +=
+                '<video class="local-camera" style="display:none;" playsinline autoplay muted></video>';
+            html += videoWm;
+            html += '</div></div></div>';
+            html += '</div>';
+
+            html += '<aside class="salon-casual-col salon-casual-col-j2 col-side">';
+            html += '<div class="panel-jugador panel-jugador-casual-mid" id="panel-j2">';
+            html += '<div class="panel-head-casual">';
+            html +=
+                '<h2 class="panel-nombre-editable" id="nombre-editable-wrap-j2"><span id="lbl2-sb">' +
+                j2 +
+                '</span></h2>';
+            html +=
+                '<input type="text" class="panel-nombre-inp" id="inp-nombre-j2" maxlength="48" autocomplete="off" />';
+            html += '</div>';
+            html += '<div class="salon-casual-mid-stack">';
+            html += '<div class="salon-casual-score-big" id="lbl-pts-meta2">0/40</div>';
+            html +=
+                '<div class="bola bola-dorada bola-casual-mid" id="bola2-sb" role="button" tabindex="0" title="+1 J2" onclick="sumarCasualBolaTap(2)"><div class="pts" id="pts2-sb">0</div></div>';
+            html +=
+                '<button type="button" class="btn-ident-pro-col" id="btn-ident-pro-j2" title="Identificar como PRO">+ PRO</button>';
+            html += htmlCasualMiniTeclado(2);
+            html += '</div>';
+            html += '</div></aside>';
+            html += '</div>';
+
+            html += '<footer class="salon-casual-z3 premium-salon-duelo salon-casual-footer-solo-cancel">';
+            html += '<div class="salon-casual-cancel-wrap">';
+            html +=
+                '<button type="button" class="btn-cancel-jugada" onclick="cancelarJugadaEntrada()">CANCELAR JUGADA</button>';
+            html += '</div>';
+            html += '<div class="tv-exit-links"></div>';
+            html += '</footer>';
+            html += brandFixed;
+            html += '</div>';
+        } else {
+            html += '<div class="card activa premium-salon-card salon-casual-root salon-pro-root" data-tv-session="1">';
+            html += '<header class="salon-casual-z1 premium-salon-duelo">';
+            html += '<div class="salon-casual-header-simple">';
+            html += '<span>TIEMPO <span class="salon-casual-hdr-oro" id="ind-transcurrido">0:00</span></span>';
+            html += '<span class="salon-casual-hdr-sep">·</span>';
+            html += '<span>MESA <span class="salon-casual-hdr-oro" id="ind-mesa">—</span></span>';
+            html += '<span class="salon-casual-hdr-sep">·</span>';
+            html +=
+                '<span class="salon-pro-turno-inline" title="Turno"><span id="tk-bola" class="turno-bola blanca"></span><span id="tk-nombre" class="salon-pro-turno-nombre">—</span></span>';
+            html += '<span class="salon-casual-hdr-sep">·</span>';
+            html +=
+                '<span class="salon-casual-reloj-ent salon-pro-hdr-ent" id="lbl-ent-top">ENTRADA 1</span>';
+            html += '<span class="salon-casual-hdr-sep">·</span>';
+            html +=
+                '<span class="salon-pro-hdr-scores" title="Marcador"><span id="lbl-pts-meta1">0/40</span><span class="salon-casual-hdr-sep">·</span><span id="lbl-pts-meta2">0/40</span></span>';
+            html += '<span class="salon-casual-hdr-sep">·</span>';
+            html += '<div class="salon-casual-hdr-reloj-wrap">';
+            html += '<div id="reloj">40</div>';
+            html += '<button type="button" id="btn-pausa" class="btn-pausa" title="Pausa">⏸</button>';
+            html += '</div>';
+            html += '<span class="salon-casual-hdr-sep">·</span>';
+            html +=
+                '<button type="button" class="btn-tema-salon-casual" id="btn-tema-salon" title="Modo sol" aria-pressed="false">☀️</button>';
+            html += '</div></header>';
+
+            html += '<div class="salon-casual-controls-bar premium-salon-duelo">';
+            html += '<div class="salon-casual-ctrl-cluster">';
+            html +=
+                '<button type="button" class="btn-salir-config" id="btn-salir-a-config" title="Volver al inicio">← INICIO</button>';
+            html +=
+                '<button type="button" class="btn-obs-transmitir" id="btn-obs-transmitir-vivo" title="Transmisión: un toque; configuración OBS en club/obs-setup y puente pm2 en el Mac"><span id="btn-obs-transmitir-label">▶ TRANSMITIR EN VIVO</span></button>';
+            html += '</div>';
+            html += '<div class="salon-casual-ctrl-cluster">';
+            html +=
+                '<button type="button" class="btn-bolas-tv" id="btn-bolas-tv" title="Intercambiar bolas">⚪⇄🟡</button>';
+            html += '<button type="button" class="btn-siguiente-set" id="btn-siguiente-set">▶ SIG. SET</button>';
+            html += '<button type="button" class="btn-fin" id="btn-fin">🏁 SALIR</button>';
+            html += '</div></div>';
+
+            html += '<div class="salon-casual-z2 premium-salon-duelo">';
+            html += '<aside class="salon-casual-col salon-casual-col-j1 col-side">';
+            html += '<div class="panel-jugador panel-jugador-pro-mid" id="panel-j1">';
+            html += '<div class="panel-head-pro-mid">';
+            html +=
+                '<h2 class="panel-nombre-editable" id="nombre-pro-wrap-j1"><span id="lbl1-sb">' +
+                j1 +
+                '</span></h2>';
+            html +=
+                '<input type="search" class="panel-nombre-inp" id="inp-pro-j1" autocomplete="off" placeholder="Cédula o nombre" />';
+            html +=
+                '<div class="panel-meta salon-pro-meta-editable" id="wrap-meta-pro-primary" title="Tocar para editar meta">';
+            html += '<span class="salon-pro-meta-static">META <span id="meta1-sb">40</span></span>';
+            html +=
+                '<input type="number" class="panel-nombre-inp salon-pro-meta-inp" id="inp-meta-pro" min="1" max="999" step="1" />';
+            html += '</div>';
+            html += '<div class="salon-pro-perfil-prom" id="salon-pro-perfil-j1" hidden></div>';
+            html += '<p class="salon-pro-handicap-sugerido" id="salon-pro-handicap-line"></p>';
+            html += '</div>';
+            html += '<div class="salon-pro-mid-stack">';
+            html +=
+                '<div class="salon-casual-score-big salon-pro-col-marcador salon-casual-score-big--perdiendo" id="lbl-pro-marcador1">0/40</div>';
+            html +=
+                '<div class="bola bola-blanca bola-casual-mid" id="bola1-sb" role="button" tabindex="0" title="+1 J1" onclick="sumarParaJugador(1,1)"><div class="pts" id="pts1-sb">0</div></div>';
+            html += '<div class="salon-pro-stats-tri">';
+            html += '<div class="salon-pro-stat-cell"><span class="salon-pro-stat-val" id="prom1-sb">0.000</span><span class="salon-pro-stat-lbl">Promedio</span></div>';
+            html += '<div class="salon-pro-stat-cell"><span class="salon-pro-stat-val" id="serie1-sb">0</span><span class="salon-pro-stat-lbl">Serie</span></div>';
+            html += '<div class="salon-pro-stat-cell"><span class="salon-pro-stat-val" id="ent1-sb">0</span><span class="salon-pro-stat-lbl">Entradas</span></div>';
+            html += '</div></div><span id="ms1-sb" hidden>0</span>';
+            html += '<div class="panel-meta-bar"><div class="panel-meta-fill" id="fill1-sb"></div></div>';
+            html += '</div></aside>';
+
+            html += '<div class="salon-casual-col salon-casual-col-cam">';
+            html += '<div class="premium-salon-casual-mesa-video">';
+            html +=
+                '<div class="panel-video panel-casual-mesa" id="salon-pro-video-panel" data-pro-video="1" data-header-idle="SALÓN — VIDEO / CÁMARA">';
+            html += '<h3 class="lbl-video-header">SALÓN — VIDEO / CÁMARA</h3>';
+            html += '<div class="video-frame video-frame-mesa-21">';
+            html +=
+                '<div class="video-placeholder">Conecte stream (?stream=) o la cámara de la mesa</div>';
+            html +=
+                '<iframe class="stream-iframe" style="display:none;" title="Transmisión"></iframe>';
+            html +=
+                '<video class="local-camera" style="display:none;" playsinline autoplay muted></video>';
+            html += videoWm;
+            html += '</div></div></div>';
+            html += '</div>';
+
+            html += '<aside class="salon-casual-col salon-casual-col-j2 col-side">';
+            html += '<div class="panel-jugador panel-jugador-pro-mid" id="panel-j2">';
+            html += '<div class="panel-head-pro-mid">';
+            html +=
+                '<h2 class="panel-nombre-editable" id="nombre-pro-wrap-j2"><span id="lbl2-sb">' +
+                j2 +
+                '</span></h2>';
+            html +=
+                '<input type="search" class="panel-nombre-inp" id="inp-pro-j2" autocomplete="off" placeholder="Cédula o nombre" />';
+            html +=
+                '<div class="panel-meta salon-pro-meta-editable" id="wrap-meta-pro-secondary" title="Tocar para editar meta">';
+            html += '<span class="salon-pro-meta-static">META <span id="meta2-sb">40</span></span>';
+            html += '</div>';
+            html += '<div class="salon-pro-perfil-prom" id="salon-pro-perfil-j2" hidden></div>';
+            html += '<p class="salon-pro-handicap-sugerido" id="salon-pro-handicap-line-2"></p>';
+            html += '</div>';
+            html += '<div class="salon-pro-mid-stack">';
+            html +=
+                '<div class="salon-casual-score-big salon-pro-col-marcador salon-casual-score-big--perdiendo" id="lbl-pro-marcador2">0/40</div>';
+            html +=
+                '<div class="bola bola-dorada bola-casual-mid" id="bola2-sb" role="button" tabindex="0" title="+1 J2" onclick="sumarParaJugador(2,1)"><div class="pts" id="pts2-sb">0</div></div>';
+            html += '<div class="salon-pro-stats-tri">';
+            html += '<div class="salon-pro-stat-cell"><span class="salon-pro-stat-val" id="prom2-sb">0.000</span><span class="salon-pro-stat-lbl">Promedio</span></div>';
+            html += '<div class="salon-pro-stat-cell"><span class="salon-pro-stat-val" id="serie2-sb">0</span><span class="salon-pro-stat-lbl">Serie</span></div>';
+            html += '<div class="salon-pro-stat-cell"><span class="salon-pro-stat-val" id="ent2-sb">0</span><span class="salon-pro-stat-lbl">Entradas</span></div>';
+            html += '</div></div><span id="ms2-sb" hidden>0</span>';
+            html += '<div class="panel-meta-bar"><div class="panel-meta-fill" id="fill2-sb"></div></div>';
+            html += '</div></aside>';
+            html += '</div>';
+
+            html += '<footer class="salon-casual-z3 premium-salon-duelo salon-pro-footer-teclado">';
+            html += '<div class="salon-pro-teclado-wrap">';
+            html += '<div class="salon-pro-teclado-fila-acciones">';
+            html += '<button type="button" class="btn-num" onclick="sumar(1)">1</button>';
+            html += '<button type="button" class="btn-num" onclick="sumar(2)">2</button>';
+            html += '<button type="button" class="btn-num" onclick="sumar(3)">3</button>';
+            html += '<button type="button" class="btn-num" onclick="sumar(4)">4</button>';
+            html += '<button type="button" class="btn-num" onclick="sumar(5)">5</button>';
+            html += '<button type="button" class="btn-num btn-restar" onclick="restar()" title="Restar 1">−</button>';
+            html +=
+                '<button type="button" class="btn-num btn-restar salon-pro-btn-cancel-entrada" onclick="cancelarJugadaEntrada()" title="Deshacer última entrada completa">CANCEL</button>';
+            html += '</div>';
+            html += '<div class="salon-pro-teclado-fila-siguiente">';
+            html +=
+                '<button type="button" class="btn-sig salon-pro-btn-sig-full" onclick="cambio()">► SIGUIENTE ENTRADA</button>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="tv-exit-links"></div>';
+            html += '</footer>';
+            html += brandFixed;
+            html += '</div>';
+        }
+
+        grid.innerHTML = html;
+
+        var btnP = document.getElementById('btn-prev');
+        var btnN = document.getElementById('btn-next');
+        if (btnP) btnP.classList.add('oculto');
+        if (btnN) btnN.classList.add('oculto');
+        actualizarIndicadorTvSalon();
+        mesasOcupadas = [];
+        mesaActualIdx = 0;
+
+        iniciarMarcadorSalonTrasRender();
+        aplicarWhiteLabelOverlay();
+    }
+    function normalizarEstado(e) {
+        return String(e || '')
+            .toLowerCase()
+            .replace(/\s+/g, '_');
+    }
+
+    async function cargarSnapshot() {
+        if (!clubId) return;
+        if (tvSession) return;
+        var m = await supabase.from('mesas').select('*').eq('club_id', clubId);
+        if (m.error) return;
+        mesasById = {};
+        (m.data || []).forEach(function (row) {
+            mesasById[row.id] = row;
+        });
+        var h = await supabase.from('mesas_historial').select('*').eq('club_id', clubId).eq('estado', 'abierta');
+        if (h.error) return;
+        sesionesByMesa = {};
+        (h.data || []).forEach(function (row) {
+            if (row.mesa_id) sesionesByMesa[row.mesa_id] = row;
+        });
+        render();
+    }
+
+    function fmtCrono(inicioIso) {
+        var t0 = new Date(inicioIso).getTime();
+        if (isNaN(t0)) return '—';
+        var seg = Math.floor((Date.now() - t0) / 1000);
+        var h = Math.floor(seg / 3600),
+            mi = Math.floor((seg % 3600) / 60),
+            s = seg % 60;
+        return (h ? h + ':' : '') + (mi < 10 ? '0' : '') + mi + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    var mesasOcupadas = [];
+    var mesaActualIdx = 0;
+
+    /** Un solo getUserMedia para paneles sin URL (varias mesas comparten la misma cámara). */
+    var dcSalonLocalMediaStream = null;
+    var dcSalonLocalMediaPromise = null;
+
+    function dcStopSalonLocalCameraIfAny() {
+        if (dcSalonLocalMediaStream) {
+            try {
+                dcSalonLocalMediaStream.getTracks().forEach(function (t) {
+                    try {
+                        t.stop();
+                    } catch (e) {}
+                });
+            } catch (e2) {}
+            dcSalonLocalMediaStream = null;
+        }
+        dcSalonLocalMediaPromise = null;
+    }
+
+    function dcHeaderStreamForPanel(panelVideoRoot, idle) {
+        var idl = String(idle || '');
+        if (idl.indexOf('SALÓN') !== -1) return 'SALÓN — STREAM EN VIVO';
+        return 'MESA — STREAM EN VIVO';
+    }
+
+    function dcHeaderLocalForPanel(panelVideoRoot, idle) {
+        var idl = String(idle || '');
+        if (idl.indexOf('SALÓN') !== -1) return 'SALÓN — CÁMARA LOCAL';
+        return 'MESA — CÁMARA LOCAL';
+    }
+
+    function ensureDcSalonLocalCameraStream() {
+        if (dcSalonLocalMediaStream) return Promise.resolve(dcSalonLocalMediaStream);
+        if (dcSalonLocalMediaPromise) return dcSalonLocalMediaPromise;
+        if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+            return Promise.reject(new Error('getUserMedia no disponible'));
+        }
+        dcSalonLocalMediaPromise = navigator.mediaDevices
+            .getUserMedia({ video: true, audio: false })
+            .then(function (s) {
+                dcSalonLocalMediaStream = s;
+                dcSalonLocalMediaPromise = null;
+                return s;
+            })
+            .catch(function (e) {
+                dcSalonLocalMediaPromise = null;
+                throw e;
+            });
+        return dcSalonLocalMediaPromise;
+    }
+
+    function navMesa(dir) {
+        if (mesasOcupadas.length < 2) return;
+        mesaActualIdx = (mesaActualIdx + dir + mesasOcupadas.length) % mesasOcupadas.length;
+        mostrarMesaActual();
+        var ind = document.getElementById('mesa-indicator');
+        if (ind && mesasOcupadas.length) {
+            var cur = mesasOcupadas[mesaActualIdx];
+            ind.textContent = 'MESA ' + (cur.numero != null ? cur.numero : '—') + ' · ' + (mesaActualIdx + 1) + '/' + mesasOcupadas.length;
+        }
+    }
+
+    function mostrarMesaActual() {
+        if (tvSession) return;
+        var cards = document.querySelectorAll('#dc-tv-grid .card');
+        cards.forEach(function (c) { c.classList.remove('activa'); });
+        if (cards[mesaActualIdx]) cards[mesaActualIdx].classList.add('activa');
+
+        var mesa = mesasOcupadas[mesaActualIdx];
+        var ses = mesa ? sesionesByMesa[mesa.id] : null;
+        var active = document.querySelector('#dc-tv-grid .card.activa');
+        if (!active) return;
+
+        var elNom = active.querySelector('.js-cli-nombre');
+        var elCro = active.querySelector('.js-cli-crono');
+        if (elNom) elNom.textContent = ses && ses.jugador_nombre ? ses.jugador_nombre : '—';
+        if (elCro) elCro.textContent = ses && ses.inicio_sesion ? fmtCrono(ses.inicio_sesion) : '00:00';
+    }
+
+    /**
+     * Misma lógica que duelo-tv.html → initVideoPanel():
+     * ?stream= en URL o URL por mesa; si hay stream → iframe.src = stream y display block;
+     * si no → getUserMedia (cámara del dispositivo) o placeholder si deniega / no hay API.
+     * data-header-idle en .panel-video restaura el título del bloque (MESA vs SALÓN).
+     */
+    function initVideoPanelForCard(panelVideoRoot, stream) {
+        var streamNorm = (stream && String(stream).trim()) || '';
+        var iframe = panelVideoRoot.querySelector('.stream-iframe');
+        var placeholder = panelVideoRoot.querySelector('.video-placeholder');
+        var header = panelVideoRoot.querySelector('.lbl-video-header');
+        var localVideo = panelVideoRoot.querySelector('.local-camera');
+        var headerIdle =
+            (panelVideoRoot.getAttribute && panelVideoRoot.getAttribute('data-header-idle')) ||
+            (header && header.textContent ? header.textContent.trim() : '') ||
+            'MESA — VIDEO / STREAM';
+
+        function showStreamPlaceholder() {
+            if (localVideo) {
+                try {
+                    localVideo.srcObject = null;
+                } catch (e) {}
+                localVideo.style.display = 'none';
+            }
+            if (placeholder) placeholder.style.display = 'flex';
+            if (header) header.innerText = headerIdle;
+        }
+
+        if (streamNorm) {
+            if (iframe) {
+                iframe.src = streamNorm;
+                iframe.style.display = 'block';
+            }
+            if (localVideo) {
+                try {
+                    localVideo.srcObject = null;
+                } catch (e) {}
+                localVideo.style.display = 'none';
+            }
+            if (placeholder) placeholder.style.display = 'none';
+            if (header) header.innerText = dcHeaderStreamForPanel(panelVideoRoot, headerIdle);
+            return;
+        }
+
+        if (iframe) {
+            iframe.src = '';
+            iframe.style.display = 'none';
+        }
+
+        if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+            showStreamPlaceholder();
+            return;
+        }
+
+        ensureDcSalonLocalCameraStream()
+            .then(function (s) {
+                if (!localVideo) {
+                    showStreamPlaceholder();
+                    return;
+                }
+                localVideo.srcObject = s;
+                localVideo.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+                if (header) header.innerText = dcHeaderLocalForPanel(panelVideoRoot, headerIdle);
+            })
+            .catch(function () {
+                showStreamPlaceholder();
+            });
+    }
+
+    function render() {
+        var grid = document.getElementById('dc-tv-grid');
+        if (!grid) return;
+
+        if (tvSession) {
+            renderTvSession();
+            return;
+        }
+
+        mesasOcupadas = [];
+        Object.keys(mesasById).forEach(function (id) {
+            var mesa = mesasById[id];
+            if (normalizarEstado(mesa.estado) === 'ocupada') mesasOcupadas.push(mesa);
+        });
+        mesasOcupadas.sort(function (a, b) { return (a.numero || 0) - (b.numero || 0); });
+
+        if (!mesasOcupadas.length) {
+            dcStopSalonLocalCameraIfAny();
+            grid.innerHTML = '<div class="empty">Ninguna mesa ocupada. Cuando la operadora abra una sesión, aparecerá acá al instante.</div>';
+            var ind = document.getElementById('mesa-indicator');
+            if (ind) ind.textContent = '';
+            var btnP = document.getElementById('btn-prev');
+            var btnN = document.getElementById('btn-next');
+            if (btnP) btnP.classList.add('oculto');
+            if (btnN) btnN.classList.add('oculto');
+            return;
+        }
+
+        if (mesaActualIdx >= mesasOcupadas.length) mesaActualIdx = 0;
+
+        var paramsTv = new URLSearchParams(window.location.search);
+        var streamFromUrl = (paramsTv.get('stream') || '').trim();
+
+        var html = '';
+        mesasOcupadas.forEach(function (mesa) {
+            var ses = sesionesByMesa[mesa.id];
+            var nombre = ses && ses.jugador_nombre ? ses.jugador_nombre : '—';
+            var cronoTxt = ses && ses.inicio_sesion ? fmtCrono(ses.inicio_sesion) : '00:00';
+            var num = mesa.numero != null ? mesa.numero : '—';
+
+            html += '<div class="card" data-mesa-id="' + escAttr(mesa.id) + '">';
+            html += '<div class="premium-row">';
+            html += '<aside class="col-side col-izq">';
+            html += '<span class="lbl">Cliente / sesión</span>';
+            html += '<div class="nombre js-cli-nombre">' + escHtml(nombre) + '</div>';
+            html += '<div class="crono-big js-cli-crono">' + escHtml(cronoTxt) + '</div>';
+            html += '</aside>';
+            html += '<div class="col-video">';
+            html += '<div class="panel-video" data-header-idle="MESA — VIDEO / STREAM">';
+            html += '<h3 class="lbl-video-header">MESA — VIDEO / STREAM</h3>';
+            html += '<div class="video-frame">';
+            html += '<div class="video-placeholder">Conecte la cámara de esta mesa</div>';
+            html += '<iframe class="stream-iframe" style="display:none;" title="Transmisión"></iframe>';
+            html += '<video class="local-camera" style="display:none;" playsinline autoplay muted></video>';
+            html += '</div></div></div>';
+            html += '<aside class="col-side der">';
+            html += '<span class="lbl">Mesa</span>';
+            html += '<div class="mesa-num">#' + escHtml(String(num)) + '</div>';
+            html += '<div class="mesa-sub">EN SESIÓN</div>';
+            html += '</aside>';
+            html += '</div></div>';
+        });
+        grid.innerHTML = html;
+
+        mesasOcupadas.forEach(function (mesa, idx) {
+            var cards = grid.querySelectorAll('.card');
+            var card = cards[idx];
+            if (!card) return;
+            var panel = card.querySelector('.panel-video');
+            if (!panel) return;
+            var stream = streamFromUrl || urlStreamingMesa(mesa);
+            initVideoPanelForCard(panel, stream);
+        });
+
+        var btnP = document.getElementById('btn-prev');
+        var btnN = document.getElementById('btn-next');
+        if (mesasOcupadas.length < 2) {
+            if (btnP) btnP.classList.add('oculto');
+            if (btnN) btnN.classList.add('oculto');
+        } else {
+            if (btnP) btnP.classList.remove('oculto');
+            if (btnN) btnN.classList.remove('oculto');
+        }
+        var ind2 = document.getElementById('mesa-indicator');
+        if (ind2 && mesasOcupadas.length) {
+            var cur = mesasOcupadas[mesaActualIdx];
+            ind2.textContent = 'MESA ' + (cur.numero != null ? cur.numero : '—') + ' · ' + (mesaActualIdx + 1) + '/' + mesasOcupadas.length;
+        }
+        mostrarMesaActual();
+    }
+
+    function tickCronos() {
+        mostrarMesaActual();
+        if (tvSession) {
+            try {
+                actualizarIndicadoresTiempo();
+            } catch (e) {}
+        }
+    }
+
+    window.navMesa = navMesa;
+
+    var btnCasual = document.getElementById('btn-iniciar-casual');
+    var btnProFlujo = document.getElementById('btn-iniciar-pro');
+    if (btnCasual) btnCasual.addEventListener('click', iniciarCasual);
+    var btnTemaInicio = document.getElementById('btn-tema-salon-inicio');
+    if (btnTemaInicio) btnTemaInicio.addEventListener('click', toggleTemaSalonCasual);
+    aplicarTemaSalon();
+    await hidratarClubConfigDesdeSupabaseSiFaltaLogo();
+    aplicarMarcaClubTV();
+    if (btnProFlujo) btnProFlujo.addEventListener('click', iniciarPro);
+
+    var modalInp = document.getElementById('modal-pro-input');
+    var modalBtn = document.getElementById('modal-pro-buscar');
+    var modalCerr = document.getElementById('modal-pro-cerrar');
+    if (modalBtn) modalBtn.addEventListener('click', aplicarProDesdeModal);
+    if (modalInp) {
+        modalInp.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                aplicarProDesdeModal();
+            }
+        });
+    }
+    if (modalCerr) modalCerr.addEventListener('click', premiumCerrarIdentificar);
+    var modalShell = document.getElementById('modal-identificar-pro');
+    if (modalShell) {
+        modalShell.addEventListener('click', function (e) {
+            if (e.target === modalShell) premiumCerrarIdentificar();
+        });
+    }
+
+    if (clubId) {
+        await cargarSnapshot();
+        var cid = encodeURIComponent(clubId.replace(/[^a-zA-Z0-9_-]/g, '_'));
+        var ch = supabase.channel('dc-premium-tv-' + cid);
+        ch.on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'mesas', filter: 'club_id=eq.' + clubId },
+            function () { cargarSnapshot(); }
+        );
+        ch.on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'mesas_historial', filter: 'club_id=eq.' + clubId },
+            function () { cargarSnapshot(); }
+        );
+        ch.subscribe();
+    }
+    tickTimer = setInterval(tickCronos, 1000);
+</script>
+</body>
+</html>

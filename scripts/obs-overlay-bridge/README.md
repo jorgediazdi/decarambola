@@ -6,6 +6,7 @@ En HTTPS el navegador no puede abrir `ws://127.0.0.1:4455`; por eso el control d
 
 ## Requisitos
 
+- **Node.js 22+** o dependencia **`ws`** (ya incluida): sin WebSocket en Node, Supabase Realtime no llega a `SUBSCRIBED`.
 - OBS con **obs-websocket** en **4455**.
 - Fila en **`club_obs_config`** para `DECA_CLUB_ID` (técnico).
 - Variables **`SUPABASE_URL`**, **`SUPABASE_SERVICE_ROLE_KEY`**, **`DECA_CLUB_ID`**.

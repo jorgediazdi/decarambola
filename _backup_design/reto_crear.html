@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
+
+const { data: sess } = await supabase.auth.getSession();
+if (!sess?.session) {
+  window.location.replace(
+    '/auth.html?next=' + encodeURIComponent(window.location.pathname + window.location.search)
+  );
+} else {
+  window.__DC_SB = supabase;
+}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#d4af37">
+<title>Reto Caserito — DeCarambola</title>
+<link rel="stylesheet" href="/css/dc-system.css">
+<link rel="stylesheet" href="/css/ux-shell.css">
+<link rel="stylesheet" href="/css/bottom-nav.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; padding-bottom: 92px; }
+.header { position: sticky; top: 0; z-index: 20; background: rgba(9, 9, 9, 0.92); border-bottom: 1px solid #222; padding: 14px 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.header h1 { font-size: 0.95rem; color: #d4af37; letter-spacing: 0.08em; margin: 0; font-family: 'Arial Black', Arial, sans-serif; }
+.btn-back { display: inline-block; text-decoration: none; color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 10px; padding: 8px 12px; font-size: 0.7rem; font-family: 'Arial Black', Arial, sans-serif; letter-spacing: 0.05em; }
+.wrap { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 18px; }
+.reto-lead { color: #777; font-size: 0.78rem; margin-bottom: 14px; }
+.steps { display: flex; gap: 8px; margin-bottom: 12px; }
+.step-dot { flex: 1; text-align: center; padding: 8px; border-radius: 999px; border: 1px solid #2a2a2a; color: #666; font-size: 0.62rem; }
+.step-dot.on { border-color: #d4af37; color: #d4af37; background: rgba(212, 175, 55, 0.1); }
+.card { background: #111; border: 1px solid #232323; border-radius: 16px; padding: 14px; margin-bottom: 10px; }
+.card h2 { color: #d4af37; font-size: 0.78rem; letter-spacing: 0.06em; margin-bottom: 10px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 0.66rem; color: #888; margin-bottom: 5px; }
+.field input, .field select {
+  width: 100%;
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  color: #fff;
+  padding: 10px;
+  font-size: 0.9rem;
+}
+.toggle { display: flex; gap: 8px; margin-bottom: 10px; }
+.toggle button {
+  flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #2a2a2a;
+  background: #0a0a0a; color: #777; cursor: pointer; font-weight: 700; font-size: 0.7rem;
+}
+.toggle button.on { border-color: #d4af37; color: #d4af37; background: rgba(212,175,55,0.1); }
+.check-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: #bbb; font-size: 0.74rem; }
+.check-row input { accent-color: #d4af37; }
+.btn {
+  width: 100%; border: none; border-radius: 12px; padding: 13px; font-weight: 800; cursor: pointer;
+  font-size: 0.8rem; letter-spacing: 0.04em; margin-top: 4px;
+}
+.btn-gold { background: linear-gradient(135deg, #d4af37, #a07800); color: #111; }
+.btn-dark { background: #0a0a0a; border: 1px solid #2a2a2a; color: #bbb; }
+.hide { display: none !important; }
+.codigo {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.9rem; letter-spacing: 0.14em; text-align: center; color: #d4af37; margin: 6px 0 12px;
+}
+.mini { color: #777; font-size: 0.72rem; text-align: center; margin-bottom: 10px; }
+@media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="dc-app dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+<header class="header">
+  <a href="/jugador/index.html" class="btn-back">← MI ESPACIO</a>
+  <h1>RETO CASERITO</h1>
+</header>
+<div class="wrap">
+  <p class="reto-lead">Crea, comparte y juega tu reto en 3 pasos.</p>
+
+  <section id="reto-invite" class="card hide" aria-live="polite">
+    <h2>Reto para vos</h2>
+    <p class="mini">Revisá los datos y aceptá para pasar a jugar.</p>
+    <div class="codigo" id="inv-codigo">DC-0000</div>
+    <div id="inv-detalles"></div>
+    <button type="button" class="btn btn-gold" id="btn-aceptar-reto">ACEPTAR RETO</button>
+    <a class="btn btn-dark" href="/jugador/index.html">← Volver a mi espacio</a>
+  </section>
+
+  <div class="steps">
+    <div class="step-dot on" id="dot1">1 · CONFIGURA</div>
+    <div class="step-dot" id="dot2">2 · COMPARTE</div>
+    <div class="step-dot" id="dot3">3 · LISTO</div>
+  </div>
+
+  <section id="paso1" class="card">
+    <h2>Paso 1 — ¿Cómo jugamos?</h2>
+
+    <div class="field">
+      <label>Tipo de reto</label>
+      <div class="toggle">
+        <button type="button" id="tipo-publico" class="on">Abierto al club</button>
+        <button type="button" id="tipo-directo">A un jugador específico</button>
+      </div>
+    </div>
+
+    <div class="field hide" id="rival-wrap">
+      <label for="rival">Jugador rival</label>
+      <input id="rival" type="text" placeholder="Nombre del rival">
+    </div>
+
+    <div class="field">
+      <label for="modalidad">Modalidad</label>
+      <select id="modalidad">
+        <option value="3 bandas">3 bandas</option>
+        <option value="libre">Libre</option>
+        <option value="cinco pinos">Cinco pinos</option>
+        <option value="cuadro">Cuadro</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="meta">Meta (carambolas)</label>
+      <input id="meta" type="number" min="1" value="40">
+    </div>
+
+    <label class="check-row" for="con-handicap">
+      <input id="con-handicap" type="checkbox">
+      Con handicap
+    </label>
+
+    <div class="field hide" id="meta-rival-wrap">
+      <label for="meta-rival">Meta rival (handicap)</label>
+      <input id="meta-rival" type="number" min="1" value="30">
+    </div>
+
+    <div class="field">
+      <label for="formato">Formato</label>
+      <select id="formato">
+        <option value="Única">Única</option>
+        <option value="BO3">BO3</option>
+        <option value="BO5">BO5</option>
+        <option value="BO7">BO7</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="fecha">Fecha</label>
+        <input id="fecha" type="date">
+      </div>
+      <div class="field">
+        <label for="hora">Hora</label>
+        <input id="hora" type="time">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="bolsa">Bolsa opcional ($)</label>
+      <input id="bolsa" type="number" min="0" step="1000" placeholder="0">
+    </div>
+
+    <button class="btn btn-gold" id="btn-publicar">PUBLICAR RETO</button>
+  </section>
+
+  <section id="paso2" class="card hide">
+    <h2>Paso 2 — Comparte</h2>
+    <div class="codigo" id="codigo">DC-0000</div>
+    <div class="mini">Comparte este código o link para que acepten el reto.</div>
+    <button class="btn btn-gold" id="btn-wa">COMPARTIR WHATSAPP</button>
+    <button class="btn btn-dark" id="btn-copy">COPIAR LINK</button>
+    <button class="btn btn-dark" id="btn-next3">CONTINUAR</button>
+  </section>
+
+  <section id="paso3" class="card hide">
+    <h2>Paso 3 — ¡Listo!</h2>
+    <div class="mini">Cuando ambos estén listos, confirma y arranca la partida.</div>
+    <button class="btn btn-gold" id="btn-confirmar">CONFIRMAR PRESENCIA</button>
+    <button class="btn btn-dark" id="btn-iniciar">INICIAR RETO</button>
+  </section>
+</div>
+
+<nav class="bottom-nav" aria-label="Navegación inferior">
+  <a class="bottom-nav__item" href="/index.html"><span class="bottom-nav__icon">🏠</span><span>Inicio</span></a>
+  <a class="bottom-nav__item" href="/apps/organizador/torneos.html"><span class="bottom-nav__icon">🏆</span><span>Torneos</span></a>
+  <a class="bottom-nav__item" href="/duelo-tv.html?modo=movil"><span class="bottom-nav__icon">🎱</span><span>Jugar</span></a>
+  <a class="bottom-nav__item" href="/ranking.html"><span class="bottom-nav__icon">📊</span><span>Ranking</span></a>
+  <a class="bottom-nav__item" href="/perfil.html"><span class="bottom-nav__icon">👤</span><span>Perfil</span></a>
+</nav>
+
+<script>
+(function () {
+  var PUBLIC_RETO_ORIGIN = 'https://decarambola.com';
+  var estado = { tipo: 'publico', codigo: null, sharePayload: null };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function retadorNombreSync() {
+    try {
+      var mp = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+      if (mp.nombre && String(mp.nombre).trim()) return String(mp.nombre).trim();
+      if (mp.nombre_completo && String(mp.nombre_completo).trim()) return String(mp.nombre_completo).trim();
+    } catch (e) {}
+    try {
+      var pj = JSON.parse(localStorage.getItem('perfil_jugador') || '{}');
+      if (pj.nombre_completo && String(pj.nombre_completo).trim()) return String(pj.nombre_completo).trim();
+    } catch (e2) {}
+    return 'Jugador';
+  }
+
+  function buildShareLink(codigo, payload) {
+    var u = new URLSearchParams();
+    u.set('reto', codigo);
+    u.set('modalidad', payload.modalidad || '');
+    u.set('meta', String(payload.meta != null ? payload.meta : ''));
+    u.set('formato', payload.formato || '');
+    u.set('fecha', payload.fecha || '');
+    u.set('hora', payload.hora || '');
+    u.set('retador', payload.retador || '');
+    u.set('tipo', payload.tipo || 'publico');
+    if (payload.rival) u.set('rival', payload.rival);
+    u.set('handicap', payload.handicap ? '1' : '0');
+    if (payload.metaRival != null && payload.metaRival !== '') u.set('meta_rival', String(payload.metaRival));
+    if (payload.bolsa != null && payload.bolsa !== '') u.set('bolsa', String(payload.bolsa));
+    return PUBLIC_RETO_ORIGIN + '/reto_crear.html?' + u.toString();
+  }
+
+  function fmtFechaInvite(isoYmd) {
+    if (!isoYmd || !/^\d{4}-\d{2}-\d{2}$/.test(isoYmd)) return isoYmd || '—';
+    var p = isoYmd.split('-');
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+
+  /** Mapea fila retos (columnas planas o json en detalle/payload). */
+  function detalleDesdeRow(row) {
+    if (!row) return {};
+    var d = row.detalle != null ? row.detalle : row.payload != null ? row.payload : null;
+    if (
+      d == null &&
+      row.meta != null &&
+      typeof row.meta === 'object' &&
+      !Array.isArray(row.meta)
+    ) {
+      d = row.meta;
+    }
+    if (typeof d === 'string') {
+      try {
+        d = JSON.parse(d);
+      } catch (e) {
+        d = null;
+      }
+    }
+    if (d && typeof d === 'object' && !Array.isArray(d)) {
+      return {
+        retador: d.retador || '',
+        modalidad: d.modalidad || '',
+        meta: d.meta != null ? String(d.meta) : '',
+        formato: d.formato || '',
+        fecha: d.fecha || '',
+        hora: d.hora || '',
+        tipo: d.tipo || 'publico',
+        rival: d.rival || '',
+        handicap: !!d.handicap,
+        metaRival: d.metaRival != null ? String(d.metaRival) : '',
+        bolsa: d.bolsa != null ? String(d.bolsa) : '',
+      };
+    }
+    return {
+      retador: row.retador_nombre || row.retador || '',
+      modalidad: row.modalidad || '',
+      meta: row.meta != null ? String(row.meta) : '',
+      formato: row.formato || '',
+      fecha: row.fecha || '',
+      hora: row.hora || '',
+      tipo: row.tipo || 'publico',
+      rival: row.rival_nombre || row.rival || '',
+      handicap: !!(row.con_handicap || row.handicap),
+      metaRival: row.meta_rival != null ? String(row.meta_rival) : '',
+      bolsa: row.bolsa != null ? String(row.bolsa) : '',
+    };
+  }
+
+  function mergeInviteFields(p, det) {
+    function pickUrlOrDet(urlKey, detVal) {
+      var u = p.get(urlKey);
+      if (u != null && String(u).trim() !== '') return String(u).trim();
+      if (detVal != null && String(detVal).trim() !== '') return String(detVal).trim();
+      return '';
+    }
+    var tipoRaw = pickUrlOrDet('tipo', det.tipo) || 'publico';
+    return {
+      retador: pickUrlOrDet('retador', det.retador),
+      modalidad: pickUrlOrDet('modalidad', det.modalidad),
+      meta: pickUrlOrDet('meta', det.meta),
+      formato: pickUrlOrDet('formato', det.formato),
+      fecha: pickUrlOrDet('fecha', det.fecha),
+      hora: pickUrlOrDet('hora', det.hora),
+      tipo: tipoRaw,
+      rival: pickUrlOrDet('rival', det.rival),
+      handicap: p.get('handicap') === '1' || !!det.handicap,
+      metaRival: pickUrlOrDet('meta_rival', det.metaRival),
+      bolsa: pickUrlOrDet('bolsa', det.bolsa),
+    };
+  }
+
+  function initInviteMode() {
+    var p = new URLSearchParams(window.location.search);
+    var code = p.get('reto');
+    if (!code) return false;
+    var lead = document.querySelector('.wrap > p.reto-lead');
+    if (lead) lead.textContent = 'Te compartieron un reto en DeCarambola.';
+    var ht = document.querySelector('header.header h1');
+    if (ht) ht.textContent = 'ACEPTAR RETO';
+    var steps = document.querySelector('.wrap > .steps');
+    if (steps) steps.classList.add('hide');
+    $('paso1').classList.add('hide');
+    $('paso2').classList.add('hide');
+    $('paso3').classList.add('hide');
+    $('reto-invite').classList.remove('hide');
+
+    $('inv-codigo').textContent = code;
+    var box = $('inv-detalles');
+    box.innerHTML = '<p class="mini">Cargando datos del reto…</p>';
+
+    function renderMerged(m) {
+      box.innerHTML = '';
+      function addLine(label, val) {
+        var el = document.createElement('p');
+        el.className = 'mini';
+        var display = val != null && String(val).trim() !== '' ? String(val).trim() : '—';
+        el.textContent = label + ': ' + display;
+        box.appendChild(el);
+      }
+      addLine('Quién reta', m.retador);
+      addLine('Modalidad', m.modalidad);
+      addLine('Meta', m.meta);
+      addLine('Formato', m.formato);
+      addLine('Fecha', fmtFechaInvite(m.fecha));
+      addLine('Hora', m.hora);
+      addLine('Tipo', m.tipo === 'directo' ? 'A un jugador específico' : 'Abierto al club');
+      if (m.rival) addLine('Rival indicado', m.rival);
+      if (m.handicap) {
+        addLine('Handicap', 'Sí' + (m.metaRival ? ' (meta rival: ' + m.metaRival + ')' : ''));
+      }
+      if (m.bolsa) addLine('Bolsa', '$' + m.bolsa);
+    }
+
+    function wireAceptar(m) {
+      $('btn-aceptar-reto').onclick = function () {
+        var q = new URLSearchParams();
+        q.set('modo', 'movil');
+        q.set('reto', code);
+        if (m.modalidad) q.set('modalidad', m.modalidad);
+        if (m.meta) q.set('meta', m.meta);
+        window.location.href = '/duelo-tv.html?' + q.toString();
+      };
+    }
+
+    var sb = window.__DC_SB;
+    if (!sb || typeof sb.from !== 'function') {
+      renderMerged(mergeInviteFields(p, {}));
+      wireAceptar(mergeInviteFields(p, {}));
+      return true;
+    }
+    sb
+      .from('retos')
+      .select('*')
+      .eq('codigo', code)
+      .maybeSingle()
+      .then(function (res) {
+        var det = {};
+        if (!res.error && res.data) det = detalleDesdeRow(res.data);
+        var m = mergeInviteFields(p, det);
+        renderMerged(m);
+        wireAceptar(m);
+      })
+      .catch(function () {
+        var m = mergeInviteFields(p, {});
+        renderMerged(m);
+        wireAceptar(m);
+      });
+    return true;
+  }
+
+  if (initInviteMode()) return;
+
+  function setStep(n) {
+    $('paso1').classList.toggle('hide', n !== 1);
+    $('paso2').classList.toggle('hide', n !== 2);
+    $('paso3').classList.toggle('hide', n !== 3);
+    $('dot1').classList.toggle('on', n === 1);
+    $('dot2').classList.toggle('on', n === 2);
+    $('dot3').classList.toggle('on', n === 3);
+  }
+
+  function genCodigo() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var out = 'DC-';
+    for (var i = 0; i < 4; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  $('tipo-publico').onclick = function () {
+    estado.tipo = 'publico';
+    $('tipo-publico').classList.add('on');
+    $('tipo-directo').classList.remove('on');
+    $('rival-wrap').classList.add('hide');
+  };
+  $('tipo-directo').onclick = function () {
+    estado.tipo = 'directo';
+    $('tipo-directo').classList.add('on');
+    $('tipo-publico').classList.remove('on');
+    $('rival-wrap').classList.remove('hide');
+  };
+
+  $('con-handicap').onchange = function () {
+    $('meta-rival-wrap').classList.toggle('hide', !this.checked);
+  };
+
+  $('btn-publicar').onclick = function () {
+    var fecha = $('fecha').value;
+    var hora = $('hora').value;
+    if (!fecha || !hora) return alert('Define fecha y hora');
+    if ($('con-handicap').checked && (!$('meta-rival').value || Number($('meta-rival').value) < 1)) {
+      return alert('Define la meta rival para handicap');
+    }
+    if (estado.tipo === 'directo' && !String($('rival').value || '').trim()) return alert('Ingresa el jugador rival');
+    estado.codigo = genCodigo();
+    estado.sharePayload = {
+      modalidad: $('modalidad').value,
+      meta: $('meta').value,
+      formato: $('formato').value,
+      fecha: $('fecha').value,
+      hora: $('hora').value,
+      retador: retadorNombreSync(),
+      tipo: estado.tipo === 'directo' ? 'directo' : 'publico',
+      rival:
+        estado.tipo === 'directo' ? String($('rival').value || '').trim() : '',
+      handicap: !!$('con-handicap').checked,
+      metaRival: $('con-handicap').checked ? $('meta-rival').value : '',
+      bolsa: $('bolsa').value || '',
+    };
+    $('codigo').textContent = estado.codigo;
+    setStep(2);
+    var sb = window.__DC_SB;
+    if (sb && typeof sb.from === 'function' && typeof sb.auth.getSession === 'function') {
+      sb.auth.getSession().then(function (res) {
+        var uid = res.data && res.data.session && res.data.session.user && res.data.session.user.id;
+        var clubId = '';
+        try {
+          clubId = String(JSON.parse(localStorage.getItem('mi_perfil') || '{}').club_id || '').trim();
+        } catch (e) {}
+        var row = {
+          codigo: estado.codigo,
+          club_id: clubId || null,
+          retador_id: uid || null,
+          retado_id: null,
+          estado: 'pendiente',
+          detalle: estado.sharePayload,
+        };
+        return sb.from('retos').insert(row);
+      }).then(function (ins) {
+        if (ins && ins.error && typeof console !== 'undefined' && console.warn) {
+          console.warn('[reto_crear] guardar retos:', ins.error.message);
+        }
+      });
+    }
+  };
+
+  $('btn-wa').onclick = function () {
+    if (!estado.codigo || !estado.sharePayload) return;
+    var link = buildShareLink(estado.codigo, estado.sharePayload);
+    var msg = '🟡 Reto Caserito\nCódigo: ' + estado.codigo + '\n' + link;
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  };
+
+  $('btn-copy').onclick = function () {
+    if (!estado.codigo || !estado.sharePayload) return;
+    var link = buildShareLink(estado.codigo, estado.sharePayload);
+    if (navigator.clipboard) navigator.clipboard.writeText(link).then(function () { alert('Link copiado'); });
+    else prompt('Copia este link:', link);
+  };
+
+  $('btn-next3').onclick = function () { setStep(3); };
+  $('btn-confirmar').onclick = function () { alert('Presencia confirmada ✅'); };
+  $('btn-iniciar').onclick = function () { window.location.href = '/duelo-tv.html'; };
+
+  // mínima fecha permitida: hoy
+  var minDate = new Date();
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  $('fecha').min = minDate.getFullYear() + '-' + pad(minDate.getMonth() + 1) + '-' + pad(minDate.getDate());
+})();
+</script>
+<script>
+(function () {
+  var bg = document.getElementById('stars-bg');
+  if (!bg) return;
+  for (var i = 0; i < 80; i++) {
+    var s = document.createElement('div');
+    s.className = 'star';
+    var sz = Math.random() * 2 + 0.5;
+    s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+    bg.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>

@@ -963,20 +963,6 @@ async function guardarTarifas() {
 window.__salaBoot = cargarTarifas;
 </script>
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
-
 <script type="module">
 import { getSession, getRole } from '/js/auth-manager.js';
 import { guardSalaPageConPolitica } from '/js/sala-gate-politica-club.js';

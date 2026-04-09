@@ -15,9 +15,9 @@ if (!sess?.session) {
 <title>Mi Partida - DeCarambola</title>
 <link rel="stylesheet" href="/css/dc-system.css">
 <style>
-:root{--oro:#d4af37;--neon:#2eff70;--rojo:#e74c3c;--azul:#3498db;}
+:root{--oro:var(--dc-gold);--neon:#2eff70;--rojo:#e74c3c;--azul:#3498db;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;min-height:100vh;height:100vh;height:100dvh;overflow:hidden;}
+body{background:#0b0b0b;color:#fff;font-family:"var(--dc-font-body)",Arial,sans-serif;min-height:100vh;height:100vh;height:100dvh;overflow:hidden;}
 
 /* PANTALLAS */
 .pan{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;}
@@ -28,15 +28,15 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;mi
 .sub{color:#333;font-size:.6rem;letter-spacing:3px;text-align:center;margin-bottom:26px;}
 .card{width:100%;max-width:420px;background:#0f0f0f;border:1px solid #222;border-radius:20px;padding:20px 22px;margin-bottom:12px;}
 .lbl{display:block;color:#555;font-size:.55rem;letter-spacing:2px;margin-bottom:8px;}
-.inp{width:100%;background:transparent;border:none;border-bottom:1px solid #222;color:#fff;font-family:"Arial Black",sans-serif;font-size:1.1rem;padding:6px 0;outline:none;margin-bottom:16px;}
+.inp{width:100%;background:transparent;border:none;border-bottom:1px solid #222;color:#fff;font-family:"var(--dc-font-body)",sans-serif;font-size:1.1rem;padding:6px 0;outline:none;margin-bottom:16px;}
 .inp::placeholder{color:#2a2a2a;}
 #sugs{margin-top:6px;background:#080808;border:1px solid #1a1a1a;border-radius:12px;overflow:hidden;display:none;}
 #sugs div{padding:11px 14px;cursor:pointer;border-bottom:1px solid #111;font-size:.82rem;color:#ccc;}
 .chip{width:100%;max-width:420px;padding:9px 14px;border-radius:10px;font-size:.62rem;margin-bottom:20px;background:#0a0a0a;border:1px solid #1a1a1a;color:#444;}
 .chip.on{border-color:rgba(46,255,112,.3);color:var(--neon);background:rgba(46,255,112,.05);}
-.btn-go{width:100%;max-width:420px;padding:22px;background:linear-gradient(135deg,var(--neon),#18b040);color:#000;border:none;border-radius:20px;font-size:1.1rem;font-weight:bold;font-family:"Arial Black",sans-serif;cursor:pointer;letter-spacing:2px;margin-bottom:10px;}
+.btn-go{width:100%;max-width:420px;padding:22px;background:linear-gradient(135deg,var(--neon),#18b040);color:#000;border:none;border-radius:20px;font-size:1.1rem;font-weight:bold;font-family:"var(--dc-font-body)",sans-serif;cursor:pointer;letter-spacing:2px;margin-bottom:10px;}
 .btn-go:active{transform:scale(.97);}
-.btn-back{width:100%;max-width:420px;background:none;border:none;color:#333;padding:12px;cursor:pointer;font-size:.65rem;font-family:"Arial Black",sans-serif;}
+.btn-back{width:100%;max-width:420px;background:none;border:none;color:#333;padding:12px;cursor:pointer;font-size:.65rem;font-family:"var(--dc-font-body)",sans-serif;}
 
 /* JUEGO — columna 100vh; FINALIZAR abajo siempre a la vista (sin scroll forzado) */
 #p-jue{
@@ -58,7 +58,7 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;mi
   border-radius:14px;
   font-size:.65rem;
   cursor:pointer;
-  font-family:"Arial Black",sans-serif;
+  font-family:"var(--dc-font-body)",sans-serif;
   letter-spacing:.12em;
 }
 .btn-salir:active{opacity:.9;transform:scale(.97);}
@@ -70,7 +70,7 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;mi
   .bola{width:130px;height:130px;}
   .bola-n{font-size:3.2rem;}
 }
-.bola{width:160px;height:160px;border-radius:50%;background:radial-gradient(circle at 32% 32%,#fff9c4 0%,#f5d020 20%,#d4af37 50%,#8a6a00 80%,#2a1a00 100%);box-shadow:inset -12px -12px 24px rgba(0,0,0,.6),inset 5px 5px 12px rgba(255,220,80,.3),8px 8px 25px rgba(0,0,0,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;user-select:none;flex-shrink:0;}
+background: var(--dc-bg);
 .bola:active{transform:scale(.88);}
 @keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.18);filter:brightness(1.6)}100%{transform:scale(1)}}
 .bola.bump{animation:bump .22s ease-out;}
@@ -84,7 +84,7 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;mi
 .hot{color:var(--neon);text-shadow:0 0 12px var(--neon);}
 .teclado{width:100%;padding:8px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#000 35%);flex-shrink:0;border-top:1px solid #141414;}
 .fila{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:10px;}
-.bt{background:#141414;border:1px solid #222;color:#fff;border-radius:18px;font-size:2rem;font-weight:900;font-family:"Arial Black",sans-serif;padding:18px 5px;cursor:pointer;text-align:center;line-height:1;}
+.bt{background:#141414;border:1px solid #222;color:#fff;border-radius:18px;font-size:2rem;font-weight:900;font-family:"var(--dc-font-body)",sans-serif;padding:18px 5px;cursor:pointer;text-align:center;line-height:1;}
 .bt:active{background:#2a2a2a;transform:scale(.9);}
 .btr{background:rgba(231,76,60,.12);border-color:rgba(231,76,60,.3);color:var(--rojo);}
 @keyframes parpadeo{0%,100%{opacity:1;box-shadow:0 0 0 rgba(52,152,219,0)}50%{opacity:0.6;box-shadow:0 0 18px rgba(52,152,219,0.7)}}
@@ -103,21 +103,18 @@ body{background:#0b0b0b;color:#fff;font-family:"Arial Black",Arial,sans-serif;mi
 .rlab{font-size:.6rem;color:#333;letter-spacing:1px;}
 .catbox{border-radius:16px;padding:14px;margin-bottom:18px;border:1px solid;}
 .btn-save{width:100%;padding:20px;background:linear-gradient(135deg,var(--neon),#18b040);color:#000;border:none;border-radius:20px;font-size:1.1rem;font-weight:bold;letter-spacing:2px;cursor:pointer;margin-bottom:10px;}
-.btn-otra{width:100%;background:none;border:1px solid #1a1a1a;color:#333;padding:14px;border-radius:18px;font-size:.8rem;cursor:pointer;font-family:"Arial Black",sans-serif;}
+.btn-otra{width:100%;background:none;border:1px solid #1a1a1a;color:#333;padding:14px;border-radius:18px;font-size:.8rem;cursor:pointer;font-family:"var(--dc-font-body)",sans-serif;}
 .jug-f1-nav{width:100%;max-width:420px;margin:0 auto 14px;padding:10px 14px;background:#000;border:1px solid #1a1a1a;border-radius:14px;flex-shrink:0;}
-.jug-nav-sum{cursor:pointer;color:#666;font-size:0.55rem;letter-spacing:0.12em;list-style:none;font-family:"Arial Black",sans-serif;}
+.jug-nav-sum{cursor:pointer;color:#666;font-size:0.55rem;letter-spacing:0.12em;list-style:none;font-family:"var(--dc-font-body)",sans-serif;}
 .jug-f1-nav[open] .jug-nav-sum{color:var(--oro);}
 .jug-f1-nav .header-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px;width:100%;margin-top:10px;}
 .jug-f1-nav summary::-webkit-details-marker{display:none;}
-.jug-f1-nav .btn-hdr{background:rgba(10,10,10,0.95);border:1px solid #1a1a1a;color:#888;padding:8px 12px;border-radius:10px;font-size:0.52rem;cursor:pointer;text-decoration:none;font-family:"Arial Black",sans-serif;font-weight:600;letter-spacing:0.06em;transition:border-color .15s,color .15s;}
+.jug-f1-nav .btn-hdr{background:rgba(10,10,10,0.95);border:1px solid #1a1a1a;color:#888;padding:8px 12px;border-radius:10px;font-size:0.52rem;cursor:pointer;text-decoration:none;font-family:"var(--dc-font-body)",sans-serif;font-weight:600;letter-spacing:0.06em;transition:border-color .15s,color .15s;}
 .jug-f1-nav .btn-hdr:hover,.jug-f1-nav .btn-hdr:focus-visible{border-color:rgba(212,175,55,.35);color:var(--oro);outline:none;}
 </style>
     <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
 <body class="dc-app dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-
 <!-- PANTALLA 1: INICIO -->
 <div id="p-ini" class="pan" style="display:flex">
   <div class="hdr-top-nav" style="max-width:640px;margin:0 auto;padding:0 18px;">
@@ -445,18 +442,5 @@ function reiniciar(){dcSetMipartidaActiva(false);st={c:0,e:0,s:0,sm:0};show('p-i
 </script>
 <script src="/whitelabel.js"></script>
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 </body>
 </html>

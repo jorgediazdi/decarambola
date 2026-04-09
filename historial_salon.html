@@ -16,9 +16,9 @@
     <meta name="theme-color" content="#d4af37">
     <title>Historial salón (mesas) — DeCarambola</title>
     <style>
-        :root { --oro:#d4af37; --negro:#000; --g1:#1a1a1a; --g2:#111; --azul:#3498db; }
+        :root { --oro:var(--dc-gold); --negro:#000; --g1:#1a1a1a; --g2:#111; --azul:#3498db; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:#000; color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
+        body { background:#000; color:#fff; font-family:'var(--dc-font-body)',Arial,sans-serif; min-height:100vh; padding-bottom:80px; }
         .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:20; }
         .header-titulo { color:var(--oro); font-size:0.82rem; letter-spacing:3px; }
         .header-sub { color:#555; font-size:0.52rem; letter-spacing:0.06em; margin-top:4px; line-height:1.4; }
@@ -40,8 +40,6 @@
     <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
 <div class="header">
     <div>
         <div class="header-titulo">USO DEL SALÓN (MESAS)</div>
@@ -194,31 +192,6 @@ window.onload = function () {
     cargarDatos();
 };
 </script>
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText =
-            'width:' +
-            sz +
-            'px;height:' +
-            sz +
-            'px;top:' +
-            Math.random() * 100 +
-            '%;left:' +
-            Math.random() * 100 +
-            '%;animation-delay:' +
-            Math.random() * 3 +
-            's;animation-duration:' +
-            (2 + Math.random() * 3) +
-            's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
+
 </body>
 </html>

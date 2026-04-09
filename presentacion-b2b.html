@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#c9a84c">
+    <title>DeCarambola Suite — Presentación B2B</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --oro: #c9a84c;
+            --oro-dim: rgba(201, 168, 76, 0.35);
+            --text: #e8e4dc;
+            --muted: #6a6a6a;
+            --line: rgba(201, 168, 76, 0.12);
+            --font-body: "DM Sans", system-ui, sans-serif;
+            --font-display: "Playfair Display", Georgia, serif;
+            --font-cond: "Bebas Neue", Impact, sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            overflow: hidden;
+        }
+
+        .deck {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(24px, 5vw, 64px);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(28px);
+            transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                        visibility 0.5s;
+        }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+        .slide.prev {
+            transform: translateX(-28px);
+        }
+
+        .slide-inner {
+            width: 100%;
+            max-width: 960px;
+            text-align: center;
+        }
+
+        .eyebrow {
+            font-size: 0.72rem;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--oro);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        h1.bebas {
+            font-family: var(--font-cond);
+            font-size: clamp(3rem, 10vw, 5.5rem);
+            font-weight: 400;
+            letter-spacing: 0.06em;
+            line-height: 1.02;
+            color: #f2efe8;
+        }
+
+        h2.bebas {
+            font-family: var(--font-cond);
+            font-size: clamp(2.2rem, 6vw, 3.75rem);
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            color: var(--oro);
+            margin-bottom: 1.25rem;
+        }
+
+        .playfair {
+            font-family: var(--font-display);
+            font-weight: 600;
+        }
+
+        .tagline {
+            font-family: var(--font-display);
+            font-size: clamp(1.15rem, 3vw, 1.65rem);
+            color: #9a9a9a;
+            font-style: italic;
+            margin-top: 1.25rem;
+            letter-spacing: 0.02em;
+        }
+
+        .logo-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+        .logo-row img {
+            height: clamp(40px, 8vw, 56px);
+            width: auto;
+        }
+        .logo-wordmark {
+            font-family: var(--font-cond);
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            letter-spacing: 0.12em;
+            color: var(--oro);
+        }
+
+        .suite-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+            font-weight: 600;
+            color: #fff;
+            margin-top: 0.5rem;
+        }
+
+        p.lead {
+            font-size: clamp(1rem, 2.2vw, 1.2rem);
+            line-height: 1.65;
+            color: #a8a4a0;
+            max-width: 640px;
+            margin: 0 auto 1rem;
+        }
+
+        .modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            margin-top: 2rem;
+            text-align: left;
+        }
+        .module-card {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 1.35rem 1.25rem;
+            background: linear-gradient(165deg, rgba(201, 168, 76, 0.06) 0%, transparent 55%);
+            transition: border-color 0.35s ease, transform 0.35s ease;
+        }
+        .module-card:hover {
+            border-color: var(--oro-dim);
+            transform: translateY(-2px);
+        }
+        .module-card h3 {
+            font-family: var(--font-cond);
+            font-size: 1.65rem;
+            letter-spacing: 0.06em;
+            color: var(--oro);
+            margin-bottom: 0.5rem;
+        }
+        .module-card p {
+            font-size: 0.92rem;
+            color: #8f8b86;
+            line-height: 1.5;
+        }
+
+        .flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem 0.25rem;
+            margin-top: 2.5rem;
+        }
+        .flow-step {
+            font-family: var(--font-cond);
+            font-size: clamp(1.1rem, 2.5vw, 1.45rem);
+            letter-spacing: 0.08em;
+            padding: 0.65rem 1.1rem;
+            border: 1px solid var(--oro-dim);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.45);
+            color: #e0dcd6;
+        }
+        .flow-arrow {
+            color: var(--oro);
+            font-size: 1.25rem;
+            padding: 0 0.15rem;
+            opacity: 0.85;
+        }
+        .flow-caption {
+            width: 100%;
+            margin-top: 1.75rem;
+            font-size: 0.88rem;
+            color: var(--muted);
+            letter-spacing: 0.06em;
+        }
+
+        .plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin-top: 2rem;
+        }
+        .plan {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1.75rem 1.5rem;
+            text-align: left;
+            position: relative;
+            background: #080808;
+        }
+        .plan.featured {
+            border-color: var(--oro-dim);
+            box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.08);
+        }
+        .plan .name {
+            font-family: var(--font-cond);
+            font-size: 1.85rem;
+            letter-spacing: 0.07em;
+            color: var(--oro);
+        }
+        .plan .price {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0.75rem 0 0.25rem;
+        }
+        .plan .per {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+        .plan ul {
+            list-style: none;
+            font-size: 0.88rem;
+            color: #9a9690;
+            line-height: 1.7;
+        }
+        .plan ul li::before {
+            content: "—";
+            color: var(--oro);
+            margin-right: 0.5rem;
+        }
+
+        .cases {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .case-pill {
+            border: 1px solid var(--line);
+            padding: 0.85rem 1.35rem;
+            border-radius: 999px;
+            font-size: 0.95rem;
+            color: #c5c1ba;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+        .case-pill:hover {
+            background: rgba(201, 168, 76, 0.08);
+            border-color: var(--oro-dim);
+        }
+
+        .cta-block {
+            margin-top: 2rem;
+        }
+        .btn-demo {
+            display: inline-block;
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: #0a0a0a;
+            background: var(--oro);
+            padding: 1rem 2.5rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 24px rgba(201, 168, 76, 0.25);
+        }
+        .btn-demo:hover {
+            background: #d4b45d;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(201, 168, 76, 0.35);
+        }
+        .btn-demo:active {
+            transform: translateY(0);
+        }
+        .cta-sub {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 16px 24px 22px;
+            background: linear-gradient(transparent, rgba(10, 10, 10, 0.92));
+        }
+        .nav-bar button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1px solid var(--line);
+            background: rgba(20, 20, 20, 0.9);
+            color: var(--oro);
+            font-size: 1.35rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
+        }
+        .nav-bar button:hover:not(:disabled) {
+            border-color: var(--oro-dim);
+            color: #e8d9a8;
+        }
+        .nav-bar button:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+        .nav-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .nav-dots button {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            padding: 0;
+            border: none;
+            background: #333;
+        }
+        .nav-dots button.active {
+            background: var(--oro);
+            transform: scale(1.15);
+        }
+        .btn-fs {
+            font-size: 0.95rem;
+        }
+
+        .progress {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: var(--oro);
+            z-index: 25;
+            transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .hint-keys {
+            position: fixed;
+            top: 14px;
+            right: 18px;
+            z-index: 20;
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #444;
+        }
+
+        @media (max-width: 600px) {
+            .flow-arrow { display: none; }
+            .flow { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <p class="hint-keys" aria-hidden="true">← → · F pantalla completa</p>
+    <div class="deck" id="deck" aria-live="polite">
+        <section class="slide active" data-slide="0" aria-label="Portada">
+            <div class="slide-inner">
+                <div class="logo-row">
+                    <img src="assets/logo-master-vip.svg" width="200" height="48" alt="">
+                    <span class="logo-wordmark">BILLARES MASTER V.I.P</span>
+                </div>
+                <p class="eyebrow">Suite para clubes de billar</p>
+                <h1 class="bebas">DeCarambola Suite</h1>
+                <p class="tagline">Transmite. Gestiona. Crece.</p>
+            </div>
+        </section>
+
+        <section class="slide" data-slide="1" aria-label="El problema">
+            <div class="slide-inner">
+                <p class="eyebrow">Diagnóstico</p>
+                <h2 class="bebas">El problema</h2>
+                <p class="lead">
+                    Los clubes de billar no cuentan con tecnología integrada para <span class="playfair">transmitir en vivo</span>
+                    con calidad de emisión ni para <span class="playfair">gestionar partidas y salón</span> con el mismo nivel
+                    que esperan jugadores, sponsors y audiencia.
+                </p>
+                <p class="lead" style="margin-top: 0.5rem;">
+                    Marcadores improvisados, desconexión entre pista y streaming, y cero visibilidad operativa del salón.
+                </p>
+            </div>
+        </section>
+
+        <section class="slide" data-slide="2" aria-label="La solución">
+            <div class="slide-inner">
+                <p class="eyebrow">Producto</p>
+                <h2 class="bebas">La solución</h2>
+                <p class="lead">Tres módulos que convierten tu club en una operación profesional.</p>
+                <div class="modules">
+                    <article class="module-card">
+                        <h3>Marcador en vivo</h3>
+                        <p>Marcador y overlay sincronizados con la partida: carambolas, entradas, promedios y marca del club en tiempo real.</p>
+                    </article>
+                    <article class="module-card">
+                        <h3>Transmisión YouTube</h3>
+                        <p>Flujo unificado hacia OBS y <span class="playfair">YouTube Live</span>: un botón en sala, señal lista para tu canal.</p>
+                    </article>
+                    <article class="module-card">
+                        <h3>Gestión del salón</h3>
+                        <p>Mesas, sesiones, torneos y portal del club en una sola plataforma web pensada para billar tres bandas.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" data-slide="3" aria-label="Flujo en vivo">
+            <div class="slide-inner">
+                <p class="eyebrow">Arquitectura</p>
+                <h2 class="bebas">Flujo en vivo</h2>
+                <p class="lead">De la mesa al espectador, sin fricción para el operador.</p>
+                <div class="flow" role="img" aria-label="Mesa, marcador, OBS, YouTube Live">
+                    <span class="flow-step">Mesa</span>
+                    <span class="flow-arrow" aria-hidden="true">→</span>
+                    <span class="flow-step">Marcador</span>
+                    <span class="flow-arrow" aria-hidden="true">→</span>
+                    <span class="flow-step">OBS</span>
+                    <span class="flow-arrow" aria-hidden="true">→</span>
+                    <span class="flow-step">YouTube Live</span>
+                </div>
+                <p class="flow-caption">DeCarambola publica estado en la nube; el puente local actualiza el Browser Source y arranca la emisión.</p>
+            </div>
+        </section>
+
+        <section class="slide" data-slide="4" aria-label="Planes">
+            <div class="slide-inner">
+                <p class="eyebrow">Comercial</p>
+                <h2 class="bebas">Planes</h2>
+                <p class="lead">Precios orientativos; ajustamos alcance según mesas, transmisiones y white label.</p>
+                <div class="plans">
+                    <div class="plan">
+                        <div class="name">Básico</div>
+                        <div class="price">$ 149.000</div>
+                        <div class="per">/ mes · COP</div>
+                        <ul>
+                            <li>Marcador y TV salón</li>
+                            <li>Gestión de mesas esencial</li>
+                            <li>Soporte por correo</li>
+                        </ul>
+                    </div>
+                    <div class="plan featured">
+                        <div class="name">Pro</div>
+                        <div class="price">$ 349.000</div>
+                        <div class="per">/ mes · COP</div>
+                        <ul>
+                            <li>Todo Básico</li>
+                            <li>Transmisión asistida + overlay</li>
+                            <li>Torneos y organizador</li>
+                            <li>Prioridad en soporte</li>
+                        </ul>
+                    </div>
+                    <div class="plan">
+                        <div class="name">Premium</div>
+                        <div class="price">A medida</div>
+                        <div class="per">Presupuesto según club</div>
+                        <ul>
+                            <li>Multi-sede / cadena</li>
+                            <li>Marca y flujos personalizados</li>
+                            <li>Integraciones y capacitación</li>
+                            <li>Contacto directo con producto</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" data-slide="5" aria-label="Casos de uso">
+            <div class="slide-inner">
+                <p class="eyebrow">Dónde encaja</p>
+                <h2 class="bebas">Casos de uso</h2>
+                <p class="lead">Una misma base técnica para distintos momentos del negocio.</p>
+                <div class="cases">
+                    <span class="case-pill">Torneos y finales en vivo</span>
+                    <span class="case-pill">Partidas casuales en sala</span>
+                    <span class="case-pill">Transmisión pagada / PPV</span>
+                    <span class="case-pill">Clínica y exhibición</span>
+                    <span class="case-pill">Sponsors en overlay</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide" data-slide="6" aria-label="Contacto">
+            <div class="slide-inner">
+                <p class="eyebrow">Siguiente paso</p>
+                <h2 class="bebas">Solicita tu demo</h2>
+                <p class="lead">Te mostramos el flujo completo en tu club o en remoto: TV, marcador y salida a YouTube.</p>
+                <div class="cta-block">
+                    <a class="btn-demo" href="/apps/sensei/index.html?contacto=1">Solicita tu demo</a>
+                    <p class="cta-sub">DeCarambola · decarambola.com</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="progress" id="progress" style="width: 14.28%;" aria-hidden="true"></div>
+
+    <nav class="nav-bar" aria-label="Navegación de diapositivas">
+        <button type="button" id="btn-prev" aria-label="Diapositiva anterior">‹</button>
+        <div class="nav-dots" id="dots"></div>
+        <button type="button" id="btn-next" aria-label="Diapositiva siguiente">›</button>
+        <button type="button" class="btn-fs" id="btn-fs" aria-label="Pantalla completa">⛶</button>
+    </nav>
+
+    <script>
+        (function () {
+            var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+            var total = slides.length;
+            var idx = 0;
+            var progress = document.getElementById("progress");
+            var btnPrev = document.getElementById("btn-prev");
+            var btnNext = document.getElementById("btn-next");
+            var dotsWrap = document.getElementById("dots");
+
+            function renderDots() {
+                dotsWrap.innerHTML = "";
+                for (var i = 0; i < total; i++) {
+                    var b = document.createElement("button");
+                    b.type = "button";
+                    b.setAttribute("aria-label", "Ir a diapositiva " + (i + 1));
+                    if (i === idx) b.classList.add("active");
+                    (function (j) {
+                        b.addEventListener("click", function () { go(j); });
+                    })(i);
+                    dotsWrap.appendChild(b);
+                }
+            }
+
+            function go(n) {
+                if (n < 0 || n >= total) return;
+                idx = n;
+                slides.forEach(function (el, i) {
+                    el.classList.remove("active", "prev");
+                    if (i === idx) el.classList.add("active");
+                    else if (i < idx) el.classList.add("prev");
+                });
+                btnPrev.disabled = idx === 0;
+                btnNext.disabled = idx === total - 1;
+                progress.style.width = ((idx + 1) / total * 100) + "%";
+                var dotBtns = dotsWrap.querySelectorAll("button");
+                dotBtns.forEach(function (d, i) {
+                    d.classList.toggle("active", i === idx);
+                });
+            }
+
+            btnPrev.addEventListener("click", function () { go(idx - 1); });
+            btnNext.addEventListener("click", function () { go(idx + 1); });
+
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+                    e.preventDefault();
+                    go(idx + 1);
+                } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+                    e.preventDefault();
+                    go(idx - 1);
+                } else if (e.key === "Home") {
+                    e.preventDefault();
+                    go(0);
+                } else if (e.key === "End") {
+                    e.preventDefault();
+                    go(total - 1);
+                } else if (e.key === "f" || e.key === "F") {
+                    var d = document.documentElement;
+                    if (!document.fullscreenElement) d.requestFullscreen().catch(function () {});
+                    else document.exitFullscreen();
+                }
+            });
+
+            document.getElementById("btn-fs").addEventListener("click", function () {
+                var d = document.documentElement;
+                if (!document.fullscreenElement) d.requestFullscreen().catch(function () {});
+                else document.exitFullscreen();
+            });
+
+            renderDots();
+            go(0);
+        })();
+    </script>
+</body>
+</html>

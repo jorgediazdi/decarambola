@@ -11,9 +11,14 @@
  *          YouTube Data API: YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET, YOUTUBE_REFRESH_TOKEN, DECA_YOUTUBE_LIVE_BROADCAST_ID
  */
 import 'dotenv/config';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import { createClient } from '@supabase/supabase-js';
 import OBSWebSocket from 'obs-websocket-js';
+import WebSocket from 'ws';
 import { maybeUpdateYoutubeBroadcastTitle } from './youtube-title.mjs';
+
+const execAsync = promisify(exec);
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -27,8 +32,12 @@ if (!SUPABASE_URL || !SERVICE_KEY || !CLUB_ID) {
   process.exit(1);
 }
 
+/** En Node < 22 no hay WebSocket global; Realtime exige `transport: ws` (ver @supabase/realtime-js). */
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
+  realtime: {
+    transport: WebSocket,
+  },
 });
 
 const obs = new OBSWebSocket();
@@ -88,9 +97,37 @@ async function loadClubObsConfig() {
   console.log('[bridge] Config OBS club', CLUB_ID, 'source=', browserSourceName);
 }
 
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** macOS: OBS Studio suele exponer el proceso como `OBS`. */
+async function isObsRunningMac() {
+  try {
+    await execAsync('pgrep -x OBS', { timeout: 5000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function ensureObs() {
   await loadClubObsConfig();
   if (obsConnected) return;
+
+  if (process.platform === 'darwin') {
+    const running = await isObsRunningMac();
+    if (!running) {
+      try {
+        await execAsync('open -a OBS');
+        console.log('[bridge] OBS no estaba en ejecución; lanzado con open -a OBS. Esperando 3s…');
+        await delay(3000);
+      } catch (e) {
+        console.warn('[bridge] No se pudo ejecutar open -a OBS:', e.message);
+      }
+    }
+  }
+
   try {
     await obs.connect(OBS_WS, obsPassword || undefined);
     obsConnected = true;
@@ -133,6 +170,14 @@ async function handleTransmitir(row) {
     });
     console.log('[bridge] SetInputSettings', browserSourceName, overlayUrl);
 
+    /**
+     * YouTube + OBS (sobre todo en Mac): si no hay una emisión/broadcast creada en el perfil de
+     * transmisión, StartStream puede fallar o no publicar. Eso no se arregla con requests extra
+     * al WebSocket (p. ej. Identified es solo el handshake, no configura YouTube).
+     * Solución rápida manual: en OBS → Administrar emisión → activar "Recordar estos ajustes" →
+     * "Crear emisión y comenzar a transmitir" (o equivalente según idioma). Luego el bridge puede
+     * llamar StartStream cuando la TV pida transmitir.
+     */
     await obs.call('StartStream');
     console.log('[bridge] StartStream');
     activeLiveMatchId = String(matchId);
@@ -218,18 +263,44 @@ async function pollFallback() {
   if (row) await handleTransmitir(row);
 }
 
+function logRealtimeStatus(status, err) {
+  if (status === 'SUBSCRIBED') {
+    console.log('[bridge] Realtime SUBSCRIBED');
+    return;
+  }
+  if (status === 'CHANNEL_ERROR') {
+    const msg = err && err.message ? err.message : String(err || 'unknown');
+    console.error('[bridge] Realtime CHANNEL_ERROR', msg);
+    return;
+  }
+  if (status === 'TIMED_OUT') {
+    console.error('[bridge] Realtime TIMED_OUT (revisá red, API keys y que overlay_state esté en la publicación supabase_realtime)');
+    return;
+  }
+  if (status === 'CLOSED') {
+    console.warn('[bridge] Realtime CLOSED');
+    return;
+  }
+  console.log('[bridge] Realtime', status, err != null ? err : '');
+}
+
 async function main() {
   await loadClubObsConfig();
 
+  /** Sin esto, el join puede ir sin JWT: connect() dispara setAuth en background (race). */
+  await supabase.realtime.setAuth(SERVICE_KEY);
+
+  const rtFilter = `club_id=eq.${encodeURIComponent(CLUB_ID)}`;
+
   supabase
-    .channel(`deca-bridge-overlay-${CLUB_ID}`)
+    .channel(`deca-bridge-overlay-${encodeURIComponent(CLUB_ID)}`)
     .on(
       'postgres_changes',
       {
         event: '*',
         schema: 'public',
         table: 'overlay_state',
-        filter: `club_id=eq.${CLUB_ID}`,
+        filter: rtFilter,
       },
       (payload) => {
         const row = payload.new && Object.keys(payload.new).length ? payload.new : payload.old;
@@ -238,13 +309,13 @@ async function main() {
         );
       }
     )
-    .subscribe((status) => console.log('[bridge] Realtime', status));
+    .subscribe((status, err) => logRealtimeStatus(status, err));
 
   setInterval(() => {
     pollFallback().catch((e) => console.warn('[bridge] poll', e.message));
   }, 4000);
 
-  await pollFallback();
+  void pollFallback().catch((e) => console.warn('[bridge] initial poll', e.message));
 }
 
 main().catch((e) => {

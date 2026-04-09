@@ -11,7 +11,7 @@
         body {
             background: #0b0b0b;
             color: #fff;
-            font-family: 'Arial Black', Arial, sans-serif;
+            font-family: 'var(--dc-font-body)', Arial, sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -20,12 +20,12 @@
             padding: 20px;
             text-align: center;
         }
-        h1 { color: #d4af37; font-size: 1.5rem; margin-bottom: 12px; letter-spacing: 2px; }
+        h1 { color: var(--dc-gold); font-size: 1.5rem; margin-bottom: 12px; letter-spacing: 2px; }
         p { color: #888; margin-bottom: 24px; max-width: 320px; }
         a {
             display: inline-block;
             padding: 14px 28px;
-            background: #d4af37;
+            background: var(--dc-gold);
             color: #000;
             text-decoration: none;
             border-radius: 8px;
@@ -36,27 +36,12 @@
     </style>
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-    <div class="dc-ux-layer" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:75vh;padding:20px;text-align:center;">
+<div class="dc-ux-layer" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:75vh;padding:20px;text-align:center;">
     <h1>Página no encontrada</h1>
     <p>El enlace que seguiste no existe o ha cambiado.</p>
     <a href="index.html">IR AL INICIO</a>
     <p style="margin-top:20px;font-size:0.8rem;color:#555;max-width:min(92vw, 380px);line-height:1.45;">¿Buscabas <strong>Salón en vivo</strong>? Usá la ruta correcta:<br><a href="apps/club/sala/mesas.html" style="display:inline;margin-top:8px;padding:0;background:none;color:#d4af37;font-weight:600;">apps/club/sala/mesas.html</a></p>
 </div>
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 </body>
 </html>

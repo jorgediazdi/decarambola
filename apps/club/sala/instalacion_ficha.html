@@ -127,7 +127,6 @@
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
 <div id="ficha-toast-host" class="ficha-toast-host" aria-live="polite" aria-atomic="true"></div>
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
 <div class="header">
     <div style="flex:1;min-width:0;">
         <div class="header-titulo" id="lbl_nombre">FICHA INSTALACIÓN</div>
@@ -502,8 +501,6 @@ function renderSesiones(){
 
 window.onload = cargarFicha;
 </script>
-<script>
-(function(){var bg=document.getElementById('stars-bg');if(!bg)return;for(var i=0;i<80;i++){var s=document.createElement('div');s.className='star';var sz=Math.random()*2+0.5;s.style.cssText='width:'+sz+'px;height:'+sz+'px;top:'+Math.random()*100+'%;left:'+Math.random()*100+'%;animation-delay:'+Math.random()*3+'s;animation-duration:'+(2+Math.random()*3)+'s;';bg.appendChild(s);}})();
-</script>
+
 </body>
 </html>

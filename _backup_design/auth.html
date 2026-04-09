@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <meta name="theme-color" content="#0b0b0b">
+  <title>Entrar — DeCarambola</title>
+  <link rel="stylesheet" href="/css/dc-system.css">
+  <script src="/js/dc-nav.js" defer></script>
+  <link rel="stylesheet" href="css/ux-shell.css">
+  <style>
+    :root { --oro:#d4af37; --neon:#2eff70; --rojo:#e74c3c; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: calc(24px + env(safe-area-inset-top)) 20px calc(32px + env(safe-area-inset-bottom));
+      color: #eaeaea;
+    }
+    .wrap { max-width: 400px; margin: 0 auto; }
+    h1 {
+      font-family: Georgia, serif;
+      font-style: italic;
+      color: var(--oro);
+      font-size: 1.35rem;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .sub { text-align: center; color: #555; font-size: 0.75rem; margin-bottom: 28px; line-height: 1.4; }
+    .card {
+      background: linear-gradient(165deg, #14100a, #0a0806);
+      border: 1px solid rgba(212, 175, 55, 0.22);
+      border-radius: 18px;
+      padding: 22px 20px;
+      margin-bottom: 16px;
+    }
+    label { display: block; font-size: 0.65rem; letter-spacing: 0.12em; color: #666; margin-bottom: 6px; }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #2a2a2a;
+      background: #0a0a0a;
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 14px;
+    }
+    input:focus { outline: none; border-color: rgba(212, 175, 55, 0.45); }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    button, .btn-link {
+      flex: 1;
+      min-width: 120px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-go {
+      background: linear-gradient(135deg, var(--neon), #18b040);
+      color: #000;
+    }
+    .btn-go:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sec {
+      background: transparent;
+      border: 1px solid #333;
+      color: #888;
+    }
+    .btn-out {
+      background: rgba(231, 76, 60, 0.15);
+      border: 1px solid rgba(231, 76, 60, 0.4);
+      color: #e88;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .msg { font-size: 0.8rem; padding: 12px; border-radius: 12px; margin-bottom: 14px; display: none; }
+    .msg.err { display: block; background: rgba(231, 76, 60, 0.12); border: 1px solid rgba(231, 76, 60, 0.35); color: #eaa; }
+    .msg.ok { display: block; background: rgba(46, 255, 112, 0.08); border: 1px solid rgba(46, 255, 112, 0.25); color: #8d8; }
+    .sesion {
+      text-align: center;
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(46, 255, 112, 0.06);
+      border: 1px solid rgba(46, 255, 112, 0.2);
+      margin-bottom: 16px;
+      display: none;
+    }
+    .sesion.on { display: block; }
+    .sesion.loading-state {
+      background: rgba(212, 175, 55, 0.07);
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+    .sesion strong { color: var(--neon); font-size: 0.9rem; word-break: break-all; }
+    .spinner {
+      width: 22px;
+      height: 22px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      border: 2px solid rgba(212, 175, 55, 0.35);
+      border-top-color: var(--oro);
+      animation: spin 0.85s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .nav-foot { text-align: center; margin-top: 24px; }
+    .nav-foot a { color: var(--oro); font-size: 0.75rem; }
+    code { font-size: 0.7rem; color: #666; }
+  </style>
+</head>
+<body class="dc-app dc-ux dc-ux-skin">
+  <script>
+    (function () {
+      try {
+        [
+          'session_rol',
+          'club_activo',
+          'organizador_clubes',
+          'club_admin',
+          'mi_perfil',
+          'session_inicio',
+          'session_ultimo_act',
+          'session_aviso_ts'
+        ].forEach(function (k) { localStorage.removeItem(k); });
+      } catch (_e) {}
+    })();
+  </script>
+  <div class="stars" id="stars-bg" aria-hidden="true"></div>
+  <div class="wrap dc-reveal">
+    <h1>DeCarambola</h1>
+    <p class="sub">Cuenta con correo (Supabase Auth). Mismo proyecto que <code>core.js</code>.</p>
+
+    <div id="sesion" class="sesion" role="status">
+      <div id="sesion-loading" style="display:none;">
+        <div class="spinner" aria-hidden="true"></div>
+        <div style="font-size:0.78rem;color:#d4af37;letter-spacing:0.04em;">Iniciando sesión...</div>
+      </div>
+      <div id="sesion-actions">
+      <div style="font-size:0.65rem;color:#666;margin-bottom:8px;">Sesión activa</div>
+      <strong id="sesion-email">—</strong>
+      <p style="font-size:0.72rem;color:#888;line-height:1.45;margin:14px 0 12px;text-align:left;">
+        <strong>Primero</strong> entrá a la <strong>app jugador</strong> (partida, perfil, torneos). Desde ahí tenés el acceso al <strong>portal del club</strong> si sos personal del club.
+      </p>
+      <a href="/jugador/" class="btn-link btn-go" style="width:100%;margin-bottom:10px;">Ir a app jugador →</a>
+      <a href="/club/" class="btn-link btn-sec" style="width:100%;margin-bottom:10px;">Portal del club (staff) →</a>
+      <button type="button" class="btn-out" id="btn-logout">Cerrar sesión</button>
+      </div>
+    </div>
+
+    <div id="formulario" class="card">
+      <div id="msg" class="msg" aria-live="polite"></div>
+      <form id="auth-form" action="#" method="post" novalidate>
+        <label for="email">Correo</label>
+        <input id="email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com">
+
+        <label for="pass">Contraseña</label>
+        <input id="pass" name="password" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
+
+        <div class="row">
+          <button type="submit" class="btn-go" id="btn-in">Iniciar sesión</button>
+          <button type="button" class="btn-sec" id="btn-up">Crear cuenta</button>
+        </div>
+      </form>
+      <p style="margin:0 0 8px;font-size:0.68rem;color:#666;text-align:center;">
+        <button type="button" id="btn-reset" style="background:none;border:none;color:#6cf;text-decoration:underline;cursor:pointer;font-size:inherit;padding:0;">
+          ¿Olvidaste la contraseña?
+        </button>
+        <span style="color:#444;"> · Escribe el correo arriba y tocá aquí (te llega un enlace).</span>
+      </p>
+    </div>
+
+    <p style="font-size:0.7rem;color:#444;line-height:1.5;text-align:center;">
+      <strong>Invalid login credentials</strong> = correo o contraseña no coinciden con una cuenta en este proyecto. Probá <strong>Crear cuenta</strong> si es la primera vez, o recuperá la clave arriba.
+      Si acabas de crear la cuenta, revisá el correo de confirmación o desactivá “Confirm email” en desarrollo (ver <strong>docs/PASOS_AUTH_EMPEZAR.md</strong>).
+    </p>
+
+    <div class="nav-foot">
+      <a href="/index.html">← Inicio</a>
+      ·
+      <a href="/club/">Portal club</a>
+      ·
+      <a href="/jugador/">App jugador</a>
+    </div>
+  </div>
+
+  <!-- Cliente único: js/supabase-client.js vía js/auth-app.js + js/auth-manager.js -->
+  <script type="module" src="/js/auth-app.js"></script>
+</body>
+</html>

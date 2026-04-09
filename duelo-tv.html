@@ -10,7 +10,7 @@
     <script src="/js/dc-nav.js" defer></script>
     <style>
         :root {
-            --oro:   #d4af37;
+            --oro:   var(--dc-gold);
             --negro: #0b0b0b;
             --azul:  #3498db;
             --neon:  #2eff70;
@@ -21,7 +21,7 @@
         body {
             background: var(--negro);
             color: #fff;
-            font-family: 'Arial Black', Arial, sans-serif;
+            font-family: 'var(--dc-font-body)', Arial, sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
         }
@@ -54,7 +54,7 @@
             font-size: 0.52rem;
             cursor: pointer;
             text-decoration: none;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
             font-weight: 600;
             letter-spacing: 0.06em;
             transition: border-color 0.15s, color 0.15s;
@@ -206,7 +206,7 @@
             color: #fff;
             padding: 12px 14px;
             font-size: clamp(0.85rem, 2.5vw, 1rem);
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
             outline: none;
         }
         .f1-field input::placeholder { color: #444; }
@@ -232,7 +232,7 @@
             font-weight: bold;
             letter-spacing: 0.15em;
             cursor: pointer;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
             margin-bottom: 10px;
             box-shadow: 0 6px 20px rgba(212,175,55,0.2);
         }
@@ -244,7 +244,7 @@
             padding: 12px;
             font-size: 0.6rem;
             cursor: pointer;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .f1-back:hover { color: var(--oro); }
 
@@ -343,7 +343,7 @@
             font-size:0.55rem;
             letter-spacing:1px;
             cursor:pointer;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
         }
         .btn-fullscreen span {
             margin-right:4px;
@@ -377,7 +377,7 @@
             font-size:0.68rem;
             cursor:pointer;
             letter-spacing:1px;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
             transition:0.2s;
         }
         .btn-fin:active { background:rgba(231,76,60,0.25);color:#fff; }
@@ -395,7 +395,7 @@
             font-weight:bold;
             letter-spacing:1px;
             cursor:pointer;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
             animation: btnSetPulse 2.2s ease-in-out infinite;
         }
         .btn-siguiente-set:active { background:rgba(46,255,112,0.2); }
@@ -409,7 +409,7 @@
             font-weight:900;
             letter-spacing:1px;
             cursor:pointer;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
             white-space:nowrap;
         }
         .btn-siguiente-entrada-top:active { opacity:0.85; transform:scale(0.98); }
@@ -421,7 +421,7 @@
             border-radius:12px;
             font-size:0.6rem;
             cursor:pointer;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
         }
         .btn-bolas-tv:active { background:rgba(255,255,255,0.15); }
         .btn-bolas-tv.desactivado { opacity:0.4; pointer-events:none; cursor:not-allowed; }
@@ -436,7 +436,7 @@
             font-weight:900;
             letter-spacing:1px;
             cursor:pointer;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
             flex-shrink:0;
             white-space:nowrap;
         }
@@ -455,7 +455,7 @@
             font-size:0.48rem;
             letter-spacing:1px;
             text-decoration:none;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
         }
         .tv-exit-links a:hover, .tv-exit-links a:focus-visible { color:var(--oro); outline:none; }
 
@@ -533,7 +533,7 @@
             position:relative;
         }
         .bola-blanca {
-            background:radial-gradient(circle at 35% 32%,
+            background: var(--dc-bg);
                 #ffffff 0%, #f0f0f0 15%, #d0d0d0 35%, #999 60%, #555 85%, #1a1a1a 100%);
             box-shadow:
                 inset -14px -14px 28px rgba(0,0,0,0.65),
@@ -542,7 +542,7 @@
                 0 0 0 2px #111;
         }
         .bola-dorada {
-            background:radial-gradient(circle at 35% 32%,
+            background: var(--dc-bg);
                 #fffde0 0%, #fce84a 12%, #e8c020 30%, #c89a00 55%, #7a5500 80%, #2a1800 100%);
             box-shadow:
                 inset -14px -14px 28px rgba(0,0,0,0.6),
@@ -556,7 +556,7 @@
             position:absolute;
             top:12%;left:18%;
             width:30%;height:22%;
-            background:radial-gradient(ellipse,rgba(255,255,255,0.75) 0%,transparent 80%);
+            background: var(--dc-bg);
             border-radius:50%;
             pointer-events:none;
         }
@@ -793,7 +793,7 @@
             font-size:0.55rem;
             letter-spacing:1px;
             cursor:pointer;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
         }
         .btn-video-tool:active { transform:scale(0.98); }
         .btn-video-tool.rec {
@@ -839,11 +839,11 @@
             flex-shrink:0;
         }
         .turno-bola.blanca {
-            background:radial-gradient(circle at 33% 33%,#fff,#999,#333);
+            background: var(--dc-bg);
             box-shadow:inset -3px -3px 6px rgba(0,0,0,0.5),2px 2px 6px rgba(0,0,0,0.8);
         }
         .turno-bola.dorada {
-            background:radial-gradient(circle at 33% 33%,#ffe,var(--oro),#553);
+            background: var(--dc-bg);
             box-shadow:inset -3px -3px 6px rgba(0,0,0,0.5),2px 2px 6px rgba(0,0,0,0.8);
         }
         .turno-nombre {
@@ -905,7 +905,7 @@
             font-weight:900;
             cursor:pointer;
             transition:0.1s;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
             user-select:none;
         }
         .btn-num:active { background:#252525;transform:scale(0.9);border-color:var(--oro); }
@@ -921,7 +921,7 @@
             color:#fff;border:none;border-radius:12px;
             font-size:0.85rem;font-weight:900;
             cursor:pointer;letter-spacing:2px;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
         }
         .btn-sig:active { transform:scale(0.97);opacity:0.85; }
 
@@ -951,9 +951,6 @@
     <link rel="stylesheet" href="/css/ux-shell.css">
 </head>
 <body class="dc-app dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-
 <!-- FASE 1: Registro de jugadores y configuración -->
 <section id="fase1" class="dc-reveal">
     <nav class="jug-f1-nav" aria-label="Menú">
@@ -2129,19 +2126,6 @@
     })();
 </script>
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 </body>
 </html>
 

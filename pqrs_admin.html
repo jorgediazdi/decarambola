@@ -15,9 +15,9 @@
     <meta name="theme-color" content="#d4af37">
     <link rel="stylesheet" href="css/ux-shell.css">
     <style>
-        :root { --oro:#d4af37; --negro:#0b0b0b; --azul:#3498db; --rojo:#e74c3c; --neon:#2eff70; }
+        :root { --oro:var(--dc-gold); --negro:#0b0b0b; --azul:#3498db; --rojo:#e74c3c; --neon:#2eff70; }
         * { box-sizing: border-box; }
-        body { background: var(--negro); color: #fff; font-family: 'Arial Black', Arial, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+        body { background: var(--negro); color: #fff; font-family: 'var(--dc-font-body)', Arial, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
         .header { background: #000; border-bottom: 2px solid #1a1a1a; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
         .back { color: #888; text-decoration: none; font-size: 0.9rem; letter-spacing: 1px; }
         .back:hover { color: var(--oro); }
@@ -62,9 +62,7 @@
     </style>
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-    <div class="header">
+<div class="header">
         <a href="index.html" class="back">◂ VOLVER</a>
         <h1>GESTIONAR PQRS (SUPERADMIN)</h1>
         <button type="button" id="btn-salir-superadmin" style="display:none;background:transparent;border:1px solid #333;color:#666;padding:8px 12px;border-radius:10px;font-size:0.65rem;cursor:pointer;letter-spacing:1px;">Salir</button>
@@ -346,18 +344,5 @@
 })();
 </script>
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 </body>
 </html>

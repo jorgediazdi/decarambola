@@ -16,9 +16,9 @@
     <meta name="theme-color" content="#d4af37">
     <title>Torneo entre amigos — DeCarambola</title>
     <style>
-        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
+        :root { --oro:var(--dc-gold); --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
         * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
+        body { background:var(--negro); color:#fff; font-family:'var(--dc-font-body)',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
 
         .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:50; }
         .header-top-am { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; width:100%; }
@@ -37,7 +37,7 @@
         .btn-hdr {
             background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888;
             padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
-            text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
+            text-decoration:none; font-family:'var(--dc-font-body)',sans-serif; font-weight:600;
             letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
         }
         .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
@@ -74,7 +74,7 @@
             border-radius:10px;
             padding:10px 12px;
             color:#fff;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
             font-size:0.8rem;
             outline:none;
         }
@@ -105,7 +105,7 @@
             border:none;
             border-radius:16px;
             font-size:0.85rem;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
             letter-spacing:2px;
             cursor:pointer;
             margin-top:4px;
@@ -119,7 +119,7 @@
             color:#777;
             border-radius:14px;
             font-size:0.75rem;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
             letter-spacing:2px;
             cursor:pointer;
             margin-top:8px;
@@ -147,7 +147,7 @@
             align-items:center;
             justify-content:center;
             gap:6px;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
             letter-spacing:1px;
         }
         .btn-nav:active { border-color:var(--oro); color:var(--oro); }
@@ -156,9 +156,6 @@
     <meta name="theme-color" content="#d4af37">
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-
 <div class="header">
     <div class="header-top-am">
         <div class="header-main">
@@ -346,19 +343,6 @@ function crearTorneoAmigos() {
 </script>
 <script src="whitelabel.js"></script>
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 </body>
 </html>
 

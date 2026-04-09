@@ -24,15 +24,15 @@ if (!sess?.session) {
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; padding-bottom: 92px; }
 .header { position: sticky; top: 0; z-index: 20; background: rgba(9, 9, 9, 0.92); border-bottom: 1px solid #222; padding: 14px 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
-.header h1 { font-size: 0.95rem; color: #d4af37; letter-spacing: 0.08em; margin: 0; font-family: 'Arial Black', Arial, sans-serif; }
-.btn-back { display: inline-block; text-decoration: none; color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 10px; padding: 8px 12px; font-size: 0.7rem; font-family: 'Arial Black', Arial, sans-serif; letter-spacing: 0.05em; }
+.header h1 { font-size: 0.95rem; color: var(--dc-gold); letter-spacing: 0.08em; margin: 0; font-family: 'var(--dc-font-body)', Arial, sans-serif; }
+.btn-back { display: inline-block; text-decoration: none; color: var(--dc-gold); border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 10px; padding: 8px 12px; font-size: 0.7rem; font-family: 'var(--dc-font-body)', Arial, sans-serif; letter-spacing: 0.05em; }
 .wrap { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 18px; }
 .reto-lead { color: #777; font-size: 0.78rem; margin-bottom: 14px; }
 .steps { display: flex; gap: 8px; margin-bottom: 12px; }
 .step-dot { flex: 1; text-align: center; padding: 8px; border-radius: 999px; border: 1px solid #2a2a2a; color: #666; font-size: 0.62rem; }
-.step-dot.on { border-color: #d4af37; color: #d4af37; background: rgba(212, 175, 55, 0.1); }
+.step-dot.on { border-color: var(--dc-gold); color: var(--dc-gold); background: rgba(212, 175, 55, 0.1); }
 .card { background: #111; border: 1px solid #232323; border-radius: 16px; padding: 14px; margin-bottom: 10px; }
-.card h2 { color: #d4af37; font-size: 0.78rem; letter-spacing: 0.06em; margin-bottom: 10px; }
+.card h2 { color: var(--dc-gold); font-size: 0.78rem; letter-spacing: 0.06em; margin-bottom: 10px; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .field { margin-bottom: 10px; }
 .field label { display: block; font-size: 0.66rem; color: #888; margin-bottom: 5px; }
@@ -50,26 +50,25 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #2a2a2a;
   background: #0a0a0a; color: #777; cursor: pointer; font-weight: 700; font-size: 0.7rem;
 }
-.toggle button.on { border-color: #d4af37; color: #d4af37; background: rgba(212,175,55,0.1); }
+.toggle button.on { border-color: var(--dc-gold); color: var(--dc-gold); background: rgba(212,175,55,0.1); }
 .check-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: #bbb; font-size: 0.74rem; }
-.check-row input { accent-color: #d4af37; }
+.check-row input { accent-color: var(--dc-gold); }
 .btn {
   width: 100%; border: none; border-radius: 12px; padding: 13px; font-weight: 800; cursor: pointer;
   font-size: 0.8rem; letter-spacing: 0.04em; margin-top: 4px;
 }
-.btn-gold { background: linear-gradient(135deg, #d4af37, #a07800); color: #111; }
+.btn-gold { background: linear-gradient(135deg, var(--dc-gold), #a07800); color: #111; }
 .btn-dark { background: #0a0a0a; border: 1px solid #2a2a2a; color: #bbb; }
 .hide { display: none !important; }
 .codigo {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 1.9rem; letter-spacing: 0.14em; text-align: center; color: #d4af37; margin: 6px 0 12px;
+  font-size: 1.9rem; letter-spacing: 0.14em; text-align: center; color: var(--dc-gold); margin: 6px 0 12px;
 }
 .mini { color: #777; font-size: 0.72rem; text-align: center; margin-bottom: 10px; }
 @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body class="dc-app dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
 <header class="header">
   <a href="/jugador/index.html" class="btn-back">← MI ESPACIO</a>
   <h1>RETO CASERITO</h1>
@@ -489,18 +488,6 @@ body { background: #0b0b0b; color: #eaeaea; font-family: system-ui, sans-serif; 
   $('fecha').min = minDate.getFullYear() + '-' + pad(minDate.getMonth() + 1) + '-' + pad(minDate.getDate());
 })();
 </script>
-<script>
-(function () {
-  var bg = document.getElementById('stars-bg');
-  if (!bg) return;
-  for (var i = 0; i < 80; i++) {
-    var s = document.createElement('div');
-    s.className = 'star';
-    var sz = Math.random() * 2 + 0.5;
-    s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-    bg.appendChild(s);
-  }
-})();
-</script>
+
 </body>
 </html>

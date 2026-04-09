@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#c9a84c">
+    <title>Ficha instalación — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --oro: #c9a84c;
+            --oro-dim: rgba(201,168,76,0.15);
+            --oro-mid: rgba(201,168,76,0.35);
+            --fondo: #0a0a0a;
+            --fondo2: #111111;
+            --fondo3: #161616;
+            --borde: rgba(201,168,76,0.15);
+            --texto: #e8e8e8;
+            --texto2: #888888;
+            --texto3: #aaaaaa;
+            --verde: #2ecc71;
+            --naranja: #f39c12;
+            --rojo: #e74c3c;
+            --azul: #3498db;
+        }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:var(--fondo); color:var(--texto); font-family:'DM Sans',sans-serif; min-height:100vh; padding-bottom:120px; }
+        body #stars-bg { display:none !important; }
+        .header { width:100%; border-bottom:1px solid var(--borde); padding:14px 18px; display:flex; align-items:flex-start; justify-content:space-between; position:sticky; top:0; background:rgba(10,10,10,0.97); backdrop-filter:blur(12px); z-index:50; gap:12px; }
+        .header-titulo { font-family:'Playfair Display',serif; color:var(--oro); font-size:1rem; letter-spacing:0.06em; font-weight:700; }
+        .header-sub { color:var(--texto2); font-size:0.6rem; letter-spacing:0.15em; margin-top:3px; text-transform:uppercase; }
+        .header-meta { display:flex; align-items:center; gap:8px; margin-top:6px; }
+        .btn-hdr { background:var(--fondo2); border:1px solid var(--borde); color:var(--texto2); padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer; text-decoration:none; font-family:'DM Sans',sans-serif; transition:border-color .2s,color .15s; }
+        .btn-hdr:hover { border-color:var(--oro-mid); color:var(--oro); }
+        .badge { font-size:0.55rem; padding:3px 10px; border-radius:8px; letter-spacing:0.08em; font-weight:600; text-transform:uppercase; }
+        .badge-libre { background:rgba(46,204,113,0.15); color:#2ecc71; border:1px solid rgba(46,204,113,0.25); }
+        .badge-ocupada { background:rgba(231,76,60,0.15); color:#e74c3c; border:1px solid rgba(231,76,60,0.25); }
+        .badge-reservada { background:rgba(243,156,18,0.15); color:#f39c12; border:1px solid rgba(243,156,18,0.25); }
+        .badge-mantenimiento { background:rgba(52,152,219,0.15); color:#3498db; border:1px solid rgba(52,152,219,0.25); }
+        .badge-fuera { background:rgba(85,85,85,0.2); color:#888; border:1px solid rgba(85,85,85,0.2); }
+        .wrap { max-width:500px; margin:0 auto; padding:16px 18px; }
+        .ficha-card { background:var(--fondo2); border:1px solid var(--borde); border-radius:18px; padding:18px; margin-bottom:14px; transition:border-color .2s; }
+        .ficha-card:hover { border-color:var(--oro-mid); }
+        .ficha-titulo { font-size:0.6rem; letter-spacing:0.22em; color:var(--oro); text-transform:uppercase; font-weight:600; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+        .ficha-titulo::after { content:''; flex:1; height:1px; background:var(--borde); }
+        .ficha-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.72rem; }
+        .ficha-row:last-child { border-bottom:none; }
+        .ficha-row .lbl { color:var(--texto2); }
+        .ficha-row .v { color:#fff; font-family:'Playfair Display',serif; }
+        .kpi-mini { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+        .kpi-box { background:var(--fondo3); border:1px solid var(--borde); border-radius:14px; padding:14px; text-align:center; }
+        .kpi-val { font-family:'Playfair Display',serif; font-size:1.6rem; color:var(--oro); display:block; line-height:1; margin-bottom:6px; }
+        .kpi-lbl { font-size:0.52rem; color:var(--texto2); text-transform:uppercase; letter-spacing:0.12em; }
+        .campo { margin-bottom:12px; }
+        .campo label { display:block; color:var(--texto2); font-size:0.58rem; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:6px; }
+        .campo input, .campo select, .campo textarea { width:100%; background:var(--fondo3); border:1px solid var(--borde); color:#fff; padding:10px 12px; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:0.85rem; outline:none; transition:border-color .2s; }
+        .campo input:focus, .campo select:focus, .campo textarea:focus { border-color:var(--oro-mid); }
+        .campo textarea { min-height:70px; resize:vertical; }
+        .campo select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
+        .campo input[type="date"] { appearance:auto; -webkit-appearance:auto; min-height:44px; color-scheme:dark; }
+        .campo input[type="date"]::-webkit-calendar-picker-indicator { cursor:pointer; opacity:1; filter:invert(0.85); }
+        .semaforo-item { padding:12px 14px; background:var(--fondo3); border-radius:12px; margin-bottom:8px; border-left:3px solid #333; }
+        .semaforo-item.optimo { border-left-color:var(--verde); }
+        .semaforo-item.desgaste { border-left-color:var(--naranja); }
+        .semaforo-item.urgente { border-left-color:var(--rojo); }
+        .semaforo-item .nom { font-size:0.78rem; color:#fff; font-weight:500; }
+        .semaforo-item .horas { font-size:0.62rem; color:var(--texto2); margin-top:4px; }
+        .semaforo-item .est { font-size:0.55rem; letter-spacing:0.12em; text-transform:uppercase; margin-top:4px; font-weight:600; }
+        .semaforo-item.optimo .est { color:var(--verde); }
+        .semaforo-item.desgaste .est { color:var(--naranja); }
+        .semaforo-item.urgente .est { color:var(--rojo); }
+        .barra-progreso { height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; margin-top:8px; }
+        .barra-progreso span { display:block; height:100%; border-radius:2px; transition:width .3s; }
+        .barra-progreso.optimo span { background:var(--verde); }
+        .barra-progreso.desgaste span { background:var(--naranja); }
+        .barra-progreso.urgente span { background:var(--rojo); }
+        .alerta { background:rgba(231,76,60,0.08); border:1px solid rgba(231,76,60,0.25); border-radius:12px; padding:12px 14px; margin-bottom:10px; font-size:0.68rem; color:#e74c3c; line-height:1.5; }
+        .alerta-pano { background:rgba(243,156,18,0.08); border:1px solid rgba(243,156,18,0.3); border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:0.68rem; color:var(--naranja); line-height:1.5; }
+        .alerta-pano.urgente { background:rgba(231,76,60,0.08); border-color:rgba(231,76,60,0.3); color:var(--rojo); }
+        .timeline-item { padding:12px 14px; background:var(--fondo3); border-radius:12px; margin-bottom:8px; font-size:0.68rem; border-left:3px solid #333; }
+        .timeline-item .t-fecha { color:var(--texto2); font-size:0.6rem; letter-spacing:0.08em; }
+        .timeline-item .t-tipo { font-size:0.55rem; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px; color:var(--oro); font-weight:600; }
+        .timeline-item .t-desc { color:var(--texto3); margin-top:6px; line-height:1.5; }
+        .timeline-item.t-sesion { border-left-color:var(--azul); }
+        .timeline-item.t-sesion-abierta { border-left-color:var(--rojo); }
+        .timeline-item.t-mant { border-left-color:var(--verde); }
+        .timeline-item.t-reserva { border-left-color:var(--naranja); }
+        .timeline-item.t-nota { border-left-color:#9b59b6; }
+        .historial-item { padding:12px 14px; background:var(--fondo3); border:1px solid var(--borde); border-radius:12px; margin-bottom:8px; font-size:0.68rem; }
+        .historial-item .fecha { color:var(--texto2); font-size:0.6rem; }
+        .historial-item .desc { color:var(--texto3); margin-top:4px; line-height:1.4; }
+        .historial-item .costo { color:var(--oro); font-family:'Playfair Display',serif; margin-top:4px; }
+        .tabla-sesiones { width:100%; font-size:0.65rem; border-collapse:collapse; }
+        .tabla-sesiones th { color:var(--texto2); padding:8px; text-align:left; border-bottom:1px solid var(--borde); font-weight:500; text-transform:uppercase; letter-spacing:0.08em; font-size:0.55rem; }
+        .tabla-sesiones td { padding:8px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.04); color:var(--texto3); }
+        .fila-camara { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; background:var(--fondo3); border:1px solid var(--borde); border-radius:12px; padding:10px 12px; }
+        .fila-camara input { flex:1; min-width:80px; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.06); color:#fff; font-family:'DM Sans',sans-serif; font-size:0.78rem; padding:4px 0; outline:none; }
+        .fila-camara input:focus { border-bottom-color:var(--oro); }
+        .fila-camara .nom-camara { width:90px; flex-shrink:0; }
+        .fila-camara .url-camara { flex:1; min-width:120px; }
+        .fila-camara .btn-quitar { flex-shrink:0; padding:5px 10px; font-size:0.6rem; background:rgba(231,76,60,0.12); color:var(--rojo); border:1px solid rgba(231,76,60,0.2); border-radius:8px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background .2s; }
+        .fila-camara .btn-quitar:hover { background:rgba(231,76,60,0.2); }
+        .monitor-preview { margin-top:10px; border-radius:12px; overflow:hidden; border:1px solid var(--borde); min-height:120px; background:var(--fondo3); }
+        .monitor-preview iframe { width:100%; height:200px; border:none; }
+        .btn-link-monitor { display:inline-block; margin-top:8px; font-size:0.62rem; color:var(--azul); text-decoration:none; }
+        .btn-paso { width:100%; padding:13px; margin-top:8px; background:linear-gradient(135deg,var(--oro),#8a7038); color:#0a0a0a; border:none; border-radius:14px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; letter-spacing:0.08em; transition:opacity .2s,transform .15s; }
+        .btn-paso:hover { opacity:.9; transform:translateY(-1px); }
+        .btn-paso.sec { background:var(--fondo3); color:var(--texto2); border:1px solid var(--borde); }
+        .btn-paso.sec:hover { border-color:var(--oro-mid); color:var(--oro); }
+        .btn-paso.azul { background:rgba(52,152,219,0.15); color:var(--azul); border:1px solid rgba(52,152,219,0.25); }
+        .btn-paso.azul:hover { background:rgba(52,152,219,0.25); }
+        .btn-paso:disabled,.btn-paso.sec:disabled,.btn-paso.azul:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+        .btn-paso:disabled:hover,.btn-paso.sec:disabled:hover,.btn-paso.azul:disabled:hover { opacity:0.5; transform:none; }
+        .ficha-minihelp { font-size:0.65rem; color:var(--texto2); line-height:1.55; margin-bottom:14px; padding:10px 12px; background:var(--fondo3); border-radius:10px; border:1px solid var(--borde); }
+        .ficha-minihelp code { color:#555; font-family:monospace; }
+        .vacio { text-align:center; color:var(--texto2); font-size:0.68rem; padding:20px; }
+        .ficha-toast-host { position:fixed; left:50%; bottom:max(24px,env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:200; pointer-events:none; max-width:min(420px,calc(100vw - 32px)); }
+        .ficha-toast { padding:12px 16px; border-radius:12px; font-size:0.8rem; line-height:1.45; font-weight:500; box-shadow:0 8px 28px rgba(0,0,0,0.5); opacity:0; transition:opacity .25s ease; }
+        .ficha-toast--visible { opacity:1; }
+        .ficha-toast--success { background:linear-gradient(135deg,rgba(46,204,113,0.98),rgba(39,174,96,0.98)); color:#0a0a0a; border:1px solid rgba(46,204,113,1); }
+        .ficha-toast--error { background:linear-gradient(135deg,rgba(231,76,60,0.98),rgba(192,57,43,0.98)); color:#fff; border:1px solid rgba(231,76,60,1); }
+    </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
+    <link rel="stylesheet" href="/css/bottom-nav.css">
+</head>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div id="ficha-toast-host" class="ficha-toast-host" aria-live="polite" aria-atomic="true"></div>
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+<div class="header">
+    <div style="flex:1;min-width:0;">
+        <div class="header-titulo" id="lbl_nombre">FICHA INSTALACIÓN</div>
+        <div class="header-sub" id="lbl_tipo">—</div>
+        <div class="header-meta">
+            <span id="badge_estado" class="badge badge-libre">—</span>
+            <span id="lbl_tarifa" style="font-size:0.62rem;color:var(--texto2);"></span>
+        </div>
+    </div>
+    <div>
+        <details class="jug-nav-fold dc-sala-nav-fold" aria-label="Menú del club">
+            <summary>Menú del club</summary>
+            <div class="jug-nav-fold__links">
+                <a href="mesas.html">Salón en vivo</a>
+                <a href="reservas_admin.html">Reservas</a>
+                <a href="reportes.html">Reportes</a>
+                <a href="/club/index.html">Portal club</a>
+                <a href="/index.html">Inicio app</a>
+            </div>
+        </details>
+    </div>
+</div>
+<div class="wrap">
+    <div class="ficha-card">
+        <div class="ficha-titulo">Estadísticas</div>
+        <div class="kpi-mini">
+            <div class="kpi-box"><span class="kpi-val" id="stat_horas">0</span><span class="kpi-lbl">Total horas uso</span></div>
+            <div class="kpi-box"><span class="kpi-val" id="stat_ingresos">$0</span><span class="kpi-lbl">Total ingresos</span></div>
+        </div>
+        <div class="ficha-row"><span class="lbl">Jugador frecuente</span><span class="v" id="stat_jugador">—</span></div>
+        <div class="ficha-row"><span class="lbl">Promedio horas/día</span><span class="v" id="stat_promedio">—</span></div>
+    </div>
+    <div class="ficha-card" id="card_tarifa_mesa" style="display:none;">
+        <div class="ficha-titulo">Tarifa por hora · esta mesa</div>
+        <p class="ficha-minihelp" id="tarifa_mesa_help_admin" style="display:none;">Valor base de esta instalación; se combina con franjas del salón. Solo administradores (<code>club_admin</code>).</p>
+        <div class="campo" id="wrap_tarifa_input" style="display:none;">
+            <label>Tarifa por hora</label>
+            <input type="number" id="ficha_tarifa_hora" min="0" step="0.01" inputmode="decimal" autocomplete="off" placeholder="Ej: 15000">
+            <button type="button" class="btn-paso" style="margin-top:10px;" data-ficha-busy onclick="guardarTarifaMesa()">GUARDAR TARIFA</button>
+        </div>
+    </div>
+    <div class="ficha-card" id="card_hoja_vida">
+        <div class="ficha-titulo">Hoja de vida de la mesa</div>
+        <p class="ficha-minihelp">Fecha de compra, paño, próximo cambio, monitor y notas. Los datos se guardan automáticamente en la nube.</p>
+        <div id="alerta_pano_banner" style="display:none;" class="alerta-pano"></div>
+        <div class="campo"><label>Fecha de compra</label><input type="date" id="hv_fecha_compra"></div>
+        <div class="campo"><label>Detalle de la compra (proveedor, factura, serie, valor…)</label><textarea id="hv_detalle_compra" placeholder="Ej: Billares López, factura F-10234…"></textarea></div>
+        <div class="campo"><label>Último cambio de paño</label><input type="date" id="hv_fecha_pano"></div>
+        <div class="campo"><label>Intervalo recomendado entre cambios de paño (meses)</label><input type="number" id="hv_meses_pano" min="1" max="120" value="12" step="1"></div>
+        <div class="ficha-row"><span class="lbl">Próximo cambio sugerido (automático)</span><span class="v" id="hv_proximo_pano_calc">—</span></div>
+        <div class="campo"><label>Próximo cambio (fecha manual — opcional)</label><input type="date" id="hv_fecha_proximo_pano"></div>
+        <div class="campo"><label>Monitor / panel (URL de stream, MJPEG o enlace)</label><input type="url" id="hv_url_monitor" placeholder="https://…"></div>
+        <div class="campo"><label>Notas del monitor / equipo audiovisual</label><textarea id="hv_notas_monitor" placeholder="Modelo, IP, credenciales…"></textarea></div>
+        <div id="monitor_preview_wrap" class="monitor-preview" style="display:none;"></div>
+        <a id="monitor_abrir" class="btn-link-monitor" href="#" target="_blank" rel="noopener" style="display:none;">Abrir monitor en pestaña nueva →</a>
+        <button type="button" class="btn-paso" data-ficha-busy onclick="guardarHojaVida()">GUARDAR HOJA DE VIDA</button>
+        <button type="button" class="btn-paso sec" data-ficha-busy onclick="solicitarCambioPanoHoy()" style="margin-top:8px;">MARCAR CAMBIO DE PAÑO HOY</button>
+        <div class="campo" style="margin-top:16px;"><label>Nota libre para el historial</label><textarea id="hv_nota_crono" placeholder="Incidencias, actas, observaciones…"></textarea></div>
+        <button type="button" class="btn-paso sec" data-ficha-busy onclick="agregarNotaCronologia()">AÑADIR NOTA AL HISTORIAL</button>
+    </div>
+    <div class="ficha-card" id="card_camara">
+        <div class="ficha-titulo">Cámaras / streams</div>
+        <p class="ficha-minihelp">Varias cámaras por instalación. La primera URL se usa por defecto en transmisión.</p>
+        <div id="lista_camaras"></div>
+        <button type="button" class="btn-paso sec" data-ficha-busy onclick="anadirCamara()" style="margin-top:8px;">+ AÑADIR CÁMARA</button>
+        <button type="button" class="btn-paso" data-ficha-busy onclick="guardarCamaras()" style="margin-top:8px;">GUARDAR CÁMARAS</button>
+    </div>
+    <div class="ficha-card" id="card_alertas" style="display:none;">
+        <div class="ficha-titulo">Alertas automáticas</div>
+        <div id="lista_alertas"></div>
+    </div>
+    <div class="ficha-card">
+        <div class="ficha-titulo">Mantenimiento por componente</div>
+        <div id="lista_semaforo"></div>
+        <div class="vacio" id="sin_componentes" style="display:none;">Sin componentes configurados</div>
+    </div>
+    <div class="ficha-card">
+        <div class="ficha-titulo">Historial de mantenimiento</div>
+        <button type="button" class="btn-paso azul" onclick="mostrarFormMant()">+ Registrar mantenimiento</button>
+        <div id="lista_mantenimiento" style="margin-top:12px;"></div>
+        <div class="vacio" id="sin_mantenimiento" style="display:none;">Sin registros</div>
+    </div>
+    <div class="ficha-card" id="form_mant" style="display:none;">
+        <div class="ficha-titulo">Nuevo mantenimiento</div>
+        <div class="campo"><label>Tipo de trabajo</label>
+            <select id="mant_tipo">
+                <option value="REVISION">REVISIÓN TÉCNICA</option>
+                <option value="REEMPLAZO">REEMPLAZO (paño, bandas…)</option>
+                <option value="LIMPIEZA">LIMPIEZA</option>
+                <option value="REPARACION">REPARACIÓN</option>
+            </select>
+        </div>
+        <div class="campo"><label>Descripción</label><textarea id="mant_desc" placeholder="Opcional"></textarea></div>
+        <div class="campo"><label>Costo</label><input type="number" id="mant_costo" min="0" step="0.01" placeholder="0"></div>
+        <div class="campo"><label>Responsable</label><input type="text" id="mant_responsable" placeholder="Nombre"></div>
+        <div class="campo"><label>Componente afectado (opcional)</label><select id="mant_componente"><option value="">— Ninguno —</option></select></div>
+        <button type="button" class="btn-paso" data-ficha-busy onclick="guardarMantenimiento()">GUARDAR</button>
+        <button type="button" class="btn-paso sec" onclick="document.getElementById('form_mant').style.display='none'">Cancelar</button>
+    </div>
+    <div class="ficha-card">
+        <div class="ficha-titulo">Historia completa</div>
+        <p class="ficha-minihelp">Sesiones, reservas, mantenimientos y notas en orden del más reciente al más antiguo.</p>
+        <div id="lista_historia_completa"></div>
+        <div class="vacio" id="sin_historia_completa" style="display:none;">Sin eventos registrados aún</div>
+    </div>
+    <div class="ficha-card">
+        <div class="ficha-titulo">Detalle sesiones cerradas</div>
+        <div style="overflow-x:auto;">
+            <table class="tabla-sesiones" id="tabla_sesiones">
+                <thead><tr><th>Fecha</th><th>Jugador</th><th>Duración</th><th>Costo</th></tr></thead>
+                <tbody id="body_sesiones"></tbody>
+            </table>
+        </div>
+        <div class="vacio" id="sin_sesiones" style="display:none;">Sin sesiones registradas</div>
+    </div>
+</div>
+<script src="/session.js"></script>
+<script>
+var _dcClubApiFichaP = null;
+function _clubApiFicha() { if (!_dcClubApiFichaP) _dcClubApiFichaP = import('/js/api/club-api.js'); return _dcClubApiFichaP; }
+function getClubIdFicha() { try { var p = JSON.parse(localStorage.getItem('mi_perfil')||'{}'); if (p.club_id) return p.club_id; } catch(e){} return null; }
+var mesaId=null,mesa=null,historial=[],historialTodo=[],reservasMesa=[],componentes=[],mantenimientos=[],hojaVida={};
+function storageKeyHV(id){return 'mesa_hoja_vida_'+id;}
+function parseHojaVida(m){var hv=m&&m.hoja_vida;if(hv==null||hv==='')return{cronologia:[]};if(typeof hv==='string'){try{hv=JSON.parse(hv);}catch(e){return{cronologia:[]};}}if(!hv||typeof hv!=='object')return{cronologia:[]};if(!hv.cronologia||!Array.isArray(hv.cronologia))hv.cronologia=[];return hv;}
+function hojaVidaRemotaVacia(m){var hv=m&&m.hoja_vida;if(hv==null||hv==='')return true;if(typeof hv==='string'){try{hv=JSON.parse(hv);}catch(e){return true;}}if(!hv||typeof hv!=='object')return true;return!hv.fecha_compra&&!hv.fecha_ultimo_cambio_pano&&!hv.url_monitor;}
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtFecha(ts){if(!ts)return'—';try{var d=new Date(ts);return d.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});}catch(e){return String(ts);}}
+function fmtDuracion(seg){if(!seg||seg<=0)return'—';var h=Math.floor(seg/3600),m=Math.floor((seg%3600)/60),s=seg%60;if(h>0)return h+'h '+m+'m';if(m>0)return m+'m '+s+'s';return s+'s';}
+function fmtMoney(n){if(n==null||isNaN(n))return'—';return'$'+Math.round(n).toLocaleString('es-CO');}
+
+var _fichaToastShowT=null,_fichaToastHideT=null;
+function showToast(msg,kind){
+    kind=kind==='error'?'error':'success';
+    var host=document.getElementById('ficha-toast-host');
+    if(!host)return;
+    if(_fichaToastShowT){clearTimeout(_fichaToastShowT);_fichaToastShowT=null;}
+    if(_fichaToastHideT){clearTimeout(_fichaToastHideT);_fichaToastHideT=null;}
+    host.innerHTML='';
+    var el=document.createElement('div');
+    el.className='ficha-toast ficha-toast--'+kind;
+    el.setAttribute('role','status');
+    el.textContent=msg;
+    host.appendChild(el);
+    requestAnimationFrame(function(){el.classList.add('ficha-toast--visible');});
+    _fichaToastShowT=setTimeout(function(){
+        _fichaToastShowT=null;
+        el.classList.remove('ficha-toast--visible');
+        _fichaToastHideT=setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);_fichaToastHideT=null;},280);
+    },3000);
+}
+function toastError(err){
+    var m='Error desconocido';
+    if(err==null)return m;
+    if(typeof err==='string')return err;
+    if(err.message)return String(err.message);
+    return String(err);
+}
+
+function setFichaBusy(on){
+    document.querySelectorAll('button.btn-paso[data-ficha-busy]').forEach(function(b){
+        b.disabled=!!on;
+        if(on)b.setAttribute('aria-busy','true');else b.removeAttribute('aria-busy');
+    });
+}
+
+async function cargarFicha(){
+    var params=new URLSearchParams(window.location.search);
+    mesaId=params.get('id');
+    if(!mesaId){document.getElementById('lbl_nombre').textContent='Sin ID de mesa';return;}
+    try{
+        var api=await _clubApiFicha();
+        var clubId=getClubIdFicha();
+        if(!clubId){try{var am=await import('/js/auth-manager.js');var gr=await am.getClubId();if(gr.data)clubId=gr.data;}catch(_e){}}
+        var mr=await api.getMesaById(mesaId);
+        if(!mr.data){document.getElementById('lbl_nombre').textContent='Mesa no encontrada';return;}
+        mesa=mr.data;
+        document.getElementById('lbl_nombre').textContent=mesa.nombre||('Mesa '+(mesa.numero||mesaId));
+        document.getElementById('lbl_tipo').textContent=[mesa.tipo,mesa.subtipo].filter(Boolean).join(' · ')||'—';
+        var badgeEl=document.getElementById('badge_estado');
+        var estado=(mesa.estado||'libre').toLowerCase();
+        var badgeCls=estado==='fuera_servicio'?'fuera':estado;
+        badgeEl.textContent=estado==='fuera_servicio'?'FUERA DE SERVICIO':estado.toUpperCase();
+        badgeEl.className='badge badge-'+badgeCls;
+        var th=mesa.tarifa_hora!=null?parseFloat(mesa.tarifa_hora):null;
+        if(th&&th>0)document.getElementById('lbl_tarifa').textContent=fmtMoney(th)+'/h';
+        try{var hr=await api.listSesionesByMesa(mesaId,{limit:200});historial=hr.data||[];historialTodo=historial;}catch(_e){historial=[];historialTodo=[];}
+        try{var rr=await api.listReservasByMesa(mesaId,{limit:50});reservasMesa=rr.data||[];}catch(_e){reservasMesa=[];}
+        renderEstadisticas();renderTarifaMesa();renderHojaVida();renderCamaras();renderSemaforo();renderMantenimientos();renderHistoriaCompleta();renderSesiones();
+    }catch(err){console.error('[instalacion_ficha]',err);}
+}
+
+function renderEstadisticas(){
+    var totalSeg=0,totalIngresos=0,jugMap={};
+    historial.forEach(function(s){if(s.estado!=='cerrada')return;totalSeg+=s.duracion_segundos||0;totalIngresos+=parseFloat(s.costo_total||0);var jug=s.jugador_nombre||s.jugador_id||'Anónimo';jugMap[jug]=(jugMap[jug]||0)+1;});
+    document.getElementById('stat_horas').textContent=(totalSeg/3600).toFixed(1)+'h';
+    document.getElementById('stat_ingresos').textContent=fmtMoney(totalIngresos);
+    var topJug='—',maxCount=0;Object.keys(jugMap).forEach(function(k){if(jugMap[k]>maxCount){maxCount=jugMap[k];topJug=k;}});
+    document.getElementById('stat_jugador').textContent=topJug;
+    var diasSet=new Set();historial.forEach(function(s){if(s.inicio)diasSet.add(s.inicio.slice(0,10));});
+    document.getElementById('stat_promedio').textContent=diasSet.size>0?(totalSeg/3600/diasSet.size).toFixed(1)+'h':'—';
+}
+
+function renderTarifaMesa(){
+    var card=document.getElementById('card_tarifa_mesa');
+    var wrapInput=document.getElementById('wrap_tarifa_input');
+    var help=document.getElementById('tarifa_mesa_help_admin');
+    var rol=localStorage.getItem('session_rol')||'';
+    var esAdmin=rol==='club_admin'||rol==='superadmin';
+    if(!esAdmin&&!(mesa.tarifa_hora>0))return;
+    card.style.display='';
+    if(esAdmin){wrapInput.style.display='';if(help)help.style.display='';var el=document.getElementById('ficha_tarifa_hora');if(el&&mesa.tarifa_hora!=null)el.value=mesa.tarifa_hora;}
+}
+
+async function guardarTarifaMesa(){
+    var val=parseFloat(document.getElementById('ficha_tarifa_hora').value)||0;
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{tarifa_hora:val>0?val:null,updated_at:new Date().toISOString()});if(ur.error)showToast(toastError(ur.error),'error');else showToast('Tarifa guardada.','success');}catch(e){showToast(toastError(e),'error');}finally{setFichaBusy(false);}
+}
+
+function renderHojaVida(){
+    hojaVida=parseHojaVida(mesa);
+    document.getElementById('hv_fecha_compra').value=hojaVida.fecha_compra||'';
+    document.getElementById('hv_detalle_compra').value=hojaVida.detalle_compra||'';
+    document.getElementById('hv_fecha_pano').value=hojaVida.fecha_ultimo_cambio_pano||hojaVida.fecha_cambio_pano||'';
+    document.getElementById('hv_meses_pano').value=hojaVida.meses_intervalo_pano||12;
+    document.getElementById('hv_fecha_proximo_pano').value=hojaVida.fecha_proximo_pano_manual||'';
+    document.getElementById('hv_url_monitor').value=hojaVida.url_monitor||'';
+    document.getElementById('hv_notas_monitor').value=hojaVida.notas_monitor||'';
+    calcProximoPano();renderAlertaPano();renderMonitor();
+}
+
+function calcProximoPano(){
+    var fp=hojaVida.fecha_ultimo_cambio_pano,meses=hojaVida.meses_intervalo_pano||12,calcEl=document.getElementById('hv_proximo_pano_calc');
+    if(!fp){calcEl.textContent='—';return;}
+    try{var d=new Date(fp);d.setMonth(d.getMonth()+meses);calcEl.textContent=d.toLocaleDateString('es-CO');}catch(e){calcEl.textContent='—';}
+}
+
+function renderAlertaPano(){
+    var manual=(document.getElementById('hv_fecha_proximo_pano').value||'').trim();
+    var calc=document.getElementById('hv_proximo_pano_calc').textContent;
+    var fechaObj=manual?new Date(manual):(calc!=='—'?new Date(calc):null);
+    var ban=document.getElementById('alerta_pano_banner');
+    if(!fechaObj){ban.style.display='none';return;}
+    var hoy=new Date();hoy.setHours(0,0,0,0);
+    var dias=Math.round((fechaObj-hoy)/86400000);
+    ban.style.display='';
+    if(dias<0){ban.className='alerta-pano urgente';ban.textContent='⚠️ Cambio de paño: la fecha ya pasó ('+Math.abs(dias)+' días). Registrá mantenimiento o actualizá fechas.';}
+    else if(dias<=30){ban.className='alerta-pano';ban.textContent='📅 Próximo cambio de paño en '+dias+' días.';}
+    else{ban.style.display='none';}
+}
+
+function renderMonitor(){
+    var url=hojaVida.url_monitor||'';
+    var wrap=document.getElementById('monitor_preview_wrap'),link=document.getElementById('monitor_abrir');
+    if(!url){wrap.style.display='none';if(link)link.style.display='none';return;}
+    wrap.style.display='';if(link){link.style.display='';link.href=url;}
+    wrap.innerHTML='<iframe src="'+esc(url)+'" allowfullscreen></iframe>';
+}
+
+async function guardarHojaVida(){
+    var fc=(document.getElementById('hv_fecha_compra').value||'').trim();
+    var fp=(document.getElementById('hv_fecha_pano').value||'').trim();
+    if(fc&&fp&&fc>fp){showToast('La fecha de compra no puede ser posterior al último cambio de paño.','error');return;}
+    hojaVida.fecha_compra=fc||null;
+    hojaVida.detalle_compra=(document.getElementById('hv_detalle_compra').value||'').trim()||null;
+    hojaVida.fecha_ultimo_cambio_pano=fp||null;
+    hojaVida.meses_intervalo_pano=parseInt(document.getElementById('hv_meses_pano').value,10)||12;
+    hojaVida.fecha_proximo_pano_manual=(document.getElementById('hv_fecha_proximo_pano').value||'').trim()||null;
+    hojaVida.url_monitor=(document.getElementById('hv_url_monitor').value||'').trim()||null;
+    hojaVida.notas_monitor=(document.getElementById('hv_notas_monitor').value||'').trim()||null;
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{hoja_vida:hojaVida,updated_at:new Date().toISOString()});if(ur.error){showToast(toastError(ur.error),'error');return;}mesa.hoja_vida=hojaVida;calcProximoPano();renderAlertaPano();renderMonitor();showToast('Hoja de vida guardada.','success');}catch(e){showToast(toastError(e),'error');}finally{setFichaBusy(false);}
+}
+
+function solicitarCambioPanoHoy(){
+    if(!confirm('¿Confirmar cambio de paño hoy? Esta acción quedará registrada en el historial'))return;
+    registrarCambioPanoHoy();
+}
+
+async function registrarCambioPanoHoy(){
+    var hoy=new Date().toISOString().slice(0,10);
+    document.getElementById('hv_fecha_pano').value=hoy;
+    hojaVida.fecha_ultimo_cambio_pano=hoy;
+    if(!hojaVida.cronologia)hojaVida.cronologia=[];
+    hojaVida.cronologia.push({fecha:new Date().toISOString(),titulo:'Cambio de paño',detalle:'Registrado desde ficha.'});
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{hoja_vida:hojaVida,updated_at:new Date().toISOString()});if(ur.error){showToast(toastError(ur.error),'error');return;}calcProximoPano();renderAlertaPano();showToast('Cambio de paño registrado.','success');}catch(e){showToast(toastError(e),'error');}finally{setFichaBusy(false);}
+}
+
+async function agregarNotaCronologia(){
+    var txt=(document.getElementById('hv_nota_crono').value||'').trim();
+    if(!txt){showToast('Escribí una nota primero.','error');return;}
+    if(!hojaVida.cronologia)hojaVida.cronologia=[];
+    hojaVida.cronologia.push({fecha:new Date().toISOString(),titulo:'Nota',detalle:txt});
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{hoja_vida:hojaVida,updated_at:new Date().toISOString()});if(ur.error){if(hojaVida.cronologia&&hojaVida.cronologia.length)hojaVida.cronologia.pop();showToast(toastError(ur.error),'error');return;}document.getElementById('hv_nota_crono').value='';renderHistoriaCompleta();showToast('Nota agregada.','success');}catch(e){if(hojaVida.cronologia&&hojaVida.cronologia.length)hojaVida.cronologia.pop();showToast(toastError(e),'error');}finally{setFichaBusy(false);}
+}
+
+function renderCamaras(){
+    var cams=mesa.camaras||[];
+    var lista=document.getElementById('lista_camaras');lista.innerHTML='';
+    cams.forEach(function(c,i){lista.appendChild(crearFilaCamara(c.nombre||('Cámara '+(i+1)),c.url||''));});
+}
+function crearFilaCamara(nombre,url){
+    var div=document.createElement('div');div.className='fila-camara';
+    div.innerHTML='<input class="nom-camara" type="text" placeholder="Nombre" value="'+esc(nombre)+'"><input class="url-camara" type="url" placeholder="rtsp://… o https://…" value="'+esc(url)+'"><button class="btn-quitar" type="button" onclick="this.closest(\'.fila-camara\').remove()">✕</button>';
+    return div;
+}
+function anadirCamara(){document.getElementById('lista_camaras').appendChild(crearFilaCamara('',''));}
+async function guardarCamaras(){
+    var filas=document.querySelectorAll('#lista_camaras .fila-camara'),cams=[];
+    filas.forEach(function(f){var nombre=f.querySelector('.nom-camara').value.trim(),url=f.querySelector('.url-camara').value.trim();if(url)cams.push({nombre:nombre||'Cámara',url});});
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var ur=await api.updateMesa(mesaId,{camaras:cams,updated_at:new Date().toISOString()});if(ur.error)showToast(toastError(ur.error),'error');else showToast('Cámaras guardadas ('+cams.length+').','success');}catch(e){showToast(toastError(e),'error');}finally{setFichaBusy(false);}
+}
+
+function renderSemaforo(){
+    componentes=mesa.componentes||[];
+    var lista=document.getElementById('lista_semaforo'),sinEl=document.getElementById('sin_componentes');
+    lista.innerHTML='';
+    if(!componentes.length){sinEl.style.display='';return;}sinEl.style.display='none';
+    componentes.forEach(function(c){
+        var pct=Math.min(100,((c.horas_uso||0)/(c.horas_vida||1000))*100);
+        var cls=pct<60?'optimo':pct<85?'desgaste':'urgente';
+        var est=pct<60?'ÓPTIMO':pct<85?'DESGASTE':'URGENTE';
+        var div=document.createElement('div');div.className='semaforo-item '+cls;
+        div.innerHTML='<div class="nom">'+esc(c.nombre)+'</div><div class="horas">'+(c.horas_uso||0).toFixed(0)+'h / '+(c.horas_vida||1000)+'h · '+pct.toFixed(0)+'%</div><div class="est">'+est+'</div><div class="barra-progreso '+cls+'"><span style="width:'+pct+'%"></span></div>';
+        lista.appendChild(div);
+    });
+}
+
+async function renderMantenimientos(){
+    try{var api=await _clubApiFicha();var mr=await api.listMantenimientosByMesa(mesaId,{limit:50});mantenimientos=mr.data||[];}catch(_e){mantenimientos=[];}
+    var lista=document.getElementById('lista_mantenimiento'),sinEl=document.getElementById('sin_mantenimiento');
+    lista.innerHTML='';
+    if(!mantenimientos.length){sinEl.style.display='';return;}sinEl.style.display='none';
+    mantenimientos.forEach(function(m){
+        var div=document.createElement('div');div.className='historial-item';
+        div.innerHTML='<div class="fecha">'+fmtFecha(m.fecha||m.created_at)+' · <strong>'+esc(m.tipo)+'</strong></div>'+(m.descripcion?'<div class="desc">'+esc(m.descripcion)+'</div>':'')+(m.costo?'<div class="costo">'+fmtMoney(m.costo)+'</div>':'')+(m.responsable?'<div class="desc" style="color:#666;">'+esc(m.responsable)+'</div>':'');
+        lista.appendChild(div);
+    });
+    var sel=document.getElementById('mant_componente');sel.innerHTML='<option value="">— Ninguno —</option>';
+    componentes.forEach(function(c){var opt=document.createElement('option');opt.value=c.id||c.nombre;opt.textContent=c.nombre;sel.appendChild(opt);});
+}
+function mostrarFormMant(){var f=document.getElementById('form_mant');f.style.display=f.style.display==='none'?'':'none';}
+async function guardarMantenimiento(){
+    var tipo=document.getElementById('mant_tipo').value,desc=document.getElementById('mant_desc').value.trim(),costoStr=(document.getElementById('mant_costo').value||'').trim(),responsable=document.getElementById('mant_responsable').value.trim(),componente=document.getElementById('mant_componente').value;
+    var costo=costoStr===''?null:parseFloat(costoStr);if(costoStr!==''&&(isNaN(costo)||costo<0)){showToast('Costo inválido.','error');return;}
+    setFichaBusy(true);
+    try{var api=await _clubApiFicha();var payload={mesa_id:mesaId,tipo,descripcion:desc||null,costo:costo,responsable:responsable||null,componente_id:componente||null,fecha:new Date().toISOString()};var ur=await api.createMantenimiento(payload);if(ur.error){showToast(toastError(ur.error),'error');return;}document.getElementById('form_mant').style.display='none';renderMantenimientos();showToast('Mantenimiento registrado.','success');}catch(e){showToast(toastError(e),'error');}finally{setFichaBusy(false);}
+}
+
+function renderHistoriaCompleta(){
+    var eventos=[];
+    historial.forEach(function(s){var ts=s.inicio||s.created_at,cls=s.estado==='abierta'?'t-sesion-abierta':'t-sesion';eventos.push({ts,cls,tipo:'SESIÓN',desc:(s.jugador_nombre||'Jugador')+' · '+fmtDuracion(s.duracion_segundos)+' · '+fmtMoney(s.costo_total)});});
+    reservasMesa.forEach(function(r){var ts=r.fecha_reserva||r.created_at;eventos.push({ts,cls:'t-reserva',tipo:'RESERVA',desc:(r.jugador_nombre||'Jugador')+' · '+(r.hora_inicio||'')+' – '+(r.hora_fin||'')});});
+    (hojaVida.cronologia||[]).forEach(function(n){var cls=/paño|pano/i.test(n.titulo)?'t-mant':'t-nota';eventos.push({ts:n.fecha,cls,tipo:n.titulo||'NOTA',desc:n.detalle||''});});
+    eventos.sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
+    var lista=document.getElementById('lista_historia_completa'),sinEl=document.getElementById('sin_historia_completa');
+    lista.innerHTML='';
+    if(!eventos.length){sinEl.style.display='';return;}sinEl.style.display='none';
+    eventos.forEach(function(e){lista.innerHTML+='<div class="timeline-item '+e.cls+'"><div class="t-fecha">'+esc(fmtFecha(e.ts))+'</div><div class="t-tipo">'+esc(e.tipo)+'</div><div class="t-desc">'+esc(e.desc)+'</div></div>';});
+}
+
+function renderSesiones(){
+    var body=document.getElementById('body_sesiones'),sinEl=document.getElementById('sin_sesiones');
+    var cerradas=historial.filter(function(s){return s.estado==='cerrada';});
+    body.innerHTML='';
+    if(!cerradas.length){sinEl.style.display='';return;}sinEl.style.display='none';
+    cerradas.forEach(function(s){var tr=document.createElement('tr');tr.innerHTML='<td>'+esc(fmtFecha(s.inicio))+'</td><td>'+esc(s.jugador_nombre||'—')+'</td><td>'+esc(fmtDuracion(s.duracion_segundos))+'</td><td>'+esc(fmtMoney(s.costo_total))+'</td>';body.appendChild(tr);});
+}
+
+window.onload = cargarFicha;
+</script>
+<script>
+(function(){var bg=document.getElementById('stars-bg');if(!bg)return;for(var i=0;i<80;i++){var s=document.createElement('div');s.className='star';var sz=Math.random()*2+0.5;s.style.cssText='width:'+sz+'px;height:'+sz+'px;top:'+Math.random()*100+'%;left:'+Math.random()*100+'%;animation-delay:'+Math.random()*3+'s;animation-duration:'+(2+Math.random()*3)+'s;';bg.appendChild(s);}})();
+</script>
+</body>
+</html>

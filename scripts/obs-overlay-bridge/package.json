@@ -4,12 +4,18 @@
   "type": "module",
   "description": "Puente local: lee overlay_state en Supabase y controla OBS vía obs-websocket (HTTPS en la TV no puede usar ws://).",
   "scripts": {
-    "start": "node index.mjs"
+    "start": "node index.mjs",
+    "pm2:start": "pm2 start index.mjs --name decarambola-bridge",
+    "pm2:logs": "pm2 logs decarambola-bridge"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
     "dotenv": "^16.4.7",
     "googleapis": "^144.0.0",
-    "obs-websocket-js": "^5.0.6"
+    "obs-websocket-js": "^5.0.6",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "pm2": "^6.0.8"
   }
 }

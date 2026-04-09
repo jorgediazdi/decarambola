@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --oro: #d4af37;
+            --oro: var(--dc-gold);
             --neon: #2eff70;
             --rojo: #e74c3c;
             --azul: #3498db;
@@ -423,7 +423,7 @@
             font-size: 0.72em;
             color: #777;
             letter-spacing: 0.1em;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .salon-casual-header-simple #reloj {
             font-size: clamp(1.2rem, 3vw, 1.85rem);
@@ -692,7 +692,7 @@
             font-size: 0.72rem;
             letter-spacing: 0.08em;
             background:
-                radial-gradient(ellipse 92% 48% at 50% 48%, rgba(45, 110, 72, 0.95) 0%, #1a4a2e 52%, #0f2d1c 100%),
+                background: var(--dc-bg);
                 repeating-linear-gradient(
                     90deg,
                     transparent,
@@ -711,7 +711,7 @@
             color: #c0392b !important;
         }
         body.tema-sol .premium-salon-duelo .bola-casual-mid.bola-blanca {
-            background: radial-gradient(
+            background: var(--dc-bg);
                     circle at 32% 28%,
                     #ffffff 0%,
                     #f0f0f0 30%,
@@ -727,7 +727,7 @@
             left: 32%;
             width: 34%;
             height: 24%;
-            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.2) 45%, transparent 72%);
+            background: var(--dc-bg);
         }
         body.tema-sol .premium-salon-duelo .bola-casual-mid.bola-dorada {
             box-shadow:
@@ -775,7 +775,7 @@
             color: #555;
             font-size: 0.55rem;
             letter-spacing: 0.08em;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .salon-casual-controls-bar #reloj {
             font-size: clamp(0.95rem, 2vw, 1.25rem);
@@ -948,7 +948,7 @@
         .salon-pro-turno-nombre {
             color: #c9a84c;
             font-weight: 900;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
             letter-spacing: 0.06em;
             font-size: clamp(0.8rem, 2vw, 1.05rem);
             line-height: 1.1;
@@ -1053,7 +1053,7 @@
             font-size: 1.25rem;
         }
         .salon-pro-btn-cancel-entrada {
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
             font-size: clamp(0.58rem, 1.65vw, 0.72rem) !important;
             font-weight: 900;
             letter-spacing: 0.04em;
@@ -1133,7 +1133,7 @@
             font-weight: 700;
             color: #ececec;
             line-height: 1;
-            font-family: 'Arial Black', system-ui, sans-serif;
+            font-family: 'var(--dc-font-body)', system-ui, sans-serif;
             letter-spacing: 0.02em;
             transition: color 0.2s, transform 0.2s;
         }
@@ -1471,7 +1471,7 @@
             font-size: 0.58rem;
             cursor: pointer;
             letter-spacing: 1px;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .premium-salon-duelo .btn-siguiente-set {
             background: rgba(46, 255, 112, 0.1);
@@ -1483,7 +1483,7 @@
             font-weight: bold;
             letter-spacing: 1px;
             cursor: pointer;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .premium-salon-duelo .btn-siguiente-entrada-top {
             background: linear-gradient(135deg, var(--azul), #1460a0);
@@ -1495,7 +1495,7 @@
             font-weight: 900;
             letter-spacing: 1px;
             cursor: pointer;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
             white-space: nowrap;
         }
         .premium-salon-duelo .btn-bolas-tv {
@@ -1506,7 +1506,7 @@
             border-radius: 12px;
             font-size: 0.55rem;
             cursor: pointer;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .premium-salon-duelo .btn-salir-config {
             background: rgba(212, 175, 55, 0.08);
@@ -1518,7 +1518,7 @@
             font-weight: 900;
             letter-spacing: 1px;
             cursor: pointer;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
             flex-shrink: 0;
             white-space: nowrap;
         }
@@ -1564,14 +1564,14 @@
             text-align: center;
             word-break: break-word;
             line-height: 1.2;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .premium-salon-duelo .panel-meta {
             font-size: 0.5rem;
             color: #555;
             letter-spacing: 2px;
             margin-bottom: 6px;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .premium-salon-duelo .panel-meta span { color: var(--oro); }
         .premium-salon-duelo .bola {
@@ -1585,7 +1585,7 @@
             position: relative;
         }
         .premium-salon-duelo .bola-blanca {
-            background: radial-gradient(circle at 35% 32%,
+            background: var(--dc-bg);
                 #fff 0%, #f0f0f0 15%, #d0d0d0 35%, #999 60%, #555 85%, #1a1a1a 100%);
             box-shadow:
                 inset -12px -12px 24px rgba(0, 0, 0, 0.65),
@@ -1594,7 +1594,7 @@
                 0 0 0 2px #111;
         }
         .premium-salon-duelo .bola-dorada {
-            background: radial-gradient(circle at 35% 32%,
+            background: var(--dc-bg);
                 #fffde0 0%, #fce84a 12%, #e8c020 30%, #c89a00 55%, #7a5500 80%, #2a1800 100%);
             box-shadow:
                 inset -12px -12px 24px rgba(0, 0, 0, 0.6),
@@ -1610,7 +1610,7 @@
             left: 18%;
             width: 30%;
             height: 22%;
-            background: radial-gradient(ellipse, rgba(255, 255, 255, 0.75) 0%, transparent 80%);
+            background: var(--dc-bg);
             border-radius: 50%;
             pointer-events: none;
         }
@@ -1619,7 +1619,7 @@
             font-weight: 900;
             color: #111;
             text-shadow: 0 2px 4px rgba(255, 255, 255, 0.25);
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .premium-salon-duelo .stats-grid {
             margin-top: 6px;
@@ -1634,7 +1634,7 @@
             font-size: 0.52rem;
             color: #777;
             letter-spacing: 1px;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .premium-salon-duelo .stat-value {
             font-family: 'Courier New', monospace;
@@ -1687,11 +1687,11 @@
             flex-shrink: 0;
         }
         .premium-salon-duelo .turno-bola.blanca {
-            background: radial-gradient(circle at 33% 33%, #fff, #999, #333);
+            background: var(--dc-bg);
             box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.5), 2px 2px 6px rgba(0, 0, 0, 0.8);
         }
         .premium-salon-duelo .turno-bola.dorada {
-            background: radial-gradient(circle at 33% 33%, #ffe, var(--oro), #553);
+            background: var(--dc-bg);
             box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.5), 2px 2px 6px rgba(0, 0, 0, 0.8);
         }
         .premium-salon-duelo .turno-nombre {
@@ -1700,14 +1700,14 @@
             letter-spacing: 1px;
             line-height: 1;
             font-weight: 900;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .premium-salon-duelo .turno-sub {
             font-size: 0.48rem;
             color: #555;
             letter-spacing: 2px;
             margin-top: 2px;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .premium-salon-duelo .turno-metas { display: flex; align-items: center; gap: 4px; }
         .premium-salon-duelo .turno-meta-item {
@@ -1861,7 +1861,7 @@
             text-align: center;
             word-break: break-word;
             line-height: 1.2;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
             cursor: pointer;
             width: 100%;
         }
@@ -1911,7 +1911,7 @@
             font-weight: 900;
             cursor: pointer;
             transition: 0.1s;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
             user-select: none;
             padding: 8px 4px;
         }
@@ -1944,7 +1944,7 @@
             font-weight: 900;
             cursor: pointer;
             transition: 0.1s;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
             user-select: none;
             padding: 10px 8px;
             line-height: 1.2;
@@ -1966,7 +1966,7 @@
             font-weight: 900;
             cursor: pointer;
             letter-spacing: 1px;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'var(--dc-font-body)', sans-serif;
         }
         .premium-salon-duelo .tv-exit-links { display: none; }
         #modal-identificar-pro {

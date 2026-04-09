@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script type="module">
+import { guardSalaPage } from '/js/auth-manager.js';
+guardSalaPage('jugador');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#c9a84c">
+<title>Perfil — DeCarambola</title>
+<link rel="stylesheet" href="/css/dc-system.css">
+<script src="/js/dc-nav.js" defer></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;800&display=swap');
+
+:root{
+  --oro:#c9a84c;--oro2:#f5e070;--negro:#050505;
+  --g1:#0f0f0f;--g2:#161616;--g3:#1e1e1e;
+  --neon:#2eff70;--rojo:#e74c3c;--azul:#3498db;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--negro);color:#fff;
+  font-family:'Barlow Condensed',sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding-bottom:60px;}
+
+/* ── HEADER ── */
+.hdr{width:100%;background:#000;border-bottom:1px solid #1a1a1a;
+  padding:12px 18px;display:flex;flex-direction:column;align-items:stretch;gap:10px;
+  position:sticky;top:0;z-index:100;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;width:100%;}
+.hdr h1{font-family:'Bebas Neue';font-size:1.2rem;color:var(--oro);letter-spacing:4px;}
+.hdr p{font-size:0.5rem;color:#2a2a2a;letter-spacing:3px;}
+.header-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px;width:100%;}
+.btn-hdr{background:rgba(10,10,10,0.95);border:1px solid #1e1e1e;color:#888;padding:8px 12px;
+  border-radius:10px;font-size:0.52rem;cursor:pointer;letter-spacing:0.06em;
+  font-family:'Barlow Condensed';font-weight:600;text-decoration:none;
+  transition:border-color 0.15s,color 0.15s;}
+.btn-hdr:hover,.btn-hdr:focus-visible{border-color:rgba(212,175,55,0.35);color:var(--oro);outline:none;}
+.btn-hdr:active{border-color:var(--oro);color:var(--oro);}
+
+.wrap{width:95vw;max-width:520px;padding-top:16px;}
+
+/* ── BUSCADOR ── */
+.buscador{background:var(--g2);border:1px solid #222;border-radius:14px;
+  padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.buscador:focus-within{border-color:var(--oro);}
+.buscador input{background:transparent;border:none;color:#fff;
+  font-family:'Barlow Condensed';font-size:1.1rem;font-weight:600;outline:none;flex:1;}
+.buscador input::placeholder{color:#2a2a2a;}
+.lista-sug{background:var(--g2);border:1px solid #1e1e1e;border-radius:12px;
+  overflow:hidden;margin-bottom:14px;display:none;}
+.sug-fila{padding:12px 16px;cursor:pointer;border-bottom:1px solid #1a1a1a;
+  display:flex;justify-content:space-between;align-items:center;}
+.sug-fila:last-child{border:none;}
+.sug-fila:active{background:#0f0f0f;}
+.sug-n{font-size:0.9rem;font-weight:700;color:#ddd;}
+.sug-c{font-size:0.6rem;color:#333;margin-top:1px;}
+.sug-p{font-family:'Bebas Neue';font-size:1.2rem;color:var(--oro);}
+
+/* ════════════════════════════════════
+   CARNET FIFA — HORIZONTAL
+════════════════════════════════════ */
+.carnet-wrap{
+  width:100%;
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:16px;
+  position:relative;
+  /* Ratio aproximado carnet FIFA: ~1.6:1 */
+  border:1px solid #2a2a2a;
+}
+
+/* FONDO DEL CARNET */
+.carnet-bg{
+  position:relative;
+  background:linear-gradient(135deg, #0a0800 0%, #060606 40%, #0a0a00 100%);
+  overflow:hidden;
+}
+
+/* Textura de paño de billar sutil */
+.carnet-bg::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(212,175,55,0.015) 3px,rgba(212,175,55,0.015) 4px),
+    repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(212,175,55,0.015) 3px,rgba(212,175,55,0.015) 4px);
+  pointer-events:none;
+}
+
+/* Número grande de fondo */
+.carnet-num-bg{
+  position:absolute;right:-20px;bottom:-30px;
+  font-family:'Bebas Neue';font-size:280px;
+  line-height:1;color:var(--oro);opacity:0.03;
+  pointer-events:none;user-select:none;
+}
+
+/* Franja diagonal de categoría */
+.carnet-diagonal{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;overflow:hidden;
+}
+.carnet-diagonal::after{
+  content:'';position:absolute;
+  top:-60px;left:-80px;
+  width:160px;height:400px;
+  transform:rotate(15deg);
+  opacity:0.08;
+}
+
+/* ── LAYOUT INTERNO DEL CARNET ── */
+.carnet-inner{
+  display:flex;
+  position:relative;z-index:2;
+  min-height:180px;
+}
+
+/* LADO IZQUIERDO — FOTO + CATEGORÍA */
+.carnet-left{
+  width:130px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:16px 10px 12px;
+  position:relative;
+}
+.carnet-left::after{
+  content:'';position:absolute;right:0;top:10%;height:80%;
+  width:1px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,0.06),transparent);
+}
+
+/* FOTO */
+.foto-wrap{
+  width:84px;height:84px;border-radius:50%;
+  overflow:hidden;cursor:pointer;
+  position:relative;flex-shrink:0;
+  margin-bottom:8px;
+}
+.foto-wrap img{width:100%;height:100%;object-fit:cover;}
+.foto-ini{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue';font-size:2.8rem;line-height:1;
+}
+.foto-cam{
+  position:absolute;inset:0;border-radius:50%;
+  background:rgba(0,0,0,0.65);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;opacity:0;transition:0.2s;
+}
+.foto-wrap:active .foto-cam{opacity:1;}
+#inp-foto{display:none;}
+
+/* BADGE CATEGORÍA */
+.cat-box{
+  border-radius:8px;padding:4px 10px;
+  text-align:center;border:1px solid;
+  margin-bottom:6px;width:100%;
+}
+.cat-box-ico{font-size:1rem;line-height:1;}
+.cat-box-nom{font-size:0.45rem;letter-spacing:2px;font-weight:700;margin-top:2px;}
+
+/* PUESTO RANKING CLUB */
+.rank-club-box{
+  background:rgba(255,255,255,0.03);
+  border:1px solid #1e1e1e;border-radius:8px;
+  padding:4px 8px;text-align:center;width:100%;
+}
+.rank-club-lbl{font-size:0.38rem;color:#333;letter-spacing:2px;}
+.rank-club-num{font-family:'Bebas Neue';font-size:1.4rem;line-height:1;}
+
+/* LADO DERECHO — INFO */
+.carnet-right{
+  flex:1;padding:14px 16px 12px 14px;
+  display:flex;flex-direction:column;gap:0;
+  overflow:hidden;
+}
+
+/* NOMBRE */
+.c-nombre{
+  font-family:'Bebas Neue';
+  font-size:1.7rem;letter-spacing:1px;line-height:1;
+  color:#fff;margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+/* CLUB ROW */
+.c-club-row{
+  display:flex;align-items:center;gap:6px;margin-bottom:8px;
+}
+.c-club-logo{width:14px;height:14px;border-radius:50%;object-fit:contain;}
+.c-club-nom{font-size:0.65rem;font-weight:700;letter-spacing:2px;}
+.c-ciudad{font-size:0.58rem;color:#333;letter-spacing:1px;margin-left:auto;}
+
+/* PROMEDIO GRANDE */
+.c-prom-row{
+  display:flex;align-items:flex-end;gap:10px;margin-bottom:8px;
+}
+.c-prom-num{
+  font-family:'Bebas Neue';font-size:3.2rem;line-height:0.85;letter-spacing:-1px;
+}
+.c-prom-meta{display:flex;flex-direction:column;gap:2px;}
+.c-prom-lbl{font-size:0.42rem;color:#333;letter-spacing:2px;}
+.c-prom-mejor{font-size:0.55rem;font-weight:700;}
+.c-prom-cat{font-size:0.45rem;letter-spacing:1px;}
+
+/* STATS HORIZONTALES */
+.c-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:5px;margin-bottom:8px;
+}
+.c-stat{
+  background:rgba(255,255,255,0.02);border:1px solid #1e1e1e;
+  border-radius:7px;padding:5px 4px;text-align:center;
+}
+.c-stat-val{font-family:'Bebas Neue';font-size:1.1rem;line-height:1;color:#fff;}
+.c-stat-lbl{font-size:0.35rem;color:#2a2a2a;letter-spacing:1px;margin-top:2px;}
+
+/* RANKINGS GEOGRÁFICOS */
+.c-rankings{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:5px;margin-bottom:8px;
+}
+.c-rank{
+  border-radius:7px;padding:5px 4px;text-align:center;
+  border:1px solid;
+}
+.c-rank-val{font-family:'Bebas Neue';font-size:1rem;line-height:1;}
+.c-rank-lbl{font-size:0.32rem;letter-spacing:1px;margin-top:2px;opacity:0.6;}
+
+/* TROFEOS */
+.c-trofeos{
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+}
+.trofeo-item{
+  display:flex;align-items:center;gap:3px;
+  background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);
+  border-radius:6px;padding:3px 7px;
+}
+.trofeo-ico{font-size:0.75rem;}
+.trofeo-txt{font-size:0.42rem;color:#888;letter-spacing:1px;font-weight:700;}
+.trofeo-num{font-family:'Bebas Neue';font-size:0.9rem;color:var(--oro);}
+
+/* FRANJA INFERIOR — MARCA */
+.carnet-footer{
+  background:rgba(0,0,0,0.7);
+  border-top:1px solid #1a1a1a;
+  padding:7px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:2;
+}
+.c-id{font-size:0.42rem;color:#1e1e1e;font-family:monospace;letter-spacing:2px;}
+.c-marca{font-size:0.42rem;letter-spacing:3px;font-weight:700;}
+.c-foto-btn{font-size:0.45rem;color:#333;letter-spacing:1px;cursor:pointer;
+  border:1px solid #1e1e1e;border-radius:6px;padding:3px 8px;}
+.c-foto-btn:active{border-color:var(--oro);color:var(--oro);}
+
+/* ════════════════════════════════════
+   SECCIÓN ANÁLISIS EXPERTO
+════════════════════════════════════ */
+.analisis{
+  background:var(--g1);border:1px solid #1e1e1e;
+  border-radius:16px;padding:16px 18px;margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.analisis::before{
+  content:'🟡';position:absolute;right:12px;bottom:8px;
+  font-size:3rem;opacity:0.04;
+}
+.analisis-titulo{
+  font-family:'Bebas Neue';font-size:0.85rem;color:var(--oro);
+  letter-spacing:4px;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.analisis-titulo::after{content:'';flex:1;height:1px;background:#1e1e1e;}
+.analisis-texto{
+  font-size:0.82rem;font-weight:400;color:#888;
+  line-height:1.7;letter-spacing:0.3px;
+}
+.analisis-texto strong{color:#ccc;font-weight:700;}
+.analisis-highlight{
+  display:inline-block;
+  background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);
+  border-radius:6px;padding:2px 8px;margin:2px 0;
+  font-size:0.78rem;color:var(--oro);font-weight:700;letter-spacing:0.5px;
+}
+
+/* ════════════════════════════════════
+   INSIGNIAS
+════════════════════════════════════ */
+.sec-tit{
+  font-family:'Bebas Neue';font-size:0.8rem;color:#222;
+  letter-spacing:4px;margin:16px 0 10px;
+  display:flex;align-items:center;gap:8px;
+}
+.sec-tit::after{content:'';flex:1;height:1px;background:#111;}
+.sec-tit.sub{font-size:0.65rem;color:#1e1e1e;margin:12px 0 8px;}
+
+.ins-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.ins{background:var(--g2);border:1px solid #1a1a1a;
+  border-radius:12px;padding:10px 4px;text-align:center;}
+.ins.ok{border-color:rgba(212,175,55,0.3);background:rgba(212,175,55,0.05);}
+.ins.ok.v{border-color:rgba(46,255,112,0.25);background:rgba(46,255,112,0.04);}
+.ins.off{opacity:0.15;filter:grayscale(1);}
+.ins-ico{font-size:1.5rem;line-height:1;margin-bottom:3px;}
+.ins-nom{font-size:0.38rem;letter-spacing:1px;color:#222;}
+.ins.ok .ins-nom{color:var(--oro);}
+.ins.ok.v .ins-nom{color:var(--neon);}
+
+/* ── Introducción Perfil (directorio) ── */
+.perfil-intro{
+  background:var(--g1);border:1px solid rgba(212,175,55,0.15);
+  border-radius:16px;padding:18px 20px;margin-bottom:18px;
+}
+.perfil-intro-tit{
+  font-family:'Bebas Neue';font-size:1rem;color:var(--oro);
+  letter-spacing:4px;margin-bottom:8px;
+}
+.perfil-intro-txt{
+  font-size:0.8rem;color:#666;line-height:1.6;letter-spacing:0.3px;
+}
+.perfil-intro-txt strong{color:#999;}
+
+/* ════════════════════════════════════
+   HISTORIAL
+════════════════════════════════════ */
+.hist-item{
+  background:var(--g2);border:1px solid #1a1a1a;
+  border-radius:12px;padding:11px 14px;margin-bottom:7px;
+  display:flex;align-items:center;gap:10px;
+}
+.hist-ico{font-size:1.2rem;min-width:26px;text-align:center;}
+.hist-info{flex:1;}
+.hist-nom{font-size:0.82rem;font-weight:700;color:#ccc;}
+.hist-det{font-size:0.55rem;color:#2a2a2a;letter-spacing:1px;margin-top:2px;}
+.hist-prom{font-family:'Bebas Neue';font-size:1.1rem;}
+
+/* BOTONES */
+.btn-share{width:100%;padding:15px;margin-bottom:10px;
+  background:linear-gradient(135deg,#1a60c0,#0d3d80);
+  color:#fff;border:none;border-radius:14px;
+  font-family:'Bebas Neue';font-size:1rem;letter-spacing:3px;
+  cursor:pointer;transition:0.15s;}
+.btn-share:active{transform:scale(0.97);}
+.btn-link{width:100%;padding:12px;margin-bottom:20px;
+  background:var(--g2);border:1px solid #1e1e1e;color:#333;
+  border-radius:12px;font-family:'Barlow Condensed';font-size:0.75rem;
+  font-weight:700;letter-spacing:2px;cursor:pointer;}
+.btn-link:active{border-color:var(--oro);color:var(--oro);}
+
+/* ESTADO VACÍO */
+.estado-vacio{display:flex;flex-direction:column;align-items:center;
+  padding:40px 20px 20px;text-align:center;}
+@keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.bola-3d{width:110px;height:110px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,
+    #fff9c4 0%,#f5d020 15%,#d4af37 45%,#8a6a00 75%,#2a1a00 100%);
+  box-shadow:inset -12px -12px 24px rgba(0,0,0,0.7),
+    inset 6px 6px 14px rgba(255,220,80,0.3),
+    0 12px 40px rgba(0,0,0,0.9),0 0 50px rgba(212,175,55,0.12);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:22px;animation:flotar 4s ease-in-out infinite;}
+.bola-num{font-family:'Bebas Neue';font-size:3.2rem;color:#000;opacity:0.7;line-height:1;}
+
+/* DIRECTORIO */
+.dir-item{display:flex;align-items:center;gap:12px;
+  padding:11px 14px;border-radius:12px;margin-bottom:7px;
+  cursor:pointer;border:1px solid transparent;}
+.dir-item:active{opacity:0.8;}
+.dir-pos{font-family:'Bebas Neue';font-size:1.2rem;color:#1e1e1e;
+  width:26px;text-align:center;flex-shrink:0;}
+.dir-info{flex:1;}
+.dir-nom{font-size:0.85rem;font-weight:700;color:#ccc;}
+.dir-cat{font-size:0.55rem;color:#333;letter-spacing:1px;margin-top:2px;}
+.dir-prom{font-family:'Bebas Neue';font-size:1.3rem;}
+
+.vacio{text-align:center;padding:20px;color:#1e1e1e;font-size:0.6rem;letter-spacing:2px;}
+
+/* TORNEO VIVO */
+.torneo-vivo{display:flex;align-items:center;gap:8px;
+  border-radius:8px;padding:6px 10px;margin-bottom:10px;}
+.t-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+@keyframes pulseD{0%,100%{opacity:1}50%{opacity:0.2}}
+.t-dot.vivo{animation:pulseD 1.5s infinite;}
+</style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
+    <link rel="stylesheet" href="/css/bottom-nav.css">
+</head>
+<body class="dc-app dc-ux dc-ux-skin m-root-legacy">
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="hdr-logo"></div>
+      <div>
+        <div style="font-family:'Bebas Neue';font-size:1.1rem;color:var(--oro);letter-spacing:4px;">PERFIL</div>
+        <div style="font-size:0.48rem;color:#222;letter-spacing:3px;">CARNET DEL JUGADOR</div>
+      </div>
+    </div>
+  </div>
+  <div class="hdr-top-nav" style="max-width:640px;margin:0 auto;padding:0 18px;">
+    <a href="/index.html" class="btn-nav-home">← Inicio</a>
+  </div>
+</div>
+
+<div class="wrap dc-reveal">
+  <div class="buscador" style="display:none;">
+    <span style="color:#2a2a2a;font-size:1rem;">🔍</span>
+    <input type="text" id="busq" placeholder="Busca un jugador…"
+      oninput="buscarJugador(this.value)" autocomplete="off">
+  </div>
+  <div class="lista-sug" id="lista-sug"></div>
+  <div id="zona"></div>
+</div>
+
+<script src="/Version.js"></script>
+<script src="/core.js"></script>
+<script>
+var jugActivo = null;
+
+window.onload = async function(){
+  try{ await MasterVIP.init(); }catch(e){ console.warn(e); }
+  SESSION.verificarAlCargar('jugador');
+  MasterVIP.applyDesign();
+  var buscadorWrap = document.querySelector('.buscador');
+  var role = '';
+  var lw = document.getElementById('hdr-logo');
+  if(lw) lw.innerHTML = MasterVIP.getLogoHTML(28);
+
+  var mJ = window.location.search.match(/jugador=([^&]+)/);
+  if(mJ){ var j=MasterVIP.buscarJugador(decodeURIComponent(mJ[1])); if(j){mostrarPerfil(j);return;} }
+  var mp = MasterVIP._get('mi_perfil',null);
+  var jm = null;
+  if (mp) {
+    // Evita condición de carrera: mi_perfil puede llegar sin nombre por unos ms.
+    for (var intento = 0; intento < 5; intento++) {
+      if (mp.nombre) break;
+      await new Promise(function(resolve){ setTimeout(resolve, 120); });
+      mp = MasterVIP._get('mi_perfil', null) || mp;
+    }
+    if (mp.nombre) {
+      jm = MasterVIP.buscarJugador(mp.nombre);
+    }
+    if (!jm && mp.id) {
+      var lista = MasterVIP.getJugadores();
+      jm = lista.find(function(x){ return String(x.id || '') === String(mp.id); }) || null;
+    }
+    if (jm) { mostrarPerfil(jm); return; }
+  }
+  // Fallback: leer jugador_activo de localStorage
+  var ja = MasterVIP._get('jugador_activo', null);
+  if (ja && ja.nombre) { mostrarPerfil(ja); return; }
+  var mpRol = MasterVIP._get('mi_perfil', null);
+  role = (mpRol && (mpRol.role || mpRol.rol || mpRol.tipo_rol || mpRol.tipoRol) || '').toString().toLowerCase();
+  var isAdmin = role === 'club_admin' || role === 'superadmin';
+  if (buscadorWrap) buscadorWrap.style.display = isAdmin ? '' : 'none';
+  if (!isAdmin) { location.href = '/auth.html'; return; }
+  mostrarDirectorio();
+};
+
+/* ══ DIRECTORIO ══ */
+function mostrarDirectorio(){
+  var zona=document.getElementById('zona');
+  var todos=MasterVIP.getJugadores().slice().sort(function(a,b){return (b.promedio||0)-(a.promedio||0);});
+  if(!todos.length){
+    zona.innerHTML='<div class="estado-vacio">'+
+      '<div class="bola-3d"><span class="bola-num">3</span></div>'+
+      '<div style="font-family:Bebas Neue;font-size:1.5rem;color:var(--oro);letter-spacing:6px;margin-bottom:4px;">DeCarambola</div>'+
+      '<div style="font-size:0.65rem;color:#2a2a2a;letter-spacing:3px;margin-bottom:20px;">BILLAR TRES BANDAS</div>'+
+      '<div style="font-size:0.8rem;color:#333;line-height:2.2;">INSCRIBE JUGADORES<br>PARA VER SUS CARNETS</div>'+
+    '</div>';
+    return;
+  }
+  var medals=['🥇','🥈','🥉'];
+  var topBg=['rgba(212,175,55,0.07)','rgba(180,180,180,0.04)','rgba(180,100,40,0.04)'];
+  var topBd=['rgba(212,175,55,0.25)','rgba(180,180,180,0.1)','rgba(180,100,40,0.1)'];
+  var clubNom=window.WL?window.WL.getNombreClub():'el club';
+  var html=
+    '<div class="perfil-intro">'+
+      '<div class="perfil-intro-tit">PERFIL DEL JUGADOR</div>'+
+      '<div class="perfil-intro-txt">Elige un jugador para ver <strong>quién es</strong>, su <strong>promedio</strong>, <strong>historial en '+clubNom+'</strong> y todas sus <strong>estadísticas</strong>.</div>'+
+    '</div>'+
+    '<div class="sec-tit">JUGADORES DEL CLUB</div>'+
+    '<div style="font-size:0.6rem;color:#222;letter-spacing:2px;margin-bottom:10px;">'+todos.length+' jugadores — toca uno para ver su perfil</div>';
+  todos.forEach(function(j,i){
+    var cat=MasterVIP.getCategoria(j.promedio||0);
+    var esT=i<3;
+    html+='<div class="dir-item" data-nombre="'+encodeURIComponent(j.nombre)+'" onclick="selBtn(this)" '+
+      'style="background:'+(esT?topBg[i]:'rgba(255,255,255,0.01)')+';border-color:'+(esT?topBd[i]:'#111')+';">'+
+      '<div class="dir-pos">'+(esT?medals[i]:'<span style="font-family:Bebas Neue;font-size:1rem;color:#1e1e1e;">'+(i+1)+'</span>')+'</div>'+
+      MasterVIP.getAvatarHTML(j.nombre,38)+
+      '<div class="dir-info"><div class="dir-nom">'+j.nombre+'</div>'+
+      '<div class="dir-cat">'+cat.emoji+' '+cat.nombre+(j.club?' · '+j.club:'')+'</div></div>'+
+      '<div class="dir-prom" style="color:'+(i===0?'var(--oro)':i<3?'#888':'#333')+';">'+(j.promedio||0).toFixed(3)+'</div>'+
+    '</div>';
+  });
+  zona.innerHTML=html;
+}
+
+/* ══ BUSCAR ══ */
+function buscarJugador(txt){
+  var lista=document.getElementById('lista-sug');
+  if(!txt||txt.length<2){lista.style.display='none';return;}
+  var up=txt.toUpperCase();
+  var fil=MasterVIP.getJugadores().filter(function(j){return j.nombre.toUpperCase().indexOf(up)>=0;}).slice(0,6);
+  if(!fil.length){lista.style.display='none';return;}
+  lista.style.display='block';
+  lista.innerHTML=fil.map(function(j){
+    var cat=MasterVIP.getCategoria(j.promedio||0);
+    return '<div class="sug-fila" data-nombre="'+encodeURIComponent(j.nombre)+'" onclick="selBtn(this)">'+
+      '<div><div class="sug-n">'+j.nombre+'</div><div class="sug-c">'+cat.emoji+' '+cat.nombre+' · '+(j.club||'—')+'</div></div>'+
+      '<div class="sug-p">'+(j.promedio||0).toFixed(3)+'</div></div>';
+  }).join('');
+}
+function selBtn(el){
+  var n=decodeURIComponent(el.getAttribute('data-nombre')||'');
+  var j=MasterVIP.buscarJugador(n);
+  if(j) mostrarPerfil(j);
+  document.getElementById('busq').value='';
+  document.getElementById('lista-sug').style.display='none';
+  window.scrollTo(0,0);
+}
+
+/* ══════════════════════════════════════════
+   MOSTRAR PERFIL — CARNET FIFA COMPLETO
+══════════════════════════════════════════ */
+function mostrarPerfil(j){
+  jugActivo=j;
+  var zona=document.getElementById('zona');
+
+  var cat=MasterVIP.getCategoria(j.promedio||0);
+  var prom=j.promedio||0;
+  var CC=cat.color||'#d4af37';
+  var ini=(j.nombre||'?').trim()[0].toUpperCase();
+
+  /* ── Historial ── */
+  var hist=MasterVIP._get('ranking_historico_club',[]);
+  var mias=hist.filter(function(h){return (h.nombre||'').toUpperCase()===j.nombre.toUpperCase();});
+  var torneos=MasterVIP.getTorneos();
+  var misTorn=torneos.filter(function(t){
+    return t.estado==='FINALIZADO'&&(t.inscritos||[]).some(function(i){return (i.nombre||'').toUpperCase()===j.nombre.toUpperCase();});
+  });
+
+  /* ── Stats ── */
+  var nPart=mias.length;
+  var vics=mias.filter(function(m){return m.resultado==='GANÓ';}).length;
+  var pctV=nPart>0?Math.round((vics/nPart)*100):0;
+  var serieM=Math.max.apply(null,[0].concat(mias.map(function(m){return parseInt(m.serieMayor)||0;})));
+  var promMej=Math.max.apply(null,[0].concat(mias.map(function(m){return parseFloat(m.promedio)||0;})));
+
+  /* ── Caseros (retos ganados) ── */
+  var retos=MasterVIP._get('RETOS_LISTA',[]);
+  var caserosG=retos.filter(function(r){
+    return (r.ganador||'').toUpperCase()===j.nombre.toUpperCase()&&r.tipo==='caserito';
+  }).length;
+  var caserosT=retos.filter(function(r){
+    return ((r.j1||'').toUpperCase()===j.nombre.toUpperCase()||(r.j2||'').toUpperCase()===j.nombre.toUpperCase())&&r.tipo==='caserito';
+  }).length;
+
+  /* ── Fuera de categoría (victorias vs jugadores de cat superior) ── */
+  var fueraCategoria=0;
+  mias.forEach(function(m){
+    if(m.resultado==='GANÓ'&&m.promedio){
+      var promRival=parseFloat(m.promedioRival)||0;
+      if(promRival>prom) fueraCategoria++;
+    }
+  });
+
+  /* ── Rankings ── */
+  var todos=MasterVIP.getJugadores().slice().sort(function(a,b){return (b.promedio||0)-(a.promedio||0);});
+  var posClub=0;
+  todos.forEach(function(x,i){if((x.nombre||'').toUpperCase()===j.nombre.toUpperCase())posClub=i+1;});
+
+  /* Ranking por ciudad, departamento, nacional — filtrando del total */
+  var ciudad=j.ciudad||'';var depto=j.departamento||'';
+  var mismaC=todos.filter(function(x){return (x.ciudad||'').toUpperCase()===(ciudad||'').toUpperCase()&&ciudad;});
+  var mismoD=todos.filter(function(x){return (x.departamento||'').toUpperCase()===(depto||'').toUpperCase()&&depto;});
+  var posC=0,posD=0;
+  mismaC.forEach(function(x,i){if((x.nombre||'').toUpperCase()===j.nombre.toUpperCase())posC=i+1;});
+  mismoD.forEach(function(x,i){if((x.nombre||'').toUpperCase()===j.nombre.toUpperCase())posD=i+1;});
+  var posN=posClub; /* Por ahora todos son nacionales */
+
+  /* ── Trofeos ── */
+  var trofeosTitulos=misTorn.filter(function(t){return (t.campeon||'').toUpperCase()===j.nombre.toUpperCase();}).length;
+  var trofeosSubcamp=misTorn.filter(function(t){return (t.subcampeon||'').toUpperCase()===j.nombre.toUpperCase();}).length;
+
+  /* ── Torneo activo ── */
+  var tornActivo=MasterVIP.getTorneoActivo();
+  var tornActivoHtml='';
+  if(tornActivo&&tornActivo.estado==='EN_CURSO'){
+    var enJuego=false,eliminado=false;
+    var rAct=(tornActivo.rondas||[]).slice(-1)[0];
+    if(rAct)(rAct.partidas||[]).forEach(function(p){
+      if((p.j1||'').toUpperCase()===j.nombre.toUpperCase()||(p.j2||'').toUpperCase()===j.nombre.toUpperCase())
+        if(p.estado==='EN_JUEGO')enJuego=true;
+    });
+    (tornActivo.inscritos||[]).forEach(function(i){if((i.nombre||'').toUpperCase()===j.nombre.toUpperCase()&&i.eliminado)eliminado=true;});
+    var tC=enJuego?'#2eff70':eliminado?'#e74c3c':'#d4af37';
+    var tBg=enJuego?'rgba(46,255,112,0.07)':eliminado?'rgba(231,76,60,0.06)':'rgba(212,175,55,0.06)';
+    var tLbl=enJuego?'● EN JUEGO':eliminado?'✗ ELIMINADO':'⏳ EN TORNEO';
+    tornActivoHtml='<div class="torneo-vivo" style="background:'+tBg+';border:1px solid '+tC+'22;">'+
+      '<div class="t-dot vivo" style="background:'+tC+';"></div>'+
+      '<div style="font-size:0.65rem;font-weight:700;color:'+tC+';letter-spacing:1px;">'+tLbl+'</div>'+
+      '<div style="flex:1;font-size:0.55rem;color:#333;text-align:right;">'+tornActivo.nombre+'</div>'+
+    '</div>';
+  }
+
+  /* ── Foto ── */
+  var fotoSrc=MasterVIP.getFoto(j.nombre);
+  var fotoInner=fotoSrc
+    ?'<img src="'+fotoSrc+'" style="width:100%;height:100%;object-fit:cover;">'
+    :'<div class="foto-ini" style="background:linear-gradient(135deg,#1a1200,#0a0a00);color:'+CC+';">'+ini+'</div>';
+
+  /* ── Club logo ── */
+  var logoUrl=window.WL?window.WL.getLogoUrl():null;
+  var clubNom=window.WL?window.WL.getNombreClub():(j.club||'SIN CLUB');
+  var clubLogoHtml=logoUrl?'<img class="c-club-logo" src="'+logoUrl+'">':'';
+
+  /* ── Nivel ── */
+  var nivel=calcNivel(prom);
+
+  /* ── Análisis experto automático ── */
+  var analisis=generarAnalisis(j,{prom,promMej,nPart,vics,pctV,serieM,cat,posClub,todos,fueraCategoria,caserosG,caserosT,misTorn,trofeosTitulos});
+
+  /* ── Insignias ── */
+  var ins=calcInsignias(j,mias,misTorn,vics,serieM,fueraCategoria,caserosG);
+
+  /* ══ HTML DEL CARNET FIFA ══ */
+  zona.innerHTML=
+
+  /* Título de sección: Perfil del jugador */
+  '<div class="perfil-intro" style="margin-top:0;">'+
+    '<div class="perfil-intro-tit">PERFIL DEL JUGADOR</div>'+
+    '<div class="perfil-intro-txt">'+j.nombre+' · '+clubNom+' · Promedio <strong style="color:'+CC+';">'+prom.toFixed(3)+'</strong> — Datos, estadísticas e historial en el club.</div>'+
+  '</div>'+
+
+  /* CARNET HORIZONTAL */
+  '<div class="carnet-wrap">'+
+    '<div class="carnet-bg">'+
+      '<div class="carnet-num-bg">3</div>'+
+      /* Franja diagonal color categoría */
+      '<div style="position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;">'+
+        '<div style="position:absolute;top:-40px;left:-60px;width:120px;height:300px;'+
+          'background:'+CC+';opacity:0.05;transform:rotate(15deg);"></div>'+
+      '</div>'+
+
+      '<div class="carnet-inner">'+
+
+        /* ── IZQUIERDA ── */
+        '<div class="carnet-left">'+
+          tornActivoHtml+
+          '<div class="foto-wrap" onclick="abrirFoto()" '+
+            'style="border:2.5px solid '+CC+';box-shadow:0 0 16px '+CC+'33;">'+
+            fotoInner+
+            '<div class="foto-cam">📷</div>'+
+          '</div>'+
+          '<input type="file" id="inp-foto" accept="image/*" onchange="guardarFoto(event)">'+
+
+          '<div class="cat-box" style="border-color:'+CC+'44;background:'+CC+'08;">'+
+            '<div class="cat-box-ico">'+cat.emoji+'</div>'+
+            '<div class="cat-box-nom" style="color:'+CC+';">'+cat.nombre+'</div>'+
+          '</div>'+
+
+          '<div class="rank-club-box">'+
+            '<div class="rank-club-lbl">RANKING CLUB</div>'+
+            '<div class="rank-club-num" style="color:'+CC+';">'+(posClub>0?'#'+posClub:'—')+'</div>'+
+          '</div>'+
+        '</div>'+
+
+        /* ── DERECHA ── */
+        '<div class="carnet-right">'+
+
+          /* NOMBRE + CLUB */
+          '<div class="c-nombre">'+j.nombre+'</div>'+
+          '<div class="c-club-row">'+
+            clubLogoHtml+
+            '<span class="c-club-nom" style="color:'+CC+';">'+clubNom+'</span>'+
+            '<span class="c-ciudad">📍 '+(j.ciudad||'—')+'</span>'+
+          '</div>'+
+
+          /* PROMEDIO GRANDE */
+          '<div class="c-prom-row">'+
+            '<div class="c-prom-num" style="color:'+CC+';">'+prom.toFixed(3)+'</div>'+
+            '<div class="c-prom-meta">'+
+              '<div class="c-prom-lbl">PROMEDIO</div>'+
+              '<div class="c-prom-mejor" style="color:'+CC+'55;">MÁX '+promMej.toFixed(3)+'</div>'+
+              '<div class="c-prom-cat" style="color:#333;">'+nivel.siguiente+' → '+nivel.hasta.toFixed(3)+'</div>'+
+            '</div>'+
+          '</div>'+
+
+          /* BARRA NIVEL */
+          '<div style="height:3px;background:#111;border-radius:3px;margin-bottom:8px;overflow:hidden;">'+
+            '<div style="height:100%;width:'+nivel.pct+'%;background:'+CC+';border-radius:3px;transition:width 1s;"></div>'+
+          '</div>'+
+
+          /* STATS 4 columnas — datos estadísticos */
+          '<div class="sec-tit sub" style="margin:0 0 6px;">ESTADÍSTICAS</div>'+
+          '<div class="c-stats">'+
+            '<div class="c-stat"><div class="c-stat-val">'+nPart+'</div><div class="c-stat-lbl">PARTIDAS</div></div>'+
+            '<div class="c-stat"><div class="c-stat-val" style="color:var(--neon);">'+pctV+'%</div><div class="c-stat-lbl">VICTORIAS</div></div>'+
+            '<div class="c-stat"><div class="c-stat-val">'+serieM+'</div><div class="c-stat-lbl">SERIE MÁX.</div></div>'+
+            '<div class="c-stat"><div class="c-stat-val" style="color:var(--oro);">'+misTorn.length+'</div><div class="c-stat-lbl">TORNEOS</div></div>'+
+          '</div>'+
+
+          /* RANKINGS GEOGRÁFICOS */
+          '<div class="c-rankings">'+
+            mkRank('#'+posClub,'CLUB',CC)+
+            mkRank(posC>0?'#'+posC:'—','CIUDAD','#3498db')+
+            mkRank(posD>0?'#'+posD:'—','DEPTO','#9b59b6')+
+            mkRank('#'+posN,'NACIONAL','#2ecc71')+
+          '</div>'+
+
+          /* TROFEOS + CASEROS + FUERA CAT */
+          '<div class="c-trofeos">'+
+            (trofeosTitulos>0?'<div class="trofeo-item"><span class="trofeo-ico">🏆</span><span class="trofeo-num">'+trofeosTitulos+'</span><span class="trofeo-txt">TÍTULOS</span></div>':'')+
+            (trofeosSubcamp>0?'<div class="trofeo-item"><span class="trofeo-ico">🥈</span><span class="trofeo-num">'+trofeosSubcamp+'</span><span class="trofeo-txt">SUBCAMPEÓN</span></div>':'')+
+            (fueraCategoria>0?'<div class="trofeo-item" style="border-color:rgba(231,76,60,0.3);">'+
+              '<span class="trofeo-ico">⚔️</span><span class="trofeo-num" style="color:#e74c3c;">'+fueraCategoria+'</span>'+
+              '<span class="trofeo-txt">FUERA CAT.</span></div>':'')+
+            (caserosG>0?'<div class="trofeo-item" style="border-color:rgba(46,255,112,0.2);">'+
+              '<span class="trofeo-ico">🎯</span><span class="trofeo-num" style="color:var(--neon);">'+caserosG+'/'+caserosT+'</span>'+
+              '<span class="trofeo-txt">CASEROS</span></div>':'')+
+            (trofeosTitulos===0&&trofeosSubcamp===0&&fueraCategoria===0&&caserosG===0?
+              '<span style="font-size:0.55rem;color:#1e1e1e;letter-spacing:1px;">SIN TROFEOS AÚN — A JUGAR 🟡</span>':'')+
+          '</div>'+
+
+        '</div>'+ /* fin carnet-right */
+      '</div>'+ /* fin carnet-inner */
+
+      /* FOOTER */
+      '<div class="carnet-footer">'+
+        '<span class="c-id">DC-'+j.nombre.replace(/\s/g,'').toUpperCase().substr(0,8)+'</span>'+
+        '<span style="font-size:0.38rem;color:#111;letter-spacing:1px;">▦▦▦</span>'+
+        '<span class="c-marca" style="color:'+CC+';">'+clubNom+'</span>'+
+        '<span class="c-foto-btn" onclick="abrirFoto()">📷 FOTO</span>'+
+      '</div>'+
+
+    '</div>'+ /* fin carnet-bg */
+  '</div>'+ /* fin carnet-wrap */
+
+  /* ANÁLISIS EXPERTO */
+  '<div class="analisis">'+
+    '<div class="analisis-titulo">🤖 ANÁLISIS DEL JUGADOR</div>'+
+    '<div class="analisis-texto">'+analisis+'</div>'+
+  '</div>'+
+
+  /* INSIGNIAS */
+  '<div class="sec-tit">INSIGNIAS</div>'+
+  '<div class="ins-grid">'+renderIns(ins)+'</div>'+
+
+  /* BOTONES */
+  '<button class="btn-share" onclick="compartir()">📤 COMPARTIR CARNET</button>'+
+  '<button class="btn-link" onclick="copiarLink()">🔗 COPIAR ENLACE</button>'+
+
+  /* HISTORIAL EN EL CLUB */
+  '<div class="sec-tit">HISTORIAL EN EL CLUB</div>'+
+  '<div class="sec-tit sub">TORNEOS</div>'+
+  renderTorneos(misTorn,j.nombre)+
+  '<div class="sec-tit sub">ÚLTIMAS PARTIDAS</div>'+
+  renderPartidas(mias);
+}
+
+/* ══ ANÁLISIS AUTOMÁTICO EXPERTO ══ */
+function generarAnalisis(j,d){
+  var p=d.prom, cat=d.cat, pos=d.posClub, total=d.todos.length;
+  var nombre=j.nombre.split(' ')[0];
+  var txt='';
+
+  /* Nivel del jugador */
+  if(p>=1.1) txt='<strong>'+nombre+'</strong> pertenece a la <span class="analisis-highlight">CLASE ÉLITE</span> del billar colombiano. ';
+  else if(p>=0.9) txt='<strong>'+nombre+'</strong> es un jugador de nivel <span class="analisis-highlight">MAESTRO</span>, entre los mejores del club. ';
+  else if(p>=0.7) txt='<strong>'+nombre+'</strong> juega en <span class="analisis-highlight">PRIMERA CATEGORÍA</span>, con promedio sólido y consistente. ';
+  else if(p>=0.5) txt='<strong>'+nombre+'</strong> compite en <span class="analisis-highlight">SEGUNDA CATEGORÍA</span>, en desarrollo constante. ';
+  else if(p>=0.35) txt='<strong>'+nombre+'</strong> está en <span class="analisis-highlight">TERCERA CATEGORÍA</span>, construyendo su base técnica. ';
+  else txt='<strong>'+nombre+'</strong> está en etapa de <span class="analisis-highlight">INICIACIÓN</span>, comenzando su camino en las tres bandas. ';
+
+  /* Ranking */
+  if(pos===1) txt+='Es el <strong>líder absoluto</strong> del ranking del club. ';
+  else if(pos<=3) txt+='Ocupa el <strong>top 3</strong> del ranking con '+(total-pos)+' jugadores detrás. ';
+  else if(pos<=Math.ceil(total*0.25)) txt+='Está en el <strong>cuartil élite</strong> del club (#'+pos+' de '+total+'). ';
+  else txt+='Ocupa el puesto <strong>#'+pos+'</strong> de '+total+' jugadores en el club. ';
+
+  /* Efectividad */
+  if(d.pctV>=70) txt+='Su efectividad del <span class="analisis-highlight">'+d.pctV+'% de victorias</span> es excepcional para su nivel. ';
+  else if(d.pctV>=50) txt+='Gana más de la mitad de sus partidas <strong>('+d.pctV+'%)</strong>, señal de consistencia. ';
+  else if(d.nPart>0) txt+='Con un '+d.pctV+'% de victorias, tiene margen de mejora en la efectividad. ';
+
+  /* Serie máxima */
+  if(d.serieM>=15) txt+='Su <span class="analisis-highlight">serie máxima de '+d.serieM+'</span> demuestra capacidad de concentración élite. ';
+  else if(d.serieM>=8) txt+='Ha logrado series de hasta <strong>'+d.serieM+' carambolas</strong>, mostrando solidez en momentos clave. ';
+  else if(d.serieM>=3) txt+='Serie máxima de '+d.serieM+'. Trabajar la continuidad mejorará el promedio significativamente. ';
+
+  /* Fuera de categoría */
+  if(d.fueraCategoria>=3) txt+='Ha vencido a jugadores de categoría superior <span class="analisis-highlight">'+d.fueraCategoria+' veces</span> — mentalidad competitiva alta. ';
+  else if(d.fueraCategoria>=1) txt+='Con '+d.fueraCategoria+' victorias fuera de categoría, demuestra que puede competir arriba. ';
+
+  /* Caseros */
+  if(d.caserosG>=5) txt+='Domina los <strong>duelos caseros</strong> con '+d.caserosG+' victorias en '+d.caserosT+' partidas. ';
+  else if(d.caserosG>0) txt+='Ha ganado '+d.caserosG+' de '+d.caserosT+' retos caseros. ';
+
+  /* Trofeos */
+  if(d.trofeosTitulos>=3) txt+='Con <span class="analisis-highlight">'+d.trofeosTitulos+' títulos</span>, es uno de los más ganadores de la historia del club. ';
+  else if(d.trofeosTitulos>=1) txt+='<strong>Campeón</strong> en '+d.trofeosTitulos+' torneo'+(d.trofeosTitulos>1?'s':'')+' del club. ';
+
+  /* Sin historial */
+  if(d.nPart===0) txt='<strong>'+nombre+'</strong> está registrado con promedio <span class="analisis-highlight">'+p.toFixed(3)+'</span>. Aún no tiene partidas registradas en el sistema — una vez juegue, aquí verás su análisis completo como experto. 🟡';
+
+  /* Recomendación final */
+  if(d.nPart>0){
+    if(p<0.5) txt+='<br><br><strong>Recomendación:</strong> Enfocarse en el control de la bola y reducir las entradas fallidas.';
+    else if(p<0.8) txt+='<br><br><strong>Recomendación:</strong> Trabajar la consistencia en la segunda y tercera banda para subir de categoría.';
+    else if(p<1.1) txt+='<br><br><strong>Recomendación:</strong> En este nivel la diferencia la hace la táctica y la lectura de la mesa.';
+    else txt+='<br><br><strong>Objetivo:</strong> Competir en los torneos nacionales y representar al club en el alto rendimiento.';
+  }
+
+  return txt;
+}
+
+/* ══ HELPERS ══ */
+function mkRank(val,lbl,color){
+  return '<div class="c-rank" style="border-color:'+color+'22;background:'+color+'08;">'+
+    '<div class="c-rank-val" style="color:'+color+';">'+val+'</div>'+
+    '<div class="c-rank-lbl" style="color:'+color+';">'+lbl+'</div>'+
+  '</div>';
+}
+
+function calcNivel(p){
+  var nivs=[{d:0,h:0.2,n:'AFICIONADO'},{d:0.2,h:0.35,n:'TERCERA'},{d:0.35,h:0.5,n:'SEGUNDA'},
+    {d:0.5,h:0.7,n:'PRIMERA'},{d:0.7,h:0.9,n:'MAESTRO'},{d:0.9,h:1.1,n:'ÉLITE'},{d:1.1,h:9.9,n:'CIMA'}];
+  var act=nivs[0],idx=0;
+  for(var i=0;i<nivs.length;i++){if(p>=nivs[i].d&&p<nivs[i].h){act=nivs[i];idx=i;break;}}
+  var sig=idx<nivs.length-1?nivs[idx+1]:null;
+  var pct=Math.min(100,Math.round(((p-act.d)/(act.h-act.d))*100));
+  return{pct,desde:act.d,hasta:act.h,siguiente:sig?sig.n:'★'};
+}
+
+function calcInsignias(j,mias,torns,vics,serieM,fueraCat,caseros){
+  var p=j.promedio||0;
+  var esCamp=torns.some(function(t){return (t.campeon||'').toUpperCase()===j.nombre.toUpperCase();});
+  return[
+    {ico:'🏆',nom:'CAMPEÓN',   ok:esCamp,              v:false},
+    {ico:'🎯',nom:'SHARP 1.0', ok:p>=1.0,              v:false},
+    {ico:'🔥',nom:'SERIE×10',  ok:serieM>=10,          v:true },
+    {ico:'⚡',nom:'MVP×5',     ok:vics>=5,             v:true },
+    {ico:'⚔️',nom:'FUERA CAT', ok:fueraCat>=3,         v:false},
+    {ico:'👑',nom:'REY 2.0',   ok:p>=2.0,              v:false},
+    {ico:'🟡',nom:'CASERO',    ok:caseros>=3,          v:true },
+    {ico:'⭐',nom:'3 TÍTULOS', ok:torns.filter(function(t){return (t.campeon||'').toUpperCase()===j.nombre.toUpperCase();}).length>=3,v:false}
+  ];
+}
+function renderIns(ins){
+  return ins.map(function(x){
+    var cls=x.ok?('ins ok'+(x.v?' v':'')):'ins off';
+    return '<div class="'+cls+'"><div class="ins-ico">'+x.ico+'</div><div class="ins-nom">'+x.nom+'</div></div>';
+  }).join('');
+}
+
+function renderTorneos(torns,nombre){
+  if(!torns.length)return'<div class="vacio">— SIN TORNEOS FINALIZADOS —</div>';
+  return torns.slice(0,8).map(function(t){
+    var eC=(t.campeon||'').toUpperCase()===nombre.toUpperCase();
+    var eS=(t.subcampeon||'').toUpperCase()===nombre.toUpperCase();
+    return'<div class="hist-item">'+
+      '<div class="hist-ico">'+(eC?'🥇':eS?'🥈':'🟡')+'</div>'+
+      '<div class="hist-info"><div class="hist-nom">'+t.nombre+'</div>'+
+      '<div class="hist-det">'+t.codigo+' · '+new Date(t.fechaCreacion).toLocaleDateString('es-CO')+'</div></div>'+
+      (eC?'<div style="font-family:Bebas Neue;color:var(--oro);font-size:0.85rem;letter-spacing:1px;">CAMPEÓN</div>':'')+
+    '</div>';
+  }).join('');
+}
+function renderPartidas(mias){
+  var p=mias.filter(function(m){return m.tipo==='Torneo'||m.tipo==='Entrenamiento';}).slice(-8).reverse();
+  if(!p.length)return'<div class="vacio">— SIN PARTIDAS REGISTRADAS —</div>';
+  return p.map(function(m){
+    var pr=parseFloat(m.promedio)||0;
+    var col=pr>=1.0?'var(--neon)':pr>=0.7?'var(--oro)':'#333';
+    return'<div class="hist-item">'+
+      '<div class="hist-ico">'+(m.tipo==='Torneo'?'🏆':'🎯')+'</div>'+
+      '<div class="hist-info"><div class="hist-nom">'+(m.tipo==='Torneo'?'TORNEO':'ENTRENAMIENTO')+'</div>'+
+      '<div class="hist-det">'+(m.fecha||'—')+(m.carambolas?' · '+m.carambolas+' car.':'')+(m.entradas?' · '+m.entradas+' ent.':'')+'</div></div>'+
+      '<div class="hist-prom" style="color:'+col+';">'+pr.toFixed(3)+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+/* ── FOTO ── */
+function abrirFoto(){document.getElementById('inp-foto').click();}
+function guardarFoto(e){
+  if(!jugActivo)return;
+  var f=e.target.files[0];if(!f)return;
+  if(f.size>500000){alert('Máximo 500KB');return;}
+  var r=new FileReader();
+  r.onload=function(ev){MasterVIP.guardarFotoJugador(jugActivo.nombre,ev.target.result);mostrarPerfil(jugActivo);};
+  r.readAsDataURL(f);
+}
+
+/* ── COMPARTIR ── */
+function compartir(){
+  if(!jugActivo)return;
+  var cat=MasterVIP.getCategoria(jugActivo.promedio||0);
+  var txt='🟡 *'+jugActivo.nombre+'*\n'+cat.emoji+' '+cat.nombre+' · Promedio '+(jugActivo.promedio||0).toFixed(3)+
+    '\n🏛 '+(jugActivo.club||'SIN CLUB')+' · '+(jugActivo.ciudad||'')+
+    '\n\n📊 Carnet en DeCarambola — decarambola.com';
+  if(navigator.share)navigator.share({title:'Carnet DeCarambola',text:txt}).catch(function(){});
+  else navigator.clipboard.writeText(txt).then(function(){alert('✅ Copiado para WhatsApp');});
+}
+function copiarLink(){
+  if(!jugActivo)return;
+  var url=location.origin+location.pathname+'?jugador='+encodeURIComponent(jugActivo.nombre);
+  navigator.clipboard.writeText(url).then(function(){
+    var b=document.querySelector('.btn-link');
+    b.innerText='✅ ENLACE COPIADO';
+    setTimeout(function(){b.innerText='🔗 COPIAR ENLACE';},2000);
+  });
+}
+</script>
+<script src="whitelabel.js"></script>
+
+<nav class="bottom-nav" aria-label="Navegación inferior">
+  <a class="bottom-nav__item" href="/index.html">
+    <span class="bottom-nav__icon">🏠</span>
+    <span>Inicio</span>
+  </a>
+  <a class="bottom-nav__item" href="/apps/organizador/organizador.html">
+    <span class="bottom-nav__icon">🏆</span>
+    <span>Torneos</span>
+  </a>
+  <a class="bottom-nav__item" href="/apps/club/sala/mesas.html">
+    <span class="bottom-nav__icon">🎱</span>
+    <span>Jugar</span>
+  </a>
+  <a class="bottom-nav__item" href="/ranking.html">
+    <span class="bottom-nav__icon">📊</span>
+    <span>Ranking</span>
+  </a>
+  <a class="bottom-nav__item bottom-nav__item--active" href="/perfil.html">
+    <span class="bottom-nav__icon">👤</span>
+    <span>Perfil</span>
+  </a>
+</nav>
+</body>
+</html>

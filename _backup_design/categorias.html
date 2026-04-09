@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+        import { getSession } from '/js/auth-manager.js';
+        const s = await getSession();
+        if (!s?.data?.user) {
+            const next = encodeURIComponent(
+                (window.location.pathname || '') + (window.location.search || '')
+            );
+            window.location.replace('/login.html?next=' + next);
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
+    <title>Categorías — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --oro:#d4af37; --neon:#2eff70; --negro:#0b0b0b; --g1:#1a1a1a; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:var(--negro); color:#fff; font-family:'Outfit',system-ui,sans-serif; min-height:100vh; padding-bottom:80px; }
+        .header { width:100%; background:rgba(5,5,5,0.92); border-bottom:1px solid rgba(212,175,55,0.15); padding:14px 18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:20; backdrop-filter:blur(8px); }
+        .header-top-cat { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; width:100%; }
+        .header-titulo { color:var(--oro); font-size:0.92rem; letter-spacing:0.12em; font-weight:800; text-transform:uppercase; font-family:'Outfit',sans-serif; }
+        .header-sub { color:#4a4a4a; font-size:0.55rem; letter-spacing:0.14em; margin-top:4px; font-weight:600; text-transform:uppercase; }
+        .wrap { max-width:520px; margin:16px auto 0; padding:22px 20px 28px; }
+        .wrap.dc-premium-chassis { margin-top:12px; }
+        .tu-categoria {
+            background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212,175,55,0.14), transparent 60%),
+                linear-gradient(165deg, rgba(18,14,8,0.95), #050505);
+            border:1px solid rgba(212,175,55,0.28);
+            border-radius:28px;
+            padding:22px;
+            margin-bottom:22px;
+            text-align:center;
+        }
+        .tu-categoria .lbl { font-size:0.55rem; color:#5a5a5a; letter-spacing:0.2em; margin-bottom:8px; font-weight:700; font-family:'Outfit',sans-serif; }
+        .tu-categoria .nombre { font-size:1.35rem; color:var(--oro); letter-spacing:0.06em; font-weight:800; font-family:'Outfit',sans-serif; }
+        .tu-categoria .prom { font-size:0.7rem; color:var(--neon); margin-top:10px; font-weight:700; font-family:'Outfit',ui-monospace,monospace; text-shadow:0 0 16px rgba(46,255,112,0.25); }
+        .sec-tit { color:#4a4a4a; font-size:0.58rem; letter-spacing:0.2em; margin:8px 0 14px; font-weight:700; font-family:'Outfit',sans-serif; text-transform:uppercase; }
+        .cat-item {
+            display:flex; align-items:center; gap:14px;
+            background:#050505;
+            border:1px solid rgba(212,175,55,0.18);
+            border-radius:24px;
+            padding:16px 18px;
+            margin-bottom:12px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .cat-item .emoji { font-size:1.6rem; }
+        .cat-item .nombre { flex:1; font-size:0.78rem; font-weight:800; letter-spacing:0.06em; font-family:'Outfit',sans-serif; text-transform:uppercase; }
+        .cat-item .rango { font-size:0.58rem; color:#5a5a5a; font-weight:500; }
+        /* Gradientes por nivel (orden fijo en lista) */
+        #lista-categorias .cat-item:nth-child(1) {
+            border-left:4px solid #f1c40f !important;
+            background: linear-gradient(120deg, rgba(241,196,15,0.12), #050505 45%);
+            box-shadow: 0 0 24px rgba(212,175,55,0.08);
+        }
+        #lista-categorias .cat-item:nth-child(2) {
+            border-left:4px solid #d4af37 !important;
+            background: linear-gradient(120deg, rgba(212,175,55,0.1), #050505 50%);
+        }
+        #lista-categorias .cat-item:nth-child(3) {
+            border-left:4px solid #c0c0c0 !important;
+            background: linear-gradient(120deg, rgba(192,192,192,0.1), #050505 50%);
+        }
+        #lista-categorias .cat-item:nth-child(4) {
+            border-left:4px solid #cd7f32 !important;
+            background: linear-gradient(120deg, rgba(205,127,50,0.12), #050505 50%);
+        }
+        #lista-categorias .cat-item:nth-child(5) {
+            border-left:4px solid rgba(46,255,112,0.45) !important;
+            background: linear-gradient(120deg, rgba(46,255,112,0.06), #050505 50%);
+        }
+        #lista-categorias .cat-item:nth-child(6) {
+            border-left:4px solid rgba(212,175,55,0.25) !important;
+            background: linear-gradient(120deg, rgba(80,80,80,0.2), #050505 55%);
+        }
+    </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
+</head>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+    <div class="header">
+        <div class="dc-dash-back-row" style="margin-bottom:0;">
+            <a href="/index.html" class="btn-dash-dashboard"><span class="dc-dash-ico">←</span> Volver al dashboard</a>
+        </div>
+        <div class="header-top-cat">
+            <div>
+                <div class="header-titulo">Categorías</div>
+                <div class="header-sub">Billar tres bandas · por promedio</div>
+            </div>
+        </div>
+    </div>
+    <div class="wrap dc-premium-chassis">
+        <div class="tu-categoria" id="tu-categoria">
+            <div class="lbl">TU CATEGORÍA</div>
+            <div class="nombre" id="tu-nombre">—</div>
+            <div class="prom" id="tu-prom">Promedio: —</div>
+        </div>
+        <div class="sec-tit">CÓMO SE CLASIFICA EN ESTE DEPORTE</div>
+        <div id="lista-categorias"></div>
+    </div>
+<script src="/Version.js"></script>
+<script src="/core.js"></script>
+<script src="/session.js"></script>
+<script>
+try { if (typeof SESSION !== 'undefined' && SESSION.verificarAlCargar) SESSION.verificarAlCargar('jugador'); } catch(e) {}
+
+var CATEGORIAS = [
+    { nombre: 'CLASE ÉLITE',  emoji: '🏆', desde: 1.100, color: '#f1c40f' },
+    { nombre: 'MAESTRO',      emoji: '⭐', desde: 0.900, color: '#d4af37' },
+    { nombre: 'PRIMERA',      emoji: '🥇', desde: 0.700, color: '#c0c0c0' },
+    { nombre: 'SEGUNDA',      emoji: '🥈', desde: 0.500, color: '#cd7f32' },
+    { nombre: 'TERCERA',      emoji: '🥉', desde: 0.350, color: '#6d8068' },
+    { nombre: 'INICIACIÓN',   emoji: '🟡', desde: 0,    color: '#555' }
+];
+
+function getJugadorActivo() {
+    try {
+        var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+        if (perfil && perfil.nombre) return perfil;
+        var activo = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+        if (activo && activo.nombre) return activo;
+        var jugadores = typeof MasterVIP !== 'undefined' ? MasterVIP.getJugadores() : [];
+        return jugadores[0] || null;
+    } catch(e) { return null; }
+}
+
+function pintar() {
+    var jug = getJugadorActivo();
+    var prom = jug && (parseFloat(jug.promedio) >= 0) ? parseFloat(jug.promedio) : null;
+    var cat = typeof MasterVIP !== 'undefined' && MasterVIP.getCategoria ? MasterVIP.getCategoria(prom != null ? prom : 0) : { nombre: '—', emoji: '🟡' };
+
+    document.getElementById('tu-nombre').textContent = cat.emoji + ' ' + cat.nombre;
+    document.getElementById('tu-prom').textContent = prom != null ? 'Promedio: ' + prom.toFixed(3) : 'Identifícate para ver tu categoría';
+
+    var html = '';
+    for (var i = 0; i < CATEGORIAS.length; i++) {
+        var c = CATEGORIAS[i];
+        var hasta = i > 0 ? CATEGORIAS[i - 1].desde : '∞';
+        var rango = c.desde === 0 ? '&lt; 0.350' : (c.desde + ' y más');
+        html += '<div class="cat-item" style="border-left:4px solid ' + c.color + '">';
+        html += '<span class="emoji">' + c.emoji + '</span>';
+        html += '<div><div class="nombre">' + c.nombre + '</div><div class="rango">Promedio ' + rango + '</div></div>';
+        html += '</div>';
+    }
+    document.getElementById('lista-categorias').innerHTML = html;
+}
+pintar();
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+</body>
+</html>

@@ -10,7 +10,7 @@
   <script src="/js/dc-nav.js" defer></script>
   <link rel="stylesheet" href="css/ux-shell.css">
   <style>
-    :root { --oro:#d4af37; --neon:#2eff70; --rojo:#e74c3c; }
+    :root { --oro:var(--dc-gold); --neon:#2eff70; --rojo:#e74c3c; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -131,7 +131,6 @@
       } catch (_e) {}
     })();
   </script>
-  <div class="stars" id="stars-bg" aria-hidden="true"></div>
   <div class="wrap dc-reveal">
     <h1>DeCarambola</h1>
     <p class="sub">Cuenta con correo (Supabase Auth). Mismo proyecto que <code>core.js</code>.</p>

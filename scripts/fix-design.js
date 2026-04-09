@@ -3,9 +3,11 @@
  * Recorre *.html (excl. _archivo/, node_modules/), respalda en _backup_design/
  * y aplica correcciones de diseño acordadas.
  */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const BACKUP_DIR = path.join(ROOT, '_backup_design');
 

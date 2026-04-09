@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+        import { getSession, getRole } from '/js/auth-manager.js';
+        const next = encodeURIComponent(
+            (window.location.pathname || '') + (window.location.search || '')
+        );
+        const s = await getSession();
+        if (!s?.data || !s.data.user) {
+            window.location.replace('/login.html?next=' + next);
+        }
+        const r = await getRole();
+        if (r?.data !== 'superadmin') {
+            window.location.replace('/login.html?next=' + next);
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#c9a84c">
+    <meta name="description" content="Clubes — Centro de control DeCarambola">
+    <title>Clubes — Centro de Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/index-v2.css">
+    <style>
+        .admin-panel { background: #0a0a0a; }
+        .admin-panel #stars-bg { display: none !important; }
+        .admin-panel .home-main { max-width: 560px; }
+        .admin-sede-pill {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #0a0a0a !important;
+            background: #c9a84c;
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .admin-panel #clubs-main .dc-section__label {
+            color: #c9a84c;
+            text-transform: uppercase;
+        }
+        .admin-panel #clubs-main .dc-section__title {
+            color: #f0f0f0 !important;
+            border-left: 3px solid #c9a84c;
+            padding-left: 12px;
+            margin-left: 0;
+        }
+        .admin-panel .bottom-nav__item--active,
+        .admin-panel .bottom-nav__item--active .bottom-nav__icon {
+            color: #c9a84c !important;
+        }
+        .header-marca.offscreen {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        .vista { display: none; }
+        .vista--activa { display: block; }
+        .club-buscar {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #1a1a1a;
+            background: #111;
+            color: #f0f0f0;
+            font-family: inherit;
+            font-size: 0.9rem;
+            margin-bottom: 14px;
+        }
+        .club-buscar:focus {
+            outline: none;
+            border-color: rgba(201, 168, 76, 0.45);
+        }
+        .club-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 16px 14px;
+            margin-bottom: 10px;
+        }
+        .club-card__tit {
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f0f0f0;
+            margin-bottom: 8px;
+        }
+        .club-card__meta {
+            font-size: 0.72rem;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .club-pill-codigo {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            background: #c9a84c;
+            color: #0a0a0a;
+            margin-right: 8px;
+        }
+        .badge-estado {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+        .badge-estado--on {
+            background: rgba(76, 175, 125, 0.2);
+            color: #4caf7d;
+            border: 1px solid rgba(76, 175, 125, 0.45);
+        }
+        .badge-estado--off {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.35);
+        }
+        .btn-salon {
+            margin-top: 10px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            background: rgba(201, 168, 76, 0.12);
+            color: #c9a84c;
+            font-family: inherit;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+        }
+        .btn-salon:active { opacity: 0.9; }
+        .btn-volver {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 0;
+            margin-bottom: 12px;
+            background: none;
+            border: none;
+            color: #c9a84c;
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .vista-b-head {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .vista-b-head img {
+            max-height: 72px;
+            width: auto;
+            object-fit: contain;
+            margin-bottom: 8px;
+            display: none;
+        }
+        .vista-b-head img.visible { display: inline-block; }
+        .vista-b-tit {
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 1.25rem;
+            color: #c9a84c;
+            margin: 0;
+        }
+        .form-salon {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .form-salon label {
+            display: block;
+            font-size: 0.58rem;
+            letter-spacing: 0.1em;
+            color: #888;
+            margin-bottom: 6px;
+            margin-top: 12px;
+        }
+        .form-salon label:first-of-type { margin-top: 0; }
+        .form-salon input[type="text"],
+        .form-salon input[type="number"],
+        .form-salon input[type="time"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #1a1a1a;
+            background: #0a0a0a;
+            color: #f0f0f0;
+            font-family: inherit;
+            font-size: 0.88rem;
+        }
+        .form-salon input:focus {
+            outline: none;
+            border-color: rgba(201, 168, 76, 0.4);
+        }
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .toggle-row input { accent-color: #c9a84c; width: 18px; height: 18px; }
+        .nota-salon {
+            font-size: 0.65rem;
+            color: #666;
+            line-height: 1.45;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #1a1a1a;
+        }
+        .btn-guardar {
+            margin-top: 14px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #c9a84c;
+            background: #c9a84c;
+            color: #0a0a0a;
+            font-family: inherit;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+        }
+        .msg-flash {
+            font-size: 0.72rem;
+            margin-top: 10px;
+            min-height: 1.2em;
+        }
+        .msg-flash.ok { color: #4caf7d; }
+        .msg-flash.err { color: #e74c3c; }
+        .mesa-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .mesa-card__num {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #c9a84c;
+            margin-bottom: 6px;
+        }
+        .mesa-card__sub {
+            font-size: 0.68rem;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .mesa-card label {
+            display: block;
+            font-size: 0.55rem;
+            color: #666;
+            letter-spacing: 0.06em;
+            margin-top: 8px;
+        }
+        .mesa-card input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px 10px;
+            margin-top: 4px;
+            border-radius: 8px;
+            border: 1px solid #1a1a1a;
+            background: #0a0a0a;
+            color: #e8e8e8;
+            font-family: inherit;
+            font-size: 0.8rem;
+        }
+        .mesa-row-xy {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn-mesa-mini {
+            margin-top: 10px;
+            padding: 10px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            background: #1a1a1a;
+            color: #c9a84c;
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .form-agregar {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .form-agregar select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #1a1a1a;
+            background: #0a0a0a;
+            color: #f0f0f0;
+            font-family: inherit;
+        }
+        .admin-list-empty { text-align: center; padding: 18px 12px; color: #555; font-size: 0.72rem; }
+    </style>
+</head>
+<body class="dc-home-v2 admin-panel">
+
+<div class="header-marca offscreen" aria-hidden="true">
+    <span>DeCarambola</span>
+    <small>CLUBES</small>
+</div>
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+<header class="home-header home-header--user" aria-label="Cabecera principal">
+    <a class="home-header__brand" href="/index.html" aria-label="DeCarambola inicio">
+        <img src="/assets/logo-decarambola.svg" alt="DeCarambola" width="120" height="36">
+        <div class="home-header__titles">
+            <div class="home-header__title">DECARAMBOLA</div>
+            <div class="home-header__sub">Centro de Control</div>
+        </div>
+    </a>
+    <div class="home-header__actions">
+        <div class="user-mini" aria-label="Superadministrador">
+            <div class="user-mini__avatar" id="admin-header-avatar" aria-hidden="true">SA</div>
+            <div class="user-mini__text">
+                <div class="user-mini__name" id="admin-header-name">Superadmin</div>
+                <div class="user-mini__badge admin-sede-pill" id="admin-lbl-role">SUPERADMIN</div>
+            </div>
+        </div>
+        <a class="btn-icon-gear" href="/perfil.html" title="Configuración y perfil" aria-label="Configuración">⚙️</a>
+    </div>
+</header>
+
+<main class="home-main" id="clubs-main">
+    <div id="vista-a" class="vista vista--activa">
+        <section class="dc-section" aria-label="Lista de clubes">
+            <div class="dc-section__label">Directorio</div>
+            <h1 class="dc-section__title" style="margin-bottom:12px;">Clubes</h1>
+            <input type="search" id="club-buscar" class="club-buscar" placeholder="Buscar por nombre o código…" autocomplete="off">
+            <div id="zona-lista-clubes"></div>
+        </section>
+    </div>
+
+    <div id="vista-b" class="vista">
+        <section class="dc-section">
+            <button type="button" class="btn-volver" id="btn-volver-a">← Volver</button>
+            <div class="vista-b-head">
+                <img id="vista-b-logo" alt="">
+                <h2 class="vista-b-tit" id="vista-b-nombre">—</h2>
+            </div>
+
+            <div class="dc-section__label">Salón</div>
+            <h2 class="dc-section__title">Datos del salón</h2>
+            <div class="form-salon">
+                <label for="cfg-nombre-salon">Nombre del salón</label>
+                <input type="text" id="cfg-nombre-salon" autocomplete="off">
+
+                <label for="cfg-apertura">Apertura</label>
+                <input type="time" id="cfg-apertura">
+
+                <label for="cfg-cierre">Cierre</label>
+                <input type="time" id="cfg-cierre">
+
+                <label for="cfg-filas">Filas referencia del mapa</label>
+                <input type="number" id="cfg-filas" min="1" max="99" step="1">
+
+                <label for="cfg-columnas">Columnas referencia del mapa</label>
+                <input type="number" id="cfg-columnas" min="1" max="99" step="1">
+
+                <label for="cfg-tarifa-base">Tarifa base (tarifas.tarifa_base)</label>
+                <input type="number" id="cfg-tarifa-base" min="0" step="100">
+
+                <div class="toggle-row">
+                    <input type="checkbox" id="cfg-video-ia">
+                    <label for="cfg-video-ia" style="margin:0;font-size:0.72rem;color:#aaa;">Video IA habilitado (en tarifas JSON)</label>
+                </div>
+
+                <p class="nota-salon">
+                    Filas y columnas son solo referencia visual del mapa, no determinan el total de mesas.
+                </p>
+
+                <button type="button" class="btn-guardar" id="btn-guardar-config">Guardar configuración</button>
+                <div class="msg-flash" id="msg-config" aria-live="polite"></div>
+            </div>
+
+            <div class="dc-section__label">Instalaciones</div>
+            <h2 class="dc-section__title">Mesas del salón</h2>
+            <div id="zona-mesas"></div>
+
+            <div class="dc-section__label" style="margin-top:20px;">Alta</div>
+            <h2 class="dc-section__title">Agregar mesas</h2>
+            <div class="form-agregar">
+                <label for="add-cant">Cantidad a agregar</label>
+                <input type="number" id="add-cant" min="1" max="50" value="1" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid #1a1a1a;background:#0a0a0a;color:#f0f0f0;">
+
+                <label for="add-inicio">Número inicial</label>
+                <input type="number" id="add-inicio" min="1" step="1" style="width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid #1a1a1a;background:#0a0a0a;color:#f0f0f0;">
+
+                <label for="add-tipo">Tipo instalación</label>
+                <select id="add-tipo">
+                    <option value="BILLAR_3BANDAS">BILLAR_3BANDAS</option>
+                    <option value="BILLAR_POOL">BILLAR_POOL</option>
+                    <option value="CARAMBOLA">CARAMBOLA</option>
+                    <option value="OTRO">OTRO</option>
+                </select>
+
+                <button type="button" class="btn-guardar" id="btn-agregar-mesas" style="margin-top:14px;">Agregar mesas</button>
+                <div class="msg-flash" id="msg-agregar" aria-live="polite"></div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<nav class="bottom-nav" aria-label="Navegación inferior">
+    <a class="bottom-nav__item" href="/admin/index.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🏠</span>
+        <span>Inicio</span>
+    </a>
+    <a class="bottom-nav__item bottom-nav__item--active" href="/admin/clubes.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🏢</span>
+        <span>Clubes</span>
+    </a>
+    <a class="bottom-nav__item" href="/admin/usuarios.html">
+        <span class="bottom-nav__icon" aria-hidden="true">👥</span>
+        <span>Usuarios</span>
+    </a>
+    <a class="bottom-nav__item" href="/admin/reportes.html">
+        <span class="bottom-nav__icon" aria-hidden="true">📊</span>
+        <span>Reportes</span>
+    </a>
+    <a class="bottom-nav__item" href="/admin/config.html">
+        <span class="bottom-nav__icon" aria-hidden="true">⚙️</span>
+        <span>Config</span>
+    </a>
+</nav>
+
+<script type="module">
+(function () {
+    var supabase = null;
+    var allClubs = [];
+    var currentClub = null;
+    var mesasConfigRow = null;
+    var mesasConfigId = null;
+    var clubIdForMesas = null;
+
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function setFlash(elId, text, kind) {
+        var el = $(elId);
+        if (!el) return;
+        el.textContent = text || '';
+        el.className = 'msg-flash' + (kind === 'ok' ? ' ok' : kind === 'err' ? ' err' : '');
+    }
+
+    function showVista(which) {
+        $('vista-a').classList.toggle('vista--activa', which === 'a');
+        $('vista-b').classList.toggle('vista--activa', which === 'b');
+    }
+
+    function timeToInput(t) {
+        if (t == null || t === '') return '';
+        var s = String(t);
+        if (s.length >= 5) return s.slice(0, 5);
+        return s;
+    }
+
+    function normalizeTimeForDb(val) {
+        if (!val) return null;
+        var s = String(val).trim();
+        if (/^\d{2}:\d{2}$/.test(s)) return s + ':00';
+        return s;
+    }
+
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function renderClubCards(list) {
+        var z = $('zona-lista-clubes');
+        if (!list.length) {
+            z.innerHTML = '<div class="admin-list-empty">No hay clubes que coincidan.</div>';
+            return;
+        }
+        z.innerHTML = list
+            .map(function (c) {
+                var activo = c.activo === true || c.activo === 'true' || c.activo === 1;
+                var badge = activo
+                    ? '<span class="badge-estado badge-estado--on">ACTIVO</span>'
+                    : '<span class="badge-estado badge-estado--off">INACTIVO</span>';
+                var cod = c.codigo != null ? String(c.codigo) : '—';
+                var city = c.ciudad != null && String(c.ciudad).trim() ? escapeHtml(c.ciudad) : '—';
+                return (
+                    '<div class="club-card" data-club-id="' +
+                    escapeHtml(c.id) +
+                    '">' +
+                    '<div class="club-card__tit">' +
+                    escapeHtml(c.nombre || 'Sin nombre') +
+                    '</div>' +
+                    '<div><span class="club-pill-codigo">' +
+                    escapeHtml(cod) +
+                    '</span>' +
+                    badge +
+                    '</div>' +
+                    '<div class="club-card__meta">Ciudad: ' +
+                    city +
+                    '</div>' +
+                    '<button type="button" class="btn-salon" data-open-salon="' +
+                    escapeHtml(c.id) +
+                    '">Configurar salón →</button>' +
+                    '</div>'
+                );
+            })
+            .join('');
+
+        z.querySelectorAll('[data-open-salon]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var id = btn.getAttribute('data-open-salon');
+                var club = allClubs.find(function (x) {
+                    return String(x.id) === String(id);
+                });
+                if (club) openVistaB(club);
+            });
+        });
+    }
+
+    function filterClubs(q) {
+        var t = String(q || '')
+            .trim()
+            .toLowerCase();
+        if (!t) return allClubs.slice();
+        return allClubs.filter(function (c) {
+            var n = String(c.nombre || '').toLowerCase();
+            var cod = String(c.codigo || '').toLowerCase();
+            return n.indexOf(t) !== -1 || cod.indexOf(t) !== -1;
+        });
+    }
+
+    async function fetchMesasConfigForClub(club) {
+        var codigo = club.codigo != null ? String(club.codigo).trim() : '';
+        var uuid = club.id != null ? String(club.id).trim() : '';
+
+        var r1 = await supabase.from('mesas_config').select('*').eq('club_id', codigo).limit(1).maybeSingle();
+        if (!r1.error && r1.data) return { row: r1.data, keyUsed: codigo };
+
+        if (uuid && uuid !== codigo) {
+            var r2 = await supabase.from('mesas_config').select('*').eq('club_id', uuid).limit(1).maybeSingle();
+            if (!r2.error && r2.data) return { row: r2.data, keyUsed: uuid };
+        }
+
+        return { row: null, keyUsed: codigo || uuid };
+    }
+
+    async function fetchMesasForClub(club) {
+        var codigo = club.codigo != null ? String(club.codigo).trim() : '';
+        var uuid = club.id != null ? String(club.id).trim() : '';
+
+        var sel =
+            'id, numero, nombre, estado, url_camara, urls_camaras, posicion_x, posicion_y, tipo_instalacion';
+
+        if (codigo) {
+            var q1 = await supabase.from('mesas').select(sel).eq('club_id', codigo).order('numero', { ascending: true });
+            if (!q1.error && q1.data && q1.data.length) {
+                return { rows: q1.data, keyUsed: codigo };
+            }
+        }
+        if (uuid) {
+            var q2 = await supabase.from('mesas').select(sel).eq('club_id', uuid).order('numero', { ascending: true });
+            if (!q2.error && q2.data) return { rows: q2.data || [], keyUsed: uuid };
+        }
+        return { rows: [], keyUsed: codigo || uuid };
+    }
+
+    function estadoLabel(est) {
+        var e = String(est || 'libre').toLowerCase().replace(/ /g, '_');
+        if (e === 'fuera') e = 'fuera_servicio';
+        return e;
+    }
+
+    function renderMesasCards(rows) {
+        var z = $('zona-mesas');
+        if (!rows.length) {
+            z.innerHTML = '<div class="admin-list-empty">No hay mesas para este club (revisá club_id en Supabase).</div>';
+            return;
+        }
+        z.innerHTML = rows
+            .map(function (m) {
+                var id = escapeHtml(m.id);
+                var num = m.numero != null ? m.numero : '—';
+                var est = estadoLabel(m.estado);
+                var tipo = escapeHtml(m.tipo_instalacion || '—');
+                var url = m.url_camara != null ? String(m.url_camara) : '';
+                var px = m.posicion_x != null ? String(m.posicion_x) : '0';
+                var py = m.posicion_y != null ? String(m.posicion_y) : '0';
+                return (
+                    '<div class="mesa-card" data-mesa-row-id="' +
+                    id +
+                    '">' +
+                    '<div class="mesa-card__num">Mesa ' +
+                    escapeHtml(num) +
+                    '</div>' +
+                    '<div class="mesa-card__sub">Estado: ' +
+                    escapeHtml(est) +
+                    ' · Tipo: ' +
+                    tipo +
+                    '</div>' +
+                    '<label>URL cámara principal</label>' +
+                    '<input type="text" class="in-url" data-mid="' +
+                    id +
+                    '" value="' +
+                    escapeHtml(url) +
+                    '" autocomplete="off">' +
+                    '<div class="mesa-row-xy">' +
+                    '<div><label>Posición X</label><input type="number" step="0.001" class="in-px" data-mid="' +
+                    id +
+                    '" value="' +
+                    escapeHtml(px) +
+                    '"></div>' +
+                    '<div><label>Posición Y</label><input type="number" step="0.001" class="in-py" data-mid="' +
+                    id +
+                    '" value="' +
+                    escapeHtml(py) +
+                    '"></div>' +
+                    '</div>' +
+                    '<button type="button" class="btn-mesa-mini" data-save-mesa="' +
+                    id +
+                    '">Guardar mesa</button>' +
+                    '</div>'
+                );
+            })
+            .join('');
+
+        z.querySelectorAll('[data-save-mesa]').forEach(function (btn) {
+            btn.addEventListener('click', async function () {
+                var mid = btn.getAttribute('data-save-mesa');
+                var card = z.querySelector('.mesa-card[data-mesa-row-id="' + mid + '"]');
+                if (!card) return;
+                var urlIn = card.querySelector('.in-url[data-mid="' + mid + '"]');
+                var pxIn = card.querySelector('.in-px[data-mid="' + mid + '"]');
+                var pyIn = card.querySelector('.in-py[data-mid="' + mid + '"]');
+                var payload = {
+                    url_camara: urlIn ? urlIn.value.trim() || null : null,
+                    posicion_x: pxIn ? parseFloat(pxIn.value) || 0 : 0,
+                    posicion_y: pyIn ? parseFloat(pyIn.value) || 0 : 0,
+                    updated_at: new Date().toISOString()
+                };
+                btn.disabled = true;
+                var up = await supabase.from('mesas').update(payload).eq('id', mid);
+                btn.disabled = false;
+                if (up.error) {
+                    alert(up.error.message || 'Error al guardar mesa');
+                    return;
+                }
+                var again = await fetchMesasForClub(currentClub);
+                renderMesasCards(again.rows);
+            });
+        });
+    }
+
+    function defaultNumeroInicial(rows) {
+        var maxN = 0;
+        rows.forEach(function (m) {
+            var n = parseInt(m.numero, 10);
+            if (!isNaN(n) && n > maxN) maxN = n;
+        });
+        return maxN + 1;
+    }
+
+    async function openVistaB(club) {
+        currentClub = club;
+        mesasConfigRow = null;
+        mesasConfigId = null;
+
+        $('vista-b-nombre').textContent = club.nombre || 'Club';
+        var logo = $('vista-b-logo');
+        if (club.logo_url && String(club.logo_url).trim()) {
+            logo.src = String(club.logo_url).trim();
+            logo.classList.add('visible');
+            logo.alt = club.nombre || 'Logo';
+        } else {
+            logo.removeAttribute('src');
+            logo.classList.remove('visible');
+            logo.alt = '';
+        }
+
+        setFlash('msg-config', '', '');
+        setFlash('msg-agregar', '', '');
+
+        var cfg = await fetchMesasConfigForClub(club);
+        mesasConfigRow = cfg.row;
+        clubIdForMesas = cfg.keyUsed;
+        if (!clubIdForMesas) {
+            clubIdForMesas = club.codigo != null && String(club.codigo).trim()
+                ? String(club.codigo).trim()
+                : String(club.id);
+        }
+
+        var tar = (mesasConfigRow && mesasConfigRow.tarifas && typeof mesasConfigRow.tarifas === 'object')
+            ? mesasConfigRow.tarifas
+            : {};
+        var tb = tar.tarifa_base != null ? parseFloat(tar.tarifa_base) : '';
+        var vi = !!tar.video_ia_habilitado;
+
+        $('cfg-nombre-salon').value = (mesasConfigRow && mesasConfigRow.nombre_salon) || 'Salón';
+        $('cfg-apertura').value = timeToInput(mesasConfigRow && mesasConfigRow.apertura);
+        $('cfg-cierre').value = timeToInput(mesasConfigRow && mesasConfigRow.cierre);
+        $('cfg-filas').value =
+            mesasConfigRow && mesasConfigRow.filas != null ? mesasConfigRow.filas : 2;
+        $('cfg-columnas').value =
+            mesasConfigRow && mesasConfigRow.columnas != null ? mesasConfigRow.columnas : 4;
+        $('cfg-tarifa-base').value = tb === '' || isNaN(tb) ? '' : tb;
+        $('cfg-video-ia').checked = vi;
+        mesasConfigId = mesasConfigRow && mesasConfigRow.id ? mesasConfigRow.id : null;
+
+        var mesasR = await fetchMesasForClub(club);
+        if (mesasR.keyUsed) clubIdForMesas = mesasR.keyUsed;
+        $('add-inicio').value = String(defaultNumeroInicial(mesasR.rows));
+        renderMesasCards(mesasR.rows);
+
+        showVista('b');
+        window.scrollTo(0, 0);
+    }
+
+    async function saveMesasConfig() {
+        if (!currentClub) return;
+        setFlash('msg-config', 'Guardando…', '');
+
+        var nombre = $('cfg-nombre-salon').value.trim() || 'Salón';
+        var apertura = normalizeTimeForDb($('cfg-apertura').value);
+        var cierre = normalizeTimeForDb($('cfg-cierre').value);
+        var filas = parseInt($('cfg-filas').value, 10) || 2;
+        var columnas = parseInt($('cfg-columnas').value, 10) || 4;
+        var tbRaw = parseFloat($('cfg-tarifa-base').value);
+        var tarifaBase = isNaN(tbRaw) ? 0 : tbRaw;
+        var videoIa = $('cfg-video-ia').checked;
+
+        var prevTar =
+            mesasConfigRow && mesasConfigRow.tarifas && typeof mesasConfigRow.tarifas === 'object'
+                ? Object.assign({}, mesasConfigRow.tarifas)
+                : {};
+        prevTar.tarifa_base = tarifaBase;
+        prevTar.video_ia_habilitado = videoIa;
+
+        var payload = {
+            nombre_salon: nombre,
+            apertura: apertura,
+            cierre: cierre,
+            filas: filas,
+            columnas: columnas,
+            tarifas: prevTar,
+            updated_at: new Date().toISOString()
+        };
+
+        var clubKey =
+            currentClub.codigo != null && String(currentClub.codigo).trim()
+                ? String(currentClub.codigo).trim()
+                : String(currentClub.id);
+
+        if (mesasConfigId) {
+            var up = await supabase.from('mesas_config').update(payload).eq('id', mesasConfigId).select();
+            if (up.error) {
+                setFlash('msg-config', up.error.message || 'Error al guardar', 'err');
+                return;
+            }
+            mesasConfigRow = up.data && up.data[0] ? up.data[0] : Object.assign({}, mesasConfigRow, payload);
+        } else {
+            var insPayload = Object.assign({}, payload, {
+                club_id: clubKey,
+                moneda: 'COP'
+            });
+            var ins = await supabase.from('mesas_config').insert(insPayload).select();
+            if (ins.error) {
+                setFlash('msg-config', ins.error.message || 'Error al crear configuración', 'err');
+                return;
+            }
+            mesasConfigRow = ins.data && ins.data[0] ? ins.data[0] : null;
+            mesasConfigId = mesasConfigRow ? mesasConfigRow.id : null;
+        }
+
+        setFlash('msg-config', 'Configuración guardada.', 'ok');
+    }
+
+    async function agregarMesas() {
+        if (!currentClub) return;
+        setFlash('msg-agregar', '', '');
+        var cant = parseInt($('add-cant').value, 10) || 0;
+        if (cant < 1 || cant > 50) {
+            setFlash('msg-agregar', 'Cantidad entre 1 y 50.', 'err');
+            return;
+        }
+        var inicio = parseInt($('add-inicio').value, 10);
+        if (isNaN(inicio) || inicio < 1) {
+            setFlash('msg-agregar', 'Número inicial inválido.', 'err');
+            return;
+        }
+        var tipo = $('add-tipo').value || 'BILLAR_3BANDAS';
+
+        var cid =
+            currentClub.codigo != null && String(currentClub.codigo).trim()
+                ? String(currentClub.codigo).trim()
+                : String(currentClub.id);
+
+        var rows = [];
+        for (var i = 0; i < cant; i++) {
+            rows.push({
+                club_id: cid,
+                numero: inicio + i,
+                tipo_instalacion: tipo,
+                estado: 'libre',
+                posicion_x: 0,
+                posicion_y: 0
+            });
+        }
+
+        $('btn-agregar-mesas').disabled = true;
+        var ins = await supabase.from('mesas').insert(rows).select('id');
+        $('btn-agregar-mesas').disabled = false;
+
+        if (ins.error) {
+            setFlash('msg-agregar', ins.error.message || 'Error al insertar', 'err');
+            return;
+        }
+
+        setFlash('msg-agregar', 'Se agregaron ' + cant + ' mesas correctamente.', 'ok');
+        var mesasR = await fetchMesasForClub(currentClub);
+        renderMesasCards(mesasR.rows);
+        $('add-inicio').value = String(defaultNumeroInicial(mesasR.rows));
+    }
+
+    window.addEventListener('load', async function () {
+        var mod = await import('/js/supabase-client.js');
+        supabase = mod.supabase;
+        await supabase.auth.refreshSession();
+
+        try {
+            var pr = await supabase.auth.getUser();
+            var u = pr && pr.data && pr.data.user ? pr.data.user : null;
+            if (u) {
+                var pf = await supabase.from('profiles').select('nombre_completo').eq('id', u.id).maybeSingle();
+                var name =
+                    (pf.data && pf.data.nombre_completo && String(pf.data.nombre_completo).trim()) ||
+                    (u.user_metadata && u.user_metadata.full_name) ||
+                    (u.email ? u.email.split('@')[0] : 'Superadmin');
+                $('admin-header-name').textContent = name;
+                var parts = String(name).trim().split(/\s+/);
+                $('admin-header-avatar').textContent =
+                    parts.length >= 2
+                        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                        : String(name).slice(0, 2).toUpperCase();
+            }
+        } catch (e) {}
+
+        var res = await supabase
+            .from('clubs')
+            .select('id, nombre, codigo, activo, ciudad, logo_url')
+            .order('nombre', { ascending: true });
+
+        var z = $('zona-lista-clubes');
+        if (res.error) {
+            z.innerHTML =
+                '<div class="admin-list-empty">Error al cargar clubes: ' +
+                escapeHtml(res.error.message) +
+                '</div>';
+            return;
+        }
+        allClubs = res.data || [];
+        renderClubCards(allClubs);
+
+        $('club-buscar').addEventListener('input', function () {
+            renderClubCards(filterClubs($('club-buscar').value));
+        });
+
+        $('btn-volver-a').addEventListener('click', function () {
+            showVista('a');
+            currentClub = null;
+        });
+
+        $('btn-guardar-config').addEventListener('click', function () {
+            saveMesasConfig();
+        });
+
+        $('btn-agregar-mesas').addEventListener('click', function () {
+            agregarMesas();
+        });
+    });
+})();
+</script>
+</body>
+</html>

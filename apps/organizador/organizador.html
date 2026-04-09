@@ -451,9 +451,7 @@
     <small>PANEL ORGANIZADOR</small>
 </div>
 
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
-    <header class="home-header home-header--user" aria-label="Cabecera principal">
+<header class="home-header home-header--user" aria-label="Cabecera principal">
         <a class="home-header__brand" href="/index.html" aria-label="DeCarambola inicio">
             <img src="/assets/logo-decarambola.svg" alt="DeCarambola" width="120" height="36">
             <div class="home-header__titles">
@@ -1087,20 +1085,6 @@
     var conf = textos[deporte] || textos.billar;
     hMarca.textContent = conf.titulo;
     hSub.textContent   = conf.subt;
-})();
-</script>
-
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
 })();
 </script>
 

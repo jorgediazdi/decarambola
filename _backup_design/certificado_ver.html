@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirigiendo certificado...</title>
+    <meta http-equiv="refresh" content="0; url=Certificados.html">
+    <style>
+        body { margin:0; background:#0b0b0b; color:#bbb; font-family:Arial, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+        a { color:#d4af37; }
+    </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <meta name="theme-color" content="#d4af37">
+</head>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+<div class="dc-ux-layer" style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;">
+    <div>Redirigiendo a <a id="go" href="Certificados.html">Certificados</a>...</div>
+</div>
+    <script>
+        (function() {
+            var target = 'Certificados.html' + (window.location.search || '');
+            var a = document.getElementById('go');
+            if (a) a.href = target;
+            window.location.replace(target);
+        })();
+    </script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+</body>
+</html>

@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/ux-shell.css">
     <style>
-        :root { --oro: #d4af37; --neon: #2eff70; --negro: #0b0b0b; }
+        :root { --oro: var(--dc-gold); --neon: #2eff70; --negro: #0b0b0b; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Outfit', system-ui, sans-serif;
@@ -115,8 +115,6 @@
     </style>
 </head>
 <body class="dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
 <div class="shell">
     <div class="dc-dash-back-row">
         <a href="/index.html" class="btn-dash-dashboard"><span class="dc-dash-ico">←</span> Volver al dashboard</a>
@@ -163,18 +161,5 @@
     </div>
 </div>
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 70; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 </body>
 </html>

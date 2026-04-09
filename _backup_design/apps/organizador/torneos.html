@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+import { getSession, getRole } from '/js/auth-manager.js';
+
+const s = await getSession();
+if (!s?.data?.user) {
+  window.location.replace('/login.html?next=' + encodeURIComponent(window.location.pathname));
+}
+const { data: rol } = await getRole();
+if (rol !== 'club_admin' && rol !== 'superadmin' && rol !== 'organizador' && rol !== 'jugador') {
+  window.location.replace('/jugador/index.html');
+}
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#c9a84c">
+    <title>Torneos — Organizador — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/index-v2.css">
+    <style>
+        :root {
+            --color-gold: #c9a84c;
+            --color-text: #f0f0f0;
+            --color-text-muted: #888888;
+        }
+        .org-panel { background: #0a0a0a; }
+        .org-panel #stars-bg { display: none !important; }
+        .dc-home-v2.org-panel.org-page-torneos {
+            color: var(--color-text);
+            font-family: "DM Sans", system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .org-sede-pill {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #0a0a0a !important;
+            background: var(--color-gold, #c9a84c);
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .org-page-torneos .home-main { max-width: 560px; }
+        .org-panel .bottom-nav__item--active,
+        .org-panel .bottom-nav__item--active .bottom-nav__icon {
+            color: #c9a84c !important;
+        }
+        .org-torneos-hero { min-height: 0; margin-bottom: 16px; }
+        .org-torneos-hero .hero-dashboard__inner { padding-top: 20px; padding-bottom: 22px; }
+        .org-page-torneos .org-torneos-hero .hero-dashboard__copy {
+            width: 100%;
+            text-align: center;
+        }
+        .org-page-torneos .org-torneos-hero .hero-pill-row {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        @media (min-width: 768px) {
+            .org-page-torneos .org-torneos-hero .hero-dashboard__copy {
+                text-align: left !important;
+            }
+            .org-page-torneos .org-torneos-hero .hero-pill-row {
+                justify-content: flex-start;
+            }
+        }
+        .org-torneos-hero-title {
+            font-family: "Playfair Display", Georgia, serif;
+            font-weight: 600;
+            color: var(--color-gold, #c9a84c);
+            font-size: clamp(1.35rem, 4.5vw, 1.95rem);
+            line-height: 1.2;
+            margin: 0 0 10px;
+            letter-spacing: 0.02em;
+        }
+        .org-torneos-hero-sub {
+            font-size: 0.95rem;
+            color: var(--color-gold, #c9a84c);
+            font-weight: 600;
+            line-height: 1.5;
+            margin: 0 0 12px;
+        }
+        .org-torneos-logo-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .org-torneos-logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111;
+            border: 1px solid rgba(201, 168, 76, 0.22);
+        }
+        .org-torneos-logo img { width: 100%; height: 100%; object-fit: contain; }
+        .org-role-pill--muted {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: #0a0a0a;
+            border: 1px solid rgba(201, 168, 76, 0.45);
+            background: #c9a84c;
+        }
+        .org-torneos-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        @media (min-width: 768px) {
+            .org-torneos-links { justify-content: flex-start; }
+        }
+        .sec-btn {
+            background: none;
+            border: 1px solid rgba(201, 168, 76, 0.2);
+            color: var(--color-text-muted, #888);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.62rem;
+            cursor: pointer;
+            letter-spacing: 0.08em;
+            font-family: "DM Sans", system-ui, sans-serif;
+            font-weight: 600;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sec-btn:hover, .sec-btn:focus-visible {
+            border-color: rgba(201, 168, 76, 0.45);
+            color: var(--color-gold, #c9a84c);
+            outline: none;
+        }
+        .sec-btn.oro {
+            background: var(--color-gold, #c9a84c);
+            color: #0a0a0a !important;
+            border-color: transparent;
+        }
+        .org-page-torneos #torneos-main .dc-section__label {
+            color: #c9a84c;
+            text-transform: uppercase;
+        }
+        .org-page-torneos #torneos-main .dc-section__title {
+            color: #f0f0f0 !important;
+            border-left: 3px solid #c9a84c;
+            padding-left: 12px;
+            margin-left: 0;
+        }
+        .filtros-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+        .filtros-bar::-webkit-scrollbar { display: none; }
+        .filtro-chip {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            color: #666;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.58rem;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: "DM Sans", system-ui, sans-serif;
+            font-weight: 600;
+        }
+        .filtro-chip.activo {
+            border-color: #c9a84c;
+            color: #c9a84c;
+            background: rgba(201, 168, 76, 0.1);
+        }
+        .select-filtro {
+            flex: 1;
+            min-width: 0;
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 999px;
+            padding: 8px 12px;
+            color: #bbb;
+            font-family: "DM Sans", system-ui, sans-serif;
+            font-size: 0.62rem;
+            letter-spacing: 0.06em;
+            outline: none;
+        }
+        .torneo-card {
+            background: #111;
+            border-radius: 12px;
+            border: 1px solid rgba(201, 168, 76, 0.18);
+            padding: 16px 14px 14px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .torneo-card.activo {
+            border-color: rgba(201, 168, 76, 0.55);
+            box-shadow: 0 0 22px rgba(201, 168, 76, 0.12);
+        }
+        .torneo-card header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .tor-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            flex-shrink: 0;
+        }
+        .tor-logo img { width: 100%; height: 100%; object-fit: contain; }
+        .tor-info-principal { flex: 1; min-width: 0; }
+        .tor-nombre {
+            font-family: "Playfair Display", Georgia, serif;
+            font-size: 0.95rem;
+            color: #f0f0f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tor-meta {
+            font-size: 0.62rem;
+            color: #888;
+            letter-spacing: 0.06em;
+            margin-top: 2px;
+            font-family: "DM Sans", system-ui, sans-serif;
+        }
+        .tor-badge-estado {
+            font-size: 0.55rem;
+            padding: 4px 9px;
+            border-radius: 999px;
+            border: 1px solid #1a1a1a;
+            color: var(--color-text-muted, #888);
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+            font-family: "DM Sans", system-ui, sans-serif;
+            font-weight: 600;
+        }
+        .tor-badge-estado.abierto {
+            border-color: rgba(46, 255, 112, 0.4);
+            color: #2eff70;
+            background: rgba(46, 255, 112, 0.06);
+        }
+        .tor-badge-estado.en-curso {
+            border-color: rgba(52, 152, 219, 0.5);
+            color: #3498db;
+            background: rgba(52, 152, 219, 0.08);
+        }
+        .tor-badge-estado.finalizado {
+            border-color: #1a1a1a;
+            color: #666;
+            background: #0a0a0a;
+        }
+        .tor-detalles {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 0.62rem;
+            color: #888;
+            margin-top: 8px;
+            font-family: "DM Sans", system-ui, sans-serif;
+        }
+        .tor-detalles span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tor-detalles b {
+            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-size: 0.68rem;
+            color: #ccc;
+        }
+        .tor-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .tor-club {
+            font-size: 0.58rem;
+            color: #666;
+            letter-spacing: 0.06em;
+        }
+        .tor-cupos {
+            font-size: 0.58rem;
+            color: #888;
+        }
+        .btn-cta {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-family: "DM Sans", system-ui, sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+        .btn-cta.inscribir {
+            background: #c9a84c;
+            color: #0a0a0a;
+        }
+        .btn-cta.disabled {
+            background: #111;
+            color: #555;
+            border: 1px solid #1a1a1a;
+            cursor: default;
+        }
+        .empty {
+            text-align: center;
+            padding: 32px 16px;
+            font-size: 0.78rem;
+            color: #666;
+            line-height: 1.55;
+            font-family: "DM Sans", system-ui, sans-serif;
+        }
+        .header-marca.offscreen {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body class="dc-home-v2 org-panel org-page-torneos">
+
+<div class="header-marca offscreen" aria-hidden="true">
+    <span>DeCarambola</span>
+    <small>TORNEOS · MURO PÚBLICO</small>
+</div>
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+    <header class="home-header home-header--user" aria-label="Cabecera principal">
+        <a class="home-header__brand" href="/index.html" aria-label="DeCarambola inicio">
+            <img src="/assets/logo-decarambola.svg" alt="DeCarambola" width="120" height="36">
+            <div class="home-header__titles">
+                <div class="home-header__title">DECARAMBOLA</div>
+                <div class="home-header__sub">Torneos · muro público</div>
+            </div>
+        </a>
+        <div class="home-header__actions">
+            <div class="user-mini" aria-label="Torneos">
+                <div class="user-mini__avatar" aria-hidden="true">TR</div>
+                <div class="user-mini__text">
+                    <div class="user-mini__name">Torneos</div>
+                    <div class="user-mini__badge org-sede-pill" id="hdr-sub-pill">Muro</div>
+                </div>
+            </div>
+            <a class="btn-icon-gear" href="/perfil.html" title="Configuración y perfil" aria-label="Configuración">⚙️</a>
+        </div>
+    </header>
+
+    <main class="home-main" id="torneos-main">
+        <section class="hero-dashboard dc-section org-hero org-torneos-hero" aria-label="Torneos">
+            <div class="hero-dashboard__bg" aria-hidden="true"></div>
+            <div class="hero-dashboard__glow" aria-hidden="true"></div>
+            <div class="hero-dashboard__inner">
+                <div class="hero-dashboard__copy">
+                    <div class="org-torneos-logo-wrap">
+                        <div class="org-torneos-logo" id="hdr-logo-torneos"></div>
+                    </div>
+                    <h1 class="org-torneos-hero-title">Torneos</h1>
+                    <p class="org-torneos-hero-sub" id="hdr-sub">Muro público de torneos activos</p>
+                    <div class="hero-pill-row org-hero-pill-row">
+                        <span class="org-role-pill--muted">MURO PÚBLICO</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="org-torneos-links">
+            <a href="organizador.html" class="sec-btn">Panel organizador</a>
+            <a href="torneo_crear.html" class="sec-btn oro">Nuevo torneo</a>
+            <a href="inscripciones.html" class="sec-btn">Inscripciones</a>
+            <a href="control_torneo.html" class="sec-btn">Control torneo</a>
+            <a href="/club/index.html" class="sec-btn">Portal club</a>
+            <a href="/index.html" class="sec-btn">Inicio app</a>
+        </div>
+
+        <section class="dc-section" aria-label="Filtros">
+            <div class="dc-section__label">Explorar</div>
+            <h2 class="dc-section__title">Filtros</h2>
+            <div class="filtros-bar">
+                <button type="button" class="filtro-chip activo" id="chip-estado-abiertos" onclick="setFiltroEstado('ABIERTO', this)">
+                    <span>●</span><span>ABIERTOS</span>
+                </button>
+                <button type="button" class="filtro-chip" id="chip-estado-todos" onclick="setFiltroEstado('TODOS', this)">
+                    <span>◎</span><span>TODOS</span>
+                </button>
+                <select id="filtro-club" class="select-filtro" onchange="aplicarFiltros()">
+                    <option value="">CLUB: TODOS</option>
+                </select>
+                <select id="filtro-ciudad" class="select-filtro" onchange="aplicarFiltros()">
+                    <option value="">CIUDAD: TODAS</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="dc-section" aria-label="Destacados">
+            <div class="dc-section__label">Destacados</div>
+            <h2 class="dc-section__title">Torneos destacados</h2>
+            <div id="lista-destacados"></div>
+        </section>
+
+        <section class="dc-section" aria-label="Listado completo">
+            <div class="dc-section__label">Listado</div>
+            <h2 class="dc-section__title">Todos los torneos</h2>
+            <div id="lista-torneos"></div>
+        </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navegación inferior">
+        <a class="bottom-nav__item" href="/index.html">
+            <span class="bottom-nav__icon" aria-hidden="true">🏠</span>
+            <span>Inicio</span>
+        </a>
+        <a class="bottom-nav__item bottom-nav__item--active" href="torneos.html">
+            <span class="bottom-nav__icon" aria-hidden="true">🏆</span>
+            <span>Torneos</span>
+        </a>
+        <a class="bottom-nav__item" href="/apps/club/sala/mesas.html">
+            <span class="bottom-nav__icon" aria-hidden="true">🎱</span>
+            <span>Jugar</span>
+        </a>
+        <a class="bottom-nav__item" href="/ranking.html">
+            <span class="bottom-nav__icon" aria-hidden="true">📊</span>
+            <span>Ranking</span>
+        </a>
+        <a class="bottom-nav__item" href="/perfil.html">
+            <span class="bottom-nav__icon" aria-hidden="true">👤</span>
+            <span>Perfil</span>
+        </a>
+    </nav>
+
+<script src="/core.js"></script>
+<script>
+var _torneos = [];
+var _torneosFiltrados = [];
+var _jugadorActivo = null;
+var _filtroEstado = 'ABIERTO'; // ABIERTO | TODOS
+
+window.onload = async function () {
+    try {
+        if (typeof MasterVIP !== 'undefined') await MasterVIP.init();
+    } catch(e) { console.warn('Init offline:', e); }
+    MasterVIP.applyDesign();
+
+    var logoEl = document.getElementById('hdr-logo-torneos');
+    if (logoEl && typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) {
+        logoEl.innerHTML = MasterVIP.getLogoHTML(64);
+    }
+
+    try {
+        _jugadorActivo = JSON.parse(localStorage.getItem('jugador_activo') || 'null') ||
+                         JSON.parse(localStorage.getItem('mi_perfil') || 'null');
+    } catch(e) {
+        _jugadorActivo = null;
+    }
+
+    await cargarTorneos();
+    await prepararFiltros();
+    aplicarFiltros();
+};
+
+function _torneoEsOficialMuro(t) {
+    var tipo = String(t.tipo || '').trim().toLowerCase();
+    var fmt = String(t.formato || '').trim().toLowerCase();
+    if (tipo === 'torneo_amigos') return false;
+    if (fmt === 'amigos') return false;
+    return true;
+}
+
+async function cargarTorneos() {
+    try {
+        var sup = await import('/js/supabase-client.js');
+        var supabase = sup.supabase;
+        var q = supabase
+            .from('torneos')
+            .select('id,nombre,codigo,club_id,modalidad,sistema,estado,fecha_inicio,inscripcion,cupo_max,visible_muro,ciudad,lugar_encuentro,tipo,formato,entrada_objetivo')
+            .order('fecha_inicio', { ascending: false })
+            .neq('tipo', 'torneo_amigos')
+            .neq('formato', 'amigos');
+        var res = await q;
+        var rows = res.data;
+        if (!res.error && rows && rows.length) {
+            rows = rows.filter(_torneoEsOficialMuro);
+            _torneos = rows.map(function(t) {
+                return {
+                    id: t.id,
+                    nombre: t.nombre || '',
+                    codigo: t.codigo || '',
+                    club_id: t.club_id || null,
+                    modalidad: t.modalidad || '',
+                    sistema: t.sistema || '',
+                    estado: t.estado || 'ABIERTO',
+                    fecha_inicio: t.fecha_inicio || null,
+                    inscripcion: parseFloat(t.inscripcion) || 0,
+                    cupo_max: parseInt(t.cupo_max) || 0,
+                    visible_muro: t.visible_muro === true,
+                    ciudad: t.ciudad || '',
+                    lugar_encuentro: t.lugar_encuentro || '',
+                    entrada_objetivo: t.entrada_objetivo,
+                    inscritos: [] // puede complementarse desde MasterVIP si se requiere
+                };
+            });
+            return;
+        }
+    } catch(e) {
+        console.warn('Fallo leyendo torneos desde Supabase, usando cache local', e);
+    }
+
+    // Fallback: usar torneos ya presentes en MasterVIP (club actual)
+    try {
+        var listaLocal = MasterVIP.getTorneos();
+        _torneos = (listaLocal || []).filter(_torneoEsOficialMuro).map(function(t) {
+            return {
+                id: t.id,
+                nombre: t.nombre || '',
+                codigo: t.codigo || '',
+                club_id: t.sede || null,
+                modalidad: t.modalidad || '',
+                sistema: t.sistema || '',
+                estado: t.estado || 'ABIERTO',
+                fecha_inicio: t.fechaCreacion || null,
+                inscripcion: parseFloat(t.inscripcion) || 0,
+                cupo_max: parseInt(t.cupoMax) || 0,
+                visible_muro: true,
+                ciudad: '',
+                lugar_encuentro: t.lugar_encuentro || '',
+                inscritos: t.inscritos || []
+            };
+        });
+    } catch(e) {
+        console.warn('Sin torneos en cache local', e);
+        _torneos = [];
+    }
+}
+
+async function prepararFiltros() {
+    var selClub = document.getElementById('filtro-club');
+    var selCiudad = document.getElementById('filtro-ciudad');
+    if (!selClub || !selCiudad) return;
+
+    var clubesPorId = {};
+    var ciudades = {};
+
+    _torneos.forEach(function(t) {
+        if (t.club_id) clubesPorId[t.club_id] = true;
+        if (t.ciudad) ciudades[t.ciudad.trim()] = true;
+    });
+
+    try {
+        var cmod = await import('/js/api/club-api.js');
+        var cr = await cmod.listClubsActivos();
+        var rows = cr.data;
+        if (rows && rows.length) {
+            rows.forEach(function(c) {
+                clubesPorId[c.id] = c.nombre || c.id;
+                if (c.ciudad && c.ciudad.trim()) ciudades[c.ciudad.trim()] = true;
+            });
+        }
+    } catch (e) {
+        console.warn('prepararFiltros: no se pudieron cargar clubes desde API', e);
+    }
+
+    selClub.innerHTML = '<option value="">CLUB: TODOS</option>';
+    Object.keys(clubesPorId).sort().forEach(function(id) {
+        var opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = 'CLUB: ' + (typeof clubesPorId[id] === 'string' ? clubesPorId[id] : id);
+        selClub.appendChild(opt);
+    });
+
+    selCiudad.innerHTML = '<option value="">CIUDAD: TODAS</option>';
+    Object.keys(ciudades).filter(function(ci) { return ci; }).sort().forEach(function(ci) {
+        var opt = document.createElement('option');
+        opt.value = ci;
+        opt.textContent = 'CIUDAD: ' + ci;
+        selCiudad.appendChild(opt);
+    });
+}
+
+function setFiltroEstado(estado, btn) {
+    _filtroEstado = estado;
+    document.getElementById('chip-estado-abiertos').classList.remove('activo');
+    document.getElementById('chip-estado-todos').classList.remove('activo');
+    if (btn) btn.classList.add('activo');
+    aplicarFiltros();
+}
+
+function aplicarFiltros() {
+    var clubSel = document.getElementById('filtro-club').value || '';
+    var ciudadSel = document.getElementById('filtro-ciudad').value || '';
+
+    _torneosFiltrados = _torneos.filter(function(t) {
+        if (!t.visible_muro) return false;
+        if (_filtroEstado === 'ABIERTO' && t.estado !== 'ABIERTO') return false;
+        if (clubSel && String(t.club_id || '').toUpperCase() !== clubSel.toUpperCase()) return false;
+        if (ciudadSel && String(t.ciudad || '').toUpperCase() !== ciudadSel.toUpperCase()) return false;
+        return true;
+    });
+
+    renderListas();
+}
+
+function renderListas() {
+    var contDest = document.getElementById('lista-destacados');
+    var contTodos = document.getElementById('lista-torneos');
+    if (!contDest || !contTodos) return;
+
+    if (!_torneosFiltrados.length) {
+        contDest.innerHTML = '<div class="empty">No hay torneos disponibles en este momento.<br>Vuelve pronto o crea uno desde el panel organizador.</div>';
+        contTodos.innerHTML = '';
+        return;
+    }
+
+    var torneosOrdenados = _torneosFiltrados.slice().sort(function(a, b) {
+        // Primero por estado (ABIERTO, EN_CURSO, FINALIZADO)
+        var ordenEstado = { 'ABIERTO':0, 'EN_CURSO':1, 'FINALIZADO':2 };
+        var ea = ordenEstado[a.estado] ?? 3;
+        var eb = ordenEstado[b.estado] ?? 3;
+        if (ea !== eb) return ea - eb;
+        // Luego por fecha de inicio descendente
+        var da = a.fecha_inicio ? new Date(a.fecha_inicio).getTime() : 0;
+        var db = b.fecha_inicio ? new Date(b.fecha_inicio).getTime() : 0;
+        return db - da;
+    });
+
+    var destacados = torneosOrdenados.filter(function(t){ return t.estado === 'ABIERTO'; }).slice(0, 3);
+    var resto = torneosOrdenados;
+
+    contDest.innerHTML = destacados.length
+        ? destacados.map(function(t){ return tarjetaHTML(t); }).join('')
+        : '<div class="empty">No hay torneos destacados en este momento.</div>';
+
+    contTodos.innerHTML = resto.map(function(t){ return tarjetaHTML(t); }).join('');
+}
+
+function tarjetaHTML(t) {
+    var esAbierto = t.estado === 'ABIERTO';
+    var esEnCurso = t.estado === 'EN_CURSO';
+    var esFinal = t.estado === 'FINALIZADO';
+
+    var clsEstado = 'tor-badge-estado';
+    var txtEstado = t.estado || '—';
+    if (esAbierto) { clsEstado += ' abierto'; txtEstado = 'ABIERTO'; }
+    else if (esEnCurso) { clsEstado += ' en-curso'; txtEstado = 'EN CURSO'; }
+    else if (esFinal) { clsEstado += ' finalizado'; txtEstado = 'FINALIZADO'; }
+
+    var fechaTxt = 'SIN FECHA';
+    if (t.fecha_inicio) {
+        try {
+            var d = new Date(t.fecha_inicio);
+            fechaTxt = d.toLocaleDateString('es-CO') + ' ' + d.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
+        } catch(e) {}
+    }
+
+    var inscritosCount = (t.inscritos && t.inscritos.length) || 0;
+    var cuposTxt = t.cupo_max ? inscritosCount + ' / ' + t.cupo_max + ' CUPOS' : inscritosCount + ' INSCRITOS';
+
+    var inscTxt = t.inscripcion > 0 ? '$ ' + Number(t.inscripcion).toLocaleString('es-CO') : 'GRATUITO';
+
+    var puedeInscribirse = esAbierto && (!t.cupo_max || inscritosCount < t.cupo_max);
+    var yaInscrito = false;
+    if (_jugadorActivo && Array.isArray(t.inscritos)) {
+        var nom = String(_jugadorActivo.nombre || '').toUpperCase();
+        yaInscrito = t.inscritos.some(function(i) {
+            return String(i.nombre || '').toUpperCase() === nom;
+        });
+    }
+
+    var btnHTML;
+    if (!esAbierto) {
+        btnHTML = '<button class="btn-cta disabled" type="button">CERRADO</button>';
+    } else if (yaInscrito) {
+        btnHTML = '<button class="btn-cta disabled" type="button">YA INSCRITO</button>';
+    } else if (!puedeInscribirse) {
+        btnHTML = '<button class="btn-cta disabled" type="button">COMPLETO</button>';
+    } else {
+        btnHTML = '<button class="btn-cta inscribir" type="button" onclick="irAInscripcion(\'' + (t.id || '') + '\')">INSCRIBIRME</button>';
+    }
+
+    var sedeTxt = t.club_id ? String(t.club_id) : 'CLUB NO DEFINIDO';
+    var ciudadTxt = t.ciudad ? (' · ' + t.ciudad) : '';
+    var lugarTxt = t.lugar_encuentro ? ('📍 ' + t.lugar_encuentro) : '📍 Lugar por definir';
+
+    return '' +
+        '<div class="torneo-card ' + (esAbierto ? 'activo' : '') + '">' +
+            '<header>' +
+                '<div class="tor-logo">' + MasterVIP.getLogoHTML(32) + '</div>' +
+                '<div class="tor-info-principal">' +
+                    '<div class="tor-nombre">' + (t.nombre || 'TORNEO SIN NOMBRE') + '</div>' +
+                    '<div class="tor-meta">' + (t.modalidad || 'Modalidad no definida') + '</div>' +
+                '</div>' +
+                '<div class="' + clsEstado + '">' + txtEstado + '</div>' +
+            '</header>' +
+            '<div class="tor-detalles">' +
+                '<span>⏱ <b>' + fechaTxt + '</b></span>' +
+                '<span>🎯 META <b>' + (t.entrada_objetivo || '') + '</b></span>' +
+                '<span>💵 <b>' + inscTxt + '</b></span>' +
+            '</div>' +
+            '<div class="tor-detalles" style="margin-top:4px;"><span>' + lugarTxt + '</span></div>' +
+            '<div class="tor-footer">' +
+                '<div>' +
+                    '<div class="tor-club">' + sedeTxt + ciudadTxt + '</div>' +
+                    '<div class="tor-cupos">' + cuposTxt + '</div>' +
+                '</div>' +
+                btnHTML +
+            '</div>' +
+        '</div>';
+}
+
+function irAInscripcion(torneoId) {
+    if (!torneoId) return;
+    try {
+        localStorage.setItem('TORNEO_ACTIVO_ID', torneoId);
+    } catch(e) {}
+    location.href = 'inscripciones.html';
+}
+</script>
+<script src="/whitelabel.js"></script>
+
+</body>
+</html>

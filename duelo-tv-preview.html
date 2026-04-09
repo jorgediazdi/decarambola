@@ -7,7 +7,7 @@
     <title>Duelo TV Preview — DeCarambola</title>
     <style>
         :root {
-            --oro:   #d4af37;
+            --oro:   var(--dc-gold);
             --negro: #0b0b0b;
             --azul:  #3498db;
             --neon:  #2eff70;
@@ -18,7 +18,7 @@
         body {
             background: var(--negro);
             color: #fff;
-            font-family: 'Arial Black', Arial, sans-serif;
+            font-family: 'var(--dc-font-body)', Arial, sans-serif;
             height: 100vh;
             overflow: hidden;
         }
@@ -95,7 +95,7 @@
             font-size:0.68rem;
             cursor:pointer;
             letter-spacing:1px;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
             transition:0.2s;
         }
         .btn-fin:active { background:rgba(231,76,60,0.25);color:#fff; }
@@ -109,7 +109,7 @@
             font-weight:bold;
             letter-spacing:1px;
             cursor:pointer;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
         }
         .btn-siguiente-set:active { background:rgba(46,255,112,0.2); }
         .btn-bolas-tv {
@@ -120,7 +120,7 @@
             border-radius:12px;
             font-size:0.6rem;
             cursor:pointer;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
         }
         .btn-bolas-tv:active { background:rgba(255,255,255,0.15); }
 
@@ -236,7 +236,7 @@
             position:relative;
         }
         .bola-blanca {
-            background:radial-gradient(circle at 35% 32%,
+            background: var(--dc-bg);
                 #ffffff 0%, #f0f0f0 15%, #d0d0d0 35%, #999 60%, #555 85%, #1a1a1a 100%);
             box-shadow:
                 inset -14px -14px 28px rgba(0,0,0,0.65),
@@ -245,7 +245,7 @@
                 0 0 0 2px #111;
         }
         .bola-dorada {
-            background:radial-gradient(circle at 35% 32%,
+            background: var(--dc-bg);
                 #fffde0 0%, #fce84a 12%, #e8c020 30%, #c89a00 55%, #7a5500 80%, #2a1800 100%);
             box-shadow:
                 inset -14px -14px 28px rgba(0,0,0,0.6),
@@ -259,7 +259,7 @@
             position:absolute;
             top:12%;left:18%;
             width:30%;height:22%;
-            background:radial-gradient(ellipse,rgba(255,255,255,0.75) 0%,transparent 80%);
+            background: var(--dc-bg);
             border-radius:50%;
             pointer-events:none;
         }
@@ -372,7 +372,7 @@
             font-weight:bold;
             letter-spacing:2px;
             cursor:pointer;
-            font-family:Arial Black,sans-serif;
+            font-family:var(--dc-font-body),sans-serif;
             box-shadow:0 0 16px rgba(212,175,55,0.2);
         }
         .video-placeholder .btn-ver-camara:hover {
@@ -421,11 +421,11 @@
         .turno-quien { display:flex; align-items:center; gap:8px; }
         .turno-bola { width:28px;height:28px; border-radius:50%; flex-shrink:0; }
         .turno-bola.blanca {
-            background:radial-gradient(circle at 33% 33%,#fff,#999,#333);
+            background: var(--dc-bg);
             box-shadow:inset -3px -3px 6px rgba(0,0,0,0.5),2px 2px 6px rgba(0,0,0,0.8);
         }
         .turno-bola.dorada {
-            background:radial-gradient(circle at 33% 33%,#ffe,var(--oro),#553);
+            background: var(--dc-bg);
             box-shadow:inset -3px -3px 6px rgba(0,0,0,0.5),2px 2px 6px rgba(0,0,0,0.8);
         }
         .turno-nombre { font-size:0.85rem; color:var(--oro); letter-spacing:2px; line-height:1; font-weight:900; }
@@ -445,7 +445,7 @@
         .btn-num {
             background:#111; border:1px solid #1c1c1c; color:#fff;
             border-radius:12px; font-size:1.5rem; font-weight:900;
-            cursor:pointer; transition:0.1s; font-family:'Arial Black',sans-serif; user-select:none;
+            cursor:pointer; transition:0.1s; font-family:'var(--dc-font-body)',sans-serif; user-select:none;
         }
         .btn-num:active { background:#252525;transform:scale(0.9);border-color:var(--oro); }
         .btn-restar {
@@ -459,7 +459,7 @@
             color:#fff;border:none;border-radius:12px;
             font-size:0.85rem;font-weight:900;
             cursor:pointer;letter-spacing:2px;
-            font-family:'Arial Black',sans-serif;
+            font-family:'var(--dc-font-body)',sans-serif;
         }
         .btn-sig:active { transform:scale(0.97);opacity:0.85; }
 
@@ -487,8 +487,6 @@
     <meta name="theme-color" content="#d4af37">
 </head>
 <body id="body-tv" class="dc-ux dc-ux-skin m-root-legacy">
-<div class="stars" id="stars-bg" aria-hidden="true"></div>
-
 <div class="tv-root">
 
     <div class="tv-logos-bar">
@@ -982,18 +980,5 @@
     initVideoPanel();
 </script>
 
-<script>
-(function () {
-    var bg = document.getElementById('stars-bg');
-    if (!bg) return;
-    for (var i = 0; i < 80; i++) {
-        var s = document.createElement('div');
-        s.className = 'star';
-        var sz = Math.random() * 2 + 0.5;
-        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
-        bg.appendChild(s);
-    }
-})();
-</script>
 </body>
 </html>

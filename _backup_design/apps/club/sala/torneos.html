@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+        import { getSession, getRole } from '/js/auth-manager.js';
+
+        const next = encodeURIComponent(
+            (window.location.pathname || '') + (window.location.search || '')
+        );
+        const s = await getSession();
+        if (!s?.data?.user) {
+            window.location.replace('/login.html?next=' + next);
+        }
+        const r = await getRole();
+        const rol = String(r?.data || '').trim();
+        if (rol === 'organizador') {
+            window.location.replace('/apps/organizador/torneos.html');
+        }
+        if (rol === 'jugador') {
+            window.location.replace('/jugador/index.html');
+        }
+        if (rol !== 'club_admin' && rol !== 'superadmin') {
+            window.location.replace('/jugador/index.html');
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#c9a84c">
+    <title>Torneos — Club — DeCarambola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/index-v2.css">
+    <style>
+        .club-torneos-panel { background: #0a0a0a; font-family: "DM Sans", system-ui, sans-serif; }
+        .club-torneos-panel #stars-bg { display: none !important; }
+        .club-torneos-panel .home-main { max-width: 560px; }
+        .club-sede-pill {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #0a0a0a !important;
+            background: #c9a84c;
+            border: 1px solid rgba(201, 168, 76, 0.35);
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .club-torneos-hero { min-height: 0; margin-bottom: 20px; }
+        .club-torneos-hero .hero-dashboard__inner { padding-top: 20px; padding-bottom: 22px; }
+        .club-torneos-hero .hero-pill-row { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        @media (min-width: 768px) {
+            .club-torneos-hero .hero-dashboard__copy { text-align: left !important; }
+            .club-torneos-hero .hero-pill-row { justify-content: flex-start; }
+        }
+        .club-role-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: #0a0a0a;
+            border: 1px solid rgba(201, 168, 76, 0.45);
+            background: #c9a84c;
+        }
+        #ct-hero-logo {
+            display: none;
+            max-height: 120px;
+            width: auto;
+            object-fit: contain;
+            filter: brightness(1.1);
+            margin: 0 auto 10px;
+        }
+        @media (min-width: 768px) {
+            #ct-hero-logo { margin-left: 0; margin-right: 0; }
+        }
+        .ct-hero-title {
+            font-family: "Playfair Display", Georgia, serif;
+            font-weight: 600;
+            color: #c9a84c;
+            font-size: clamp(1.35rem, 4.5vw, 1.95rem);
+            line-height: 1.2;
+            margin: 0 0 10px;
+            letter-spacing: 0.02em;
+        }
+        .club-torneos-panel .dc-section__label { color: #c9a84c; text-transform: uppercase; }
+        .club-torneos-panel .dc-section__title {
+            color: #f0f0f0 !important;
+            border-left: 3px solid #c9a84c;
+            padding-left: 12px;
+            margin-left: 0;
+        }
+        .ct-kpi .stat-card__value {
+            font-size: 1.55rem;
+            color: #c9a84c !important;
+        }
+        .ct-kpi .stat-card__value::after { display: none !important; content: none !important; }
+        .ct-kpi .kpi-lbl {
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            color: #888;
+            margin-top: 6px;
+        }
+        .ct-kpi .kpi-sub {
+            font-size: 0.65rem;
+            color: #888;
+            margin-top: 4px;
+            letter-spacing: 0.04em;
+        }
+        .club-torneos-panel .bottom-nav__item--active,
+        .club-torneos-panel .bottom-nav__item--active .bottom-nav__icon {
+            color: #c9a84c !important;
+        }
+        .header-marca.offscreen {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        .ct-config-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 16px 14px;
+            margin-top: 8px;
+        }
+        .ct-config-card label {
+            display: block;
+            font-size: 0.62rem;
+            letter-spacing: 0.1em;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .ct-config-card select,
+        .ct-config-card input[type="number"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #1a1a1a;
+            background: #0a0a0a;
+            color: #e8e8e8;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+        .ct-config-card select:focus,
+        .ct-config-card input:focus {
+            outline: none;
+            border-color: rgba(201, 168, 76, 0.45);
+        }
+        .ct-config-row { margin-bottom: 14px; }
+        .ct-config-row:last-child { margin-bottom: 0; }
+        .ct-config-status { font-size: 0.62rem; color: #666; margin-top: 10px; min-height: 1.2em; }
+        .ct-config-status.ok { color: #4caf7d; }
+        .ct-config-status.err { color: #c75c5c; }
+        .ct-torneo-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 14px 12px;
+            margin-bottom: 10px;
+        }
+        .ct-torneo-card__tit {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #f0f0f0;
+            margin-bottom: 6px;
+        }
+        .ct-torneo-card__meta {
+            font-size: 0.68rem;
+            color: #888;
+            letter-spacing: 0.04em;
+            line-height: 1.5;
+        }
+        .ct-torneo-estado {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            background: #1a1a1a;
+            color: #c9a84c;
+            border: 1px solid #2a2a2a;
+        }
+        .ct-list-empty { font-size: 0.75rem; color: #666; padding: 20px 8px; text-align: center; }
+    </style>
+</head>
+<body class="dc-home-v2 club-torneos-panel">
+
+<div class="header-marca offscreen" aria-hidden="true">
+    <span>DeCarambola</span>
+    <small>TORNEOS CLUB</small>
+</div>
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+<header class="home-header home-header--user" aria-label="Cabecera principal">
+    <a class="home-header__brand" href="/index.html" aria-label="DeCarambola inicio">
+        <img src="/assets/logo-decarambola.svg" alt="DeCarambola" width="120" height="36">
+        <div class="home-header__titles">
+            <div class="home-header__title">DECARAMBOLA</div>
+            <div class="home-header__sub">Panel Club</div>
+        </div>
+    </a>
+    <div class="home-header__actions">
+        <div class="user-mini" aria-label="Administrador del club">
+            <div class="user-mini__avatar" id="ct-header-avatar" aria-hidden="true">CA</div>
+            <div class="user-mini__text">
+                <div class="user-mini__name" id="ct-header-name">Club admin</div>
+                <div class="user-mini__badge club-sede-pill" id="ct-lbl-club">—</div>
+            </div>
+        </div>
+        <a class="btn-icon-gear" href="/perfil.html" title="Configuración y perfil" aria-label="Configuración">⚙️</a>
+    </div>
+</header>
+
+<main class="home-main" id="ct-main">
+    <section class="hero-dashboard dc-section club-torneos-hero" aria-label="Torneos">
+        <div class="hero-dashboard__bg" aria-hidden="true"></div>
+        <div class="hero-dashboard__glow" aria-hidden="true"></div>
+        <div class="hero-dashboard__inner">
+            <div class="hero-dashboard__copy" style="width:100%;text-align:center">
+                <div>
+                    <img id="ct-hero-logo" alt="" style="display:none" decoding="async">
+                    <p class="ct-hero-title" role="heading" aria-level="1">Torneos</p>
+                </div>
+                <div class="hero-pill-row">
+                    <span class="club-role-pill">CLUB ADMIN</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="quick-stats dc-section" aria-label="KPIs torneos">
+        <div class="dc-section__label">Tu sede</div>
+        <h2 class="dc-section__title">Torneos en números</h2>
+        <div class="quick-stats__grid ct-kpi">
+            <div class="stat-card kpi oro">
+                <div class="stat-card__value" id="ct-kpi-activos">0</div>
+                <div class="kpi-lbl stat-card__label">ACTIVOS</div>
+                <div class="kpi-sub">ABIERTO o EN CURSO</div>
+            </div>
+            <div class="stat-card kpi neon">
+                <div class="stat-card__value" id="ct-kpi-inscritos">0</div>
+                <div class="kpi-lbl stat-card__label">INSCRITOS</div>
+                <div class="kpi-sub">en torneos activos</div>
+            </div>
+            <div class="stat-card kpi azul">
+                <div class="stat-card__value" id="ct-kpi-ingresos-mesas">$0</div>
+                <div class="kpi-lbl stat-card__label">MESAS TORNEO</div>
+                <div class="kpi-sub">aprobado por el club</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dc-section" aria-label="Configuración mesas torneo">
+        <div class="dc-section__label">Política</div>
+        <h2 class="dc-section__title">Configuración rápida del club</h2>
+        <div class="ct-config-card">
+            <div class="ct-config-row">
+                <label for="ct-modelo-mesas">Modelo actual (mesas en torneo)</label>
+                <div id="ct-modelo-lectura" style="font-size:0.75rem;color:#aaa;margin-bottom:8px;">—</div>
+                <select id="ct-modelo-mesas" aria-label="Modelo mesas torneo">
+                    <option value="GRATUITO">GRATUITO</option>
+                    <option value="COBRADO">COBRADO</option>
+                    <option value="MIXTO">MIXTO</option>
+                </select>
+            </div>
+            <div class="ct-config-row" id="ct-tarifa-wrap" hidden>
+                <label for="ct-tarifa-hora">Tarifa por hora de mesa (torneo)</label>
+                <input type="number" id="ct-tarifa-hora" min="0" step="100" placeholder="Ej. 20000" inputmode="numeric">
+            </div>
+            <div class="ct-config-status" id="ct-config-status" aria-live="polite"></div>
+        </div>
+    </section>
+
+    <section class="dc-section" aria-label="Lista de torneos">
+        <div class="dc-section__label">Calendario</div>
+        <h2 class="dc-section__title">Torneos del club</h2>
+        <div id="ct-lista-torneos"><div class="ct-list-empty">Cargando…</div></div>
+    </section>
+</main>
+
+<nav class="bottom-nav" aria-label="Navegación inferior">
+    <a class="bottom-nav__item" href="/apps/club/club.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🏠</span>
+        <span>Inicio</span>
+    </a>
+    <a class="bottom-nav__item bottom-nav__item--active" href="/apps/club/sala/torneos.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🏆</span>
+        <span>Torneos</span>
+    </a>
+    <a class="bottom-nav__item" href="/apps/club/sala/mesas.html">
+        <span class="bottom-nav__icon" aria-hidden="true">🎱</span>
+        <span>Jugar</span>
+    </a>
+    <a class="bottom-nav__item" href="/ranking.html">
+        <span class="bottom-nav__icon" aria-hidden="true">📊</span>
+        <span>Ranking</span>
+    </a>
+    <a class="bottom-nav__item" href="/perfil.html">
+        <span class="bottom-nav__icon" aria-hidden="true">👤</span>
+        <span>Perfil</span>
+    </a>
+</nav>
+
+<script>
+(function () {
+    function ctGetClubKey() {
+        try {
+            var p = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+            if (p.club_id) return String(p.club_id).trim();
+            var c = JSON.parse(localStorage.getItem('club_activo') || 'null');
+            if (c && c.id) return String(c.id).trim();
+        } catch (e) {}
+        return null;
+    }
+
+    function ctIniciales(nombre) {
+        var s = String(nombre || '').trim();
+        if (!s) return 'CA';
+        var parts = s.split(/\s+/).filter(Boolean);
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return s.slice(0, 2).toUpperCase();
+    }
+
+    function ctIsUuid(key) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(key || '').trim());
+    }
+
+    function ctEstadosActivos() {
+        return ['ABIERTO', 'EN_CURSO'];
+    }
+
+    function ctFmtMoney(n) {
+        return '$' + Math.round(Number(n) || 0).toLocaleString('es-CO');
+    }
+
+    function ctFmtFecha(iso) {
+        if (!iso) return '—';
+        try {
+            var d = new Date(iso);
+            if (isNaN(d.getTime())) return '—';
+            return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+        } catch (e) {
+            return '—';
+        }
+    }
+
+    function ctToggleTarifaRow(modelo) {
+        var w = document.getElementById('ct-tarifa-wrap');
+        if (!w) return;
+        var m = String(modelo || '').toUpperCase();
+        var show = m === 'COBRADO' || m === 'MIXTO';
+        w.hidden = !show;
+    }
+
+    function ctSetConfigStatus(msg, kind) {
+        var el = document.getElementById('ct-config-status');
+        if (!el) return;
+        el.textContent = msg || '';
+        el.className = 'ct-config-status' + (kind === 'ok' ? ' ok' : kind === 'err' ? ' err' : '');
+    }
+
+    window.addEventListener('load', async function () {
+        var nombreAdmin = 'Club admin';
+        var clubKey = ctGetClubKey();
+        var nombreClub = null;
+        var logoUrl = null;
+        var clubUuid = null;
+
+        var selModelo = document.getElementById('ct-modelo-mesas');
+        var inpTarifa = document.getElementById('ct-tarifa-hora');
+        var _saveTimer = null;
+
+        try {
+            var supabaseMod = await import('/js/supabase-client.js');
+            var supabase = supabaseMod.supabase;
+            var api = await import('/js/api/club-api.js');
+            var getClubByIdOrCodigo = api.getClubByIdOrCodigo;
+            var patchClub = api.patchClub;
+
+            await supabase.auth.refreshSession();
+
+            var sess = await supabase.auth.getSession();
+            var uid = sess && sess.data && sess.data.session && sess.data.session.user
+                ? sess.data.session.user.id
+                : null;
+
+            if (uid) {
+                var pr = await supabase
+                    .from('profiles')
+                    .select('club_id, nombre_completo')
+                    .eq('id', uid)
+                    .maybeSingle();
+                if (pr.data) {
+                    if (pr.data.nombre_completo && String(pr.data.nombre_completo).trim()) {
+                        nombreAdmin = String(pr.data.nombre_completo).trim();
+                    }
+                    if (pr.data.club_id != null && String(pr.data.club_id).trim()) {
+                        clubKey = String(pr.data.club_id).trim();
+                        try {
+                            var mp = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+                            mp.club_id = clubKey;
+                            localStorage.setItem('mi_perfil', JSON.stringify(mp));
+                        } catch (e) {}
+                    }
+                }
+            }
+
+            var su = sess && sess.data && sess.data.session && sess.data.session.user;
+            if (su && (!nombreAdmin || nombreAdmin === 'Club admin')) {
+                var meta = su.user_metadata || {};
+                if (meta.full_name && String(meta.full_name).trim()) nombreAdmin = String(meta.full_name).trim();
+                else if (meta.name && String(meta.name).trim()) nombreAdmin = String(meta.name).trim();
+                else if (su.email) nombreAdmin = String(su.email).split('@')[0];
+            }
+
+            document.getElementById('ct-header-name').textContent = nombreAdmin;
+            document.getElementById('ct-header-avatar').textContent = ctIniciales(nombreAdmin);
+
+            if (!clubKey) {
+                document.getElementById('ct-lbl-club').textContent = 'Sin club asignado';
+                document.getElementById('ct-kpi-activos').textContent = '—';
+                document.getElementById('ct-kpi-inscritos').textContent = '—';
+                document.getElementById('ct-kpi-ingresos-mesas').textContent = '—';
+                document.getElementById('ct-lista-torneos').innerHTML =
+                    '<div class="ct-list-empty">No hay club vinculado al perfil.</div>';
+                ctSetConfigStatus('Asigná un club al perfil para editar la configuración.', '');
+                return;
+            }
+
+            var g = await getClubByIdOrCodigo(clubKey);
+            if (g.data) {
+                clubUuid = g.data.id;
+                if (g.data.nombre) nombreClub = g.data.nombre;
+                if (g.data.logo_url != null && String(g.data.logo_url).trim()) {
+                    logoUrl = String(g.data.logo_url).trim();
+                }
+            }
+            if (!clubUuid && clubKey) {
+                var _cr = await supabase.from('clubs').select('id').eq('codigo', clubKey).maybeSingle();
+                if (_cr.data && _cr.data.id) clubUuid = _cr.data.id;
+            }
+            if (!clubUuid && clubKey && ctIsUuid(clubKey)) {
+                var _cr2 = await supabase.from('clubs').select('id').eq('id', clubKey).maybeSingle();
+                if (_cr2.data && _cr2.data.id) clubUuid = _cr2.data.id;
+            }
+
+            document.getElementById('ct-lbl-club').textContent = nombreClub || clubKey || '—';
+
+            var elLogo = document.getElementById('ct-hero-logo');
+            if (elLogo) {
+                if (logoUrl) {
+                    elLogo.src = logoUrl;
+                    elLogo.alt = nombreClub || 'Club';
+                    elLogo.style.display = 'block';
+                } else {
+                    elLogo.removeAttribute('src');
+                    elLogo.alt = '';
+                    elLogo.style.display = 'none';
+                }
+            }
+
+            var clubExtra = { data: null, error: null };
+            if (clubUuid) {
+                clubExtra = await supabase
+                    .from('clubs')
+                    .select('modelo_mesas_torneo, tarifa_hora_mesa_torneo')
+                    .eq('id', clubUuid)
+                    .maybeSingle();
+                if (clubExtra.error) {
+                    console.warn('[club torneos] clubs modelo/tarifa', clubExtra.error);
+                    clubExtra = { data: {}, error: null };
+                }
+            }
+
+            var modeloActual = 'GRATUITO';
+            var tarifaVal = '';
+            if (clubExtra.data && !clubExtra.error) {
+                var m0 = clubExtra.data.modelo_mesas_torneo;
+                if (m0 != null && String(m0).trim()) {
+                    modeloActual = String(m0).trim().toUpperCase();
+                }
+                if (clubExtra.data.tarifa_hora_mesa_torneo != null && clubExtra.data.tarifa_hora_mesa_torneo !== '') {
+                    tarifaVal = String(clubExtra.data.tarifa_hora_mesa_torneo);
+                }
+            }
+            document.getElementById('ct-modelo-lectura').textContent = modeloActual;
+            if (selModelo) {
+                selModelo.value = ['GRATUITO', 'COBRADO', 'MIXTO'].indexOf(modeloActual) >= 0 ? modeloActual : 'GRATUITO';
+            }
+            if (inpTarifa) inpTarifa.value = tarifaVal;
+            ctToggleTarifaRow(selModelo ? selModelo.value : modeloActual);
+
+            async function ctGuardarClubConfig() {
+                if (!clubUuid) {
+                    ctSetConfigStatus('No se pudo resolver el id del club.', 'err');
+                    return;
+                }
+                var modelo = selModelo ? String(selModelo.value || 'GRATUITO').toUpperCase() : 'GRATUITO';
+                var payload = { modelo_mesas_torneo: modelo };
+                if (modelo === 'COBRADO' || modelo === 'MIXTO') {
+                    var t = parseFloat((inpTarifa && inpTarifa.value) || '0', 10);
+                    payload.tarifa_hora_mesa_torneo = isNaN(t) ? 0 : t;
+                } else {
+                    payload.tarifa_hora_mesa_torneo = null;
+                }
+                ctSetConfigStatus('Guardando…', '');
+                var up = await patchClub(clubUuid, payload);
+                if (up.error) {
+                    ctSetConfigStatus(up.error.message || 'Error al guardar', 'err');
+                    return;
+                }
+                document.getElementById('ct-modelo-lectura').textContent = modelo;
+                ctSetConfigStatus('Guardado.', 'ok');
+                setTimeout(function () {
+                    ctSetConfigStatus('', '');
+                }, 2500);
+            }
+
+            function ctScheduleSave() {
+                if (_saveTimer) clearTimeout(_saveTimer);
+                _saveTimer = setTimeout(ctGuardarClubConfig, 400);
+            }
+
+            if (selModelo) {
+                selModelo.addEventListener('change', function () {
+                    ctToggleTarifaRow(selModelo.value);
+                    ctScheduleSave();
+                });
+            }
+            if (inpTarifa) {
+                inpTarifa.addEventListener('change', ctScheduleSave);
+                inpTarifa.addEventListener('blur', ctGuardarClubConfig);
+            }
+
+            var estados = ctEstadosActivos();
+            var qClubUuid = clubUuid;
+
+            if (!qClubUuid) {
+                document.getElementById('ct-kpi-activos').textContent = '—';
+                document.getElementById('ct-kpi-inscritos').textContent = '—';
+                document.getElementById('ct-kpi-ingresos-mesas').textContent = '—';
+                document.getElementById('ct-lista-torneos').innerHTML =
+                    '<div class="ct-list-empty">No se pudo resolver el UUID del club para listar torneos.</div>';
+            } else {
+            var torActivos = await supabase
+                .from('torneos')
+                .select('id')
+                .eq('club_id', qClubUuid)
+                .in('estado', estados);
+
+            var idsActivos = [];
+            if (torActivos.data && !torActivos.error) {
+                idsActivos = torActivos.data.map(function (r) {
+                    return r.id;
+                });
+            }
+            document.getElementById('ct-kpi-activos').textContent =
+                torActivos.error ? '—' : String(idsActivos.length);
+
+            var totalIns = 0;
+            if (idsActivos.length && !torActivos.error) {
+                var insQ = await supabase
+                    .from('inscripciones')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('estado', 'ACTIVO')
+                    .in('torneo_id', idsActivos);
+                if (!insQ.error && insQ.count != null) totalIns = insQ.count;
+            }
+            document.getElementById('ct-kpi-inscritos').textContent = torActivos.error ? '—' : String(totalIns);
+
+            // Usamos la lista completa de torneos del club que ya se carga abajo (lista)
+            // idsClub se construye después de cargar lista — ver paso siguiente
+
+            var lista = await supabase
+                .from('torneos')
+                .select('*')
+                .eq('club_id', qClubUuid)
+                .order('created_at', { ascending: false });
+
+            var idsLista = [];
+            if (lista.data && !lista.error) {
+                idsLista = lista.data.map(function (r) {
+                    return r.id;
+                });
+            }
+
+            let mesasError = false;
+            var sumMesas = 0;
+            if (idsLista.length) {
+                var cob = await supabase
+                    .from('torneo_mesas')
+                    .select('costo_mesas')
+                    .eq('aprobado_club', true)
+                    .in('torneo_id', idsLista);
+                if (cob.data && !cob.error) {
+                    cob.data.forEach(function (row) {
+                        sumMesas += parseFloat(row.costo_mesas) || 0;
+                    });
+                } else if (cob.error) {
+                    mesasError = true;
+                }
+            }
+            if (mesasError) {
+                document.getElementById('ct-kpi-ingresos-mesas').textContent = '—';
+            } else {
+                document.getElementById('ct-kpi-ingresos-mesas').textContent = ctFmtMoney(sumMesas);
+            }
+
+            var zona = document.getElementById('ct-lista-torneos');
+            if (lista.error || !lista.data) {
+                zona.innerHTML =
+                    '<div class="ct-list-empty">No se pudo cargar la lista. ' +
+                    (lista.error ? String(lista.error.message || '') : '') +
+                    '</div>';
+            } else if (!lista.data.length) {
+                zona.innerHTML = '<div class="ct-list-empty">No hay torneos registrados para este club.</div>';
+            } else {
+                var orgIds = [];
+                lista.data.forEach(function (t) {
+                    if (t.organizador_id) orgIds.push(t.organizador_id);
+                });
+                var orgMap = {};
+                if (orgIds.length) {
+                    var profs = await supabase
+                        .from('profiles')
+                        .select('id, nombre_completo')
+                        .in('id', orgIds);
+                    if (profs.data && !profs.error) {
+                        profs.data.forEach(function (p) {
+                            orgMap[p.id] = p.nombre_completo || '—';
+                        });
+                    }
+                }
+                zona.innerHTML = lista.data
+                    .map(function (t) {
+                        var orgNombre = t.organizador_id ? orgMap[t.organizador_id] || '—' : '—';
+                        var nom = t.nombre || 'Sin nombre';
+                        var cod = t.codigo ? ' · ' + t.codigo : '';
+                        return (
+                            '<div class="ct-torneo-card">' +
+                            '<div class="ct-torneo-card__tit">' +
+                            nom +
+                            '</div>' +
+                            '<div class="ct-torneo-card__meta">' +
+                            'Organizador: ' +
+                            orgNombre +
+                            '<br>Inicio: ' +
+                            ctFmtFecha(t.fecha_inicio) +
+                            cod +
+                            '</div>' +
+                            '<span class="ct-torneo-estado">' +
+                            String(t.estado || '—') +
+                            '</span>' +
+                            '</div>'
+                        );
+                    })
+                    .join('');
+            }
+            }
+        } catch (err) {
+            console.warn('[club torneos]', err);
+            document.getElementById('ct-lista-torneos').innerHTML =
+                '<div class="ct-list-empty">Error al cargar datos.</div>';
+        }
+    });
+})();
+</script>
+</body>
+</html>

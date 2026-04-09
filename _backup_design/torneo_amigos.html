@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script type="module">
+        import { getSession } from '/js/auth-manager.js';
+        const s = await getSession();
+        if (!s?.data?.user) {
+            const next = encodeURIComponent(
+                (window.location.pathname || '') + (window.location.search || '')
+            );
+            window.location.replace('/login.html?next=' + next);
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d4af37">
+    <title>Torneo entre amigos — DeCarambola</title>
+    <style>
+        :root { --oro:#d4af37; --negro:#0b0b0b; --neon:#2eff70; --azul:#3498db; --rojo:#e74c3c; --g1:#1a1a1a; --g2:#111; --g3:#0a0a0a; }
+        * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body { background:var(--negro); color:#fff; font-family:'Arial Black',Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
+
+        .header { width:100%; background:#000; border-bottom:1px solid var(--g1); padding:14px 18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; position:sticky; top:0; z-index:50; }
+        .header-top-am { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; width:100%; }
+        .header-main { display:flex; align-items:center; gap:10px; }
+        .header-logo {
+            width:52px; height:52px;
+            border-radius:50%;
+            overflow:hidden;
+            display:flex; align-items:center; justify-content:center;
+            background:#111;
+            border:1px solid #222;
+        }
+        .header-tit { color:var(--oro); font-size:0.95rem; letter-spacing:3px; }
+        .header-sub { color:#333; font-size: 0.6rem; letter-spacing:2px; margin-top:2px; }
+        .header-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; width:100%; }
+        .btn-hdr {
+            background:rgba(10,10,10,0.95); border:1px solid var(--g1); color:#888;
+            padding:8px 12px; border-radius:10px; font-size:0.52rem; cursor:pointer;
+            text-decoration:none; font-family:'Arial Black',sans-serif; font-weight:600;
+            letter-spacing:0.06em; transition:border-color 0.15s,color 0.15s;
+        }
+        .btn-hdr:hover, .btn-hdr:focus-visible { border-color:rgba(212,175,55,0.35); color:var(--oro); outline:none; }
+
+        .wrap { width:95vw; max-width:500px; padding-top:14px; padding-bottom:90px; }
+
+        .sec-tit { font-size:0.65rem; color:#333; letter-spacing:3px; margin:16px 0 10px; border-left:3px solid var(--g1); padding-left:10px; }
+
+        .form-card {
+            background:var(--g3);
+            border:1px solid var(--g1);
+            border-radius:20px;
+            padding:18px 16px 20px;
+            margin-bottom:14px;
+        }
+        .form-titulo {
+            font-size:0.8rem;
+            letter-spacing:3px;
+            color:var(--oro);
+            margin-bottom:12px;
+        }
+        .form-grupo { margin-bottom:12px; }
+        .form-label {
+            display:block;
+            font-size:0.55rem;
+            color:#666;
+            letter-spacing:2px;
+            margin-bottom:4px;
+        }
+        .form-input, .form-select {
+            width:100%;
+            background:#000;
+            border:1px solid #1a1a1a;
+            border-radius:10px;
+            padding:10px 12px;
+            color:#fff;
+            font-family:'Arial Black',sans-serif;
+            font-size:0.8rem;
+            outline:none;
+        }
+        .form-input::placeholder { color:#444; }
+        .form-row { display:flex; gap:10px; }
+        .form-row .form-grupo { flex:1; margin-bottom:10px; }
+        .help-text {
+            font-size:0.55rem;
+            color:#444;
+            letter-spacing:1px;
+            margin-top:4px;
+        }
+        .badge-info {
+            font-size:0.5rem;
+            color:#777;
+            background:#050505;
+            border:1px solid #1a1a1a;
+            border-radius:10px;
+            padding:8px 10px;
+            line-height:1.6;
+            margin-bottom:10px;
+        }
+        .btn-primary {
+            width:100%;
+            padding:14px;
+            background:linear-gradient(135deg,var(--neon),#18aa45);
+            color:#000;
+            border:none;
+            border-radius:16px;
+            font-size:0.85rem;
+            font-family:'Arial Black',sans-serif;
+            letter-spacing:2px;
+            cursor:pointer;
+            margin-top:4px;
+        }
+        .btn-primary:active { transform:scale(0.97); }
+        .btn-sec {
+            width:100%;
+            padding:12px;
+            background:#111;
+            border:1px solid #333;
+            color:#777;
+            border-radius:14px;
+            font-size:0.75rem;
+            font-family:'Arial Black',sans-serif;
+            letter-spacing:2px;
+            cursor:pointer;
+            margin-top:8px;
+        }
+        .btn-sec:active { transform:scale(0.97); }
+
+        .nav-bottom {
+            position:fixed; bottom:0; left:0; right:0;
+            background:linear-gradient(transparent,#000 40%);
+            padding:10px 15px 18px;
+            display:flex;
+            gap:8px;
+        }
+        .btn-nav {
+            flex:1;
+            padding:12px;
+            background:var(--g3);
+            border:1px solid var(--g1);
+            border-radius:14px;
+            color:#666;
+            font-size:0.55rem;
+            text-align:center;
+            text-decoration:none;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:6px;
+            font-family:'Arial Black',sans-serif;
+            letter-spacing:1px;
+        }
+        .btn-nav:active { border-color:var(--oro); color:var(--oro); }
+    </style>
+    <link rel="stylesheet" href="css/ux-shell.css">
+    <meta name="theme-color" content="#d4af37">
+</head>
+<body class="dc-ux dc-ux-skin m-root-legacy">
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+
+<div class="header">
+    <div class="header-top-am">
+        <div class="header-main">
+            <div class="header-logo" id="hdr-logo-amigos"></div>
+            <div>
+                <div class="header-tit">🏆 TORNEO ENTRE AMIGOS</div>
+                <div class="header-sub" id="hdr-sub-amigos">Todos contra todos · 2 a 6 jugadores</div>
+            </div>
+        </div>
+        <a href="/jugador/index.html" class="btn-hdr">← MI ESPACIO</a>
+    </div>
+</div>
+
+<div class="wrap">
+    <div class="sec-tit">CONFIGURACIÓN RÁPIDA</div>
+
+    <div class="form-card">
+        <div class="form-titulo">DATOS DEL TORNEO</div>
+
+        <div class="form-grupo">
+            <label class="form-label">NOMBRE DEL TORNEO</label>
+            <input id="ta-nombre" type="text" class="form-input" placeholder="Ej: TORNEO 6 AMIGOS">
+            <div class="help-text">Si lo dejas vacío usaremos "TORNEO ENTRE AMIGOS".</div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-grupo">
+                <label class="form-label">NÚMERO DE JUGADORES</label>
+                <select id="ta-jugadores" class="form-select">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6" selected>6</option>
+                </select>
+                <div class="help-text">Todos juegan contra todos. Nadie sale.</div>
+            </div>
+            <div class="form-grupo">
+                <label class="form-label">META PUNTOS POR DUELO</label>
+                <input id="ta-meta" type="number" class="form-input" min="1" max="999" value="25">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-grupo">
+                <label class="form-label">INSCRIPCIÓN POR JUGADOR</label>
+                <input id="ta-insc" type="number" class="form-input" min="0" step="1000" placeholder="0 = GRATIS" value="0">
+            </div>
+            <div class="form-grupo">
+                <label class="form-label">FECHA Y HORA</label>
+                <input id="ta-fecha" type="datetime-local" class="form-input">
+            </div>
+        </div>
+
+        <div class="form-grupo">
+            <label class="form-label">LUGAR DE ENCUENTRO *</label>
+            <input id="ta-lugar" type="text" class="form-input" placeholder="Ej: Billar de confianza · Dirección">
+            <div class="help-text">Dónde se jugará este torneo entre amigos.</div>
+        </div>
+
+        <div class="form-grupo">
+            <label class="form-label">MODALIDAD DE JUEGO</label>
+            <select id="ta-modal" class="form-select">
+                <option value="3 Bandas">3 BANDAS</option>
+                <option value="Libre">LIBRE</option>
+                <option value="Cinco Pinos">CINCO PINOS</option>
+                <option value="Cuadro">CUADRO</option>
+            </select>
+        </div>
+
+        <div class="badge-info">
+            • Este torneo usa el mismo motor de torneos del club, pero está pensado para grupos pequeños de amigos.<br>
+            • El organizador puede ver y gestionar las partidas desde <b>CONTROL TORNEO</b>.<br>
+            • Al crear el torneo, pasarás a la pantalla de <b>inscripciones</b> para añadir a tus amigos.
+        </div>
+
+        <button id="btn-ta-crear" class="btn-primary" onclick="crearTorneoAmigos()">CREAR TORNEO ENTRE AMIGOS</button>
+        <button type="button" class="btn-sec" onclick="location.href='jugador/index.html'">CANCELAR</button>
+    </div>
+</div>
+
+<div class="nav-bottom">
+    <a href="jugador/index.html" class="btn-nav"><span>🎮</span><span>HUB JUGADOR</span></a>
+    <a href="torneos.html" class="btn-nav"><span>🏆</span><span>TORNEOS</span></a>
+    <a href="inscripciones.html" class="btn-nav"><span>🎫</span><span>INSCRIPCIONES</span></a>
+</div>
+
+<script src="core.js"></script>
+<script>
+window.onload = async function() {
+    try {
+        await MasterVIP.init();
+        SESSION.verificarAlCargar('jugador');
+    } catch(e) { console.warn('Init offline:', e); }
+    MasterVIP.applyDesign();
+    var logoEl = document.getElementById('hdr-logo-amigos');
+    if (logoEl && typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) {
+        logoEl.innerHTML = MasterVIP.getLogoHTML(52);
+    }
+};
+
+function crearTorneoAmigos() {
+    var btn = document.getElementById('btn-ta-crear');
+    if (!btn) return;
+
+    var nombre = (document.getElementById('ta-nombre').value || '').trim();
+    if (!nombre) nombre = 'TORNEO ENTRE AMIGOS';
+
+    var jugadores = parseInt(document.getElementById('ta-jugadores').value || '6', 10);
+    if (isNaN(jugadores) || jugadores < 2 || jugadores > 6) {
+        alert('Elige entre 2 y 6 jugadores.');
+        return;
+    }
+
+    var meta = parseInt(document.getElementById('ta-meta').value || '0', 10);
+    if (!meta || meta <= 0) {
+        alert('Define la meta de puntos por duelo.');
+        return;
+    }
+
+    var inscVal = parseFloat(document.getElementById('ta-insc').value || '0');
+    if (inscVal < 0) {
+        alert('La inscripción no puede ser negativa.');
+        return;
+    }
+
+    var fechaVal = document.getElementById('ta-fecha').value;
+    var lugarVal = (document.getElementById('ta-lugar').value || '').trim();
+    var fechaInicio = null;
+    if (fechaVal) {
+        try { fechaInicio = new Date(fechaVal).toISOString(); } catch(e) { fechaInicio = null; }
+    }
+
+    var modalidadJuego = document.getElementById('ta-modal').value || 'Libre';
+
+    if (!lugarVal) {
+        alert('Ingresa el lugar de encuentro del torneo entre amigos.');
+        return;
+    }
+
+    // Identificar creador (jugador actual)
+    var creador = null;
+    try {
+        creador = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+    } catch(e) { creador = null; }
+    var creadorId = creador && (creador.id || creador.cedula || creador.documento || creador.nombre || null);
+
+    var config = {
+        nombre: nombre.toUpperCase(),
+        sistema: 'round-robin',
+        cupoMax: jugadores,
+        inscripcion: isNaN(inscVal) ? 0 : inscVal,
+        baseClub: 0,
+        pctPremios: 80,
+        pctFee: 20,
+        entradaObjetivo: meta,
+        tiempoEntrada: 40,
+        modalidad: 'TORNEO AMIGOS · ' + modalidadJuego,
+        reglamento: 'ORIGEN:AMIGOS',
+        fechaInicio: fechaInicio,
+        lugar_encuentro: lugarVal,
+        tipo: 'AMIGOS',
+        creador_id: creadorId
+    };
+
+    btn.disabled = true;
+    var oldText = btn.textContent;
+    btn.textContent = 'CREANDO TORNEO...';
+
+    (async function() {
+        try {
+            var torneo = await MasterVIP.crearTorneo(config);
+            if (torneo && torneo.id) {
+                localStorage.setItem('TORNEO_ACTIVO_ID', torneo.id);
+            }
+            location.href = 'inscripciones.html';
+        } catch(e) {
+            console.error('Error creando torneo de amigos', e);
+            alert('No se pudo crear el torneo. Verifica tu conexión e inténtalo de nuevo.');
+            btn.disabled = false;
+            btn.textContent = oldText;
+        }
+    })();
+}
+</script>
+<script src="whitelabel.js"></script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+</body>
+</html>
+

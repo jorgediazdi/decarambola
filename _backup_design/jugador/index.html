@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>DeCarambola — Jugador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/css/index-v2.css" />
+<link rel="stylesheet" href="/css/dc-system.css" />
+<style>
+  :root {
+    --dc-bg:           #0a0a0a;
+    --dc-surface:      #111111;
+    --dc-border:       rgba(201,168,76,0.12);
+    --dc-border-hover: rgba(201,168,76,0.32);
+    --dc-gold:         #c9a84c;
+    --dc-gold-dim:     rgba(201,168,76,0.50);
+    --dc-gold-glow:    rgba(201,168,76,0.07);
+    --dc-text:         #f0f0f0;
+    --dc-muted:        #888888;
+    --dc-subtle:       #4a4a4a;
+    --dc-font:         "DM Sans", sans-serif;
+    --dc-display:      "Playfair Display", Georgia, serif;
+    --dc-blue:         #5dade2;
+    --dc-blue-bg:      rgba(52,152,219,0.09);
+    --dc-green:        #27ae60;
+    --dc-red:          #e74c3c;
+    --r:               18px;
+    --r-sm:            12px;
+    --safe-b:          env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--dc-bg);
+    color: var(--dc-text);
+    font-family: var(--dc-font);
+    font-size: 14px;
+    min-height: 100vh;
+    overscroll-behavior-y: contain;
+    -webkit-font-smoothing: antialiased;
+  }
+  #stars { position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(1px 1px at 12% 18%, rgba(201,168,76,.30) 0%,transparent 100%),
+      radial-gradient(1px 1px at 70% 7%,  rgba(201,168,76,.22) 0%,transparent 100%),
+      radial-gradient(1px 1px at 88% 32%, rgba(201,168,76,.18) 0%,transparent 100%),
+      radial-gradient(1px 1px at 28% 58%, rgba(201,168,76,.14) 0%,transparent 100%),
+      radial-gradient(1px 1px at 52% 80%, rgba(201,168,76,.16) 0%,transparent 100%),
+      radial-gradient(1px 1px at 4%  88%, rgba(201,168,76,.10) 0%,transparent 100%); }
+  .wrap { position:relative;z-index:1;max-width:420px;margin:0 auto;padding:0 16px calc(80px + var(--safe-b)) 16px; }
+  .hdr { display:flex;align-items:center;justify-content:space-between;padding:16px 0 10px; }
+  .hdr-left { display:flex;flex-direction:column;gap:2px; }
+  .hdr-titulo { font-family:var(--dc-display);font-size:1.05rem;color:var(--dc-gold);letter-spacing:.4px;line-height:1; }
+  .hdr-sub { font-size:.55rem;color:var(--dc-subtle);letter-spacing:2px;text-transform:uppercase; }
+  .hdr-avatar { width:36px;height:36px;border-radius:50%;background:var(--dc-gold-glow);border:1.5px solid var(--dc-border);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--dc-gold);font-weight:600;cursor:pointer;transition:border-color .2s;flex-shrink:0; }
+  .hdr-avatar:active { border-color:var(--dc-gold); }
+  .hero { background:#0f0f0b;border:1px solid var(--dc-border);border-radius:var(--r);padding:18px 18px 16px;margin:4px 0 12px;position:relative;overflow:hidden; }
+  .hero::after { content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.06) 0%,transparent 70%); }
+  .hero-top { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px; }
+  .hero-nombre { font-family:var(--dc-display);font-size:1.25rem;color:var(--dc-text);line-height:1.2; }
+  .hero-nombre em { font-style:normal;color:var(--dc-gold); }
+  .hero-meta { font-size:.58rem;color:var(--dc-muted);letter-spacing:1.2px;text-transform:uppercase;margin-top:5px; }
+  .hero-prom { background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.22);border-radius:10px;padding:7px 11px;text-align:center;flex-shrink:0; }
+  .hero-prom-val { font-size:1.35rem;font-weight:600;color:var(--dc-gold);line-height:1; }
+  .hero-prom-lbl { font-size:.44rem;color:var(--dc-subtle);letter-spacing:1px;text-transform:uppercase;margin-top:3px; }
+  .nivel-labels { display:flex;justify-content:space-between;font-size:.52rem;color:var(--dc-subtle);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px; }
+  .nivel-bg { background:rgba(255,255,255,.05);border-radius:4px;height:3px;overflow:hidden; }
+  .nivel-fill { height:100%;background:var(--dc-gold);border-radius:4px;transition:width .9s ease;width:0%; }
+  .sin-sesion { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r);padding:32px 24px;text-align:center;margin:12px 0;display:none; }
+  .sin-sesion.show { display:block; }
+  .ss-icono { display:flex;justify-content:center;margin-bottom:14px;color:var(--dc-gold);opacity:.7; }
+  .ss-titulo { font-family:var(--dc-display);font-size:1.1rem;color:var(--dc-gold);margin-bottom:8px; }
+  .ss-desc { font-size:.62rem;color:var(--dc-muted);line-height:1.6;margin-bottom:20px; }
+  .ss-btn { display:inline-block;background:rgba(201,168,76,.10);border:1px solid rgba(201,168,76,.30);color:var(--dc-gold);border-radius:10px;padding:11px 28px;font-size:.6rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:var(--dc-font);text-decoration:none; }
+  .partida-activa { background:var(--dc-blue-bg);border:1px solid rgba(52,152,219,.28);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:none; }
+  .partida-activa.show { display:block; }
+  .pa-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:10px; }
+  .pa-lbl { font-size:.55rem;color:var(--dc-blue);letter-spacing:1.5px;text-transform:uppercase;font-weight:600; }
+  .pa-dot { width:6px;height:6px;border-radius:50%;background:var(--dc-blue);animation:pulso 1.4s ease-in-out infinite; }
+  @keyframes pulso { 0%,100%{opacity:1}50%{opacity:.25} }
+  .pa-body { display:flex;align-items:center;gap:12px; }
+  .pa-info { flex:1; }
+  .pa-rival { font-size:.68rem;color:var(--dc-text);font-weight:500; }
+  .pa-mesa { font-size:.52rem;color:var(--dc-muted);margin-top:2px; }
+  .pa-score { font-size:1.4rem;font-weight:700;color:var(--dc-blue);flex-shrink:0; }
+  .pa-btn { display:block;width:100%;background:rgba(52,152,219,.12);border:1px solid rgba(52,152,219,.35);color:var(--dc-blue);border-radius:var(--r-sm);padding:9px;font-size:.56rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;text-decoration:none;text-align:center;font-family:var(--dc-font);margin-top:10px; }
+  .kpi-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px; }
+  .kpi { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r-sm);padding:12px 8px;text-align:center; }
+  .kpi-val { font-size:1.3rem;font-weight:600;color:var(--dc-gold);line-height:1;margin-bottom:4px; }
+  .kpi-val.g { color:var(--dc-green); }
+  .kpi-val.b { color:var(--dc-blue); }
+  .kpi-lbl { font-size:.5rem;color:var(--dc-subtle);letter-spacing:1.2px;text-transform:uppercase; }
+  .sec { font-family:var(--dc-display);font-size:.6rem;color:var(--dc-gold-dim);letter-spacing:2.5px;text-transform:uppercase;margin:16px 0 9px; }
+  .acc-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px; }
+  .acc { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r-sm);padding:14px 6px 11px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:border-color .18s,background .18s;text-decoration:none;-webkit-tap-highlight-color:transparent;color:var(--dc-gold); }
+  .acc:active { transform:scale(.95);border-color:var(--dc-border-hover);background:rgba(201,168,76,.05); }
+  .acc.activo { background:var(--dc-blue-bg);border-color:rgba(52,152,219,.38);color:var(--dc-blue); }
+  .acc-lbl { font-size:.46rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;text-align:center; }
+  .nav-lista { display:flex;flex-direction:column;gap:8px;margin-bottom:12px; }
+  .nav-item { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r);padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .18s;text-decoration:none;-webkit-tap-highlight-color:transparent; }
+  .nav-item:active { transform:scale(.98);border-color:var(--dc-border-hover); }
+  .nav-ico { width:34px;height:34px;border-radius:10px;background:var(--dc-gold-glow);border:1px solid var(--dc-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--dc-gold); }
+  .nav-info { flex:1; }
+  .nav-titulo { font-size:.62rem;color:var(--dc-gold);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:3px; }
+  .nav-desc { font-size:.56rem;color:var(--dc-muted); }
+  .nav-arrow { color:var(--dc-subtle);font-size:.9rem; }
+  .nav-badge { background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.22);border-radius:10px;padding:3px 8px;font-size:.5rem;color:var(--dc-gold);font-weight:600;display:none; }
+  .nav-badge.show { display:block; }
+  .nav-badge.azul { background:var(--dc-blue-bg);border-color:rgba(52,152,219,.30);color:var(--dc-blue); }
+  .rank-card { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r);padding:15px 16px;margin-bottom:12px; }
+  .rank-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:13px; }
+  .rank-titulo { font-family:var(--dc-display);font-size:.68rem;color:var(--dc-gold);letter-spacing:2px;text-transform:uppercase; }
+  .rank-link { font-size:.52rem;color:var(--dc-subtle);letter-spacing:1px;text-transform:uppercase;text-decoration:none; }
+  .rank-row { display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--dc-border); }
+  .rank-row:last-child { border:none;padding-bottom:0; }
+  .rank-pos { font-size:.58rem;color:var(--dc-subtle);width:16px;text-align:center;flex-shrink:0;font-weight:600; }
+  .rank-pos.or { color:#f0c040; }
+  .rank-pos.pl { color:#aaa; }
+  .rank-pos.br { color:#cd7f32; }
+  .rank-av { width:26px;height:26px;border-radius:50%;background:var(--dc-gold-glow);border:1px solid var(--dc-border);display:flex;align-items:center;justify-content:center;font-size:.52rem;color:var(--dc-gold);font-weight:600;flex-shrink:0; }
+  .rank-av.yo { background:rgba(201,168,76,.16);border-color:rgba(201,168,76,.42); }
+  .rank-nombre { flex:1;font-size:.58rem;color:var(--dc-text); }
+  .rank-cat { font-size:.44rem;color:var(--dc-subtle);display:block;margin-top:2px; }
+  .yo-tag { font-size:.42rem;color:var(--dc-gold);background:rgba(201,168,76,.10);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle; }
+  .rank-prom { font-size:.6rem;color:var(--dc-gold);font-weight:600;flex-shrink:0; }
+  .hist-card { background:var(--dc-surface);border:1px solid var(--dc-border);border-radius:var(--r);padding:15px 16px;margin-bottom:12px; }
+  .hist-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:12px; }
+  .hist-titulo { font-family:var(--dc-display);font-size:.68rem;color:var(--dc-gold);letter-spacing:2px;text-transform:uppercase; }
+  .hist-row { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--dc-border); }
+  .hist-row:last-child { border:none;padding-bottom:0; }
+  .hist-res { width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:700;letter-spacing:.5px;flex-shrink:0; }
+  .hist-res.W { background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.28);color:var(--dc-green); }
+  .hist-res.L { background:rgba(231,76,60,.10);border:1px solid rgba(231,76,60,.22);color:var(--dc-red); }
+  .hist-res.E { background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.20);color:var(--dc-gold); }
+  .hist-info { flex:1; }
+  .hist-rival { font-size:.58rem;color:var(--dc-text);font-weight:500; }
+  .hist-fecha { font-size:.48rem;color:var(--dc-subtle);margin-top:2px; }
+  .hist-score { font-size:.62rem;color:var(--dc-muted);font-weight:600;flex-shrink:0; }
+  .bnav { position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--dc-border);display:flex;padding:8px 0 calc(8px + var(--safe-b)) 0;z-index:100; }
+  .bn { flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;text-decoration:none;-webkit-tap-highlight-color:transparent;padding:5px 4px;transition:opacity .18s;color:var(--dc-subtle); }
+  .bn:active { opacity:.5; }
+  .bn.on { color:var(--dc-gold); }
+  .bn-lbl { font-size:.44rem;letter-spacing:1px;text-transform:uppercase;font-weight:600; }
+  .reveal { animation:fadeUp .38s ease both; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none} }
+  .sk { background:linear-gradient(90deg,#1a1a1a 25%,#222 50%,#1a1a1a 75%);background-size:200% 100%;animation:shim 1.4s infinite;border-radius:6px;display:inline-block; }
+  @keyframes shim { 0%{background-position:200% 0}100%{background-position:-200% 0} }
+  .hidden { display:none!important; }
+
+@media (min-width: 768px) {
+  .wrap {
+    max-width: 520px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .kpi-grid { gap: 12px; }
+  .kpi-val { font-size: 1.6rem; }
+  .acc-grid { gap: 12px; }
+  .acc { padding: 18px 10px 14px; }
+  .acc-lbl { font-size: .52rem; }
+  .hero-nombre { font-size: 1.5rem; }
+  .hero-prom-val { font-size: 1.6rem; }
+}
+
+@media (min-width: 1024px) {
+  .wrap {
+    max-width: 640px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .kpi { padding: 18px 12px; }
+  .kpi-val { font-size: 1.8rem; }
+  .kpi-lbl { font-size: .58rem; }
+  .acc-grid { gap: 14px; }
+  .acc { padding: 20px 12px 16px; gap: 10px; }
+  .acc-lbl { font-size: .55rem; }
+  .hero { padding: 24px 24px 20px; }
+  .hero-nombre { font-size: 1.7rem; }
+  .hero-prom-val { font-size: 1.8rem; }
+  .nav-item { padding: 16px 18px; }
+  .nav-titulo { font-size: .7rem; }
+  .nav-desc { font-size: .62rem; }
+  .rank-card, .hist-card { padding: 18px 20px; }
+  .bnav { max-width: 640px; left: 50%; transform: translateX(-50%); border-radius: 16px 16px 0 0; border-left: 1px solid var(--dc-border); border-right: 1px solid var(--dc-border); }
+  .acc svg { width: 20px; height: 20px; }
+  .nav-ico svg { width: 18px; height: 18px; }
+}
+</style>
+</head>
+<body>
+<div id="auth-check" style="display:none"></div>
+<div id="stars" aria-hidden="true"></div>
+<div class="wrap reveal">
+
+  <header class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-titulo">DeCarambola</div>
+      <div class="hdr-sub">Sensei Billar</div>
+    </div>
+    <div class="hdr-avatar" id="btn-avatar"><span id="hdr-ini">?</span></div>
+  </header>
+
+  <div class="partida-activa" id="card-partida">
+    <div class="pa-head">
+      <span class="pa-lbl">Partida en curso</span>
+      <div class="pa-dot"></div>
+    </div>
+    <div class="pa-body">
+      <div class="pa-info">
+        <div class="pa-rival" id="pa-rival">vs —</div>
+        <div class="pa-mesa"  id="pa-mesa">Mesa —</div>
+      </div>
+      <div class="pa-score" id="pa-score">0 - 0</div>
+    </div>
+    <a href="/mi_partida.html" class="pa-btn">Continuar partida</a>
+  </div>
+
+  <div class="hero" id="hero">
+    <div class="hero-top">
+      <div>
+        <div class="hero-nombre"><em id="h-nombre">Invitado</em></div>
+        <div class="hero-meta" id="h-meta">Categoría · Nivel —</div>
+      </div>
+      <div class="hero-prom">
+        <div class="hero-prom-val" id="h-prom">—</div>
+        <div class="hero-prom-lbl">Promedio</div>
+      </div>
+    </div>
+    <div class="nivel-labels">
+      <span id="h-cat">—</span>
+      <span id="h-pct">0%</span>
+    </div>
+    <div class="nivel-bg"><div class="nivel-fill" id="h-barra"></div></div>
+  </div>
+
+  <div class="sin-sesion" id="sin-sesion">
+    <div class="ss-icono" id="ss-ico"></div>
+    <div class="ss-titulo">Identificate para jugar</div>
+    <div class="ss-desc">Inicia sesión para ver tu perfil, historial de partidas y posición en el ranking.</div>
+    <a href="/login.html" class="ss-btn">Iniciar sesión</a>
+  </div>
+
+  <div class="kpi-grid" id="kpis">
+    <div class="kpi"><div class="kpi-val"   id="k-partidas">—</div><div class="kpi-lbl">Partidas</div></div>
+    <div class="kpi"><div class="kpi-val g" id="k-victorias">—</div><div class="kpi-lbl">Victorias</div></div>
+    <div class="kpi"><div class="kpi-val b" id="k-torneos">—</div><div class="kpi-lbl">Torneos</div></div>
+  </div>
+
+  <p class="sec">Acciones rápidas</p>
+  <div class="acc-grid">
+    <a href="/apps/club/sala/mesas.html" class="acc" id="acc-reservar">
+      <span id="ico-reservar"></span><span class="acc-lbl">Reservar</span>
+    </a>
+    <a href="/reto_crear.html" class="acc" id="acc-retar">
+      <span id="ico-retar"></span><span class="acc-lbl">Retar</span>
+    </a>
+    <a href="/torneo_amigos.html" class="acc" id="acc-torneos">
+      <span id="ico-trofeo-acc"></span><span class="acc-lbl">Torneos</span>
+    </a>
+    <a href="/ranking.html" class="acc" id="acc-ranking">
+      <span id="ico-ranking-acc"></span><span class="acc-lbl">Ranking</span>
+    </a>
+    <a href="/mi_partida.html" class="acc" id="acc-mi-partida">
+      <span id="ico-mi-partida-acc"></span><span class="acc-lbl">Mi partida</span>
+    </a>
+    <a href="/entrenamiento.html" class="acc" id="acc-entrenar">
+      <span id="ico-entrenamiento-acc"></span><span class="acc-lbl">Entrenar</span>
+    </a>
+    <a href="/apps/sensei/index.html" class="acc" id="acc-sensei">
+      <span aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><span class="acc-lbl">Sensei</span>
+    </a>
+  </div>
+
+  <p class="sec">Top del club</p>
+  <div class="rank-card">
+    <div class="rank-head">
+      <span class="rank-titulo">Ranking</span>
+      <a href="/ranking.html" class="rank-link">Ver todo →</a>
+    </div>
+    <div id="ranking-lista">
+      <div class="rank-row">
+        <span class="rank-pos">—</span>
+        <div class="rank-av"></div>
+        <div style="flex:1"><span class="sk" style="width:80px;height:10px"></span></div>
+        <span class="sk" style="width:30px;height:10px"></span>
+      </div>
+    </div>
+  </div>
+
+  <p class="sec">Mi actividad</p>
+  <div class="nav-lista">
+    <a href="/historial.html" class="nav-item">
+      <div class="nav-ico" id="ico-historial"></div>
+      <div class="nav-info"><div class="nav-titulo">Historial de partidas</div><div class="nav-desc">Registros y estadísticas</div></div>
+      <span class="nav-arrow">›</span>
+    </a>
+    <a href="/perfil.html" class="nav-item">
+      <div class="nav-ico" id="ico-perfil-nav"></div>
+      <div class="nav-info"><div class="nav-titulo">Mi perfil</div><div class="nav-desc">Análisis y datos del jugador</div></div>
+      <span class="nav-arrow">›</span>
+    </a>
+    <a href="/torneo_amigos.html" class="nav-item">
+      <div class="nav-ico" id="ico-mis-torneos"></div>
+      <div class="nav-info"><div class="nav-titulo">Mis torneos</div><div class="nav-desc" id="nd-torneos">Inscripciones activas</div></div>
+      <span class="nav-badge azul" id="b-torneos">0</span>
+      <span class="nav-arrow">›</span>
+    </a>
+    <a href="/reto_crear.html" class="nav-item">
+      <div class="nav-ico" id="ico-mis-retos"></div>
+      <div class="nav-info"><div class="nav-titulo">Retos</div><div class="nav-desc" id="nd-retos">Crear o ver pendientes</div></div>
+      <span class="nav-badge" id="b-retos">0</span>
+      <span class="nav-arrow">›</span>
+    </a>
+    <a href="/apps/club/sala/mesas.html" class="nav-item">
+      <div class="nav-ico" id="ico-mis-reservas"></div>
+      <div class="nav-info"><div class="nav-titulo">Mesas del club</div><div class="nav-desc" id="nd-reservas">Reservas y sala</div></div>
+      <span class="nav-arrow">›</span>
+    </a>
+  </div>
+
+  <p class="sec">Últimas partidas</p>
+  <div class="hist-card">
+    <div class="hist-head">
+      <span class="hist-titulo">Recientes</span>
+      <a href="/historial.html" class="rank-link">Ver todo →</a>
+    </div>
+    <div id="historial">
+      <p style="font-size:.58rem;color:var(--dc-subtle);text-align:center;padding:14px 0">Cargando…</p>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bnav">
+  <a href="/jugador/index.html"   class="bn on"><span id="bni-inicio"></span><span class="bn-lbl">Inicio</span></a>
+  <a href="/torneo_amigos.html" class="bn"><span id="bni-torneos"></span><span class="bn-lbl">Torneos</span></a>
+  <a href="/ranking.html" class="bn"><span id="bni-ranking"></span><span class="bn-lbl">Ranking</span></a>
+  <a href="/reto_crear.html"   class="bn"><span id="bni-retos"></span><span class="bn-lbl">Retos</span></a>
+  <a href="/perfil.html"  class="bn"><span id="bni-perfil"></span><span class="bn-lbl">Perfil</span></a>
+</nav>
+
+<script src="/js/dc-icons.js"></script>
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderIcos() {
+  document.getElementById('ico-reservar').innerHTML     = IC.mesa(24);
+  document.getElementById('ico-retar').innerHTML        = IC.reto(24);
+  document.getElementById('ico-trofeo-acc').innerHTML   = IC.trofeo(24);
+  document.getElementById('ico-ranking-acc').innerHTML  = IC.ranking(24);
+  document.getElementById('ico-mi-partida-acc').innerHTML = IC.tacoYbola(24);
+  document.getElementById('ico-entrenamiento-acc').innerHTML = IC.taco(24);
+  document.getElementById('ico-historial').innerHTML    = IC.tacoYbola(20);
+  document.getElementById('ico-perfil-nav').innerHTML   = IC.perfil(20);
+  document.getElementById('ico-mis-torneos').innerHTML  = IC.trofeo(20);
+  document.getElementById('ico-mis-retos').innerHTML    = IC.reto(20);
+  document.getElementById('ico-mis-reservas').innerHTML = IC.mesa(20);
+  document.getElementById('bni-inicio').innerHTML       = IC.taco(22);
+  document.getElementById('bni-torneos').innerHTML      = IC.trofeo(22);
+  document.getElementById('bni-ranking').innerHTML      = IC.ranking(22);
+  document.getElementById('bni-retos').innerHTML        = IC.reto(22);
+  document.getElementById('bni-perfil').innerHTML       = IC.perfil(22);
+  document.getElementById('ss-ico').innerHTML           = IC.tacoYbola(48);
+}
+
+async function init() {
+  renderIcos();
+
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'INITIAL_SESSION') {
+      // Quitar el hide ahora que ya sabemos el estado real
+      document.getElementById('body-hide')?.remove();
+
+      if (!session) {
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.replace('/login.html?next=' + next);
+        return;
+      }
+
+      const uid = session.user.id;
+      const { data: p } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
+      const rol = String(p?.role ?? '').trim().toLowerCase();
+
+      if (rol === 'organizador') { window.location.replace('/apps/organizador/organizador.html'); return; }
+      if (rol === 'club_admin')  { window.location.replace('/apps/club/club.html'); return; }
+      if (rol === 'superadmin')  { window.location.replace('/admin/index.html'); return; }
+
+      // Es jugador — cargar datos
+      await cargarPerfil(uid);
+      await Promise.all([
+        cargarKPIs(uid),
+        cargarRanking(uid),
+        cargarHistorial(uid),
+        cargarPendientes(uid),
+        cargarPartidaActiva(uid),
+      ]);
+    }
+  });
+}
+
+function sinSesion() {
+  document.getElementById('hero').style.display = 'none';
+  document.getElementById('kpis').style.display = 'none';
+  document.getElementById('sin-sesion').classList.add('show');
+}
+
+async function cargarPerfil(uid) {
+  const { data: p } = await supabase.from('profiles').select('nombre_completo, role').eq('id', uid).maybeSingle();
+  if (!p) return;
+  const role = p.role;
+  if (role && String(role).trim() && role !== 'jugador') {
+    window.location.href = '/login.html';
+    return;
+  }
+  const nombre = (p.nombre_completo && String(p.nombre_completo).trim()) || 'Jugador';
+  const parts = nombre.split(/\s+/).filter(Boolean);
+  const ini = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : (nombre.slice(0, 2).toUpperCase() || '?');
+
+  const jRes = await supabase.from('jugadores').select('categoria, promedio, nivel').eq('id', uid).maybeSingle();
+  const j = jRes.data && !jRes.error ? jRes.data : null;
+  let catTxt = '—';
+  let promTxt = '—';
+  let nivelTxt = '—';
+  if (j) {
+    if (j.categoria != null && String(j.categoria).trim()) catTxt = String(j.categoria).trim();
+    if (j.promedio != null && String(j.promedio).trim() !== '') {
+      const prn = parseFloat(j.promedio);
+      promTxt = Number.isFinite(prn) ? prn.toFixed(2) : String(j.promedio).trim();
+    }
+    if (j.nivel != null && String(j.nivel).trim() !== '') nivelTxt = String(j.nivel).trim();
+  }
+
+  const hace7 = new Date();
+  hace7.setDate(hace7.getDate() - 7);
+  const partR = await supabase
+    .from('partidas')
+    .select('jugador1_id, jugador2_id, promedio_j1, promedio_j2')
+    .or(`jugador1_id.eq.${uid},jugador2_id.eq.${uid}`)
+    .gte('created_at', hace7.toISOString());
+  let sum = 0;
+  let cnt = 0;
+  const jugadas = partR.data && !partR.error ? partR.data.length : 0;
+  if (partR.data && !partR.error) {
+    partR.data.forEach(function (row) {
+      const esJ1 = row.jugador1_id === uid;
+      const pr = esJ1 ? row.promedio_j1 : row.promedio_j2;
+      if (pr != null && parseFloat(pr) > 0) {
+        sum += parseFloat(pr);
+        cnt++;
+      }
+    });
+  }
+  const metaPartidas = 5;
+  const pct = Math.min(100, Math.round((jugadas / metaPartidas) * 100));
+  document.getElementById('h-nombre').textContent = nombre;
+  document.getElementById('h-meta').textContent = 'Jugador · Nivel ' + nivelTxt;
+  document.getElementById('h-prom').textContent = promTxt;
+  document.getElementById('h-cat').textContent = catTxt;
+  document.getElementById('h-pct').textContent = pct + '%';
+  document.getElementById('hdr-ini').textContent = ini;
+  setTimeout(function () { document.getElementById('h-barra').style.width = pct + '%'; }, 300);
+}
+
+async function cargarKPIs(uid) {
+  const [{ count: total }, { count: wins }, { count: torn }] = await Promise.all([
+    supabase.from('partidas').select('*', { count: 'exact', head: true }).or(`jugador1_id.eq.${uid},jugador2_id.eq.${uid}`),
+    supabase.from('partidas').select('*', { count: 'exact', head: true }).eq('ganador_id', uid),
+    supabase.from('inscripciones').select('*', { count: 'exact', head: true }).eq('jugador_id', uid).eq('estado', 'ACTIVO'),
+  ]);
+  document.getElementById('k-partidas').textContent = total ?? 0;
+  document.getElementById('k-victorias').textContent = wins ?? 0;
+  document.getElementById('k-torneos').textContent = torn ?? 0;
+  if (torn != null && torn > 0) {
+    const b = document.getElementById('b-torneos');
+    b.textContent = torn;
+    b.classList.add('show');
+    document.getElementById('nd-torneos').textContent = torn + ' inscripción' + (torn > 1 ? 'es' : '') + ' activa' + (torn > 1 ? 's' : '');
+  }
+}
+
+async function cargarRanking(miId) {
+  const topR = await supabase
+    .from('partidas')
+    .select('jugador1_id, jugador2_id, promedio_j1, promedio_j2')
+    .order('created_at', { ascending: false })
+    .limit(100);
+  const cont = document.getElementById('ranking-lista');
+  if (!topR.data || topR.error || !topR.data.length) {
+    cont.innerHTML = '<p style="font-size:.58rem;color:var(--dc-subtle);text-align:center;padding:12px 0">Sin datos aún</p>';
+    return;
+  }
+  const pm = {};
+  topR.data.forEach(function (p) {
+    if (p.jugador1_id && p.promedio_j1 != null && parseFloat(p.promedio_j1) > 0) {
+      if (!pm[p.jugador1_id]) pm[p.jugador1_id] = [];
+      pm[p.jugador1_id].push(parseFloat(p.promedio_j1));
+    }
+    if (p.jugador2_id && p.promedio_j2 != null && parseFloat(p.promedio_j2) > 0) {
+      if (!pm[p.jugador2_id]) pm[p.jugador2_id] = [];
+      pm[p.jugador2_id].push(parseFloat(p.promedio_j2));
+    }
+  });
+  const sorted = Object.keys(pm)
+    .map(function (id) {
+      const arr = pm[id];
+      const avg = arr.reduce(function (a, b) { return a + b; }, 0) / arr.length;
+      return { id: id, avg: avg };
+    })
+    .sort(function (a, b) { return b.avg - a.avg; })
+    .slice(0, 5);
+  if (!sorted.length) {
+    cont.innerHTML = '<p style="font-size:.58rem;color:var(--dc-subtle);text-align:center;padding:12px 0">Sin datos aún</p>';
+    return;
+  }
+  const ids = sorted.map(function (x) { return x.id; });
+  const nomR = await supabase.from('profiles').select('id, nombre_completo').in('id', ids);
+  const nomMap = {};
+  if (nomR.data && !nomR.error) {
+    nomR.data.forEach(function (row) {
+      nomMap[row.id] = row.nombre_completo || '—';
+    });
+  }
+  const cls = ['or', 'pl', 'br', '', ''];
+  cont.innerHTML = sorted.map(function (r, i) {
+    const nom = nomMap[r.id] || '—';
+    const parts = String(nom).trim().split(/\s+/).filter(Boolean);
+    const ini = parts.length >= 2
+      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+      : (String(nom).slice(0, 2).toUpperCase() || '?');
+    const yo = r.id === miId;
+    const prom = r.avg.toFixed(2);
+    return '<div class="rank-row">' +
+      '<span class="rank-pos ' + cls[i] + '">' + (i + 1) + '</span>' +
+      '<div class="rank-av ' + (yo ? 'yo' : '') + '">' + esc(ini) + '</div>' +
+      '<div class="rank-nombre">' + esc(nom) + (yo ? '<span class="yo-tag">TÚ</span>' : '') +
+      '<span class="rank-cat">—</span></div>' +
+      '<span class="rank-prom">' + esc(prom) + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+async function cargarHistorial(uid) {
+  const { data: rows } = await supabase
+    .from('partidas')
+    .select('id,ganador_id,jugador1_id,jugador2_id,promedio_j1,promedio_j2,created_at,pj1:profiles!jugador1_id(nombre_completo),pj2:profiles!jugador2_id(nombre_completo)')
+    .or(`jugador1_id.eq.${uid},jugador2_id.eq.${uid}`)
+    .order('created_at', { ascending: false })
+    .limit(5);
+  const cont = document.getElementById('historial');
+  if (!rows?.length) {
+    cont.innerHTML = '<p style="font-size:.58rem;color:var(--dc-subtle);text-align:center;padding:14px 0">Sin partidas registradas</p>';
+    return;
+  }
+  cont.innerHTML = rows.map(function (p) {
+    const soyJ1 = p.jugador1_id === uid;
+    const rp = soyJ1 ? p.pj2 : p.pj1;
+    const rival = (rp && rp.nombre_completo && String(rp.nombre_completo).trim()) ? rp.nombre_completo : 'Rival';
+    const misP = soyJ1 ? (p.promedio_j1 ?? '—') : (p.promedio_j2 ?? '—');
+    const rivP = soyJ1 ? (p.promedio_j2 ?? '—') : (p.promedio_j1 ?? '—');
+    const res = p.ganador_id === uid ? 'W' : (p.ganador_id ? 'L' : 'E');
+    const lbl = res === 'W' ? 'V' : (res === 'L' ? 'D' : 'E');
+    const fecha = new Date(p.created_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+    return '<div class="hist-row">' +
+      '<div class="hist-res ' + res + '">' + lbl + '</div>' +
+      '<div class="hist-info"><div class="hist-rival">vs ' + esc(rival) + '</div><div class="hist-fecha">' + esc(fecha) + '</div></div>' +
+      '<span class="hist-score">' + esc(String(misP)) + ' - ' + esc(String(rivP)) + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+async function cargarPendientes(uid) {
+  const { count, error } = await supabase
+    .from('retos')
+    .select('*', { count: 'exact', head: true })
+    .eq('retado_id', uid)
+    .eq('estado', 'pendiente');
+  if (error || count == null || count <= 0) return;
+  const b = document.getElementById('b-retos');
+  b.textContent = String(count);
+  b.classList.add('show');
+  document.getElementById('nd-retos').textContent = count + ' reto' + (count > 1 ? 's' : '') + ' pendiente' + (count > 1 ? 's' : '');
+}
+
+async function cargarPartidaActiva(uid) {
+  const { data: p, error } = await supabase
+    .from('partidas')
+    .select('id,jugador1_id,jugador2_id,promedio_j1,promedio_j2,mesa,pj1:profiles!jugador1_id(nombre_completo),pj2:profiles!jugador2_id(nombre_completo)')
+    .or(`jugador1_id.eq.${uid},jugador2_id.eq.${uid}`)
+    .eq('estado', 'en_curso')
+    .limit(1)
+    .maybeSingle();
+  if (error || !p) return;
+  const soyJ1 = p.jugador1_id === uid;
+  const rp = soyJ1 ? p.pj2 : p.pj1;
+  const rival = (rp && rp.nombre_completo && String(rp.nombre_completo).trim()) ? rp.nombre_completo : 'Rival';
+  const misP = soyJ1 ? (p.promedio_j1 ?? 0) : (p.promedio_j2 ?? 0);
+  const rivP = soyJ1 ? (p.promedio_j2 ?? 0) : (p.promedio_j1 ?? 0);
+  document.getElementById('pa-rival').textContent = 'vs ' + rival;
+  document.getElementById('pa-mesa').textContent = p.mesa != null ? 'Mesa ' + p.mesa : 'Mesa —';
+  document.getElementById('pa-score').textContent = misP + ' - ' + rivP;
+  document.getElementById('card-partida').classList.add('show');
+  document.getElementById('acc-mi-partida').classList.add('activo');
+}
+
+document.getElementById('btn-avatar').addEventListener('click', () => { window.location.href = '/perfil.html'; });
+init();
+</script>
+</body>
+</html>

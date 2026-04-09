@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#c9a84c">
+    <title>Salón en vivo — DeCarambola</title>
+    <link rel="stylesheet" href="/css/dc-system.css">
+    <script src="/js/dc-nav.js" defer></script>
+    <style>
+        /* Salón — dc-system: acento #c9a84c, estados por intensidad del dorado */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body.dc-app.dc-ux.dc-ux-skin.m-root-salon {
+            background: var(--dc-bg, #0a0a0a);
+            color: var(--dc-text, #f0f0f0);
+            font-family: var(--dc-font-body, "DM Sans", system-ui, sans-serif) !important;
+            min-height: 100vh;
+        }
+
+        .header { width: 100%; background: var(--dc-bg, #0a0a0a); border-bottom: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12)); padding: 14px 18px; display: flex; align-items: flex-start; justify-content: space-between; position: sticky; top: 0; z-index: 50; flex-wrap: wrap; gap: 12px; }
+        .header-principal { flex: 1; min-width: 200px; }
+        .header-marca { display: flex; align-items: center; gap: 10px; }
+        .header-titulo { font-family: var(--dc-font-display, "Playfair Display", Georgia, serif); color: var(--dc-gold, #c9a84c); font-size: 0.95rem; letter-spacing: 0.12em; }
+        .header-sub { color: var(--dc-text-muted, #888); font-size: 0.5rem; letter-spacing: 2px; margin-top: 2px; }
+        .header-reloj-wrap { margin-top: 8px; }
+        .header-reloj { font-family: var(--dc-font-mono, "JetBrains Mono", monospace); font-size: 0.85rem; color: var(--dc-text-muted, #888); }
+        .header-countdown { font-size: 0.5rem; color: var(--dc-text-subtle, #555); }
+
+        .wrap { max-width: 500px; margin: 0 auto; padding: 16px 18px; }
+
+        .leyenda { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; font-size: 0.5rem; color: var(--dc-text-muted, #888); letter-spacing: 2px; }
+        .leyenda span { display: flex; align-items: center; gap: 6px; }
+        .leyenda .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .leyenda .dot.libre { background: #4caf7d; box-shadow: 0 0 0 2px rgba(76, 175, 125, 0.35); }
+        .leyenda .dot.ocupada { background: #c9a84c; }
+        .leyenda .dot.reservada { background: #4c8bc9; }
+        .leyenda .dot.mantenimiento { background: #555; border: 1px solid rgba(201, 168, 76, 0.25); }
+        .leyenda .dot.fuera { background: #333; }
+
+        .plano-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin: 10px 0 6px; }
+        .plano-etiqueta { color: var(--dc-gold, #c9a84c); font-size: 0.55rem; letter-spacing: 3px; }
+        .plano-metraje { color: var(--dc-text-muted, #888); font-size: 0.52rem; margin-top: 4px; letter-spacing: 1px; }
+        .plano-layout-desc { color: var(--dc-text-subtle, #555); font-size: 0.48rem; margin-top: 3px; letter-spacing: 2px; }
+        .btn-plano-cfg { background: none; border: 1px solid var(--dc-border-hover, rgba(201, 168, 76, 0.3)); color: var(--dc-gold, #c9a84c); padding: 8px 12px; border-radius: 10px; font-size: 0.5rem; cursor: pointer; text-decoration: none; font-family: inherit; font-weight: 600; white-space: nowrap; align-self: center; }
+        .btn-plano-cfg:active { opacity: 0.85; }
+
+        .plano-salón { background: var(--dc-surface, #111111); border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12)); border-radius: 18px; padding: 18px 16px; margin: 14px 0; min-height: 220px; display: grid; gap: 10px; align-content: start; justify-content: center; position: relative; overflow: hidden; box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.35); }
+        .plano-salón.plano-mapa-abs { display: block; width: 100%; max-width: min(100%, 920px); margin-left: auto; margin-right: auto; aspect-ratio: 20 / 15; padding: 12px; box-sizing: border-box; }
+        .mesa-mapa-pos { position: absolute; transform: translate(-50%, -50%); cursor: grab; touch-action: none; }
+        .mesa-mapa-pos:active { cursor: grabbing; }
+        .plano-mapa-abs .mesa-mapa-pos.mesa-celda { width: calc(2.84 / 20 * 100%); height: calc(1.42 / 15 * 100%); min-width: 28px; min-height: 22px; box-sizing: border-box; }
+        .plano-mapa-abs .mesa-celda:active { transform: none; }
+        .plano-mapa-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; font-size: 0.5rem; color: var(--dc-text-muted, #888); letter-spacing: 1px; }
+        .plano-mapa-toolbar button { background: var(--dc-bg, #0a0a0a); border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12)); color: var(--dc-text-muted, #888); padding: 6px 10px; border-radius: 8px; font-size: 0.5rem; cursor: pointer; font-family: inherit; }
+        .plano-mapa-toolbar button.on { border-color: var(--dc-border-hover, rgba(201, 168, 76, 0.3)); color: var(--dc-gold, #c9a84c); }
+        .plano-salón::before { content: ''; position: absolute; inset: 0; border-radius: 16px; pointer-events: none; background: radial-gradient(ellipse 85% 55% at 50% -5%, rgba(201, 168, 76, 0.1), transparent 52%); }
+        .plano-fila { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+        .mesa-celda { width: 64px; height: 64px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.5rem; text-align: center; padding: 4px; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s, box-shadow 0.2s; position: relative; z-index: 1; overflow: hidden; }
+        .mesa-celda:active { transform: scale(0.96); }
+        .mesa-celda.estado-libre { background: rgba(76, 175, 125, 0.12); border-color: rgba(76, 175, 125, 0.85); color: #4caf7d; }
+        .mesa-celda.estado-ocupada { background: rgba(201, 168, 76, 0.06); border-color: #c9a84c; color: #c9a84c; }
+        .mesa-celda.estado-reservada { background: rgba(76, 139, 201, 0.12); border-color: rgba(76, 139, 201, 0.85); color: #4c8bc9; }
+        .mesa-celda.estado-mantenimiento { background: rgba(80, 80, 80, 0.25); border-color: rgba(201, 168, 76, 0.2); color: #888; }
+        .mesa-celda.estado-fuera_servicio { background: rgba(40, 40, 40, 0.5); border-color: #444; color: #666; }
+
+        @keyframes luz-libre { 0%, 100% { box-shadow: 0 0 6px rgba(76, 175, 125, 0.25), inset 0 0 8px rgba(76, 175, 125, 0.04); } 50% { box-shadow: 0 0 14px rgba(76, 175, 125, 0.45), inset 0 0 12px rgba(76, 175, 125, 0.08); } }
+        @keyframes luz-ocupada { 0%, 100% { box-shadow: 0 0 6px rgba(201, 168, 76, 0.35); } 50% { box-shadow: 0 0 16px rgba(201, 168, 76, 0.55); } }
+        @keyframes luz-reservada { 0%, 100% { box-shadow: 0 0 5px rgba(76, 139, 201, 0.35); } 50% { box-shadow: 0 0 12px rgba(76, 139, 201, 0.45); } }
+        @keyframes luz-mantenimiento { 0%, 100% { box-shadow: 0 0 4px rgba(120, 120, 120, 0.2); } 50% { box-shadow: 0 0 10px rgba(140, 140, 140, 0.3); } }
+        @keyframes luz-fuera { 0%, 100% { box-shadow: 0 0 3px rgba(80, 80, 80, 0.25); } 50% { box-shadow: 0 0 8px rgba(100, 100, 100, 0.3); } }
+
+        .mesa-celda.luz-mesa.estado-libre { animation: luz-libre 2.35s ease-in-out infinite; }
+        .mesa-celda.luz-mesa.estado-ocupada { animation: luz-ocupada 1.15s ease-in-out infinite; }
+        .mesa-celda.luz-mesa.estado-reservada { animation: luz-reservada 1.9s ease-in-out infinite; }
+        .mesa-celda.luz-mesa.estado-mantenimiento { animation: luz-mantenimiento 2s ease-in-out infinite; }
+        .mesa-celda.luz-mesa.estado-fuera_servicio { animation: luz-fuera 2.8s ease-in-out infinite; }
+        .mesa-celda .nom { font-weight: 700; font-size: 0.65rem; color: var(--dc-text, #f0f0f0); }
+        .mesa-celda .tipo { font-size: 0.45rem; color: var(--dc-text-muted, #888); }
+        .mesa-celda .crono { font-size: 0.55rem; margin-top: 2px; font-family: var(--dc-font-mono, "JetBrains Mono", monospace); }
+        .mesa-celda .costo { font-size: 0.48rem; color: var(--dc-text-muted, #888); }
+        .mesa-celda .emoji-estado { position: absolute; top: 4px; right: 4px; font-size: 0.6rem; }
+        .mesa-celda .mesa-cam-icon { position: absolute; top: 3px; left: 5px; font-size: 0.52rem; opacity: 0.95; z-index: 4; line-height: 1; cursor: pointer; }
+        .mesa-celda .mesa-cam-icon.inactiva { opacity: 0.22; filter: grayscale(1); cursor: default; pointer-events: none; }
+
+        .actualizar-info { text-align: center; color: var(--dc-text-subtle, #555); font-size: 0.48rem; margin-top: 8px; }
+
+        .modal-mesa { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .modal-mesa.visible { display: flex; }
+        .modal-caja { background: var(--dc-surface, #111111); border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12)); border-radius: 20px; padding: 20px; max-width: 340px; width: 100%; }
+        .modal-caja.modal-caja--overlay { max-width: min(440px, 96vw); }
+        .modal-titulo { font-family: var(--dc-font-display, "Playfair Display", Georgia, serif); color: var(--dc-gold, #c9a84c); font-size: 0.9rem; margin-bottom: 14px; letter-spacing: 2px; }
+        .modal-acciones { display: flex; flex-direction: column; gap: 10px; }
+        .modal-btn { padding: 14px; border-radius: 14px; border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12)); font-size: 0.7rem; font-family: inherit; font-weight: 600; cursor: pointer; letter-spacing: 1px; background: var(--dc-surface2, #1a1a1a); color: var(--dc-text-muted, #888); }
+        .modal-btn.abrir { background: rgba(201, 168, 76, 0.12); color: #e8c97a; border-color: rgba(201, 168, 76, 0.35); }
+        .modal-btn.cerrar { background: rgba(201, 168, 76, 0.08); color: var(--dc-gold, #c9a84c); border-color: var(--dc-border-hover, rgba(201, 168, 76, 0.3)); }
+        .modal-btn.mant { background: rgba(90, 90, 90, 0.35); color: #aaa; border-color: #555; }
+        .modal-btn.reservar { background: rgba(201, 168, 76, 0.2); color: var(--dc-gold-light, #e8c97a); border-color: var(--dc-gold, #c9a84c); }
+        .modal-btn.fuera { background: rgba(50, 50, 50, 0.6); color: #888; border-color: #444; }
+        .modal-btn.libre { background: rgba(201, 168, 76, 0.1); color: var(--dc-gold, #c9a84c); border-color: var(--dc-border, rgba(201, 168, 76, 0.12)); }
+        .modal-btn.ficha { background: rgba(201, 168, 76, 0.15); color: var(--dc-gold, #c9a84c); border-color: var(--dc-border-hover, rgba(201, 168, 76, 0.3)); }
+        .modal-btn.cerrar-modal { background: var(--dc-bg, #0a0a0a); color: var(--dc-text-muted, #888); border-color: var(--dc-border, rgba(201, 168, 76, 0.12)); }
+        .modal-crono { font-size: 1.4rem; font-family: var(--dc-font-mono, "JetBrains Mono", monospace); color: var(--dc-text, #f0f0f0); margin: 10px 0; text-align: center; }
+        .modal-costo { font-size: 0.65rem; color: var(--dc-text-muted, #888); text-align: center; margin-bottom: 10px; }
+        .modal-overlay-url { display: none; margin-bottom: 12px; text-align: left; }
+        .modal-overlay-url.visible { display: block; }
+        .modal-overlay-url-label { font-size: 0.58rem; color: var(--dc-text-muted, #888); letter-spacing: 0.06em; margin-bottom: 6px; text-align: center; line-height: 1.35; }
+        .modal-overlay-url-input {
+            width: 100%; font-size: 0.5rem; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12));
+            background: var(--dc-bg, #0a0a0a); color: var(--dc-text, #f0f0f0); font-family: var(--dc-font-mono, "JetBrains Mono", monospace); word-break: break-all;
+            box-sizing: border-box;
+        }
+        .modal-overlay-url .modal-btn { margin-top: 8px; width: 100%; }
+        .modal-ticket-body { font-size: 0.55rem; color: var(--dc-text, #f0f0f0); line-height: 1.45; white-space: pre-wrap; max-height: 42vh; overflow: auto; text-align: left; margin: 12px 0; padding: 12px; background: var(--dc-bg, #0a0a0a); border-radius: 12px; border: 1px solid var(--dc-border, rgba(201, 168, 76, 0.12)); font-family: var(--dc-font-mono, "JetBrains Mono", monospace); }
+        .vacio { text-align: center; color: var(--dc-text-muted, #888); font-size: 0.6rem; padding: 20px; }
+
+        /* Vista jugador en salón: menos ruido operativo */
+        body.salon-vista-jugador .header-reloj-wrap { display: none !important; }
+        body.salon-vista-jugador .btn-plano-cfg { display: none !important; }
+        body.salon-vista-jugador .plano-mapa-toolbar { display: none !important; }
+        body.salon-vista-jugador .mesa-celda .crono,
+        body.salon-vista-jugador .mesa-celda .costo { display: none !important; }
+        body.salon-vista-jugador .mesa-celda .tipo-cliente-sesion { display: none !important; }
+        body.salon-vista-jugador .mesa-celda .mesa-cam-icon { display: none !important; }
+        body.salon-vista-jugador .mesa-grip { display: none !important; pointer-events: none !important; }
+        body.salon-vista-jugador .leyenda span:nth-child(4),
+        body.salon-vista-jugador .leyenda span:nth-child(5) { display: none !important; }
+        body.salon-vista-jugador #modal_crono,
+        body.salon-vista-jugador #modal_costo,
+        body.salon-vista-jugador #modal_overlay_url { display: none !important; }
+        body.salon-vista-jugador #modal_acciones .modal-btn:not(.reservar):not(.cerrar-modal) { display: none !important; }
+
+        /* ── MODO TV (pantalla mostrador) ── */
+        body.salon-vista-tv { cursor: none; overflow: hidden; }
+        body.salon-vista-tv .header { display: none !important; }
+        body.salon-vista-tv .bottom-nav { display: none !important; }
+        body.salon-vista-tv .leyenda { display: none !important; }
+        body.salon-vista-tv .plano-mapa-toolbar { display: none !important; }
+        body.salon-vista-tv .btn-plano-cfg { display: none !important; }
+        body.salon-vista-tv .actualizar-info { display: none !important; }
+        body.salon-vista-tv .wrap { padding: 0; max-width: 100%; }
+        body.salon-vista-tv .plano-salón { border-radius: 0; border: none; min-height: 100vh; padding: 24px; }
+        body.salon-vista-tv .mesa-celda { width: 110px; height: 110px; font-size: 0.75rem; border-radius: 18px; pointer-events: none; }
+        body.salon-vista-tv .mesa-celda .nom { font-size: 1rem; }
+        body.salon-vista-tv #modal_mesa,
+        body.salon-vista-tv #modal_ticket_mesa,
+        body.salon-vista-tv #modal_crono,
+        body.salon-vista-tv #modal_costo { display: none !important; }
+
+        /* ── ALERTA MESA >3h ── */
+        .mesa-alerta-3h { outline: 2px solid #e74c3c !important; }
+        .mesa-alerta-3h::after { content: '⚠'; position: absolute; top: 4px; right: 5px; font-size: 0.65rem; line-height: 1; }
+        #dc-alerta-3h { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #2a1010; border: 1px solid rgba(231,76,60,0.5); color: #ffc9c9; padding: 10px 18px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; z-index: 9999; display: none; text-align: center; max-width: min(92vw, 380px); }
+        body.salon-vista-tv #dc-alerta-3h { font-size: 1.1rem; padding: 14px 24px; }
+
+        /* ── OBS CONTROLS ── */
+        #obs-dock { display:none; margin-top:10px; padding-top:10px; border-top:1px solid rgba(201,168,76,0.12); }
+        #obs-dock.visible { display:block; }
+        .obs-status { font-size:0.55rem; color:#888; letter-spacing:1px; margin-bottom:8px; text-align:center; }
+        .obs-status.on { color:#4caf7d; }
+        .obs-btn { width:100%; padding:9px; border-radius:10px; font-size:0.6rem; font-weight:700; letter-spacing:0.06em; cursor:pointer; border:1px solid rgba(201,168,76,0.25); background:#1a1a1a; color:#c9a84c; font-family:inherit; margin-bottom:6px; }
+        .obs-btn:active { opacity:0.8; }
+        body.salon-vista-jugador #obs-dock { display:none !important; }
+        body.salon-vista-barman #obs-dock { display:none !important; }
+        body.salon-vista-tv #obs-dock { display:none !important; }
+
+        /* ── MODO BARMAN ── */
+        body.salon-vista-barman .btn-plano-cfg { display: none !important; }
+        body.salon-vista-barman .plano-mapa-toolbar { display: none !important; }
+        body.salon-vista-barman .bottom-nav { display: none !important; }
+        body.salon-vista-barman .mesa-celda { pointer-events: none; width: 100px; height: 100px; }
+        body.salon-vista-barman .mesa-celda .nom { font-size: 0.9rem; }
+        #barman-dock {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #111;
+            border-top: 1px solid rgba(201, 168, 76, 0.2);
+            padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px));
+            z-index: 200;
+        }
+        body.salon-vista-barman #barman-dock {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        body.salon-vista-barman .wrap { padding-bottom: 80px; }
+        .barman-dock-btn {
+            background: #1a1a1a;
+            border: 1px solid rgba(201, 168, 76, 0.25);
+            color: #c9a84c;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: inherit;
+        }
+        .barman-dock-btn:active { opacity: 0.8; }
+    </style>
+    <link rel="stylesheet" href="/css/ux-shell.css">
+<link rel="stylesheet" href="/css/bottom-nav.css">
+</head>
+<body class="dc-app dc-ux dc-ux-skin m-root-salon">
+
+<div id="dc-alerta-3h"></div>
+
+<div class="stars" id="stars-bg" aria-hidden="true"></div>
+
+
+<div class="header">
+    <div class="header-principal">
+        <div class="header-marca">
+            <span id="header-logo"></span>
+            <div>
+                <div class="header-titulo">SALÓN EN VIVO</div>
+                <div class="header-sub" id="lbl-salon">Cargando…</div>
+            </div>
+        </div>
+        <div class="header-reloj-wrap">
+            <div class="header-reloj" id="header-reloj">--:--:--</div>
+            <div class="header-countdown" id="header-countdown">Actualizando en 30s</div>
+        </div>
+        <div id="obs-toggle-wrap" style="margin-top:8px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.5rem;color:#888;letter-spacing:1px;">
+                <input type="checkbox" id="obs-toggle" onchange="obsHandleToggle(this.checked)" style="accent-color:#c9a84c;">
+                OBS ENLAZADO
+            </label>
+        </div>
+    </div>
+</div>
+
+<div class="wrap dc-reveal">
+    <div class="leyenda">
+        <span><span class="dot libre"></span> LIBRE</span>
+        <span><span class="dot ocupada"></span> OCUPADA</span>
+        <span><span class="dot reservada"></span> RESERVADA</span>
+        <span><span class="dot mantenimiento"></span> MANTENIMIENTO</span>
+        <span><span class="dot fuera"></span> FUERA DE SERVICIO</span>
+    </div>
+    <div class="plano-header">
+        <div>
+            <div class="plano-etiqueta">↳ PLANO DEL SALÓN (como en el paso 3 del configurador)</div>
+            <div class="plano-metraje" id="plano_metraje"></div>
+            <div class="plano-layout-desc" id="plano_layout_desc"></div>
+        </div>
+        <a href="mesas_config.html" class="btn-plano-cfg">⚙ CONFIGURAR SALÓN</a>
+    </div>
+    <div class="plano-mapa-toolbar" id="plano_mapa_toolbar" style="display:none;" data-solo-admin="true">
+        <span>Vista:</span>
+        <button type="button" id="btn_vista_grid" class="on">Cuadrícula</button>
+        <button type="button" id="btn_vista_mapa">Mapa (arrastrar mesas)</button>
+        <span style="color:#555;">Posiciones se guardan en Supabase (posicion_x / posicion_y).</span>
+    </div>
+    <div class="plano-salón" id="plano_salon"></div>
+    <div class="actualizar-info" id="actualizar_info">Sincronización con Supabase…</div>
+</div>
+
+<div class="modal-mesa" id="modal_mesa">
+    <div class="modal-caja">
+        <div class="modal-titulo" id="modal_titulo">—</div>
+        <div class="modal-crono" id="modal_crono">—</div>
+        <div class="modal-costo" id="modal_costo"></div>
+        <div class="modal-overlay-url" id="modal_overlay_url" aria-live="polite">
+            <div class="modal-overlay-url-label">OBS · Browser Source — marcador (copiá y pegá en OBS)</div>
+            <input type="text" class="modal-overlay-url-input" id="modal_overlay_url_input" readonly value="" autocomplete="off" spellcheck="false">
+            <button type="button" class="modal-btn ficha" onclick="copiarUrlOverlayMesa()">Copiar URL del overlay</button>
+        </div>
+        <div class="modal-acciones" id="modal_acciones"></div>
+        <div id="obs-dock">
+            <div class="obs-status" id="obs-status-txt">OBS — sin conectar</div>
+            <button type="button" class="obs-btn" id="obs-btn-stream" onclick="obsToggleStream()">▶ INICIAR STREAM</button>
+        </div>
+        <button class="modal-btn cerrar-modal" onclick="cerrarModal()">Cerrar</button>
+    </div>
+</div>
+
+<div class="modal-mesa" id="modal_ticket_mesa" aria-labelledby="modal_ticket_titulo">
+    <div class="modal-caja">
+        <div class="modal-titulo" id="modal_ticket_titulo">COBRO DE MESA</div>
+        <div class="modal-ticket-body" id="modal_ticket_body"></div>
+        <div id="ticket-total-grande" style="font-size:2rem;font-weight:700;color:var(--dc-gold,#c9a84c);text-align:center;margin:10px 0 4px;letter-spacing:0.04em;"></div>
+        <div class="modal-acciones">
+            <button type="button" class="modal-btn abrir" onclick="confirmarLiquidacionMesa()">✓ CONFIRMAR COBRO</button>
+            <button type="button" class="modal-btn cerrar-modal" onclick="cerrarModalTicket()">Volver</button>
+        </div>
+    </div>
+</div>
+
+<div id="barman-dock" style="display:none;">
+    <a href="reservas_jugador.html" class="barman-dock-btn">📅 RESERVAS</a>
+    <a href="/apps/organizador/torneos.html" class="barman-dock-btn">🏆 TORNEOS</a>
+    <a href="?modo=tv" class="barman-dock-btn">📺 PANTALLA TV</a>
+</div>
+
+<script src="/core.js"></script>
+<script src="/session.js"></script>
+<script src="/js/mesas-operacion-onboarding.js"></script>
+<script>
+/** TIMEOUTS de SESSION solo entienden jugador | organizador | partida — mapear desde profiles.role. */
+function _dcSessionRolDesdePerfil(profileRole) {
+    var r = String(profileRole || '').trim().toLowerCase();
+    if (r === 'club_admin' || r === 'superadmin' || r === 'organizador') return 'organizador';
+    return 'jugador';
+}
+import('/js/auth-manager.js').then(function (am) {
+    return am.getSession().then(function (sr) {
+        if (!sr || !sr.data || !sr.data.user) {
+            var path = window.location.pathname + (window.location.search || '');
+            window.location.replace('/login.html?next=' + encodeURIComponent(path));
+            return Promise.reject({ _dcAuthRedirect: true });
+        }
+        return am.getRole();
+    });
+}).then(function (rr) {
+    var rawRol = !rr || rr.error ? '' : rr.data;
+    if (String(rawRol || '').trim().toLowerCase() === 'organizador') {
+        window.location.replace('/apps/organizador/organizador.html');
+        return Promise.reject({ _dcAuthRedirect: true });
+    }
+    var rol = _dcSessionRolDesdePerfil(rawRol);
+    if (rol === 'jugador') document.body.classList.add('salon-vista-jugador');
+    var _tvParam = new URLSearchParams(window.location.search).get('modo');
+    if (_tvParam === 'tv') {
+        document.body.classList.add('salon-vista-tv');
+        countdownSegundos = 15;
+    }
+    if (_tvParam === 'barman') {
+        document.body.classList.add('salon-vista-barman');
+        countdownSegundos = 20;
+        window._dcBarmanMode = true;
+    }
+}).catch(function (e) {
+    if (e && e._dcAuthRedirect) return;
+    console.warn('[sala] gate error', e);
+});
+
+var salonConfig = null;
+var mesasLista = [];
+var sesionesAbiertas = {};
+var mesaSeleccionada = null;
+var intervaloRefresh = null;
+var intervaloCrono = null;
+var countdownSegundos = 30;
+/** grid | mapa — mapa usa posicion_x/y en % (Supabase). */
+var vistaPlano = 'mapa';
+var mapaDrag = { id: null, ptr: null, cont: null };
+var mapaDragMoveEnd = null;
+var mapaDragWinEnd = null;
+var _dcClubApiP = null;
+function _clubApi() {
+    if (!_dcClubApiP) _dcClubApiP = import('/js/api/club-api.js');
+    return _dcClubApiP;
+}
+
+/** Motor de tarifas compartido (js/tarifas-logic.js). Identidad del club: solo localStorage mi_perfil / club_activo. */
+var _tarifasReady = import('/js/tarifas-logic.js').then(function (m) {
+    window.__DC_TARIFAS = m;
+});
+
+function getClubId() {
+    var perfil = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+    if (perfil.club_id) return perfil.club_id;
+    var clubActivo = JSON.parse(localStorage.getItem('club_activo') || 'null');
+    return (clubActivo && clubActivo.id) ? clubActivo.id : null;
+}
+
+function getStreamUrlLocal(m) {
+    if (!m) return '';
+    var u = (m.url_camara || '').trim();
+    if (!u && m.urls_camaras && m.urls_camaras.length && m.urls_camaras[0]) {
+        var first = m.urls_camaras[0];
+        u = (first && typeof first === 'object' && first.url) ? String(first.url).trim() : (typeof first === 'string' ? String(first).trim() : '');
+    }
+    return u || '';
+}
+function dcAbrirStreamMesaIcon(ev, enc) {
+    if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+    try {
+        var u = decodeURIComponent(enc || '');
+        if (u) window.open(u, '_blank', 'noopener,noreferrer');
+    } catch (e) {}
+}
+
+function actualizarReloj() {
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    var el = document.getElementById('header-reloj');
+    if (el) el.textContent = (h<10?'0':'')+h + ':' + (m<10?'0':'')+m + ':' + (s<10?'0':'')+s;
+}
+
+function getSalonTarifas() {
+    return (salonConfig && salonConfig.tarifas) || {};
+}
+
+function _tl() {
+    return window.__DC_TARIFAS;
+}
+
+function parseHMToMinutes(s) {
+    var L = _tl();
+    return L ? L.parseHMToMinutes(s) : 0;
+}
+
+function tarifaBasePorHora(mesa, when) {
+    var L = _tl();
+    var th = parseFloat(mesa.tarifa_hora) || 0;
+    if (!L) return th;
+    return L.tarifaBasePorHora(th, getSalonTarifas(), when);
+}
+
+function descuentoPctAplicable(when) {
+    var L = _tl();
+    if (!L) return 0;
+    return L.descuentoPctAplicable(getSalonTarifas(), when);
+}
+
+function tarifaEfectivaPorHora(mesa, when) {
+    var L = _tl();
+    var th = parseFloat(mesa.tarifa_hora) || 0;
+    if (!L) return th;
+    return L.tarifaEfectivaPorHora(th, getSalonTarifas(), when);
+}
+
+function costoSesionProporcionalMinutos(mesa, inicioMs, finMs) {
+    var L = _tl();
+    var th = parseFloat(mesa.tarifa_hora) || 0;
+    if (!L) return 0;
+    return L.costoSesionProporcionalMinutos(th, getSalonTarifas(), inicioMs, finMs);
+}
+
+async function cargarDatos() {
+    await _tarifasReady;
+    var api = await _clubApi();
+    var clubId = getClubId();
+    salonConfig = { nombre_salon: 'Salón', filas: 2, columnas: 4, tarifas: {} };
+    var salonId = null;
+    if (clubId) {
+        var cfgR = await api.getFirstMesasConfigByClubId(clubId);
+        var row = cfgR.data;
+        if (row) {
+            salonId = row.id;
+            salonConfig = {
+                nombre_salon: row.nombre_salon || 'Salón',
+                filas: row.filas != null ? row.filas : 2,
+                columnas: row.columnas != null ? row.columnas : 4,
+                apertura: row.apertura,
+                cierre: row.cierre,
+                moneda: row.moneda,
+                tarifas: row.tarifas || {},
+                salon_id: row.id,
+                layout_filas: row.layout_filas,
+                metraje: row.metraje
+            };
+        }
+    }
+    document.getElementById('lbl-salon').textContent = salonConfig.nombre_salon || 'Salón';
+
+    var list;
+    if (salonId) {
+        var lr = await api.listMesasBySalonId(salonId);
+        list = lr.data;
+    } else if (clubId) {
+        var lr2 = await api.listMesas(clubId, { orderBy: 'numero' });
+        list = lr2.data;
+    } else {
+        console.warn('cargarDatos: sin clubId — abortando carga de mesas');
+        mesasLista = [];
+        sesionesAbiertas = {};
+        var lbl = document.getElementById('lbl-salon');
+        if (lbl) lbl.textContent = 'Sin club asignado';
+        return;
+    }
+    mesasLista = (list || []).slice(0, 200);
+    mesasLista.sort(function(a,b){ return (a.numero||0) - (b.numero||0); });
+    // Filtrar por mesa asignada si es jugador con reserva
+    if (window._dcJugadorMesaId) {
+        mesasLista = mesasLista.filter(function(m) {
+            return m.id === window._dcJugadorMesaId;
+        });
+    }
+
+    sesionesAbiertas = {};
+    var idSet = {};
+    mesasLista.forEach(function (mm) { idSet[mm.id] = true; });
+    var histR = await api.listMesasHistorialAbierta(clubId || null);
+    var hist = histR.data;
+    if (hist && hist.length) {
+        hist.forEach(function (h) {
+            if (!idSet[h.mesa_id]) return;
+            sesionesAbiertas[h.mesa_id] = {
+                inicio: h.inicio_sesion,
+                jugador_nombre: h.jugador_nombre || '',
+                id: h.id,
+                video_ia_activo: !!h.video_ia_activo
+            };
+        });
+    }
+}
+
+function parseLayoutFilasStr(raw) {
+    if (!raw || !String(raw).trim()) return null;
+    var arr = String(raw).split(/[\s,;]+/).map(function(x) { return parseInt(x, 10); }).filter(function(n) { return n > 0; });
+    return arr.length ? arr : null;
+}
+
+function layoutPctDefault(i) {
+    var col = i % 4, row = Math.floor(i / 4);
+    return { x: 14 + col * 20, y: 16 + row * 22 };
+}
+
+/** Posición % inicial en mapa si posicion_x/y son null: mismo orden que la vista en cuadrícula. */
+function layoutPctInicialGrid(i) {
+    if (!salonConfig) return layoutPctDefault(i);
+    var layoutPorFila = parseLayoutFilasStr(salonConfig.layout_filas);
+    var filasCfg = salonConfig.filas || 1;
+    var columnasCfg = salonConfig.columnas || 4;
+    var cantidad = mesasLista.length;
+    var idx = 0;
+    if (layoutPorFila && layoutPorFila.length && cantidad > 0) {
+        for (var r = 0; r < layoutPorFila.length && idx < cantidad; r++) {
+            var cuantas = layoutPorFila[r];
+            for (var c = 0; c < cuantas && idx < cantidad; c++) {
+                if (idx === i) {
+                    var x = ((c + 0.5) / Math.max(cuantas, 1)) * 100;
+                    var y = ((r + 0.5) / layoutPorFila.length) * 100;
+                    return { x: Math.max(4, Math.min(96, x)), y: Math.max(4, Math.min(96, y)) };
+                }
+                idx++;
+            }
+        }
+        return layoutPctDefault(i);
+    }
+    for (var f = 0; f < filasCfg && idx < cantidad; f++) {
+        for (var c2 = 0; c2 < columnasCfg && idx < cantidad; c2++) {
+            if (idx === i) {
+                var x2 = ((c2 + 0.5) / Math.max(columnasCfg, 1)) * 100;
+                var y2 = ((f + 0.5) / Math.max(filasCfg, 1)) * 100;
+                return { x: Math.max(4, Math.min(96, x2)), y: Math.max(4, Math.min(96, y2)) };
+            }
+            idx++;
+        }
+    }
+    return layoutPctDefault(i);
+}
+
+function celdaMesaHtml(m, animDelaySec) {
+    var estado = (m.estado || 'libre').toLowerCase().replace(' ', '_');
+    if (estado === 'fuera') estado = 'fuera_servicio';
+    var sesion = sesionesAbiertas[m.id];
+    var crono = '', costo = '', emoji = '🟢';
+    if (estado === 'ocupada' && sesion) {
+        var inicio = new Date(sesion.inicio).getTime();
+        var seg = Math.floor((Date.now() - inicio) / 1000);
+        var h = Math.floor(seg/3600), min = Math.floor((seg%3600)/60), s = seg%60;
+        crono = (h?h+':':'') + (min<10?'0':'')+min + ':' + (s<10?'0':'')+s;
+        costo = '$' + Math.round(costoSesionProporcionalMinutos(m, inicio, Date.now()));
+        emoji = '🔴';
+    }
+    if (estado === 'reservada') emoji = '🟡';
+    if (estado === 'mantenimiento') emoji = '🔵';
+    if (estado === 'fuera_servicio') emoji = '⚫';
+    var delayAttr = (typeof animDelaySec === 'number') ? ' style="animation-delay:' + animDelaySec + 's"' : '';
+    var su = getStreamUrlLocal(m);
+    var camCls = 'mesa-cam-icon' + (su ? '' : ' inactiva');
+    var camOn = su ? ' onclick="dcAbrirStreamMesaIcon(event, \'' + encodeURIComponent(su) + '\')"' : '';
+    var _alerta3h = (estado === 'ocupada' && sesion && ((Date.now() - new Date(sesion.inicio).getTime()) >= 10800000)) ? ' mesa-alerta-3h' : '';
+    var html = '<div class="mesa-celda luz-mesa estado-' + estado + _alerta3h + '"' + delayAttr + ' data-id="' + m.id + '" onclick="abrirModal(\'' + m.id + '\')">';
+    html += '<span class="' + camCls + '" title="' + (su ? 'Ver stream' : 'Sin cámara') + '"' + camOn + '>📹</span>';
+    html += '<span class="emoji-estado">' + emoji + '</span>';
+    html += '<span class="nom">' + (m.nombre || m.numero) + '</span>';
+    html += '<span class="tipo">' + (m.tipo_instalacion || '') + '</span>';
+    var tarifaMesa = m.tarifa_hora != null 
+        ? '$' + Math.round(parseFloat(m.tarifa_hora)).toLocaleString('es-CO') + '/hr'
+        : null;
+    if (tarifaMesa) html += '<span class="tipo" title="Tarifa propia de esta mesa">' + tarifaMesa + '</span>';
+    if (m.video_activo) html += '<span class="tipo" style="color:#d4af37" title="Video IA activo">🎥 Video IA</span>';
+    if (crono) html += '<span class="crono">' + crono + '</span>';
+    if (costo) html += '<span class="costo">' + costo + '</span>';
+    if (sesion && sesion.jugador_nombre) html += '<span class="tipo tipo-cliente-sesion">' + sesion.jugador_nombre + '</span>';
+    html += '</div>';
+    return html;
+}
+
+function celdaMesaHtmlMapa(m, i) {
+    var px = NaN;
+    var py = NaN;
+    if (m.posicion_x != null && m.posicion_y != null) {
+        px = parseFloat(m.posicion_x);
+        py = parseFloat(m.posicion_y);
+    }
+    if (isNaN(px) || isNaN(py)) {
+        var d = layoutPctInicialGrid(i);
+        px = d.x;
+        py = d.y;
+    }
+    var estado = (m.estado || 'libre').toLowerCase().replace(' ', '_');
+    if (estado === 'fuera') estado = 'fuera_servicio';
+    var sesion = sesionesAbiertas[m.id];
+    var crono = '', costo = '', emoji = '🟢';
+    if (estado === 'ocupada' && sesion) {
+        var inicio = new Date(sesion.inicio).getTime();
+        var seg = Math.floor((Date.now() - inicio) / 1000);
+        var h = Math.floor(seg/3600), min = Math.floor((seg%3600)/60), s = seg%60;
+        crono = (h?h+':':'') + (min<10?'0':'')+min + ':' + (s<10?'0':'')+s;
+        costo = '$' + Math.round(costoSesionProporcionalMinutos(m, inicio, Date.now()));
+        emoji = '🔴';
+    }
+    if (estado === 'reservada') emoji = '🟡';
+    if (estado === 'mantenimiento') emoji = '🔵';
+    if (estado === 'fuera_servicio') emoji = '⚫';
+    var suM = getStreamUrlLocal(m);
+    var camClsM = 'mesa-cam-icon' + (suM ? '' : ' inactiva');
+    var camOnM = suM ? ' onclick="dcAbrirStreamMesaIcon(event, \'' + encodeURIComponent(suM) + '\')"' : '';
+    var _alerta3h = (estado === 'ocupada' && sesion && ((Date.now() - new Date(sesion.inicio).getTime()) >= 10800000)) ? ' mesa-alerta-3h' : '';
+    var rotStyle = (m.meta && m.meta.rotada) ? 'transform:rotate(90deg);' : '';
+    var html = '<div class="mesa-celda luz-mesa estado-' + estado + _alerta3h + ' mesa-mapa-pos" data-mesa-id="' + m.id + '" style="left:' + px + '%;top:' + py + '%;' + rotStyle + '" onclick="abrirModal(\'' + m.id + '\')">';
+    html += '<span class="mesa-grip" data-mesa-id="' + m.id + '" title="Arrastrar posición" style="position:absolute;left:2px;bottom:2px;font-size:0.42rem;opacity:0.55;cursor:grab;z-index:3;line-height:1;">⠿</span>';
+    html += '<span class="' + camClsM + '" title="' + (suM ? 'Ver stream' : 'Sin cámara') + '"' + camOnM + '>📹</span>';
+    html += '<span class="emoji-estado">' + emoji + '</span>';
+    html += '<span class="nom">' + (m.nombre || m.numero) + '</span>';
+    html += '<span class="tipo">' + (m.tipo_instalacion || '') + '</span>';
+    if (crono) html += '<span class="crono">' + crono + '</span>';
+    if (costo) html += '<span class="costo">' + costo + '</span>';
+    html += '</div>';
+    return html;
+}
+
+function mapaPctDesdeCliente(cont, clientX, clientY) {
+    var rect = cont.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return { px: 50, py: 50 };
+    var px = ((clientX - rect.left) / rect.width) * 100;
+    var py = ((clientY - rect.top) / rect.height) * 100;
+    return { px: Math.max(3, Math.min(97, px)), py: Math.max(3, Math.min(97, py)) };
+}
+
+function guardarPosicionMesaMapa(mid, px, py) {
+    _clubApi()
+        .then(function (api) {
+            return api.updateMesa(mid, {
+                posicion_x: Math.round(px * 1000) / 1000,
+                posicion_y: Math.round(py * 1000) / 1000,
+                updated_at: new Date().toISOString()
+            });
+        })
+        .then(function (r) {
+            if (r && r.error) console.error('[mesas mapa] guardar posicion:', r.error);
+        })
+        .catch(function (e) {
+            console.error('[mesas mapa] guardar posicion:', e);
+        });
+    mesasLista.forEach(function (m) {
+        if (m.id === mid) {
+            m.posicion_x = px;
+            m.posicion_y = py;
+        }
+    });
+}
+
+function bindMapaArrastre(cont) {
+    if (!cont || !cont.classList.contains('plano-mapa-abs')) return;
+    if (mapaDragWinEnd) {
+        try {
+            window.removeEventListener('pointerup', mapaDragWinEnd, true);
+            window.removeEventListener('pointercancel', mapaDragWinEnd, true);
+        } catch (e0) {}
+        mapaDragWinEnd = null;
+    }
+    if (mapaDragMoveEnd) {
+        try { cont.removeEventListener('pointermove', mapaDragMoveEnd); } catch(e){}
+        mapaDragMoveEnd = null;
+    }
+    cont.querySelectorAll('.mesa-grip').forEach(function (grip) {
+        grip.addEventListener('pointerdown', function (ev) {
+            if (ev.button !== 0) return;
+            ev.stopPropagation();
+            ev.preventDefault();
+            if (mapaDragWinEnd) {
+                try {
+                    window.removeEventListener('pointerup', mapaDragWinEnd, true);
+                    window.removeEventListener('pointercancel', mapaDragWinEnd, true);
+                } catch (ePrev) {}
+                mapaDragWinEnd = null;
+            }
+            mapaDrag.cont = cont;
+            mapaDrag.id = grip.getAttribute('data-mesa-id');
+            mapaDrag.ptr = ev.pointerId;
+            var el = cont.querySelector('.mesa-mapa-pos[data-mesa-id="' + mapaDrag.id + '"]');
+            try { if (el) el.setPointerCapture(ev.pointerId); } catch (e) {}
+            mapaDragWinEnd = function (ev2) {
+                if (!mapaDrag.id || mapaDrag.ptr !== ev2.pointerId) return;
+                var mid = mapaDrag.id;
+                var c = mapaDrag.cont || cont;
+                mapaDrag.id = null;
+                mapaDrag.ptr = null;
+                mapaDrag.cont = null;
+                try {
+                    window.removeEventListener('pointerup', mapaDragWinEnd, true);
+                    window.removeEventListener('pointercancel', mapaDragWinEnd, true);
+                } catch (e3) {}
+                mapaDragWinEnd = null;
+                var coords = mapaPctDesdeCliente(c, ev2.clientX, ev2.clientY);
+                guardarPosicionMesaMapa(mid, coords.px, coords.py);
+                var mesaEl = c.querySelector('.mesa-mapa-pos[data-mesa-id="' + mid + '"]');
+                try {
+                    if (mesaEl) mesaEl.releasePointerCapture(ev2.pointerId);
+                } catch (e4) {}
+            };
+            window.addEventListener('pointerup', mapaDragWinEnd, true);
+            window.addEventListener('pointercancel', mapaDragWinEnd, true);
+        });
+    });
+    mapaDragMoveEnd = function (ev) {
+        if (!mapaDrag.id || mapaDrag.ptr !== ev.pointerId) return;
+        var coordsM = mapaPctDesdeCliente(cont, ev.clientX, ev.clientY);
+        var el = cont.querySelector('.mesa-mapa-pos[data-mesa-id="' + mapaDrag.id + '"]');
+        if (el) {
+            el.style.left = coordsM.px + '%';
+            el.style.top = coordsM.py + '%';
+        }
+    };
+    cont.addEventListener('pointermove', mapaDragMoveEnd);
+}
+
+function renderPlano() {
+    var cont = document.getElementById('plano_salon');
+    if (!cont) return;
+    if (vistaPlano === 'mapa' && mesasLista.length) {
+        cont.className = 'plano-salón plano-mapa-abs';
+        var mEl = document.getElementById('plano_metraje');
+        if (mEl) {
+            mEl.textContent = 'Plano a escala: 20 m (largo) × 15 m (ancho) · Mesa 2,84 × 1,42 m';
+        }
+        var html = '';
+        for (var mi = 0; mi < mesasLista.length; mi++) {
+            html += celdaMesaHtmlMapa(mesasLista[mi], mi);
+        }
+        cont.innerHTML = html || '<div class="vacio">Sin mesas.</div>';
+        bindMapaArrastre(cont);
+        return;
+    }
+
+    cont.className = 'plano-salón';
+    var filasCfg = salonConfig.filas || 1;
+    var columnasCfg = salonConfig.columnas || 4;
+    var layoutPorFila = parseLayoutFilasStr(salonConfig.layout_filas);
+    var cantidad = mesasLista.length;
+
+    var mEl = document.getElementById('plano_metraje');
+    if (mEl) {
+        var met = salonConfig.metraje;
+        if (met && (met.ancho > 0 || met.largo > 0))
+            mEl.textContent = 'Metraje aprox.: ' + (met.ancho || 0) + ' m (ancho) × ' + (met.largo || 0) + ' m (fondo) — proporción del recuadro';
+        else mEl.textContent = '';
+    }
+    cont.style.aspectRatio = '';
+    cont.style.maxHeight = '';
+    var metPlano = salonConfig.metraje;
+    if (metPlano && metPlano.ancho > 0 && metPlano.largo > 0) {
+        cont.style.aspectRatio = String(metPlano.ancho) + ' / ' + String(metPlano.largo);
+        cont.style.maxHeight = 'min(70vh, 560px)';
+    }
+    var descEl = document.getElementById('plano_layout_desc');
+    if (descEl) {
+        if (layoutPorFila && layoutPorFila.length)
+            descEl.textContent = 'Disposición: ' + layoutPorFila.join(' + ') + ' mesas por fila (igual que al validar el layout).';
+        else
+            descEl.textContent = 'Cuadrícula: ' + filasCfg + ' filas × ' + columnasCfg + ' columnas · Guarda de nuevo en Configurar si usas “Layout por fila”.';
+    }
+
+    var html = '';
+    var idx = 0;
+    var animStagger = 0;
+    if (layoutPorFila && layoutPorFila.length && cantidad > 0) {
+        for (var r = 0; r < layoutPorFila.length && idx < cantidad; r++) {
+            html += '<div class="plano-fila">';
+            var cuantas = layoutPorFila[r];
+            for (var c = 0; c < cuantas && idx < cantidad; c++) {
+                var m = mesasLista[idx++];
+                html += celdaMesaHtml(m, animStagger);
+                animStagger += 0.07;
+            }
+            html += '</div>';
+        }
+    } else {
+        for (var f = 0; f < filasCfg && idx < cantidad; f++) {
+            html += '<div class="plano-fila">';
+            for (var c = 0; c < columnasCfg && idx < cantidad; c++) {
+                var m2 = mesasLista[idx++];
+                html += celdaMesaHtml(m2, animStagger);
+                animStagger += 0.07;
+            }
+            html += '</div>';
+        }
+    }
+    var vacioTxt = 'Sin instalaciones. Configura en <strong>Configurar instalaciones</strong>.';
+    try {
+        var sp = new URLSearchParams(window.location.search);
+        if (sp.get('desde') === 'config' && cantidad === 0) {
+            vacioTxt =
+                'No aparecen mesas aún. Si acabas de guardar: recarga la página. Si sigue vacío, el <code>club_id</code> de tu sesión debe coincidir con las mesas en Supabase (revisa RLS). ' +
+                '<a href="mesas_config.html" style="color:#d4af37">Volver a configurar</a>';
+        }
+    } catch (e) {}
+    cont.innerHTML = html || '<div class="vacio">' + vacioTxt + '</div>';
+}
+
+function actualizarCronos() {
+    var needUpdate = false;
+    var alertas = [];
+    mesasLista.forEach(function(m){
+        if ((m.estado||'') !== 'ocupada') return;
+        var sesion = sesionesAbiertas[m.id];
+        if (!sesion) return;
+        needUpdate = true;
+        var horas = (Date.now() - new Date(sesion.inicio).getTime()) / 3600000;
+        if (horas >= 3) alertas.push((m.nombre || ('Mesa ' + (m.numero || ''))).toUpperCase());
+    });
+    if (needUpdate) renderPlano();
+    var alEl = document.getElementById('dc-alerta-3h');
+    if (alEl) {
+        if (alertas.length) {
+            alEl.textContent = '⚠ +3h: ' + alertas.join(' · ');
+            alEl.style.display = 'block';
+        } else {
+            alEl.style.display = 'none';
+        }
+    }
+}
+
+function dcUrlOverlayMarcador(matchUuid) {
+    if (!matchUuid) return '';
+    return window.location.origin + '/overlay_marcador.html?match_id=' + encodeURIComponent(String(matchUuid).trim());
+}
+
+function actualizarBloqueUrlOverlaySesion(sesionId) {
+    var wrap = document.getElementById('modal_overlay_url');
+    var inp = document.getElementById('modal_overlay_url_input');
+    var caja = document.querySelector('#modal_mesa .modal-caja');
+    if (!wrap || !inp) return;
+    if (sesionId) {
+        inp.value = dcUrlOverlayMarcador(sesionId);
+        wrap.classList.add('visible');
+        if (caja) caja.classList.add('modal-caja--overlay');
+    } else {
+        inp.value = '';
+        wrap.classList.remove('visible');
+        if (caja) caja.classList.remove('modal-caja--overlay');
+    }
+}
+
+function dcOverlayCopyToast(msg) {
+    var t = document.createElement('div');
+    t.setAttribute('role', 'status');
+    t.textContent = msg;
+    t.style.cssText =
+        'position:fixed;bottom:calc(88px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);max-width:min(92vw,360px);padding:10px 16px;border-radius:10px;z-index:10001;font-size:0.75rem;font-weight:500;font-family:system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,0.45);background:#1a2f22;border:1px solid rgba(46,204,113,0.4);color:#b8f5d0;';
+    document.body.appendChild(t);
+    setTimeout(function () {
+        try {
+            t.remove();
+        } catch (e) {}
+    }, 2200);
+}
+
+function copiarUrlOverlayMesa() {
+    var inp = document.getElementById('modal_overlay_url_input');
+    if (!inp || !inp.value) return;
+    var v = inp.value;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(v).then(function () {
+            dcOverlayCopyToast('URL copiada al portapapeles');
+        }).catch(function () {
+            try {
+                inp.focus();
+                inp.select();
+                inp.setSelectionRange(0, 99999);
+                document.execCommand('copy');
+                dcOverlayCopyToast('URL copiada al portapapeles');
+            } catch (e) {}
+        });
+    } else {
+        try {
+            inp.focus();
+            inp.select();
+            inp.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            dcOverlayCopyToast('URL copiada al portapapeles');
+        } catch (e2) {}
+    }
+}
+
+function abrirModal(mesaId) {
+    if (window._dcBarmanMode) return;
+    if (document.body.classList.contains('salon-vista-jugador')) return;
+    var m = mesasLista.find(function(x){ return x.id === mesaId; });
+    if (!m) return;
+    mesaSeleccionada = m;
+    actualizarBloqueUrlOverlaySesion(null);
+    var estado = (m.estado || 'libre').toLowerCase().replace(' ', '_');
+    if (estado === 'fuera') estado = 'fuera_servicio';
+    document.getElementById('modal_titulo').textContent = (m.nombre || m.numero) + ' · ' + (m.estado || 'libre').toUpperCase();
+    var sesion = sesionesAbiertas[m.id];
+    var acciones = document.getElementById('modal_acciones');
+    acciones.innerHTML = '';
+    if (estado === 'libre') {
+        // LIBRE: 2 acciones principales + admin colapsado
+        var suLibre = (m.url_camara || '').trim();
+        if (!suLibre && m.urls_camaras && m.urls_camaras[0] && m.urls_camaras[0].url) suLibre = String(m.urls_camaras[0].url).trim();
+        acciones.innerHTML =
+            '<button class="modal-btn abrir" onclick="accionMesa(\'abrir\')">▶ ABRIR PARTIDA</button>' +
+            '<button class="modal-btn reservar" onclick="accionMesa(\'reservar\')">📅 RESERVAR</button>' +
+            '<details style="margin-top:6px;"><summary style="color:var(--dc-text-subtle,#555);font-size:0.55rem;letter-spacing:1px;cursor:pointer;padding:6px 0;">Más opciones</summary>' +
+            '<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">' +
+            '<button class="modal-btn mant" onclick="accionMesa(\'mantenimiento\')">🔧 MANTENIMIENTO</button>' +
+            '<button class="modal-btn fuera" onclick="accionMesa(\'fuera_servicio\')">⚫ FUERA DE SERVICIO</button>' +
+            (suLibre ? '<button type="button" class="modal-btn ficha" onclick="previsualizarCamaraMesa()">📹 PREVISUALIZAR CÁMARA</button>' : '') +
+            '</div></details>';
+        document.getElementById('modal_crono').textContent = '—';
+        document.getElementById('modal_costo').textContent = '';
+    } else if (estado === 'ocupada' && sesion) {
+        var inicio = new Date(sesion.inicio).getTime();
+        var seg = Math.floor((Date.now() - inicio) / 1000);
+        var h = Math.floor(seg/3600), min = Math.floor((seg%3600)/60), s = seg%60;
+        document.getElementById('modal_crono').textContent = (h?h+':':'') + (min<10?'0':'')+min + ':' + (s<10?'0':'')+s;
+        var cPro = costoSesionProporcionalMinutos(m, inicio, Date.now());
+        var ahora = new Date();
+        var te = tarifaEfectivaPorHora(m, ahora);
+        var adj = ajusteHorarioPct(ahora);
+        var mon = (salonConfig && salonConfig.moneda) ? String(salonConfig.moneda) : '$';
+        // Mostrar total prominente + tarifa secundaria
+        var totalLabel = '<strong style="font-size:1.1rem;color:var(--dc-gold,#c9a84c);">' + mon + Math.round(cPro) + '</strong>';
+        var tarifaLabel = 'Tarifa: ' + mon + Math.round(te) + '/h';
+        if (adj !== 0) { var adjR = Math.round(adj*100)/100; tarifaLabel += ' (ajuste ' + (adjR>0?'+':'') + adjR + '%)'; }
+        document.getElementById('modal_costo').innerHTML = totalLabel + '<br><span style="font-size:0.55rem;color:var(--dc-text-muted,#888);">' + tarifaLabel + '</span>';
+        // OCUPADA: 2 acciones principales
+        var streamUrl = (m.url_camara || '').trim();
+        if (!streamUrl && m.urls_camaras && m.urls_camaras[0] && m.urls_camaras[0].url) streamUrl = String(m.urls_camaras[0].url).trim();
+        var videoIaHabilitado = !!(m.video_activo);
+        var videoIaEnSesion = !!(sesion && sesion.video_ia_activo);
+        acciones.innerHTML =
+            '<button class="modal-btn cerrar" onclick="accionMesa(\'cerrar\')">⏹ COBRAR Y CERRAR</button>' +
+            (videoIaHabilitado ? '<button type="button" class="modal-btn ficha" id="btn-video-ia-sesion" onclick="toggleVideoIaSesion()">' + (videoIaEnSesion ? '🎥 VIDEO IA ACTIVO' : '🎥 ACTIVAR VIDEO IA') + '</button>' : '') +
+            (streamUrl ? '<button type="button" class="modal-btn ficha" onclick="previsualizarCamaraMesa()">📹 VER CÁMARA</button>' : '');
+        if (sesion && sesion.id) {
+            actualizarBloqueUrlOverlaySesion(sesion.id);
+        }
+    } else {
+        // RESERVADA / MANTENIMIENTO / FUERA: volver a libre
+        document.getElementById('modal_crono').textContent = '—';
+        document.getElementById('modal_costo').textContent = '';
+        acciones.innerHTML = '<button class="modal-btn libre" onclick="accionMesa(\'libre\')">✅ MARCAR LIBRE</button>';
+    }
+    acciones.innerHTML += '<button class="modal-btn cerrar-modal" style="margin-top:4px;" onclick="irFicha()">📋 VER FICHA</button>';
+    document.getElementById('modal_mesa').classList.add('visible');
+}
+
+function cerrarModal() {
+    actualizarBloqueUrlOverlaySesion(null);
+    document.getElementById('modal_mesa').classList.remove('visible');
+    mesaSeleccionada = null;
+}
+
+function mostrarModalTicketVirtual() {
+    var d = window._dcTicketCierre;
+    if (!d) return;
+    var m = d.m;
+    var mon = (salonConfig && salonConfig.moneda) ? String(salonConfig.moneda) : '$';
+    var body = 'DE CARAMBOLA — TICKET VIRTUAL\n';
+    body += '─────────────────────────\n';
+    body += 'Mesa: ' + (m.nombre || m.numero) + '\n';
+    body += 'Cliente: ' + (d.hist.jugador_nombre || '—') + '\n';
+    body += 'Inicio: ' + new Date(d.hist.inicio).toLocaleString('es') + '\n';
+    body += 'Cierre: ' + new Date().toLocaleString('es') + '\n';
+    body += 'Duración (h): ' + d.horas + '\n';
+    body += '─────────────────────────\n';
+    body += 'TOTAL A COBRAR: ' + mon + (Math.round(d.costo * 100) / 100) + '\n';
+    body += 'Liquidación por minuto (tarifas del salón en Supabase).\n';
+    var el = document.getElementById('modal_ticket_body');
+    if (el) el.textContent = body;
+    var tt = document.getElementById('ticket-total-grande');
+    if (tt) tt.textContent = mon + Math.round(d.costo);
+    var mt = document.getElementById('modal_ticket_mesa');
+    if (mt) mt.classList.add('visible');
+}
+function cerrarModalTicket() {
+    var mt = document.getElementById('modal_ticket_mesa');
+    if (mt) mt.classList.remove('visible');
+    window._dcTicketCierre = null;
+}
+async function confirmarLiquidacionMesa() {
+    function toastSalon(msg, tipo) {
+        var isErr = tipo === 'error' || tipo === 'err';
+        var t = document.createElement('div');
+        t.setAttribute('role', 'status');
+        t.textContent = msg;
+        t.style.cssText =
+            'position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);max-width:min(92vw,360px);padding:12px 18px;border-radius:12px;z-index:10000;font-size:0.85rem;font-weight:500;font-family:system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,0.45);' +
+            (isErr
+                ? 'background:#2a1818;border:1px solid rgba(231,76,60,0.4);color:#ffc9c9;'
+                : 'background:#1a2f22;border:1px solid rgba(46,204,113,0.4);color:#b8f5d0;');
+        document.body.appendChild(t);
+        setTimeout(function () {
+            try {
+                t.remove();
+            } catch (e2) {}
+        }, 3200);
+    }
+    var d = window._dcTicketCierre;
+    if (!d) {
+        cerrarModalTicket();
+        return;
+    }
+    var m = d.m;
+    var hist = d.hist;
+    var inicioMs = new Date(hist.inicio).getTime();
+    if (!hist.inicio || isNaN(inicioMs)) {
+        toastSalon('Error: la sesión no tiene hora de inicio válida. No se puede cerrar.', 'error');
+        return;
+    }
+    var fin = Date.now();
+    var horas = (fin - inicioMs) / 3600000;
+    var costo = d.costo;
+    var tarifaSnap = d.tarifaSnap;
+    if (typeof costo !== 'number' || isNaN(costo)) {
+        toastSalon('Error al calcular el costo. No se puede cerrar.', 'error');
+        return;
+    }
+    var btn = document.querySelector('#modal_ticket_mesa .modal-acciones button.modal-btn.abrir');
+    var btnLabelOriginal = btn ? btn.textContent : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Cerrando…';
+    }
+    try {
+        var api = await _clubApi();
+        var ur = await api.updateMesasHistorialRow(hist.id, {
+            fin_sesion: new Date().toISOString(),
+            horas_reales: Math.round(horas * 100) / 100,
+            costo_total: costo,
+            tarifa_aplicada: tarifaSnap,
+            estado: 'cerrada'
+        });
+        if (ur.error) throw ur.error;
+        var compR = await api.listInstalacionesComponentesByMesa(m.id);
+        if (compR.error) throw compR.error;
+        var comps = compR.data || [];
+        for (var ci = 0; ci < comps.length; ci++) {
+            var c = comps[ci];
+            var actual = parseInt(c.horas_uso_actual, 10) || 0;
+            var nuevo = actual + Math.round(horas);
+            var opt = parseInt(c.horas_uso_optimo, 10) || 500,
+                al = parseInt(c.horas_uso_alerta, 10) || 800;
+            var est = nuevo >= al ? 'urgente' : nuevo >= opt ? 'desgaste' : 'optimo';
+            var upComp = await api.updateInstalacionComponenteRow(c.id, {
+                horas_uso_actual: nuevo,
+                estado: est,
+                updated_at: new Date().toISOString()
+            });
+            if (upComp.error) throw upComp.error;
+        }
+        var um = await api.updateMesa(m.id, { estado: 'libre', updated_at: new Date().toISOString() });
+        if (um.error) throw um.error;
+        delete sesionesAbiertas[m.id];
+        window._dcTicketCierre = null;
+        var mt = document.getElementById('modal_ticket_mesa');
+        if (mt) mt.classList.remove('visible');
+        cerrarModal();
+        refresh();
+    } catch (e) {
+        console.warn(e);
+        toastSalon('No se pudo cerrar la sesión. Revisá tu conexión e intentá de nuevo.', 'error');
+        return;
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = btnLabelOriginal || '✓ CONFIRMAR COBRO';
+        }
+    }
+}
+function previsualizarCamaraMesa() {
+    if (!mesaSeleccionada) return;
+    var m = mesaSeleccionada;
+    var u = (m.url_camara || '').trim();
+    if (!u && m.urls_camaras && m.urls_camaras[0] && m.urls_camaras[0].url) u = String(m.urls_camaras[0].url).trim();
+    if (!u) return;
+    try { window.open(u, '_blank', 'noopener,noreferrer'); } catch (e) { location.href = u; }
+}
+function irFicha() { if (mesaSeleccionada) location.href = '/apps/club/sala/instalacion_ficha.html?id=' + encodeURIComponent(mesaSeleccionada.id); cerrarModal(); }
+
+function accionMesa(accion) {
+    function toastSalon(msg, tipo) {
+        var isErr = tipo === 'error' || tipo === 'err';
+        var t = document.createElement('div');
+        t.setAttribute('role', 'status');
+        t.textContent = msg;
+        t.style.cssText =
+            'position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);max-width:min(92vw,360px);padding:12px 18px;border-radius:12px;z-index:10000;font-size:0.85rem;font-weight:500;font-family:system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,0.45);' +
+            (isErr
+                ? 'background:#2a1818;border:1px solid rgba(231,76,60,0.4);color:#ffc9c9;'
+                : 'background:#1a2f22;border:1px solid rgba(46,204,113,0.4);color:#b8f5d0;');
+        document.body.appendChild(t);
+        setTimeout(function () {
+            try {
+                t.remove();
+            } catch (e2) {}
+        }, 3200);
+    }
+    if (!mesaSeleccionada) return;
+    var m = mesaSeleccionada;
+    if (accion === 'abrir') {
+        var nombre = (prompt('Nombre del jugador o cliente:') || '').trim() || 'Cliente';
+        var inicio = new Date().toISOString();
+        _clubApi()
+            .then(function (api) {
+                return api.insertMesasHistorialRow({
+                    mesa_id: m.id,
+                    club_id: getClubId(),
+                    jugador_nombre: nombre,
+                    inicio_sesion: inicio,
+                    estado: 'abierta'
+                });
+            })
+            .then(function (ins) {
+                if (ins && ins.error) throw ins.error;
+                var row = ins && ins.data;
+                var nuevoId = row && row.id ? row.id : null;
+                if (!nuevoId) throw new Error('sin fila insertada');
+                sesionesAbiertas[m.id] = { inicio: inicio, jugador_nombre: nombre, id: nuevoId };
+                return _clubApi().then(function (api2) {
+                    return api2.updateMesa(m.id, { estado: 'ocupada', updated_at: new Date().toISOString() });
+                });
+            })
+            .then(async function (um) {
+                if (um && um.error) throw um.error;
+                await refresh();
+                mesaSeleccionada = mesasLista.find(function (x) { return x.id === m.id; }) || m;
+                abrirModal(mesaSeleccionada.id);
+            })
+            .catch(function (e) {
+                console.error('[abrir mesa]', e);
+                toastSalon('No se pudo abrir la sesión. Revisá tu conexión.', 'error');
+            });
+    } else if (accion === 'cerrar') {
+        var hist = sesionesAbiertas[m.id];
+        if (!hist) {
+            cerrarModal();
+            return;
+        }
+        var inicioMs = new Date(hist.inicio).getTime();
+        if (!hist.inicio || isNaN(inicioMs)) {
+            toastSalon('Error: la sesión no tiene hora de inicio válida. No se puede cerrar.', 'error');
+            return;
+        }
+        var fin = Date.now();
+        var horas = (fin - inicioMs) / 3600000;
+        var L = _tl();
+        var costo = L
+            ? L.calcularTotal(hist.inicio, fin, getSalonTarifas(), parseFloat(m.tarifa_hora) || 0).total
+            : costoSesionProporcionalMinutos(m, inicioMs, fin);
+        var tarifaSnap = L
+            ? L.construirTarifaSnapCierre(hist.inicio, new Date().toISOString(), parseFloat(m.tarifa_hora) || 0, getSalonTarifas())
+            : {
+                  metodo: 'proporcional_minuto',
+                  inicio_iso: hist.inicio,
+                  fin_iso: new Date().toISOString(),
+                  minutos: Math.round((fin - inicioMs) / 60000 * 100) / 100,
+                  total: Math.round(costo * 100) / 100
+              };
+        window._dcTicketCierre = { m: m, hist: hist, horas: Math.round(horas * 100) / 100, costo: costo, tarifaSnap: tarifaSnap };
+        mostrarModalTicketVirtual();
+        var oldW = document.getElementById('dc-ticket-warn-tarifa');
+        if (oldW) oldW.remove();
+        if (costo === 0) {
+            var tb = document.getElementById('modal_ticket_body');
+            var w = document.createElement('div');
+            w.id = 'dc-ticket-warn-tarifa';
+            w.style.cssText = 'color:#f39c12;font-size:0.7rem;margin-top:8px;';
+            w.textContent = '⚠️ Costo $0 — verificá que la tarifa esté configurada.';
+            if (tb) tb.appendChild(w);
+        }
+    } else if (['mantenimiento','reservada','fuera_servicio','libre'].indexOf(accion) >= 0) {
+        _clubApi().then(function (api) {
+            return api.updateMesa(m.id, { estado: accion, updated_at: new Date().toISOString() });
+        }).then(function () { refresh(); cerrarModal(); }).catch(function () {});
+    } else if (accion === 'reservar') {
+        var nombre = (prompt('Nombre para la reserva:') || '').trim() || 'Reserva';
+        var durInput = (prompt('Duración en minutos (ej: 60, 90, 120):') || '').trim();
+        var duracionMin = parseInt(durInput, 10);
+        if (isNaN(duracionMin) || duracionMin < 15 || duracionMin > 480) duracionMin = 60;
+        var clubId = getClubId();
+        var ahora = new Date();
+        _clubApi().then(function (api) {
+            return api.insertMesasReservaRow({
+                mesa_id: m.id,
+                club_id: clubId,
+                jugador_nombre: nombre,
+                fecha_reserva: ahora.toISOString(),
+                duracion_minutos: duracionMin,
+                estado: 'pendiente',
+                notas: 'Reserva creada desde Salón en vivo'
+            });
+        }).then(function () {
+            return _clubApi().then(function (api2) {
+                return api2.updateMesa(m.id, { estado: 'reservada', updated_at: new Date().toISOString() });
+            });
+        }).then(function () {
+            toastSalon('Reserva creada — ' + duracionMin + ' min para ' + nombre, 'ok');
+            refresh();
+            cerrarModal();
+        }).catch(function (e) {
+            console.error('[reservar mesa]', e);
+            toastSalon('No se pudo crear la reserva. Revisá tu conexión.', 'error');
+        });
+    }
+}
+
+function bindMapaToolbar() {
+    if (window._dcBindMapaTb) return;
+    window._dcBindMapaTb = true;
+    var g = document.getElementById('btn_vista_grid');
+    var map = document.getElementById('btn_vista_mapa');
+    if (!g || !map) return;
+    g.onclick = function () {
+        vistaPlano = 'grid';
+        g.classList.add('on');
+        map.classList.remove('on');
+        renderPlano();
+    };
+    map.onclick = function () {
+        vistaPlano = 'mapa';
+        map.classList.add('on');
+        g.classList.remove('on');
+        renderPlano();
+    };
+}
+
+async function refresh() {
+    await cargarDatos();
+    renderPlano();
+    countdownSegundos = 30;
+    var info = document.getElementById('actualizar_info');
+    if (info) info.textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es');
+}
+
+function tickCountdown() {
+    var el = document.getElementById('header-countdown');
+    if (window._dcSalaRtUnsub) {
+        if (el) el.textContent = 'En vivo · Supabase (mesas + historial)';
+        return;
+    }
+    countdownSegundos--;
+    if (el) el.textContent = 'Respaldo en ' + countdownSegundos + 's';
+    if (countdownSegundos <= 0) {
+        countdownSegundos = 30;
+        refresh();
+    }
+}
+
+window.__salaBoot = async function() {
+    var logoEl = document.getElementById('header-logo');
+    if (typeof MasterVIP !== 'undefined' && MasterVIP.getLogoHTML) { if (logoEl) logoEl.innerHTML = MasterVIP.getLogoHTML(40); }
+    else if (logoEl) logoEl.innerHTML = '<span style="font-size:1.5rem;">🟡</span>';
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
+
+    async function verificarAccesoSalon() {
+        var auth = await import('/js/auth-manager.js');
+        var rr = await auth.getRole();
+        var rol = rr.error ? null : rr.data;
+
+        // club_admin y superadmin: acceso sin reserva
+        if (rol === 'club_admin' || rol === 'superadmin') return true;
+
+        // organizador: siempre a su panel (no opera salón aquí)
+        if (rol === 'organizador') {
+            window.location.replace('/apps/organizador/organizador.html');
+            return false;
+        }
+
+        // jugador u otros: verificar reserva confirmada activa
+        var sr = await auth.getSession();
+        var userId = (!sr.error && sr.data && sr.data.user) ? sr.data.user.id : null;
+        if (!userId) {
+            window.location.href = 'reservas_jugador.html';
+            return false;
+        }
+
+        var supabaseMod = await import('/js/supabase-client.js');
+        var reservaR = await supabaseMod.supabase
+            .from('mesas_reservas')
+            .select('id, mesa_id, estado')
+            .eq('user_id', userId)
+            .eq('estado', 'confirmada')
+            .gte('fecha_reserva', new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString())
+            .limit(1);
+
+        if (!reservaR.data || !reservaR.data.length) {
+            window.location.href = 'reservas_jugador.html';
+            return false;
+        }
+
+        // guardar mesa asignada para filtrar vista
+        window._dcJugadorMesaId = reservaR.data[0].mesa_id;
+        return true;
+    }
+
+    function iniciarOperacionSalon() {
+        var tb = document.getElementById('plano_mapa_toolbar');
+        var cid = getClubId();
+        if (cid) {
+            import('/js/sala-supabase-realtime.js')
+                .then(function (mod) {
+                    if (window._dcSalaRtUnsub) {
+                        try { window._dcSalaRtUnsub(); } catch (eU) {}
+                    }
+                    window._dcSalaRtUnsub = mod.subscribeClubSalonRealtime(cid, function () {
+                        clearTimeout(window._dcSalaRtDebounce);
+                        window._dcSalaRtDebounce = setTimeout(function () { refresh(); }, 450);
+                    });
+                })
+                .catch(function () {});
+        }
+        refresh().then(function () {
+            function finishMapaToolbar() {
+                bindMapaToolbar();
+            }
+            if (!tb) {
+                finishMapaToolbar();
+                return;
+            }
+            if (tb.getAttribute('data-solo-admin') === 'true') {
+                import('/js/auth-manager.js')
+                    .then(function (auth) {
+                        return auth.getRole();
+                    })
+                    .then(function (rr) {
+                        var role = rr.error ? null : rr.data;
+                        var ok = role === 'club_admin' || role === 'superadmin';
+                        tb.style.display = mesasLista && mesasLista.length && ok ? 'flex' : 'none';
+                    })
+                    .catch(function () {
+                        tb.style.display = 'none';
+                    })
+                    .then(finishMapaToolbar);
+            } else {
+                tb.style.display = mesasLista && mesasLista.length ? 'flex' : 'none';
+                finishMapaToolbar();
+            }
+        });
+        intervaloCrono = setInterval(actualizarCronos, 1000);
+        intervaloRefresh = setInterval(tickCountdown, 1000);
+    }
+
+    var acceso = await verificarAccesoSalon();
+    if (!acceso) return;
+    var chk = window.DC_mesasOperacionCheckOnboarding ? window.DC_mesasOperacionCheckOnboarding() : Promise.resolve({ ok: true });
+    chk.then(function (r) {
+        if (!r.ok) {
+            var infoFail = document.getElementById('actualizar_info');
+            var esValidacionRed =
+                r.faltan &&
+                r.faltan.some(function (x) {
+                    return String(x).indexOf('No se pudo validar') !== -1;
+                });
+            if (infoFail) {
+                infoFail.textContent = esValidacionRed
+                    ? 'No se pudo validar el salón con Supabase. Revisá conexión o el mensaje en pantalla completa.'
+                    : 'Salón bloqueado: falta configuración u onboarding. Revisá el mensaje en pantalla completa.';
+                infoFail.style.color = '#e8a0a0';
+            }
+            window.DC_mesasOperacionMostrarGate({
+                mensaje: r.mensaje,
+                tituloBanner: esValidacionRed ? 'NO SE PUDO VALIDAR EL SALÓN' : 'CONFIGURACIÓN INCOMPLETA',
+                hrefConfig: 'mesas_config.html',
+                hrefTarifas: 'tarifas_salon.html',
+            });
+            return;
+        }
+        iniciarOperacionSalon();
+    }).catch(function () {
+        iniciarOperacionSalon();
+    });
+};
+
+async function toggleVideoIaSesion() {
+    var m = mesaSeleccionada;
+    if (!m) return;
+    var sesion = sesionesAbiertas[m.id];
+    if (!sesion || !sesion.id) return;
+    var nuevoEstado = !sesion.video_ia_activo;
+    var btn = document.getElementById('btn-video-ia-sesion');
+    if (btn) btn.textContent = '⏳ Guardando…';
+    try {
+        var api = await _clubApi();
+        var r = await api.updateMesasHistorial(sesion.id, { video_ia_activo: nuevoEstado });
+        if (r && r.error) throw r.error;
+        sesion.video_ia_activo = nuevoEstado;
+        if (btn) btn.textContent = nuevoEstado ? '🎥 VIDEO IA ACTIVO' : '🎥 ACTIVAR VIDEO IA';
+    } catch(e) {
+        if (btn) btn.textContent = nuevoEstado ? '🎥 ACTIVAR VIDEO IA' : '🎥 VIDEO IA ACTIVO';
+        console.error('[video-ia]', e);
+    }
+}
+
+window.onbeforeunload = function() { if (intervaloRefresh) clearInterval(intervaloRefresh); if (intervaloCrono) clearInterval(intervaloCrono); };
+
+// ── OBS integration ──
+var _obsCleanup = null;
+var _obsStreaming = false;
+
+function obsIsEnabled() {
+    return localStorage.getItem('dc_obs_enabled') === '1';
+}
+
+function obsSetStatus(txt, on) {
+    var el = document.getElementById('obs-status-txt');
+    var dock = document.getElementById('obs-dock');
+    if (!el || !dock) return;
+    el.textContent = txt;
+    el.className = 'obs-status' + (on ? ' on' : '');
+}
+
+function obsUpdateBtn() {
+    var btn = document.getElementById('obs-btn-stream');
+    if (!btn) return;
+    btn.textContent = _obsStreaming ? '⏹ DETENER STREAM' : '▶ INICIAR STREAM';
+}
+
+async function obsToggleStream() {
+    if (!window._obsClient) return;
+    try {
+        if (_obsStreaming) {
+            await window._obsClient.stopStream();
+            _obsStreaming = false;
+            obsSetStatus('OBS — stream detenido', false);
+        } else {
+            await window._obsClient.startStream();
+            _obsStreaming = true;
+            obsSetStatus('OBS — EN VIVO 🔴', true);
+        }
+        obsUpdateBtn();
+    } catch(e) {
+        obsSetStatus('OBS — error: ' + e.message, false);
+    }
+}
+
+function obsHandleToggle(checked) {
+    if (checked) {
+        var pwd = prompt('Contraseña OBS WebSocket:');
+        if (!pwd) {
+            document.getElementById('obs-toggle').checked = false;
+            return;
+        }
+        window.DC_OBS_PASSWORD = pwd;
+        localStorage.setItem('dc_obs_enabled', '1');
+        obsInitIfEnabled();
+    } else {
+        localStorage.removeItem('dc_obs_enabled');
+        window.DC_OBS_PASSWORD = '';
+        if (_obsCleanup) { _obsCleanup(); _obsCleanup = null; }
+        if (window._obsClient) {
+            try { window._obsClient.disconnect(); } catch (e) {}
+        }
+        window._obsClient = null;
+        _obsStreaming = false;
+        var dock = document.getElementById('obs-dock');
+        if (dock) dock.classList.remove('visible');
+        obsSetStatus('OBS — sin conectar', false);
+        obsUpdateBtn();
+    }
+}
+
+async function obsInitIfEnabled() {
+    if (!obsIsEnabled()) return;
+    var dock = document.getElementById('obs-dock');
+    if (dock) dock.classList.add('visible');
+    obsSetStatus('OBS — conectando…', false);
+    var obsChk = document.getElementById('obs-toggle');
+    if (obsChk) obsChk.checked = true;
+    try {
+        var mod = await import('/js/obs-autostream.js');
+        window._obsClient = mod.createObsClient();
+        var clubId = getClubId();
+        if (clubId && !_obsCleanup) {
+            _obsCleanup = mod.initObsAutostream(clubId, window._obsClient);
+        }
+        obsSetStatus('OBS — listo', false);
+    } catch(e) {
+        obsSetStatus('OBS — sin conexión', false);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    obsInitIfEnabled();
+});
+</script>
+
+<script>
+(function () {
+    var bg = document.getElementById('stars-bg');
+    if (!bg) return;
+    for (var i = 0; i < 80; i++) {
+        var s = document.createElement('div');
+        s.className = 'star';
+        var sz = Math.random() * 2 + 0.5;
+        s.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;top:' + Math.random() * 100 + '%;left:' + Math.random() * 100 + '%;animation-delay:' + Math.random() * 3 + 's;animation-duration:' + (2 + Math.random() * 3) + 's;';
+        bg.appendChild(s);
+    }
+})();
+</script>
+<script type="module">
+import { guardSalaPageConPolitica } from '/js/sala-gate-politica-club.js';
+await guardSalaPageConPolitica({ pageTitle: 'Salón en vivo' });
+</script>
+
+</body>
+</html>
