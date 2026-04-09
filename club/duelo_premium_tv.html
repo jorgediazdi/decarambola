@@ -2736,7 +2736,10 @@
             mesa: (cfg.mesa && String(cfg.mesa).trim()) || 'SALÓN',
             updated_at: new Date().toISOString()
         };
-        if (cid && String(cid).trim()) row.club_id = String(cid).trim();
+        row.club_id =
+            cid && String(cid).trim()
+                ? String(cid).trim()
+                : 'ab2314a3-095b-4a2f-be97-ed7433196f87';
         if (mergeSb && mergeSb.stream_bridge_status != null && mergeSb.stream_bridge_status !== '') {
             row.stream_bridge_status = mergeSb.stream_bridge_status;
             if (mergeSb.stream_bridge_at != null) row.stream_bridge_at = mergeSb.stream_bridge_at;
@@ -3934,7 +3937,7 @@
             html += '<div class="salon-casual-col salon-casual-col-cam">';
             html += '<div class="premium-salon-casual-mesa-video">';
             html +=
-                '<div class="panel-video panel-casual-mesa" id="salon-casual-video-panel" data-casual-video="1">';
+                '<div class="panel-video panel-casual-mesa" id="salon-casual-video-panel" data-casual-video="1" data-header-idle="SALÓN — VIDEO / CÁMARA">';
             html += '<h3 class="lbl-video-header">SALÓN — VIDEO / CÁMARA</h3>';
             html += '<div class="video-frame video-frame-mesa-21">';
             html +=
@@ -4052,7 +4055,7 @@
             html += '<div class="salon-casual-col salon-casual-col-cam">';
             html += '<div class="premium-salon-casual-mesa-video">';
             html +=
-                '<div class="panel-video panel-casual-mesa" id="salon-pro-video-panel" data-pro-video="1">';
+                '<div class="panel-video panel-casual-mesa" id="salon-pro-video-panel" data-pro-video="1" data-header-idle="SALÓN — VIDEO / CÁMARA">';
             html += '<h3 class="lbl-video-header">SALÓN — VIDEO / CÁMARA</h3>';
             html += '<div class="video-frame video-frame-mesa-21">';
             html +=
@@ -4168,6 +4171,56 @@
     var mesasOcupadas = [];
     var mesaActualIdx = 0;
 
+    /** Un solo getUserMedia para paneles sin URL (varias mesas comparten la misma cámara). */
+    var dcSalonLocalMediaStream = null;
+    var dcSalonLocalMediaPromise = null;
+
+    function dcStopSalonLocalCameraIfAny() {
+        if (dcSalonLocalMediaStream) {
+            try {
+                dcSalonLocalMediaStream.getTracks().forEach(function (t) {
+                    try {
+                        t.stop();
+                    } catch (e) {}
+                });
+            } catch (e2) {}
+            dcSalonLocalMediaStream = null;
+        }
+        dcSalonLocalMediaPromise = null;
+    }
+
+    function dcHeaderStreamForPanel(panelVideoRoot, idle) {
+        var idl = String(idle || '');
+        if (idl.indexOf('SALÓN') !== -1) return 'SALÓN — STREAM EN VIVO';
+        return 'MESA — STREAM EN VIVO';
+    }
+
+    function dcHeaderLocalForPanel(panelVideoRoot, idle) {
+        var idl = String(idle || '');
+        if (idl.indexOf('SALÓN') !== -1) return 'SALÓN — CÁMARA LOCAL';
+        return 'MESA — CÁMARA LOCAL';
+    }
+
+    function ensureDcSalonLocalCameraStream() {
+        if (dcSalonLocalMediaStream) return Promise.resolve(dcSalonLocalMediaStream);
+        if (dcSalonLocalMediaPromise) return dcSalonLocalMediaPromise;
+        if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+            return Promise.reject(new Error('getUserMedia no disponible'));
+        }
+        dcSalonLocalMediaPromise = navigator.mediaDevices
+            .getUserMedia({ video: true, audio: false })
+            .then(function (s) {
+                dcSalonLocalMediaStream = s;
+                dcSalonLocalMediaPromise = null;
+                return s;
+            })
+            .catch(function (e) {
+                dcSalonLocalMediaPromise = null;
+                throw e;
+            });
+        return dcSalonLocalMediaPromise;
+    }
+
     function navMesa(dir) {
         if (mesasOcupadas.length < 2) return;
         mesaActualIdx = (mesaActualIdx + dir + mesasOcupadas.length) % mesasOcupadas.length;
@@ -4199,7 +4252,8 @@
     /**
      * Misma lógica que duelo-tv.html → initVideoPanel():
      * ?stream= en URL o URL por mesa; si hay stream → iframe.src = stream y display block;
-     * si no → placeholder "Conecte la cámara de esta mesa".
+     * si no → getUserMedia (cámara del dispositivo) o placeholder si deniega / no hay API.
+     * data-header-idle en .panel-video restaura el título del bloque (MESA vs SALÓN).
      */
     function initVideoPanelForCard(panelVideoRoot, stream) {
         var streamNorm = (stream && String(stream).trim()) || '';
@@ -4207,23 +4261,62 @@
         var placeholder = panelVideoRoot.querySelector('.video-placeholder');
         var header = panelVideoRoot.querySelector('.lbl-video-header');
         var localVideo = panelVideoRoot.querySelector('.local-camera');
+        var headerIdle =
+            (panelVideoRoot.getAttribute && panelVideoRoot.getAttribute('data-header-idle')) ||
+            (header && header.textContent ? header.textContent.trim() : '') ||
+            'MESA — VIDEO / STREAM';
+
+        function showStreamPlaceholder() {
+            if (localVideo) {
+                try {
+                    localVideo.srcObject = null;
+                } catch (e) {}
+                localVideo.style.display = 'none';
+            }
+            if (placeholder) placeholder.style.display = 'flex';
+            if (header) header.innerText = headerIdle;
+        }
+
         if (streamNorm) {
             if (iframe) {
                 iframe.src = streamNorm;
                 iframe.style.display = 'block';
             }
-            if (localVideo) localVideo.style.display = 'none';
-            if (placeholder) placeholder.style.display = 'none';
-            if (header) header.innerText = 'MESA — STREAM EN VIVO';
-        } else {
-            if (iframe) {
-                iframe.src = '';
-                iframe.style.display = 'none';
+            if (localVideo) {
+                try {
+                    localVideo.srcObject = null;
+                } catch (e) {}
+                localVideo.style.display = 'none';
             }
-            if (localVideo && !localVideo.srcObject) localVideo.style.display = 'none';
-            if (placeholder) placeholder.style.display = 'flex';
-            if (header) header.innerText = 'MESA — VIDEO / STREAM';
+            if (placeholder) placeholder.style.display = 'none';
+            if (header) header.innerText = dcHeaderStreamForPanel(panelVideoRoot, headerIdle);
+            return;
         }
+
+        if (iframe) {
+            iframe.src = '';
+            iframe.style.display = 'none';
+        }
+
+        if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+            showStreamPlaceholder();
+            return;
+        }
+
+        ensureDcSalonLocalCameraStream()
+            .then(function (s) {
+                if (!localVideo) {
+                    showStreamPlaceholder();
+                    return;
+                }
+                localVideo.srcObject = s;
+                localVideo.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+                if (header) header.innerText = dcHeaderLocalForPanel(panelVideoRoot, headerIdle);
+            })
+            .catch(function () {
+                showStreamPlaceholder();
+            });
     }
 
     function render() {
@@ -4243,6 +4336,7 @@
         mesasOcupadas.sort(function (a, b) { return (a.numero || 0) - (b.numero || 0); });
 
         if (!mesasOcupadas.length) {
+            dcStopSalonLocalCameraIfAny();
             grid.innerHTML = '<div class="empty">Ninguna mesa ocupada. Cuando la operadora abra una sesión, aparecerá acá al instante.</div>';
             var ind = document.getElementById('mesa-indicator');
             if (ind) ind.textContent = '';
@@ -4273,7 +4367,7 @@
             html += '<div class="crono-big js-cli-crono">' + escHtml(cronoTxt) + '</div>';
             html += '</aside>';
             html += '<div class="col-video">';
-            html += '<div class="panel-video">';
+            html += '<div class="panel-video" data-header-idle="MESA — VIDEO / STREAM">';
             html += '<h3 class="lbl-video-header">MESA — VIDEO / STREAM</h3>';
             html += '<div class="video-frame">';
             html += '<div class="video-placeholder">Conecte la cámara de esta mesa</div>';
