@@ -43,12 +43,12 @@
   }
   #stars { position:fixed;inset:0;pointer-events:none;z-index:0;
     background:
-      background: var(--dc-bg);
-      background: var(--dc-bg);
-      background: var(--dc-bg);
-      background: var(--dc-bg);
-      background: var(--dc-bg);
-      background: var(--dc-bg);
+      radial-gradient(1px 1px at 12% 18%, rgba(201,168,76,.30) 0%,transparent 100%),
+      radial-gradient(1px 1px at 70% 7%,  rgba(201,168,76,.22) 0%,transparent 100%),
+      radial-gradient(1px 1px at 88% 32%, rgba(201,168,76,.18) 0%,transparent 100%),
+      radial-gradient(1px 1px at 28% 58%, rgba(201,168,76,.14) 0%,transparent 100%),
+      radial-gradient(1px 1px at 52% 80%, rgba(201,168,76,.16) 0%,transparent 100%),
+      radial-gradient(1px 1px at 4%  88%, rgba(201,168,76,.10) 0%,transparent 100%); }
   .wrap { position:relative;z-index:1;max-width:420px;margin:0 auto;padding:0 16px calc(80px + var(--safe-b)) 16px; }
   .hdr { display:flex;align-items:center;justify-content:space-between;padding:16px 0 10px; }
   .hdr-left { display:flex;flex-direction:column;gap:2px; }
@@ -57,7 +57,7 @@
   .hdr-avatar { width:36px;height:36px;border-radius:50%;background:var(--dc-gold-glow);border:1.5px solid var(--dc-border);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--dc-gold);font-weight:600;cursor:pointer;transition:border-color .2s;flex-shrink:0; }
   .hdr-avatar:active { border-color:var(--dc-gold); }
   .hero { background:#0f0f0b;border:1px solid var(--dc-border);border-radius:var(--r);padding:18px 18px 16px;margin:4px 0 12px;position:relative;overflow:hidden; }
-  background: var(--dc-bg);
+  .hero::after { content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.06) 0%,transparent 70%); }
   .hero-top { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px; }
   .hero-nombre { font-family:var(--dc-display);font-size:1.25rem;color:var(--dc-text);line-height:1.2; }
   .hero-nombre em { font-style:normal;color:var(--dc-gold); }
