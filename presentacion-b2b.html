@@ -4,28 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#c9a84c">
-    <title>DeCarambola Suite — Presentación B2B</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+    <title>DeCarambola Suite — Su club, más ingresos</title>
+    <link rel="stylesheet" href="/css/dc-system.css">
     <style>
-        :root {
-            --bg: #0a0a0a;
-            --oro: #c9a84c;
-            --oro-dim: rgba(201, 168, 76, 0.35);
-            --text: #e8e4dc;
-            --muted: #6a6a6a;
-            --line: rgba(201, 168, 76, 0.12);
-            --font-body: "DM Sans", system-ui, sans-serif;
-            --font-display: "Playfair Display", Georgia, serif;
-            --font-cond: "Bebas Neue", Impact, sans-serif;
-        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body {
+        html,
+        body.dc-b2b-deck {
             height: 100%;
-            background: var(--bg);
-            color: var(--text);
-            font-family: var(--font-body);
+            background: #0a0a0a;
+            color: var(--dc-text);
+            font-family: var(--dc-font-body);
             overflow: hidden;
         }
 
@@ -42,13 +30,13 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: clamp(24px, 5vw, 64px);
+            padding: clamp(20px, 4vw, 56px);
             opacity: 0;
             visibility: hidden;
-            transform: translateX(28px);
-            transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-                        transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-                        visibility 0.5s;
+            transform: translateX(24px);
+            transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                visibility 0.45s;
         }
         .slide.active {
             opacity: 1;
@@ -56,252 +44,154 @@
             transform: translateX(0);
         }
         .slide.prev {
-            transform: translateX(-28px);
+            transform: translateX(-24px);
         }
 
         .slide-inner {
             width: 100%;
-            max-width: 960px;
+            max-width: 920px;
+            position: relative;
+        }
+
+        .slide-inner--cover {
             text-align: center;
         }
 
-        .eyebrow {
-            font-size: 0.72rem;
-            letter-spacing: 0.35em;
-            text-transform: uppercase;
-            color: var(--oro);
-            margin-bottom: 1rem;
-            font-weight: 600;
+        .slide-inner--exec {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+            gap: clamp(16px, 4vw, 40px);
+            align-items: center;
         }
 
-        h1.bebas {
-            font-family: var(--font-cond);
-            font-size: clamp(3rem, 10vw, 5.5rem);
-            font-weight: 400;
-            letter-spacing: 0.06em;
-            line-height: 1.02;
-            color: #f2efe8;
+        @media (max-width: 720px) {
+            .slide-inner--exec {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .slide-col-num {
+                justify-self: center;
+            }
         }
 
-        h2.bebas {
-            font-family: var(--font-cond);
-            font-size: clamp(2.2rem, 6vw, 3.75rem);
-            font-weight: 400;
-            letter-spacing: 0.05em;
-            color: var(--oro);
-            margin-bottom: 1.25rem;
-        }
-
-        .playfair {
-            font-family: var(--font-display);
-            font-weight: 600;
-        }
-
-        .tagline {
-            font-family: var(--font-display);
-            font-size: clamp(1.15rem, 3vw, 1.65rem);
-            color: #9a9a9a;
-            font-style: italic;
-            margin-top: 1.25rem;
-            letter-spacing: 0.02em;
-        }
-
-        .logo-row {
+        .slide-col-num {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 1.5rem;
+            align-items: flex-start;
+            gap: 8px;
         }
-        .logo-row img {
-            height: clamp(40px, 8vw, 56px);
-            width: auto;
-        }
-        .logo-wordmark {
-            font-family: var(--font-cond);
-            font-size: clamp(1.5rem, 4vw, 2rem);
-            letter-spacing: 0.12em;
-            color: var(--oro);
+        @media (max-width: 720px) {
+            .slide-col-num {
+                align-items: center;
+            }
         }
 
-        .suite-title {
-            font-family: var(--font-display);
-            font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+        .idx {
+            font-family: var(--dc-font-display);
+            font-size: clamp(4rem, 18vw, 9rem);
+            font-weight: 700;
+            line-height: 0.85;
+            color: var(--dc-gold);
+            opacity: 0.22;
+            letter-spacing: -0.02em;
+            user-select: none;
+        }
+
+        .eyebrow {
+            font-size: 0.7rem;
             font-weight: 600;
-            color: #fff;
-            margin-top: 0.5rem;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: var(--dc-gold);
+            margin-bottom: 0.75rem;
         }
 
-        p.lead {
-            font-size: clamp(1rem, 2.2vw, 1.2rem);
-            line-height: 1.65;
-            color: #a8a4a0;
-            max-width: 640px;
+        h1.cover-title {
+            font-family: var(--dc-font-display);
+            font-weight: 700;
+            font-size: clamp(1.65rem, 4.5vw, 2.65rem);
+            line-height: 1.2;
+            letter-spacing: 0.02em;
+            max-width: 18ch;
             margin: 0 auto 1rem;
         }
 
-        .modules {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.25rem;
-            margin-top: 2rem;
-            text-align: left;
-        }
-        .module-card {
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 1.35rem 1.25rem;
-            background: linear-gradient(165deg, rgba(201, 168, 76, 0.06) 0%, transparent 55%);
-            transition: border-color 0.35s ease, transform 0.35s ease;
-        }
-        .module-card:hover {
-            border-color: var(--oro-dim);
-            transform: translateY(-2px);
-        }
-        .module-card h3 {
-            font-family: var(--font-cond);
-            font-size: 1.65rem;
-            letter-spacing: 0.06em;
-            color: var(--oro);
-            margin-bottom: 0.5rem;
-        }
-        .module-card p {
-            font-size: 0.92rem;
-            color: #8f8b86;
-            line-height: 1.5;
-        }
-
-        .flow {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem 0.25rem;
-            margin-top: 2.5rem;
-        }
-        .flow-step {
-            font-family: var(--font-cond);
-            font-size: clamp(1.1rem, 2.5vw, 1.45rem);
-            letter-spacing: 0.08em;
-            padding: 0.65rem 1.1rem;
-            border: 1px solid var(--oro-dim);
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.45);
-            color: #e0dcd6;
-        }
-        .flow-arrow {
-            color: var(--oro);
-            font-size: 1.25rem;
-            padding: 0 0.15rem;
-            opacity: 0.85;
-        }
-        .flow-caption {
-            width: 100%;
-            margin-top: 1.75rem;
-            font-size: 0.88rem;
-            color: var(--muted);
-            letter-spacing: 0.06em;
-        }
-
-        .plans {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1.25rem;
-            margin-top: 2rem;
-        }
-        .plan {
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 1.75rem 1.5rem;
-            text-align: left;
-            position: relative;
-            background: #080808;
-        }
-        .plan.featured {
-            border-color: var(--oro-dim);
-            box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.08);
-        }
-        .plan .name {
-            font-family: var(--font-cond);
-            font-size: 1.85rem;
-            letter-spacing: 0.07em;
-            color: var(--oro);
-        }
-        .plan .price {
-            font-size: 1.65rem;
+        h2.slide-title {
+            font-family: var(--dc-font-display);
             font-weight: 700;
-            color: #fff;
-            margin: 0.75rem 0 0.25rem;
-        }
-        .plan .per {
-            font-size: 0.8rem;
-            color: var(--muted);
+            font-size: clamp(1.35rem, 3.2vw, 2rem);
+            line-height: 1.2;
+            color: var(--dc-text);
             margin-bottom: 1rem;
         }
-        .plan ul {
-            list-style: none;
-            font-size: 0.88rem;
-            color: #9a9690;
-            line-height: 1.7;
-        }
-        .plan ul li::before {
-            content: "—";
-            color: var(--oro);
-            margin-right: 0.5rem;
+
+        .impact {
+            font-family: var(--dc-font-display);
+            font-weight: 700;
+            font-size: clamp(1.5rem, 4vw, 2.35rem);
+            line-height: 1.25;
+            color: var(--dc-gold);
+            margin-bottom: 0.65rem;
         }
 
-        .cases {
+        .subimpact {
+            font-size: clamp(0.95rem, 2vw, 1.1rem);
+            color: var(--dc-text-muted);
+            line-height: 1.55;
+            max-width: 36ch;
+        }
+
+        .slide-inner--exec .subimpact {
+            max-width: none;
+        }
+
+        .logo-row {
+            margin-bottom: 1.25rem;
+        }
+        .logo-row img {
+            height: clamp(40px, 8vw, 52px);
+            width: auto;
+        }
+
+        .cover-tag {
+            font-family: var(--dc-font-display);
+            font-style: italic;
+            font-size: clamp(1rem, 2.4vw, 1.25rem);
+            color: var(--dc-text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .cta-row {
+            margin-top: 1.75rem;
             display: flex;
             flex-wrap: wrap;
+            gap: 12px;
             justify-content: center;
-            gap: 1rem;
-            margin-top: 2rem;
         }
-        .case-pill {
-            border: 1px solid var(--line);
-            padding: 0.85rem 1.35rem;
-            border-radius: 999px;
-            font-size: 0.95rem;
-            color: #c5c1ba;
-            transition: background 0.3s ease, border-color 0.3s ease;
-        }
-        .case-pill:hover {
-            background: rgba(201, 168, 76, 0.08);
-            border-color: var(--oro-dim);
-        }
-
-        .cta-block {
-            margin-top: 2rem;
-        }
-        .btn-demo {
+        .btn-cta {
             display: inline-block;
-            font-family: var(--font-body);
+            font-family: var(--dc-font-body);
             font-weight: 700;
-            font-size: 1rem;
-            letter-spacing: 0.12em;
+            font-size: 0.88rem;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
             text-decoration: none;
             color: #0a0a0a;
-            background: var(--oro);
-            padding: 1rem 2.5rem;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 24px rgba(201, 168, 76, 0.25);
+            background: var(--dc-gold);
+            padding: 0.9rem 1.75rem;
+            border-radius: var(--dc-radius);
+            transition: background var(--dc-transition), transform 0.2s ease;
         }
-        .btn-demo:hover {
-            background: #d4b45d;
+        .btn-cta:hover {
+            background: var(--dc-gold-light);
             transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(201, 168, 76, 0.35);
         }
-        .btn-demo:active {
-            transform: translateY(0);
-        }
-        .cta-sub {
-            margin-top: 1rem;
-            font-size: 0.85rem;
-            color: var(--muted);
+        .cta-note {
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--dc-text-subtle);
+            margin-top: 0.5rem;
         }
 
         .nav-bar {
@@ -314,48 +204,48 @@
             align-items: center;
             justify-content: center;
             gap: 1rem;
-            padding: 16px 24px 22px;
-            background: linear-gradient(transparent, rgba(10, 10, 10, 0.92));
+            padding: 14px 20px 20px;
+            background: linear-gradient(transparent, rgba(10, 10, 10, 0.95));
         }
         .nav-bar button {
-            width: 48px;
-            height: 48px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
-            border: 1px solid var(--line);
-            background: rgba(20, 20, 20, 0.9);
-            color: var(--oro);
-            font-size: 1.35rem;
+            border: 1px solid var(--dc-border);
+            background: var(--dc-surface);
+            color: var(--dc-gold);
+            font-size: 1.25rem;
             line-height: 1;
             cursor: pointer;
-            transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
+            transition: border-color var(--dc-transition), color var(--dc-transition);
         }
         .nav-bar button:hover:not(:disabled) {
-            border-color: var(--oro-dim);
-            color: #e8d9a8;
+            border-color: var(--dc-border-hover);
+            color: var(--dc-gold-light);
         }
         .nav-bar button:disabled {
-            opacity: 0.25;
+            opacity: 0.28;
             cursor: not-allowed;
         }
         .nav-dots {
             display: flex;
-            gap: 8px;
+            gap: 7px;
             align-items: center;
         }
         .nav-dots button {
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             padding: 0;
             border: none;
-            background: #333;
+            background: var(--dc-text-subtle);
         }
         .nav-dots button.active {
-            background: var(--oro);
-            transform: scale(1.15);
+            background: var(--dc-gold);
+            transform: scale(1.2);
         }
         .btn-fs {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .progress {
@@ -363,169 +253,223 @@
             bottom: 0;
             left: 0;
             height: 3px;
-            background: var(--oro);
+            background: var(--dc-gold);
             z-index: 25;
-            transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .hint-keys {
             position: fixed;
-            top: 14px;
-            right: 18px;
+            top: 12px;
+            right: 16px;
             z-index: 20;
-            font-size: 0.68rem;
-            letter-spacing: 0.12em;
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
-            color: #444;
-        }
-
-        @media (max-width: 600px) {
-            .flow-arrow { display: none; }
-            .flow { flex-direction: column; }
+            color: var(--dc-text-subtle);
         }
     </style>
 </head>
-<body>
+<body class="dc-b2b-deck">
     <p class="hint-keys" aria-hidden="true">← → · F pantalla completa</p>
     <div class="deck" id="deck" aria-live="polite">
+        <!-- Portada -->
         <section class="slide active" data-slide="0" aria-label="Portada">
-            <div class="slide-inner">
+            <div class="slide-inner slide-inner--cover">
                 <div class="logo-row">
-                    <img src="assets/logo-master-vip.svg" width="200" height="48" alt="">
-                    <span class="logo-wordmark">BILLARES MASTER V.I.P</span>
+                    <img src="/assets/logo-decarambola.svg" width="200" height="52" alt="DeCarambola">
                 </div>
-                <p class="eyebrow">Suite para clubes de billar</p>
-                <h1 class="bebas">DeCarambola Suite</h1>
-                <p class="tagline">Transmite. Gestiona. Crece.</p>
+                <p class="eyebrow">DeCarambola Suite</p>
+                <h1 class="cover-title">Más dinero en su club. Jugadores que vuelven. Negocio que crece.</h1>
+                <p class="cover-tag">No le vendemos software: le vendemos resultados en la caja y en las mesas.</p>
             </div>
         </section>
 
-        <section class="slide" data-slide="1" aria-label="El problema">
-            <div class="slide-inner">
-                <p class="eyebrow">Diagnóstico</p>
-                <h2 class="bebas">El problema</h2>
-                <p class="lead">
-                    Los clubes de billar no cuentan con tecnología integrada para <span class="playfair">transmitir en vivo</span>
-                    con calidad de emisión ni para <span class="playfair">gestionar partidas y salón</span> con el mismo nivel
-                    que esperan jugadores, sponsors y audiencia.
-                </p>
-                <p class="lead" style="margin-top: 0.5rem;">
-                    Marcadores improvisados, desconexión entre pista y streaming, y cero visibilidad operativa del salón.
-                </p>
-            </div>
-        </section>
-
-        <section class="slide" data-slide="2" aria-label="La solución">
-            <div class="slide-inner">
-                <p class="eyebrow">Producto</p>
-                <h2 class="bebas">La solución</h2>
-                <p class="lead">Tres módulos que convierten tu club en una operación profesional.</p>
-                <div class="modules">
-                    <article class="module-card">
-                        <h3>Marcador en vivo</h3>
-                        <p>Marcador y overlay sincronizados con la partida: carambolas, entradas, promedios y marca del club en tiempo real.</p>
-                    </article>
-                    <article class="module-card">
-                        <h3>Transmisión YouTube</h3>
-                        <p>Flujo unificado hacia OBS y <span class="playfair">YouTube Live</span>: un botón en sala, señal lista para tu canal.</p>
-                    </article>
-                    <article class="module-card">
-                        <h3>Gestión del salón</h3>
-                        <p>Mesas, sesiones, torneos y portal del club en una sola plataforma web pensada para billar tres bandas.</p>
-                    </article>
+        <!-- 1 Fidelización -->
+        <section class="slide" data-slide="1" aria-label="Fidelización">
+            <div class="slide-inner slide-inner--exec">
+                <div class="slide-col-num">
+                    <span class="idx" aria-hidden="true">01</span>
+                </div>
+                <div>
+                    <p class="eyebrow">Fidelización</p>
+                    <h2 class="slide-title">El jugador vuelve porque tiene algo que seguir</h2>
+                    <p class="impact">Ranking por club · historial · promedio</p>
+                    <p class="subimpact">
+                        Cuando el jugador ve su nombre, su evolución y su lugar en el club, deja de ser un visitante ocasional y pasa a ser cliente recurrente.
+                    </p>
                 </div>
             </div>
         </section>
 
-        <section class="slide" data-slide="3" aria-label="Flujo en vivo">
-            <div class="slide-inner">
-                <p class="eyebrow">Arquitectura</p>
-                <h2 class="bebas">Flujo en vivo</h2>
-                <p class="lead">De la mesa al espectador, sin fricción para el operador.</p>
-                <div class="flow" role="img" aria-label="Mesa, marcador, OBS, YouTube Live">
-                    <span class="flow-step">Mesa</span>
-                    <span class="flow-arrow" aria-hidden="true">→</span>
-                    <span class="flow-step">Marcador</span>
-                    <span class="flow-arrow" aria-hidden="true">→</span>
-                    <span class="flow-step">OBS</span>
-                    <span class="flow-arrow" aria-hidden="true">→</span>
-                    <span class="flow-step">YouTube Live</span>
+        <!-- 2 Horas frías -->
+        <section class="slide" data-slide="2" aria-label="Horas frías">
+            <div class="slide-inner slide-inner--exec">
+                <div class="slide-col-num">
+                    <span class="idx" aria-hidden="true">02</span>
                 </div>
-                <p class="flow-caption">DeCarambola publica estado en la nube; el puente local actualiza el Browser Source y arranca la emisión.</p>
-            </div>
-        </section>
-
-        <section class="slide" data-slide="4" aria-label="Planes">
-            <div class="slide-inner">
-                <p class="eyebrow">Comercial</p>
-                <h2 class="bebas">Planes</h2>
-                <p class="lead">Precios orientativos; ajustamos alcance según mesas, transmisiones y white label.</p>
-                <div class="plans">
-                    <div class="plan">
-                        <div class="name">Básico</div>
-                        <div class="price">$ 149.000</div>
-                        <div class="per">/ mes · COP</div>
-                        <ul>
-                            <li>Marcador y TV salón</li>
-                            <li>Gestión de mesas esencial</li>
-                            <li>Soporte por correo</li>
-                        </ul>
-                    </div>
-                    <div class="plan featured">
-                        <div class="name">Pro</div>
-                        <div class="price">$ 349.000</div>
-                        <div class="per">/ mes · COP</div>
-                        <ul>
-                            <li>Todo Básico</li>
-                            <li>Transmisión asistida + overlay</li>
-                            <li>Torneos y organizador</li>
-                            <li>Prioridad en soporte</li>
-                        </ul>
-                    </div>
-                    <div class="plan">
-                        <div class="name">Premium</div>
-                        <div class="price">A medida</div>
-                        <div class="per">Presupuesto según club</div>
-                        <ul>
-                            <li>Multi-sede / cadena</li>
-                            <li>Marca y flujos personalizados</li>
-                            <li>Integraciones y capacitación</li>
-                            <li>Contacto directo con producto</li>
-                        </ul>
-                    </div>
+                <div>
+                    <p class="eyebrow">Horas frías</p>
+                    <h2 class="slide-title">Mesas que hoy están vacías, mañana facturan</h2>
+                    <p class="impact">1 reto → 2 jugadores → 1 mesa ocupada</p>
+                    <p class="subimpact">
+                        Los retos caseritos empujan a dos personas a concertar y venir al club en franjas donde antes no movía mesa. Más horas vendidas, mismo costo fijo.
+                    </p>
                 </div>
             </div>
         </section>
 
-        <section class="slide" data-slide="5" aria-label="Casos de uso">
-            <div class="slide-inner">
-                <p class="eyebrow">Dónde encaja</p>
-                <h2 class="bebas">Casos de uso</h2>
-                <p class="lead">Una misma base técnica para distintos momentos del negocio.</p>
-                <div class="cases">
-                    <span class="case-pill">Torneos y finales en vivo</span>
-                    <span class="case-pill">Partidas casuales en sala</span>
-                    <span class="case-pill">Transmisión pagada / PPV</span>
-                    <span class="case-pill">Clínica y exhibición</span>
-                    <span class="case-pill">Sponsors en overlay</span>
+        <!-- 3 White label -->
+        <section class="slide" data-slide="3" aria-label="White label">
+            <div class="slide-inner slide-inner--exec">
+                <div class="slide-col-num">
+                    <span class="idx" aria-hidden="true">03</span>
+                </div>
+                <div>
+                    <p class="eyebrow">White label</p>
+                    <h2 class="slide-title">Su marca en todo lo que ve el jugador</h2>
+                    <p class="impact">100 % su club · 0 % nuestra marca obligatoria</p>
+                    <p class="subimpact">
+                        Overlay, certificados, piezas para redes: el refuerzo es el nombre del club, no el de un tercero. Más reconocimiento local y más confianza para cobrar.
+                    </p>
                 </div>
             </div>
         </section>
 
-        <section class="slide" data-slide="6" aria-label="Contacto">
-            <div class="slide-inner">
-                <p class="eyebrow">Siguiente paso</p>
-                <h2 class="bebas">Solicita tu demo</h2>
-                <p class="lead">Te mostramos el flujo completo en tu club o en remoto: TV, marcador y salida a YouTube.</p>
-                <div class="cta-block">
-                    <a class="btn-demo" href="/apps/sensei/index.html?contacto=1">Solicita tu demo</a>
-                    <p class="cta-sub">DeCarambola · decarambola.com</p>
+        <!-- 4 Redes sociales -->
+        <section class="slide" data-slide="4" aria-label="Redes sociales">
+            <div class="slide-inner slide-inner--exec">
+                <div class="slide-col-num">
+                    <span class="idx" aria-hidden="true">04</span>
                 </div>
+                <div>
+                    <p class="eyebrow">Redes sociales</p>
+                    <h2 class="slide-title">Cada partida compartida es publicidad gratis</h2>
+                    <p class="impact">0 pesos en pauta · alcance orgánico</p>
+                    <p class="subimpact">
+                        Resultados, certificados y momentos de juego se comparten con el logo del club. Sus jugadores hacen de community managers sin que usted pague un peso extra en anuncios.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5 Control del salón -->
+        <section class="slide" data-slide="5" aria-label="Control del salón">
+            <div class="slide-inner slide-inner--exec">
+                <div class="slide-col-num">
+                    <span class="idx" aria-hidden="true">05</span>
+                </div>
+                <div>
+                    <p class="eyebrow">Control del salón</p>
+                    <h2 class="slide-title">Ve el negocio en tiempo real</h2>
+                    <p class="impact">Mesas · ingresos · socios · reservas</p>
+                    <p class="subimpact">
+                        Menos improvisación y más decisiones: qué mesa está libre, qué sesión lleva tiempo, cómo se mueve el día. Eso se traduce en mejor uso del aforo y menos fugas de ticket.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6 Torneos -->
+        <section class="slide" data-slide="6" aria-label="Torneos">
+            <div class="slide-inner slide-inner--exec">
+                <div class="slide-col-num">
+                    <span class="idx" aria-hidden="true">06</span>
+                </div>
+                <div>
+                    <p class="eyebrow">Torneos</p>
+                    <h2 class="slide-title">Llene el salón con eventos que se arman en minutos</h2>
+                    <p class="impact">Más inscripciones · más acompañantes · más consumo</p>
+                    <p class="subimpact">
+                        Organizador integrado, brackets y posiciones: baja la fricción para armar fecha y sube la llegada de caras nuevas que su equipo puede convertir en habituales.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7 Cámara y video -->
+        <section class="slide" data-slide="7" aria-label="Cámara y video">
+            <div class="slide-inner slide-inner--exec">
+                <div class="slide-col-num">
+                    <span class="idx" aria-hidden="true">07</span>
+                </div>
+                <div>
+                    <p class="eyebrow">Cámara y video</p>
+                    <h2 class="slide-title">El jugador se queda más y vuelve con un motivo</h2>
+                    <p class="impact">Graba · estudia · comparte</p>
+                    <p class="subimpact">
+                        Ver sus jugadas refuerza la práctica y da contenido propio para redes. Más tiempo en sala y más vínculo emocional con su club.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8 IA Sensei -->
+        <section class="slide" data-slide="8" aria-label="IA integrada">
+            <div class="slide-inner slide-inner--exec">
+                <div class="slide-col-num">
+                    <span class="idx" aria-hidden="true">08</span>
+                </div>
+                <div>
+                    <p class="eyebrow">IA integrada</p>
+                    <h2 class="slide-title">Su club ofrece “entrenador digital” sin contratar staff extra</h2>
+                    <p class="impact">Sensei analiza · recomienda · suma valor</p>
+                    <p class="subimpact">
+                        El jugador percibe un servicio premium: análisis y consejos sobre su juego. Usted diferencia el club frente a la competencia sin sumar costo fijo de profesores a tiempo completo.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9 Streaming -->
+        <section class="slide" data-slide="9" aria-label="Streaming">
+            <div class="slide-inner slide-inner--exec">
+                <div class="slide-col-num">
+                    <span class="idx" aria-hidden="true">09</span>
+                </div>
+                <div>
+                    <p class="eyebrow">Streaming</p>
+                    <h2 class="slide-title">Convierta una mesa en un evento que se paga solo</h2>
+                    <p class="impact">YouTube Live · sponsors en pantalla · PPV</p>
+                    <p class="subimpact">
+                        Un flujo simple para salir al vivo: marca patrocinadora visible, posibilidad de cobrar por ver y posicionamiento como el club serio de billar en la ciudad.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10 Ranking local y nacional -->
+        <section class="slide" data-slide="10" aria-label="Ranking">
+            <div class="slide-inner slide-inner--exec">
+                <div class="slide-col-num">
+                    <span class="idx" aria-hidden="true">10</span>
+                </div>
+                <div>
+                    <p class="eyebrow">Ranking local y nacional</p>
+                    <h2 class="slide-title">El jugador compite más allá de su mesa</h2>
+                    <p class="impact">Club + país · más motivación · más visitas</p>
+                    <p class="subimpact">
+                        Cuando el ranking no termina en la puerta del club, el jugador tiene una razón extra para jugar seguido y traer rivales: orgullo, puestos y comparación con otros clubes.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cierre -->
+        <section class="slide" data-slide="11" aria-label="Próximo paso">
+            <div class="slide-inner slide-inner--cover">
+                <p class="eyebrow">Próximo paso</p>
+                <h1 class="cover-title">Le mostramos cómo se traduce en su caja y en sus mesas</h1>
+                <p class="cover-tag">Demo breve, sin compromiso: números, flujos y ejemplos de club.</p>
+                <div class="cta-row">
+                    <a class="btn-cta" href="/apps/sensei/index.html?contacto=1">Pedir una demo</a>
+                </div>
+                <p class="cta-note">decarambola.com</p>
             </div>
         </section>
     </div>
 
-    <div class="progress" id="progress" style="width: 14.28%;" aria-hidden="true"></div>
+    <div class="progress" id="progress" style="width: 8.33%;" aria-hidden="true"></div>
 
     <nav class="nav-bar" aria-label="Navegación de diapositivas">
         <button type="button" id="btn-prev" aria-label="Diapositiva anterior">‹</button>
@@ -536,23 +480,25 @@
 
     <script>
         (function () {
-            var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+            var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
             var total = slides.length;
             var idx = 0;
-            var progress = document.getElementById("progress");
-            var btnPrev = document.getElementById("btn-prev");
-            var btnNext = document.getElementById("btn-next");
-            var dotsWrap = document.getElementById("dots");
+            var progress = document.getElementById('progress');
+            var btnPrev = document.getElementById('btn-prev');
+            var btnNext = document.getElementById('btn-next');
+            var dotsWrap = document.getElementById('dots');
 
             function renderDots() {
-                dotsWrap.innerHTML = "";
+                dotsWrap.innerHTML = '';
                 for (var i = 0; i < total; i++) {
-                    var b = document.createElement("button");
-                    b.type = "button";
-                    b.setAttribute("aria-label", "Ir a diapositiva " + (i + 1));
-                    if (i === idx) b.classList.add("active");
+                    var b = document.createElement('button');
+                    b.type = 'button';
+                    b.setAttribute('aria-label', 'Ir a diapositiva ' + (i + 1));
+                    if (i === idx) b.classList.add('active');
                     (function (j) {
-                        b.addEventListener("click", function () { go(j); });
+                        b.addEventListener('click', function () {
+                            go(j);
+                        });
                     })(i);
                     dotsWrap.appendChild(b);
                 }
@@ -562,45 +508,48 @@
                 if (n < 0 || n >= total) return;
                 idx = n;
                 slides.forEach(function (el, i) {
-                    el.classList.remove("active", "prev");
-                    if (i === idx) el.classList.add("active");
-                    else if (i < idx) el.classList.add("prev");
+                    el.classList.remove('active', 'prev');
+                    if (i === idx) el.classList.add('active');
+                    else if (i < idx) el.classList.add('prev');
                 });
                 btnPrev.disabled = idx === 0;
                 btnNext.disabled = idx === total - 1;
-                progress.style.width = ((idx + 1) / total * 100) + "%";
-                var dotBtns = dotsWrap.querySelectorAll("button");
-                dotBtns.forEach(function (d, i) {
-                    d.classList.toggle("active", i === idx);
+                progress.style.width = ((idx + 1) / total) * 100 + '%';
+                dotsWrap.querySelectorAll('button').forEach(function (d, i) {
+                    d.classList.toggle('active', i === idx);
                 });
             }
 
-            btnPrev.addEventListener("click", function () { go(idx - 1); });
-            btnNext.addEventListener("click", function () { go(idx + 1); });
+            btnPrev.addEventListener('click', function () {
+                go(idx - 1);
+            });
+            btnNext.addEventListener('click', function () {
+                go(idx + 1);
+            });
 
-            document.addEventListener("keydown", function (e) {
-                if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
                     e.preventDefault();
                     go(idx + 1);
-                } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+                } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
                     e.preventDefault();
                     go(idx - 1);
-                } else if (e.key === "Home") {
+                } else if (e.key === 'Home') {
                     e.preventDefault();
                     go(0);
-                } else if (e.key === "End") {
+                } else if (e.key === 'End') {
                     e.preventDefault();
                     go(total - 1);
-                } else if (e.key === "f" || e.key === "F") {
-                    var d = document.documentElement;
-                    if (!document.fullscreenElement) d.requestFullscreen().catch(function () {});
+                } else if (e.key === 'f' || e.key === 'F') {
+                    var de = document.documentElement;
+                    if (!document.fullscreenElement) de.requestFullscreen().catch(function () {});
                     else document.exitFullscreen();
                 }
             });
 
-            document.getElementById("btn-fs").addEventListener("click", function () {
-                var d = document.documentElement;
-                if (!document.fullscreenElement) d.requestFullscreen().catch(function () {});
+            document.getElementById('btn-fs').addEventListener('click', function () {
+                var de = document.documentElement;
+                if (!document.fullscreenElement) de.requestFullscreen().catch(function () {});
                 else document.exitFullscreen();
             });
 
