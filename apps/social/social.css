@@ -1,0 +1,228 @@
+/**
+ * DeCarambola — módulo social (operador)
+ * Mobile first; alineado con #0a0a0a + #c9a84c + DM Sans
+ */
+:root {
+  --dc-social-bg: #0a0a0a;
+  --dc-social-gold: #c9a84c;
+  --dc-social-text: #f0f0f0;
+  --dc-social-muted: #888;
+  --dc-social-border: rgba(201, 168, 76, 0.35);
+  --dc-social-radius: 12px;
+  --dc-font-body: "DM Sans", system-ui, sans-serif;
+  --dc-font-display: "Playfair Display", Georgia, serif;
+}
+
+.dc-social-page {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--dc-social-bg);
+  color: var(--dc-social-text);
+  font-family: var(--dc-font-body);
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.45;
+}
+
+.dc-social-page a {
+  color: var(--dc-social-gold);
+}
+
+.dc-social-wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px 14px 48px;
+}
+
+.dc-social-header {
+  text-align: center;
+  margin-bottom: 22px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--dc-social-border);
+}
+
+.dc-social-header h1 {
+  font-family: var(--dc-font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+  color: var(--dc-social-gold);
+  margin: 0 0 6px;
+}
+
+.dc-social-header p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--dc-social-muted);
+}
+
+.dc-social-section {
+  margin-bottom: 28px;
+}
+
+.dc-social-section h2 {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dc-social-muted);
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+.dc-social-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--dc-social-border);
+  border-radius: var(--dc-social-radius);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.dc-social-label {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dc-social-muted);
+  margin-bottom: 6px;
+}
+
+.dc-social-input,
+.dc-social-select,
+.dc-social-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--dc-social-border);
+  border-radius: 10px;
+  color: var(--dc-social-text);
+  font-family: var(--dc-font-body);
+  font-size: 0.9rem;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.dc-social-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.dc-social-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dc-social-row .dc-social-input {
+  flex: 1;
+  min-width: 120px;
+  margin-bottom: 0;
+}
+
+.dc-social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--dc-social-border);
+  background: rgba(201, 168, 76, 0.12);
+  color: var(--dc-social-gold);
+  font-family: var(--dc-font-body);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-decoration: none;
+  margin: 4px 4px 4px 0;
+}
+
+.dc-social-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dc-social-btn--ghost {
+  background: transparent;
+  color: var(--dc-social-muted);
+}
+
+.dc-social-btn--danger {
+  border-color: rgba(180, 80, 80, 0.5);
+  color: #c98a8a;
+  background: rgba(180, 80, 80, 0.08);
+}
+
+.dc-social-preview-wrap {
+  width: 100%;
+  max-width: 360px;
+  margin: 16px auto;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--dc-social-border);
+  line-height: 0;
+}
+
+.dc-social-preview-wrap canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.dc-social-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.dc-social-tab {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--dc-social-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--dc-font-body);
+}
+
+.dc-social-tab.is-on {
+  border-color: var(--dc-social-border);
+  color: var(--dc-social-gold);
+  background: rgba(201, 168, 76, 0.1);
+}
+
+.dc-social-msg {
+  font-size: 0.82rem;
+  color: var(--dc-social-muted);
+  padding: 12px;
+  border-radius: var(--dc-social-radius);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dc-social-msg--err {
+  color: #e8a0a0;
+  border: 1px solid rgba(200, 100, 100, 0.35);
+}
+
+.dc-social-live-pulse {
+  animation: dc-social-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dc-social-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (min-width: 480px) {
+  .dc-social-wrap {
+    padding: 24px 20px 56px;
+  }
+}

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DeCarambola — Panel social</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./social.css" />
+</head>
+<body class="dc-social-page">
+  <div class="dc-social-wrap">
+    <header class="dc-social-header">
+      <h1>Panel social</h1>
+      <p>Cola, historial y copy · fase 1: export manual</p>
+    </header>
+
+    <div id="gate" class="dc-social-msg">Comprobando sesión…</div>
+
+    <div id="app" hidden>
+      <p class="dc-social-msg" style="margin-bottom:16px" id="clubLine"></p>
+
+      <div class="dc-social-section">
+        <h2>Escucha en tiempo real</h2>
+        <p class="dc-social-msg" style="font-size:0.78rem;margin-bottom:10px">
+          Los borradores entran en la cola local del navegador. «En vivo» solo al crear overlay (inicio de partida) si activás esa opción.
+        </p>
+        <label class="dc-social-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="chkSoloInsertOverlay" checked />
+          En vivo: solo al iniciar (INSERT en overlay_state)
+        </label>
+        <div style="margin-top:10px">
+          <button type="button" class="dc-social-btn" id="btnListenStart">Activar escucha</button>
+          <button type="button" class="dc-social-btn dc-social-btn--ghost" id="btnListenStop">Detener</button>
+        </div>
+        <p class="dc-social-msg" id="listenState" style="margin-top:10px;font-size:0.75rem"></p>
+      </div>
+
+      <div class="dc-social-section">
+        <h2>Cola de contenido</h2>
+        <div id="queueList"></div>
+        <button type="button" class="dc-social-btn dc-social-btn--ghost" id="btnClearDone">Vaciar descartados</button>
+      </div>
+
+      <div class="dc-social-section">
+        <h2>Historial (últimos 10)</h2>
+        <div id="historyList"></div>
+      </div>
+
+      <div class="dc-social-section">
+        <h2>Configuración</h2>
+        <label class="dc-social-label" for="tagIg">Hashtags Instagram</label>
+        <input id="tagIg" class="dc-social-input" />
+        <label class="dc-social-label" for="tagTk">Hashtags TikTok</label>
+        <input id="tagTk" class="dc-social-input" />
+        <label class="dc-social-label" for="tagFb">Hashtags Facebook</label>
+        <input id="tagFb" class="dc-social-input" />
+        <label class="dc-social-label" for="selTono">Tono del copy (IA y plantillas)</label>
+        <select id="selTono" class="dc-social-select">
+          <option value="casual">Casual</option>
+          <option value="competitivo">Competitivo</option>
+          <option value="premium">Premium</option>
+        </select>
+        <label class="dc-social-label" for="selLang">Idioma</label>
+        <select id="selLang" class="dc-social-select">
+          <option value="es-CO" selected>Español (Colombia)</option>
+        </select>
+        <label class="dc-social-label" for="anthropicKey">Clave Anthropic (solo esta sesión del navegador)</label>
+        <input id="anthropicKey" type="password" class="dc-social-input" placeholder="sk-ant-api03-…" autocomplete="off" />
+        <p class="dc-social-msg" style="font-size:0.72rem;margin-top:6px">
+          Recomendado: proxy / Edge Function en lugar de pegar la clave aquí. No uses service_role de Supabase en el front.
+        </p>
+        <label class="dc-social-label" for="proxyAnthropic">URL proxy Anthropic (opcional)</label>
+        <input id="proxyAnthropic" class="dc-social-input" placeholder="https://…" />
+        <button type="button" class="dc-social-btn" id="btnSaveConfig">Guardar configuración</button>
+      </div>
+
+      <p class="dc-social-msg" style="margin-top:20px;font-size:0.75rem">
+        <a href="./card-generator.html">Abrir generador de cards</a>
+      </p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
+    import * as Social from './social-engine.js';
+
+    var KEY_Q = 'dc_social_queue_v1';
+    var KEY_H = 'dc_social_history_v1';
+    var KEY_C = 'dc_social_config_v1';
+    var KEY_ANT = 'dc_anthropic_key_session';
+
+    var gate = document.getElementById('gate');
+    var app = document.getElementById('app');
+    var unsubs = [];
+
+    var clubId = '';
+    var branding = { nombre: '', ciudad: '' };
+
+    function uid() {
+      return 'dc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+    }
+
+    function loadQueue() {
+      try {
+        return JSON.parse(localStorage.getItem(KEY_Q) || '[]');
+      } catch (_e) {
+        return [];
+      }
+    }
+
+    function saveQueue(q) {
+      localStorage.setItem(KEY_Q, JSON.stringify(q));
+    }
+
+    function loadHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(KEY_H) || '[]');
+      } catch (_e) {
+        return [];
+      }
+    }
+
+    function saveHistory(h) {
+      localStorage.setItem(KEY_H, JSON.stringify(h.slice(0, 50)));
+    }
+
+    function loadConfig() {
+      try {
+        return JSON.parse(localStorage.getItem(KEY_C) || '{}');
+      } catch (_e) {
+        return {};
+      }
+    }
+
+    function saveConfig(c) {
+      localStorage.setItem(KEY_C, JSON.stringify(c));
+    }
+
+    function defaultHashtags() {
+      var clubTag = (branding.nombre || 'club')
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/[^a-z0-9áéíóúñ]/gi, '');
+      if (!clubTag) clubTag = 'club';
+      var city = (branding.ciudad || '')
+        .toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/[^a-z0-9áéíóúñ]/gi, '');
+      return {
+        instagram: '#carambola #billar #decarambola #' + clubTag,
+        tiktok: '#carambola #billar #decarambola #viral',
+        facebook: '#carambola #billar' + (city ? ' #' + city : ''),
+      };
+    }
+
+    function pushDraft(draft) {
+      if (!draft || draft.error) return;
+      var q = loadQueue();
+      q.unshift({
+        id: uid(),
+        kind: draft.kind,
+        title: draft.title,
+        body: draft.body,
+        createdAt: new Date().toISOString(),
+        scheduledFor: null,
+        status: 'pending',
+        draft: draft,
+      });
+      saveQueue(q);
+      render();
+    }
+
+    function render() {
+      var q = loadQueue();
+      var elQ = document.getElementById('queueList');
+      elQ.innerHTML = '';
+      q.filter(function (x) {
+        return x.status !== 'discarded';
+      }).forEach(function (item) {
+        var card = document.createElement('div');
+        card.className = 'dc-social-card';
+        var st = item.status === 'scheduled' ? 'Programado: ' + item.scheduledFor : item.status;
+        var meta = document.createElement('div');
+        meta.style.cssText = 'font-size:0.72rem;color:#888;margin-bottom:6px';
+        meta.textContent = item.kind + ' · ' + st;
+        var tit = document.createElement('div');
+        tit.style.cssText = 'font-weight:600;margin-bottom:8px';
+        tit.textContent = item.title || '';
+        var ta = document.createElement('textarea');
+        ta.className = 'dc-social-textarea';
+        ta.style.minHeight = '72px';
+        ta.style.fontSize = '0.82rem';
+        ta.dataset.id = item.id;
+        ta.value = item.body || '';
+        var row1 = document.createElement('div');
+        row1.className = 'dc-social-row';
+        row1.style.marginTop = '8px';
+        [['copy-ig', 'Copiar + IG'], ['copy-tk', 'Copiar + TikTok'], ['copy-fb', 'Copiar + FB']].forEach(function (pair) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'dc-social-btn';
+          b.dataset.act = pair[0];
+          b.dataset.id = item.id;
+          b.textContent = pair[1];
+          row1.appendChild(b);
+        });
+        var row2 = document.createElement('div');
+        row2.className = 'dc-social-row';
+        [['ia', 'Generar copy IA'], ['schedule', 'Programar'], ['discard', 'Descartar'], ['published', 'Marcar publicado']].forEach(
+          function (pair) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className =
+              'dc-social-btn' + (pair[0] === 'discard' ? ' dc-social-btn--danger' : pair[0] !== 'published' ? ' dc-social-btn--ghost' : '');
+            b.dataset.act = pair[0];
+            b.dataset.id = item.id;
+            b.textContent = pair[1];
+            row2.appendChild(b);
+          }
+        );
+        card.appendChild(meta);
+        card.appendChild(tit);
+        card.appendChild(ta);
+        card.appendChild(row1);
+        card.appendChild(row2);
+        elQ.appendChild(card);
+      });
+
+      elQ.querySelectorAll('[data-act]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          onQueueAction(btn.getAttribute('data-act'), btn.getAttribute('data-id'));
+        });
+      });
+
+      var hist = loadHistory().slice(0, 10);
+      var elH = document.getElementById('historyList');
+      elH.innerHTML = '';
+      hist.forEach(function (h) {
+        var d = document.createElement('div');
+        d.className = 'dc-social-card';
+        d.style.fontSize = '0.82rem';
+        d.textContent =
+          (h.red || '—') +
+          ' · ' +
+          (h.tipo || '—') +
+          ' · ' +
+          (h.fecha || '') +
+          '\n' +
+          (h.title || '');
+        elH.appendChild(d);
+      });
+    }
+
+    function getBodyForId(id) {
+      var ta = document.querySelector('textarea[data-id="' + id + '"]');
+      return ta ? ta.value : '';
+    }
+
+    function updateQueueItem(id, fn) {
+      var q = loadQueue();
+      q = q.map(function (x) {
+        return x.id === id ? fn(x) : x;
+      });
+      saveQueue(q);
+      render();
+    }
+
+    function onQueueAction(act, id) {
+      var cfg = loadConfig();
+      var tags = cfg.hashtags || defaultHashtags();
+      if (act === 'discard') {
+        updateQueueItem(id, function (x) {
+          x.status = 'discarded';
+          return x;
+        });
+        return;
+      }
+      if (act === 'schedule') {
+        var when = window.prompt('Fecha y hora (ISO o texto local), ejemplo 2026-04-14T18:00');
+        if (!when) return;
+        updateQueueItem(id, function (x) {
+          x.scheduledFor = when;
+          x.status = 'scheduled';
+          return x;
+        });
+        return;
+      }
+      if (act === 'published') {
+        var item = loadQueue().find(function (x) {
+          return x.id === id;
+        });
+        if (!item) return;
+        var red = window.prompt('¿Red social? (instagram / tiktok / facebook)', 'instagram');
+        if (!red) return;
+        var h = loadHistory();
+        h.unshift({
+          red: red,
+          tipo: item.kind,
+          fecha: new Date().toISOString(),
+          title: item.title,
+        });
+        saveHistory(h);
+        updateQueueItem(id, function (x) {
+          x.status = 'discarded';
+          return x;
+        });
+        return;
+      }
+      if (act === 'copy-ig' || act === 'copy-tk' || act === 'copy-fb') {
+        var body = getBodyForId(id);
+        var tag =
+          act === 'copy-ig'
+            ? tags.instagram || ''
+            : act === 'copy-tk'
+              ? tags.tiktok || ''
+              : tags.facebook || '';
+        var full = body + (tag ? '\n\n' + tag : '');
+        navigator.clipboard.writeText(full).catch(function () {});
+        return;
+      }
+      if (act === 'ia') {
+        runIaForId(id);
+      }
+    }
+
+    async function runIaForId(id) {
+      var item = loadQueue().find(function (x) {
+        return x.id === id;
+      });
+      if (!item || !item.draft) return;
+      var cfg = loadConfig();
+      var proxy = (document.getElementById('proxyAnthropic').value || '').trim() || (loadConfig().proxyAnthropic || '').trim();
+      var key =
+        (document.getElementById('anthropicKey').value || '').trim() ||
+        sessionStorage.getItem(KEY_ANT) ||
+        '';
+      if (key) sessionStorage.setItem(KEY_ANT, key);
+      var vars = Social.draftToAnthropicVars(item.draft, {
+        nombre_club: branding.nombre,
+        tono: cfg.tono || 'casual',
+        red_social: 'Instagram',
+      });
+      var res = await Social.generateCopyWithAnthropic({
+        kind: item.draft.kind,
+        vars: vars,
+        apiKey: proxy ? undefined : key,
+        proxyUrl: proxy || undefined,
+        model: Social.ANTHROPIC_DEFAULT_MODEL,
+      });
+      if (res.error) {
+        window.alert(res.error.message || String(res.error));
+        return;
+      }
+      updateQueueItem(id, function (x) {
+        x.body = res.text;
+        return x;
+      });
+    }
+
+    function applyConfigToForm() {
+      var c = loadConfig();
+      var defs = defaultHashtags();
+      document.getElementById('tagIg').value = (c.hashtags && c.hashtags.instagram) || defs.instagram;
+      document.getElementById('tagTk').value = (c.hashtags && c.hashtags.tiktok) || defs.tiktok;
+      document.getElementById('tagFb').value = (c.hashtags && c.hashtags.facebook) || defs.facebook;
+      document.getElementById('selTono').value = c.tono || 'casual';
+    }
+
+    async function boot() {
+      var sess = await supabase.auth.getSession();
+      if (!sess.data.session) {
+        gate.classList.add('dc-social-msg--err');
+        gate.textContent = 'Iniciá sesión para usar el panel.';
+        return;
+      }
+      var uidUser = sess.data.session.user.id;
+      var prof = await supabase.from('profiles').select('club_id').eq('id', uidUser).maybeSingle();
+      if (prof.error || !prof.data || !String(prof.data.club_id || '').trim()) {
+        gate.classList.add('dc-social-msg--err');
+        gate.textContent = 'Perfil sin club_id.';
+        return;
+      }
+      clubId = String(prof.data.club_id).trim();
+      branding = await Social.fetchClubBranding(clubId);
+      gate.hidden = true;
+      app.hidden = false;
+      document.getElementById('clubLine').textContent = 'Operador · ' + branding.nombre + ' (' + clubId + ')';
+
+      if (!loadConfig().hashtags) {
+        saveConfig(
+          Object.assign(loadConfig(), {
+            hashtags: defaultHashtags(),
+            tono: 'casual',
+            idioma: 'es-CO',
+          })
+        );
+      }
+      applyConfigToForm();
+      var cfgLoaded = loadConfig();
+      if (cfgLoaded.proxyAnthropic) document.getElementById('proxyAnthropic').value = cfgLoaded.proxyAnthropic;
+      var sk = sessionStorage.getItem(KEY_ANT);
+      if (sk) document.getElementById('anthropicKey').value = sk;
+
+      document.getElementById('btnSaveConfig').addEventListener('click', function () {
+        saveConfig({
+          hashtags: {
+            instagram: document.getElementById('tagIg').value.trim(),
+            tiktok: document.getElementById('tagTk').value.trim(),
+            facebook: document.getElementById('tagFb').value.trim(),
+          },
+          tono: document.getElementById('selTono').value,
+          idioma: document.getElementById('selLang').value,
+          proxyAnthropic: document.getElementById('proxyAnthropic').value.trim(),
+        });
+        var k = document.getElementById('anthropicKey').value.trim();
+        if (k) sessionStorage.setItem(KEY_ANT, k);
+      });
+
+      document.getElementById('btnClearDone').addEventListener('click', function () {
+        saveQueue(
+          loadQueue().filter(function (x) {
+            return x.status !== 'discarded';
+          })
+        );
+        render();
+      });
+
+      document.getElementById('btnListenStart').addEventListener('click', function () {
+        stopListen();
+        var soloIns = document.getElementById('chkSoloInsertOverlay').checked;
+        unsubs.push(
+          Social.subscribeRetoFinalizado(clubId, pushDraft),
+          Social.subscribeRetoConApuesta(clubId, pushDraft, { origin: window.location.origin }),
+          Social.subscribeOverlayEnVivo(clubId, pushDraft, {
+            enVivoSoloAlInsertar: soloIns,
+            debounceMs: 15000,
+          }),
+          Social.scheduleWeeklyRankingMonday(clubId, pushDraft)
+        );
+        document.getElementById('listenState').textContent = 'Escucha activa (retos finalizados, retos con apuesta, overlay).';
+      });
+
+      document.getElementById('btnListenStop').addEventListener('click', function () {
+        stopListen();
+        document.getElementById('listenState').textContent = 'Escucha detenida.';
+      });
+
+      render();
+    }
+
+    function stopListen() {
+      unsubs.forEach(function (u) {
+        try {
+          if (typeof u === 'function') u();
+        } catch (_e) {}
+      });
+      unsubs = [];
+    }
+
+    boot().catch(function (e) {
+      gate.classList.add('dc-social-msg--err');
+      gate.textContent = e && e.message ? e.message : 'Error';
+    });
+  </script>
+</body>
+</html>

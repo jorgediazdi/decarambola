@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DeCarambola — Generador de cards (social)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./social.css" />
+</head>
+<body class="dc-social-page">
+  <div class="dc-social-wrap">
+    <header class="dc-social-header">
+      <h1>Generador de cards</h1>
+      <p>Herramienta interna · PNG listo para publicar</p>
+    </header>
+
+    <div id="gate" class="dc-social-msg">Comprobando sesión…</div>
+
+    <div id="app" hidden>
+      <p class="dc-social-msg" style="margin-bottom:16px" id="clubLine"></p>
+
+      <div class="dc-social-tabs" id="variantTabs" role="tablist">
+        <button type="button" class="dc-social-tab is-on" data-variant="resultado">Resultado</button>
+        <button type="button" class="dc-social-tab" data-variant="live">En vivo</button>
+        <button type="button" class="dc-social-tab" data-variant="ranking">Ranking</button>
+        <button type="button" class="dc-social-tab" data-variant="caserito">Reto + QR</button>
+      </div>
+
+      <div class="dc-social-section" id="blockResultado">
+        <h2>Reto finalizado</h2>
+        <label class="dc-social-label" for="selReto">Últimos finalizados</label>
+        <select id="selReto" class="dc-social-select"></select>
+      </div>
+
+      <div class="dc-social-section" id="blockLive" hidden>
+        <h2>En vivo</h2>
+        <div class="dc-social-row">
+          <input id="liveJ1" class="dc-social-input" placeholder="Jugador 1" />
+          <input id="liveJ2" class="dc-social-input" placeholder="Jugador 2" />
+        </div>
+        <input id="liveMesa" class="dc-social-input" placeholder="Mesa" />
+      </div>
+
+      <div class="dc-social-section" id="blockRanking" hidden>
+        <h2>Top semanal</h2>
+        <button type="button" class="dc-social-btn" id="btnLoadRanking">Cargar top 5</button>
+        <p class="dc-social-msg" id="rankingStatus" hidden></p>
+      </div>
+
+      <div class="dc-social-section" id="blockCaserito" hidden>
+        <h2>Reto con apuesta</h2>
+        <label class="dc-social-label" for="selCaserito">Retos recientes con bolsa</label>
+        <select id="selCaserito" class="dc-social-select"></select>
+      </div>
+
+      <div class="dc-social-section">
+        <h2>Formato</h2>
+        <div class="dc-social-tabs" id="formatTabs">
+          <button type="button" class="dc-social-tab is-on" data-format="square">1080 × 1080</button>
+          <button type="button" class="dc-social-tab" data-format="story">1080 × 1920 (9:16)</button>
+        </div>
+      </div>
+
+      <div class="dc-social-section">
+        <h2>Texto del post (editable)</h2>
+        <textarea id="copyBody" class="dc-social-textarea" placeholder="Copy para pegar en la red…"></textarea>
+      </div>
+
+      <div class="dc-social-preview-wrap">
+        <canvas id="cv" width="1080" height="1080"></canvas>
+      </div>
+
+      <div class="dc-social-row">
+        <button type="button" class="dc-social-btn" id="btnPreview">Actualizar vista previa</button>
+        <button type="button" class="dc-social-btn" id="btnPng">Descargar PNG</button>
+      </div>
+      <p class="dc-social-msg" id="exportNote" style="margin-top:12px;font-size:0.75rem">
+        El logo del club se carga si <code>clubs.logo_url</code> permite CORS; si no, se muestra el nombre.
+      </p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from '/js/supabase-client.js';
+    import * as Social from './social-engine.js';
+
+    var gate = document.getElementById('gate');
+    var app = document.getElementById('app');
+    var clubLine = document.getElementById('clubLine');
+    var cv = document.getElementById('cv');
+    var ctx = cv.getContext('2d');
+    var selReto = document.getElementById('selReto');
+    var selCaserito = document.getElementById('selCaserito');
+    var copyBody = document.getElementById('copyBody');
+
+    var variant = 'resultado';
+    var format = 'square';
+    var clubId = '';
+    var branding = { nombre: '', logo_url: '', ciudad: '' };
+    var retosFinal = [];
+    var retosBolsa = [];
+    var rankingRows = [];
+    var dcLogoImg = null;
+    var clubLogoImg = null;
+
+    var COL_BG = '#0a0a0a';
+    var COL_GOLD = '#c9a84c';
+
+    async function boot() {
+      var sess = await supabase.auth.getSession();
+      if (!sess.data.session) {
+        gate.classList.add('dc-social-msg--err');
+        gate.textContent = 'Iniciá sesión con una cuenta de operador del club.';
+        return;
+      }
+      var uid = sess.data.session.user.id;
+      var prof = await supabase.from('profiles').select('club_id').eq('id', uid).maybeSingle();
+      if (prof.error || !prof.data || !String(prof.data.club_id || '').trim()) {
+        gate.classList.add('dc-social-msg--err');
+        gate.textContent = 'Tu perfil no tiene club_id asignado.';
+        return;
+      }
+      clubId = String(prof.data.club_id).trim();
+      branding = await Social.fetchClubBranding(clubId);
+      gate.hidden = true;
+      app.hidden = false;
+      clubLine.textContent = 'Club: ' + branding.nombre + ' · ' + clubId;
+
+      dcLogoImg = await loadImage('/assets/logo-decarambola.svg');
+      if (branding.logo_url) clubLogoImg = await loadImage(branding.logo_url);
+
+      await loadRetos();
+      await loadCaseritos();
+      wireUi();
+      await redraw();
+    }
+
+    async function loadImage(url) {
+      return new Promise(function (resolve) {
+        var im = new Image();
+        im.crossOrigin = 'anonymous';
+        im.onload = function () {
+          resolve(im);
+        };
+        im.onerror = function () {
+          resolve(null);
+        };
+        im.src = url;
+      });
+    }
+
+    async function loadRetos() {
+      var r = await Social.fetchRetosFinalizados(clubId, 5);
+      retosFinal = r.data || [];
+      selReto.innerHTML = '';
+      if (!retosFinal.length) {
+        selReto.innerHTML = '<option value="">No hay retos finalizados recientes</option>';
+        return;
+      }
+      retosFinal.forEach(function (row, i) {
+        var opt = document.createElement('option');
+        opt.value = String(i);
+        opt.textContent =
+          (row.retador || '—') + ' vs ' + (row.retado || '—') + ' · ' + (row.estado || '');
+        selReto.appendChild(opt);
+      });
+    }
+
+    async function loadCaseritos() {
+      var r = await Social.fetchRetosRecientes(clubId, 40);
+      var all = r.data || [];
+      retosBolsa = all.filter(function (row) {
+        return Social.parseApuesta(row.bolsa) > 0;
+      }).slice(0, 12);
+      selCaserito.innerHTML = '';
+      if (!retosBolsa.length) {
+        selCaserito.innerHTML = '<option value="">Sin retos con apuesta reciente</option>';
+        return;
+      }
+      retosBolsa.forEach(function (row, i) {
+        var opt = document.createElement('option');
+        opt.value = String(i);
+        opt.textContent =
+          (row.retador || '—') +
+          ' vs ' +
+          (row.retado || '—') +
+          ' · $' +
+          Social.parseApuesta(row.bolsa);
+        selCaserito.appendChild(opt);
+      });
+    }
+
+    function setCanvasSize() {
+      var w = format === 'story' ? 1080 : 1080;
+      var h = format === 'story' ? 1920 : 1080;
+      cv.width = w;
+      cv.height = h;
+      ctx = cv.getContext('2d');
+    }
+
+    function drawBase(w, h) {
+      ctx.fillStyle = COL_BG;
+      ctx.fillRect(0, 0, w, h);
+      var g = ctx.createLinearGradient(0, 0, w, h);
+      g.addColorStop(0, 'rgba(201,168,76,0.08)');
+      g.addColorStop(0.5, 'transparent');
+      g.addColorStop(1, 'rgba(201,168,76,0.05)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(201,168,76,0.25)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(24, 24, w - 48, h - 48);
+    }
+
+    function drawLogoCorner(w) {
+      if (dcLogoImg && dcLogoImg.complete) {
+        var lw = Math.min(220, w * 0.2);
+        var lh = (dcLogoImg.height / dcLogoImg.width) * lw;
+        ctx.drawImage(dcLogoImg, w - lw - 36, 32, lw, lh);
+      }
+    }
+
+    function drawClubCorner(w, h) {
+      var textName = branding.nombre || 'Club';
+      if (clubLogoImg && clubLogoImg.complete) {
+        var maxW = 200;
+        var maxH = 80;
+        var iw = clubLogoImg.width;
+        var ih = clubLogoImg.height;
+        var scale = Math.min(maxW / iw, maxH / ih, 1);
+        var dw = iw * scale;
+        var dh = ih * scale;
+        ctx.drawImage(clubLogoImg, 36, h - dh - 56, dw, dh);
+      } else {
+        ctx.fillStyle = COL_GOLD;
+        ctx.font = '600 22px "DM Sans",sans-serif';
+        ctx.textAlign = 'left';
+        var lines = wrapText(ctx, textName, w - 120);
+        var y = h - 48 - lines.length * 26;
+        lines.forEach(function (ln, i) {
+          ctx.fillText(ln, 36, y + i * 26);
+        });
+      }
+    }
+
+    function drawWatermark(w, h) {
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
+      ctx.font = '500 20px "DM Sans",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('decarambola.com', w / 2, h - 28);
+    }
+
+    function wrapText(context, text, maxWidth) {
+      var words = String(text).split(/\s+/);
+      var lines = [];
+      var line = '';
+      words.forEach(function (word) {
+        var test = line ? line + ' ' + word : word;
+        if (context.measureText(test).width > maxWidth && line) {
+          lines.push(line);
+          line = word;
+        } else line = test;
+      });
+      if (line) lines.push(line);
+      return lines.length ? lines : [''];
+    }
+
+    function drawCardResultado(w, h, row) {
+      drawBase(w, h);
+      drawLogoCorner(w);
+      var ganador = row.ganador_nombre || row.resultado || 'Ganador';
+      ctx.fillStyle = COL_GOLD;
+      ctx.font = '600 28px "DM Sans",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('RESULTADO', w / 2, h * 0.14);
+
+      ctx.font = '700 52px "Playfair Display",Georgia,serif';
+      ctx.fillStyle = '#fff';
+      var gLines = wrapText(ctx, ganador, w - 100);
+      var gy = h * 0.22;
+      gLines.forEach(function (ln, i) {
+        ctx.fillText(ln, w / 2, gy + i * 58);
+      });
+
+      ctx.font = '500 30px "DM Sans",sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      var y = gy + gLines.length * 58 + 40;
+      ctx.fillText((row.retador || '—') + '  vs  ' + (row.retado || '—'), w / 2, y);
+      y += 52;
+      if (row.score) {
+        ctx.fillText('Marcador  ' + row.score, w / 2, y);
+        y += 44;
+      }
+      if (row.promedio_ganador != null && !isNaN(row.promedio_ganador)) {
+        ctx.fillText('Promedio  ' + Number(row.promedio_ganador).toFixed(3), w / 2, y);
+        y += 44;
+      }
+      ctx.fillStyle = COL_GOLD;
+      ctx.font = '600 24px "DM Sans",sans-serif';
+      if (row.modalidad) ctx.fillText(row.modalidad, w / 2, y + 20);
+
+      drawClubCorner(w, h);
+      drawWatermark(w, h);
+    }
+
+    function drawCardLive(w, h) {
+      drawBase(w, h);
+      for (var i = 0; i < 12; i++) {
+        ctx.fillStyle = 'rgba(201,168,76,' + (0.03 + (i % 3) * 0.02) + ')';
+        ctx.fillRect((i * w) / 12, 0, w / 12 + 2, h);
+      }
+      drawLogoCorner(w);
+      ctx.fillStyle = '#ff4444';
+      ctx.font = '700 36px "DM Sans",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('● EN VIVO', w / 2, h * 0.16);
+      ctx.fillStyle = COL_GOLD;
+      ctx.font = '600 26px "DM Sans",sans-serif';
+      ctx.fillText('AHORA 🎱', w / 2, h * 0.16 + 40);
+
+      var j1 = document.getElementById('liveJ1').value.trim() || 'Jugador 1';
+      var j2 = document.getElementById('liveJ2').value.trim() || 'Jugador 2';
+      var mesa = document.getElementById('liveMesa').value.trim();
+      ctx.fillStyle = '#fff';
+      ctx.font = '700 44px "Playfair Display",Georgia,serif';
+      ctx.fillText(j1, w / 2, h * 0.38);
+      ctx.font = '600 32px "DM Sans",sans-serif';
+      ctx.fillStyle = COL_GOLD;
+      ctx.fillText('VS', w / 2, h * 0.46);
+      ctx.fillStyle = '#fff';
+      ctx.font = '700 44px "Playfair Display",Georgia,serif';
+      ctx.fillText(j2, w / 2, h * 0.54);
+      if (mesa) {
+        ctx.font = '500 28px "DM Sans",sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.fillText('Mesa ' + mesa, w / 2, h * 0.62);
+      }
+      ctx.font = '500 26px "DM Sans",sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.fillText(branding.nombre, w / 2, h * 0.72);
+
+      drawClubCorner(w, h);
+      drawWatermark(w, h);
+    }
+
+    function drawCardRanking(w, h) {
+      drawBase(w, h);
+      drawLogoCorner(w);
+      ctx.fillStyle = COL_GOLD;
+      ctx.font = '600 30px "DM Sans",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('TOP SEMANAL', w / 2, h * 0.12);
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.font = '500 22px "DM Sans",sans-serif';
+      ctx.fillText(branding.nombre, w / 2, h * 0.12 + 36);
+
+      var list = rankingRows.length ? rankingRows : [];
+      var maxP = list[0] && list[0].promedio ? list[0].promedio : 1;
+      var startY = h * 0.22;
+      var rowH = format === 'story' ? 140 : 95;
+      list.slice(0, 5).forEach(function (r, idx) {
+        var y = startY + idx * rowH;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#fff';
+        ctx.font = '600 26px "DM Sans",sans-serif';
+        ctx.fillText('#' + r.pos + '  ' + r.nombre, 48, y);
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.font = '500 22px "DM Sans",sans-serif';
+        ctx.fillText(r.promedio.toFixed(3), w - 48 - ctx.measureText(r.promedio.toFixed(3)).width, y);
+        var barW = w - 96;
+        var barH = 10;
+        var by = y + 14;
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(48, by, barW, barH);
+        var frac = maxP > 0 ? r.promedio / maxP : 0;
+        var grd = ctx.createLinearGradient(48, by, 48 + barW * frac, by);
+        grd.addColorStop(0, COL_GOLD);
+        grd.addColorStop(1, 'rgba(201,168,76,0.4)');
+        ctx.fillStyle = grd;
+        ctx.fillRect(48, by, barW * frac, barH);
+      });
+
+      if (!list.length) {
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.font = '500 24px "DM Sans",sans-serif';
+        ctx.fillText('Tocá «Cargar top 5»', w / 2, h * 0.45);
+      }
+
+      drawClubCorner(w, h);
+      drawWatermark(w, h);
+    }
+
+    async function drawCardCaserito(w, h, row) {
+      drawBase(w, h);
+      drawLogoCorner(w);
+      ctx.fillStyle = COL_GOLD;
+      ctx.font = '600 30px "DM Sans",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('¡HAY RETO!', w / 2, h * 0.14);
+      ctx.fillStyle = '#fff';
+      ctx.font = '700 40px "Playfair Display",Georgia,serif';
+      ctx.fillText('¿Quién gana?', w / 2, h * 0.14 + 44);
+
+      ctx.font = '600 32px "DM Sans",sans-serif';
+      ctx.fillText(row.retador || '—', w / 2, h * 0.34);
+      ctx.fillStyle = COL_GOLD;
+      ctx.font = '700 36px "DM Sans",sans-serif';
+      ctx.fillText('VS', w / 2, h * 0.42);
+      ctx.fillStyle = '#fff';
+      ctx.font = '600 32px "DM Sans",sans-serif';
+      ctx.fillText(row.retado || '—', w / 2, h * 0.5);
+
+      var ap = Social.parseApuesta(row.bolsa);
+      ctx.fillStyle = COL_GOLD;
+      ctx.font = '700 34px "DM Sans",sans-serif';
+      ctx.fillText('Apuesta  $' + ap, w / 2, h * 0.6);
+
+      var joinUrl = Social.buildRetoJoinUrl(row.codigo || '', window.location.origin);
+      try {
+        var QRCode = (await import('https://cdn.jsdelivr.net/npm/qrcode@1.5.3/+esm')).default;
+        var dataUrl = await QRCode.toDataURL(joinUrl, { margin: 1, width: 400, color: { dark: '#c9a84cff', light: '#0a0a0aff' } });
+        var qr = await loadImage(dataUrl);
+        if (qr) {
+          var qw = format === 'story' ? 320 : 280;
+          var qh = qw;
+          ctx.drawImage(qr, (w - qw) / 2, h * 0.64, qw, qh);
+        }
+      } catch (_e) {}
+
+      drawClubCorner(w, h);
+      drawWatermark(w, h);
+    }
+
+    async function syncCopyFromDraft() {
+      if (variant === 'resultado') {
+        var i = parseInt(selReto.value, 10);
+        if (!isNaN(i) && retosFinal[i]) {
+          var d = await Social.buildPostResultadoPartida(retosFinal[i].raw || retosFinal[i], branding.nombre);
+          if (d) copyBody.value = d.body;
+        }
+      } else if (variant === 'live') {
+        var o = {
+          club_id: clubId,
+          club_nombre: branding.nombre,
+          j1_nombre: document.getElementById('liveJ1').value.trim() || 'Jugador 1',
+          j2_nombre: document.getElementById('liveJ2').value.trim() || 'Jugador 2',
+          j1_carambolas: 0,
+          j2_carambolas: 0,
+          j1_promedio: 0,
+          j2_promedio: 0,
+          objetivo: 0,
+          estado: 'en_juego',
+          mesa: document.getElementById('liveMesa').value.trim(),
+        };
+        var d = await Social.buildPostRetoEnVivo(o, branding.nombre);
+        if (d) copyBody.value = d.body;
+      } else if (variant === 'ranking') {
+        var d = await Social.buildPostRankingSemanal(clubId, branding.nombre);
+        if (d && !d.error) copyBody.value = d.body;
+      } else if (variant === 'caserito') {
+        var j = parseInt(selCaserito.value, 10);
+        if (!isNaN(j) && retosBolsa[j]) {
+          var raw = retosBolsa[j].raw || retosBolsa[j];
+          var d = await Social.buildPostRetoCaserito(raw, branding.nombre, window.location.origin);
+          if (d) copyBody.value = d.body;
+        }
+      }
+    }
+
+    async function redraw() {
+      await document.fonts.ready;
+      setCanvasSize();
+      var w = cv.width;
+      var h = cv.height;
+      if (variant === 'resultado') {
+        var i = parseInt(selReto.value, 10);
+        if (!isNaN(i) && retosFinal[i]) drawCardResultado(w, h, retosFinal[i]);
+        else drawBase(w, h);
+      } else if (variant === 'live') {
+        drawCardLive(w, h);
+      } else if (variant === 'ranking') {
+        drawCardRanking(w, h);
+      } else if (variant === 'caserito') {
+        var j = parseInt(selCaserito.value, 10);
+        if (!isNaN(j) && retosBolsa[j]) await drawCardCaserito(w, h, retosBolsa[j]);
+        else drawBase(w, h);
+      }
+      await syncCopyFromDraft();
+    }
+
+    function wireUi() {
+      document.getElementById('variantTabs').addEventListener('click', function (e) {
+        var t = e.target.closest('.dc-social-tab');
+        if (!t) return;
+        variant = t.getAttribute('data-variant');
+        document.querySelectorAll('#variantTabs .dc-social-tab').forEach(function (x) {
+          x.classList.toggle('is-on', x === t);
+        });
+        document.getElementById('blockResultado').hidden = variant !== 'resultado';
+        document.getElementById('blockLive').hidden = variant !== 'live';
+        document.getElementById('blockRanking').hidden = variant !== 'ranking';
+        document.getElementById('blockCaserito').hidden = variant !== 'caserito';
+        redraw();
+      });
+      document.getElementById('formatTabs').addEventListener('click', function (e) {
+        var t = e.target.closest('.dc-social-tab');
+        if (!t) return;
+        format = t.getAttribute('data-format');
+        document.querySelectorAll('#formatTabs .dc-social-tab').forEach(function (x) {
+          x.classList.toggle('is-on', x === t);
+        });
+        redraw();
+      });
+      selReto.addEventListener('change', function () {
+        redraw();
+      });
+      selCaserito.addEventListener('change', function () {
+        redraw();
+      });
+      ['liveJ1', 'liveJ2', 'liveMesa'].forEach(function (id) {
+        document.getElementById(id).addEventListener('input', function () {
+          redraw();
+        });
+      });
+      document.getElementById('btnLoadRanking').addEventListener('click', async function () {
+        var st = document.getElementById('rankingStatus');
+        st.hidden = false;
+        st.textContent = 'Cargando…';
+        var top = await Social.fetchWeeklyTopPlayers(clubId, 5);
+        if (top.error) {
+          st.classList.add('dc-social-msg--err');
+          st.textContent = top.error.message || 'Error al cargar ranking';
+          return;
+        }
+        st.classList.remove('dc-social-msg--err');
+        rankingRows = top.data;
+        st.textContent = rankingRows.length ? rankingRows.length + ' jugadores' : 'Sin datos esta semana';
+        redraw();
+      });
+      document.getElementById('btnPreview').addEventListener('click', function () {
+        redraw();
+      });
+      document.getElementById('btnPng').addEventListener('click', function () {
+        cv.toBlob(function (blob) {
+          if (!blob) return;
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'decarambola-card-' + variant + '-' + format + '.png';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }, 'image/png');
+      });
+    }
+
+    boot().catch(function (e) {
+      gate.classList.add('dc-social-msg--err');
+      gate.textContent = e && e.message ? e.message : 'Error al iniciar';
+    });
+  </script>
+</body>
+</html>
