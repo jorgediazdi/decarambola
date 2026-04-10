@@ -63,6 +63,10 @@ function validarPromedio(carambolas, entradas) {
     return { valido: true, promedio: p, confiable: true };
 }
 
+if (typeof window !== 'undefined') {
+    window.validarPromedio = validarPromedio;
+}
+
 /** ¿Esta fila del historial local cuenta para recalcular promedio del jugador? */
 function _historialCuentaParaPromedio(x) {
     if (x.excluir_promedio === true) return false;
