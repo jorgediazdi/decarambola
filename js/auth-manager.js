@@ -122,3 +122,11 @@ export async function requestPasswordReset(email) {
     return { data: null, error: e };
   }
 }
+
+/** Reexport de la puerta sala (perfil y otras páginas legacy que importan desde auth-manager). */
+export async function guardSalaPage(modo) {
+  const { guardSalaPage: guard } = await import('/js/sala-supabase-gate.js');
+  var title = 'DeCarambola';
+  if (modo === 'jugador') title = 'Perfil';
+  return guard({ pageTitle: title });
+}

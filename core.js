@@ -155,6 +155,7 @@ const MasterVIP = {
                 club_id: j.club_id || null,
                 club: j.club || '',
                 ciudad: j.ciudad || '',
+                departamento: j.departamento || '',
                 whatsapp: j.whatsapp || '',
                 activo: j.activo,
                 fechaRegistro: j.created_at
@@ -196,6 +197,7 @@ const MasterVIP = {
             if (lista[idx].id && lista[idx].id.length > 10) {
                 try {
                     const jm = await __dcImportApi('jugador-api');
+                    const rowUp = lista[idx];
                     const ur = await jm.updateJugador(lista[idx].id, {
                         nombre: jugador.nombre,
                         promedio: promGuardar,
@@ -207,6 +209,8 @@ const MasterVIP = {
                         mejor_serie: jugador.mejor_serie || 0,
                         foto_url: jugador.foto_url || null,
                         whatsapp: jugador.whatsapp || null,
+                        ciudad: rowUp.ciudad != null && String(rowUp.ciudad).trim() !== '' ? rowUp.ciudad : null,
+                        departamento: rowUp.departamento != null && String(rowUp.departamento).trim() !== '' ? rowUp.departamento : null,
                         updated_at: new Date().toISOString()
                     });
                     if (ur.error) console.warn('[MasterVIP] update jugador', ur.error);
@@ -235,6 +239,7 @@ const MasterVIP = {
                 club_id: clubId || null,
                 club: jugador.club || this.getSede().nombre,
                 ciudad: jugador.ciudad || null,
+                departamento: jugador.departamento || null,
                 whatsapp: jugador.whatsapp || null,
                 pin: jugador.pin || null,
                 nivel: jugador.nivel || 'BRONCE',
