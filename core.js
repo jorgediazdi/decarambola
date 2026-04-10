@@ -1285,10 +1285,12 @@ const HISTORIAL = {
             fecha:             datos.fecha              || new Date().toISOString()
         };
 
+        let partida_id = null;
         try {
             const jm = await __dcImportApi('jugador-api');
             const pr = await jm.insertPartidaHistorialJugador(datos);
             if (pr.error) console.warn(pr.error);
+            else if (pr.data != null && pr.data.id != null) partida_id = pr.data.id;
         } catch (e) { console.warn(e); }
 
         // 2. Mantener en localStorage las últimas 50
@@ -1308,7 +1310,7 @@ const HISTORIAL = {
             localStorage.setItem('mi_perfil', JSON.stringify(perfil));
         }
 
-        return registro;
+        return Object.assign({}, registro, { partida_id: partida_id });
     },
 
     // ─────────────────────────────────────────

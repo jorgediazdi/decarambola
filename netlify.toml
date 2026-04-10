@@ -5,3 +5,8 @@
   publish = "."
 
 # index.html se sirve en / ; el resto de archivos (.html, .js, etc.) se sirven por ruta.
+
+[[redirects]]
+  from = "/duelo-tv.html"
+  to = "/duelo-movil.html"
+  status = 301
