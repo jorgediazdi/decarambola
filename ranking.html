@@ -55,6 +55,7 @@ await guardSalaPage({ pageTitle: 'Ranking' });
         <div class="tabs" id="scope-tabs">
             <button class="tab active" data-scope="club">MI CLUB</button>
             <button class="tab" data-scope="ciudad">MI CIUDAD</button>
+            <button class="tab" data-scope="depto">MI DEPTO</button>
             <button class="tab" data-scope="pais">MI PAÍS</button>
             <button class="tab" data-scope="global">GLOBAL</button>
         </div>
@@ -85,7 +86,7 @@ await guardSalaPage({ pageTitle: 'Ranking' });
       var rows = [];
       var scope = 'club';
       var cat = 'TODOS';
-      var ctx = { club_id: null, ciudad: null, nacionalidad: null };
+      var ctx = { club_id: null, ciudad: null, departamento: null, nacionalidad: null };
 
       function esc(v) {
         return String(v == null ? '' : v)
@@ -109,6 +110,10 @@ await guardSalaPage({ pageTitle: 'Ranking' });
         if (scope === 'global') return true;
         if (scope === 'club') return !!ctx.club_id && String(r.club_id || '') === String(ctx.club_id);
         if (scope === 'ciudad') return !!ctx.ciudad && String(r.ciudad || '').toUpperCase() === String(ctx.ciudad).toUpperCase();
+        if (scope === 'depto') {
+          if (!ctx.departamento || !String(ctx.departamento).trim()) return false;
+          return String(r.departamento || '').trim().toLowerCase() === String(ctx.departamento).trim().toLowerCase();
+        }
         if (scope === 'pais') return !!ctx.nacionalidad && String(r.nacionalidad || '').toUpperCase() === String(ctx.nacionalidad).toUpperCase();
         return true;
       }
@@ -121,10 +126,16 @@ await guardSalaPage({ pageTitle: 'Ranking' });
       }
 
       function render() {
-        var data = filtered();
         var meta = document.getElementById('meta');
         var pod = document.getElementById('podio');
         var list = document.getElementById('list');
+        if (scope === 'depto' && (!ctx.departamento || !String(ctx.departamento).trim())) {
+          meta.textContent = '';
+          pod.innerHTML = '';
+          list.innerHTML = '<div class="empty">Agrega tu departamento en tu perfil para ver este ranking</div>';
+          return;
+        }
+        var data = filtered();
         meta.textContent = data.length + ' jugadores';
         if (!data.length) {
           pod.innerHTML = '';
@@ -183,7 +194,7 @@ await guardSalaPage({ pageTitle: 'Ranking' });
         list.innerHTML = '<div class="loading">Cargando datos desde Supabase...</div>';
         const { data, error } = await supabase
           .from('jugadores')
-          .select('nombre,alias,promedio,categoria,club_id,club,ciudad,nacionalidad,foto_url,partidas,victorias');
+          .select('nombre,alias,promedio,categoria,club_id,club,ciudad,departamento,nacionalidad,foto_url,partidas,victorias');
         if (error) {
           list.innerHTML = '<div class="error">Error al cargar ranking: ' + esc(error.message || error) + '</div>';
           return;
@@ -197,6 +208,7 @@ await guardSalaPage({ pageTitle: 'Ranking' });
             club_id: r.club_id,
             club: r.club || '',
             ciudad: r.ciudad || '',
+            departamento: r.departamento || '',
             nacionalidad: r.nacionalidad || '',
             foto_url: r.foto_url || null,
             partidas: r.partidas || 0,
@@ -206,10 +218,11 @@ await guardSalaPage({ pageTitle: 'Ranking' });
         render();
       }
 
-      function initContext() {
+      function initContextLocal() {
         var p = parsePerfil();
         ctx.club_id = p.club_id || null;
         ctx.ciudad = p.ciudad || p.ciudad_nombre || null;
+        ctx.departamento = (p.departamento && String(p.departamento).trim()) || null;
         ctx.nacionalidad = p.nacionalidad || p.pais || null;
 
         if (!ctx.club_id) {
@@ -220,9 +233,35 @@ await guardSalaPage({ pageTitle: 'Ranking' });
         }
       }
 
+      async function hydrateDepartamentoDesdePerfil() {
+        if (ctx.departamento && String(ctx.departamento).trim()) return;
+        try {
+          var _s = await supabase.auth.getSession();
+          var session = _s && _s.data && _s.data.session;
+          if (!session) return;
+          var pr = await supabase
+            .from('profiles')
+            .select('departamento')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          if (pr.error || !pr.data || !pr.data.departamento) return;
+          var d = String(pr.data.departamento).trim();
+          if (!d) return;
+          ctx.departamento = d;
+          try {
+            var mp = parsePerfil();
+            mp.departamento = d;
+            localStorage.setItem('mi_perfil', JSON.stringify(mp));
+          } catch (e) {}
+        } catch (e) {}
+      }
+
       bindTabs();
-      initContext();
-      loadRows();
+      (async function boot() {
+        initContextLocal();
+        await hydrateDepartamentoDesdePerfil();
+        await loadRows();
+      })();
     </script>
 </body>
 </html>

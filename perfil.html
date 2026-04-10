@@ -3,7 +3,7 @@
 <head>
 <script type="module">
 import { guardSalaPage } from '/js/auth-manager.js';
-guardSalaPage('jugador');
+await guardSalaPage('jugador');
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -375,6 +375,24 @@ body{background:var(--negro);color:#fff;
 
 .vacio{text-align:center;padding:20px;color:#1e1e1e;font-size:0.6rem;letter-spacing:2px;}
 
+/* Ubicación (ciudad / departamento) — sesión Supabase */
+.pf-ubic{
+  background:var(--g1);border:1px solid rgba(212,175,55,.2);
+  border-radius:16px;padding:14px 16px;margin-bottom:14px;
+}
+.pf-ubic-tit{font-family:'Bebas Neue';font-size:.72rem;color:var(--oro);letter-spacing:3px;margin-bottom:10px;}
+.pf-ubic label{display:block;font-size:.48rem;color:#444;letter-spacing:2px;margin-bottom:4px;margin-top:8px;}
+.pf-ubic label:first-of-type{margin-top:0;}
+.pf-ubic input,.pf-ubic select{
+  width:100%;background:var(--g2);border:1px solid #222;color:#fff;
+  border-radius:10px;padding:10px 12px;font-family:'Barlow Condensed',sans-serif;font-size:.9rem;
+}
+.pf-ubic-btn{margin-top:12px;width:100%;padding:12px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,rgba(212,175,55,.25),rgba(212,175,55,.08));
+  color:var(--oro);font-family:'Bebas Neue';letter-spacing:3px;cursor:pointer;font-size:.75rem;}
+.pf-ubic-btn:disabled{opacity:.5;cursor:not-allowed;}
+.pf-ubic-msg{font-size:.62rem;margin-top:8px;color:#666;}
+
 /* TORNEO VIVO */
 .torneo-vivo{display:flex;align-items:center;gap:8px;
   border-radius:8px;padding:6px 10px;margin-bottom:10px;}
@@ -403,6 +421,7 @@ body{background:var(--negro);color:#fff;
 </div>
 
 <div class="wrap dc-reveal">
+  <div id="ubicacion-jugador" class="pf-ubic" style="display:none" aria-live="polite"></div>
   <div class="buscador" style="display:none;">
     <span style="color:#2a2a2a;font-size:1rem;">🔍</span>
     <input type="text" id="busq" placeholder="Busca un jugador…"
@@ -937,5 +956,119 @@ function copiarLink(){
     <span>Perfil</span>
   </a>
 </nav>
+
+<script type="module">
+import { supabase } from '/js/supabase-client.js';
+
+var CO_DEPARTAMENTOS = [
+  'Amazonas', 'Antioquia', 'Arauca', 'Atlántico', 'Bolívar', 'Boyacá',
+  'Caldas', 'Caquetá', 'Casanare', 'Cauca', 'Cesar', 'Chocó', 'Córdoba',
+  'Cundinamarca', 'Guainía', 'Guaviare', 'Huila', 'La Guajira', 'Magdalena',
+  'Meta', 'Nariño', 'Norte de Santander', 'Putumayo', 'Quindío', 'Risaralda',
+  'San Andrés', 'Santander', 'Sucre', 'Tolima', 'Valle del Cauca',
+  'Vaupés', 'Vichada', 'Bogotá D.C.'
+];
+
+function escUb(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function initUbicacionJugador() {
+  var host = document.getElementById('ubicacion-jugador');
+  if (!host) return;
+  var _s = await supabase.auth.getSession();
+  var session = _s && _s.data && _s.data.session;
+  if (!session) return;
+
+  var uid = session.user.id;
+  var pr = await supabase.from('profiles').select('role,departamento').eq('id', uid).maybeSingle();
+  if (pr.error) return;
+  var role = pr.data && pr.data.role != null ? String(pr.data.role).trim().toLowerCase() : '';
+  if (role === 'club_admin' || role === 'superadmin' || role === 'organizador') return;
+
+  var jRes = await supabase.from('jugadores').select('ciudad,departamento').eq('id', uid).maybeSingle();
+  var ciudad = '';
+  var departamento = '';
+  if (jRes.data && !jRes.error) {
+    ciudad = (jRes.data.ciudad && String(jRes.data.ciudad).trim()) || '';
+    departamento = (jRes.data.departamento && String(jRes.data.departamento).trim()) || '';
+  }
+  if (!departamento && pr.data && pr.data.departamento) {
+    departamento = String(pr.data.departamento).trim();
+  }
+
+  var opts = '';
+  if (departamento && CO_DEPARTAMENTOS.indexOf(departamento) < 0) {
+    opts += '<option value="' + escUb(departamento) + '" selected>' + escUb(departamento) + '</option>';
+  }
+  opts += '<option value=""' + (!departamento ? ' selected' : '') + '>— Elegir —</option>';
+  CO_DEPARTAMENTOS.forEach(function (d) {
+    opts += '<option value="' + escUb(d) + '"' + (d === departamento ? ' selected' : '') + '>' + escUb(d) + '</option>';
+  });
+
+  host.style.display = '';
+  host.innerHTML =
+    '<div class="pf-ubic-tit">TU UBICACIÓN (RANKING)</div>' +
+    '<label for="pf-inp-ciudad">Ciudad</label>' +
+    '<input type="text" id="pf-inp-ciudad" maxlength="120" autocomplete="address-level2" placeholder="Ej: Medellín" value="' + escUb(ciudad) + '">' +
+    '<label for="pf-sel-depto">Departamento</label>' +
+    '<select id="pf-sel-depto">' + opts + '</select>' +
+    '<button type="button" class="pf-ubic-btn" id="pf-btn-guardar-ubic">Guardar en perfil</button>' +
+    '<div class="pf-ubic-msg" id="pf-ubic-msg"></div>';
+
+  document.getElementById('pf-btn-guardar-ubic').addEventListener('click', async function () {
+    var btn = document.getElementById('pf-btn-guardar-ubic');
+    var msg = document.getElementById('pf-ubic-msg');
+    var c = (document.getElementById('pf-inp-ciudad').value || '').trim();
+    var dep = (document.getElementById('pf-sel-depto').value || '').trim();
+    btn.disabled = true;
+    msg.textContent = '';
+
+    var upProf = await supabase
+      .from('profiles')
+      .update({ departamento: dep || null, updated_at: new Date().toISOString() })
+      .eq('id', uid);
+    if (upProf.error) {
+      msg.textContent = 'No se pudo guardar en perfil: ' + (upProf.error.message || '');
+      btn.disabled = false;
+      return;
+    }
+
+    var upJ = await supabase
+      .from('jugadores')
+      .update({ ciudad: c || null, departamento: dep || null })
+      .eq('id', uid);
+    if (upJ.error) {
+      msg.textContent = 'Perfil actualizado. Aviso: no se pudo sincronizar la ficha jugador (' + (upJ.error.message || '') + ').';
+    } else {
+      msg.textContent = 'Guardado. Ya podés ver el ranking por departamento.';
+    }
+
+    try {
+      var mp = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+      if (c) mp.ciudad = c;
+      mp.departamento = dep || null;
+      localStorage.setItem('mi_perfil', JSON.stringify(mp));
+    } catch (e) {}
+
+    try {
+      var ja = JSON.parse(localStorage.getItem('jugador_activo') || 'null');
+      if (ja && String(ja.id || '') === String(uid)) {
+        if (c) ja.ciudad = c;
+        ja.departamento = dep || null;
+        localStorage.setItem('jugador_activo', JSON.stringify(ja));
+      }
+    } catch (e) {}
+
+    btn.disabled = false;
+  });
+}
+
+initUbicacionJugador();
+</script>
 </body>
 </html>
