@@ -45,6 +45,33 @@ function __dcImportApi(name) {
     return import('/js/api/' + name + '.js');
 }
 
+/**
+ * Validación de promedio al persistir (carambolas/entradas).
+ * Techo 3.0; mínimo 3 entradas para considerar el promedio confiable para perfil.
+ */
+function validarPromedio(carambolas, entradas) {
+    const c = Number(carambolas) || 0;
+    const e = Number(entradas) || 0;
+    if (!e || e < 1) return { valido: false, promedio: 0, razon: 'sin_entradas' };
+    const p = Math.round((c / e) * 1000) / 1000;
+    if (isNaN(p) || p < 0) return { valido: false, promedio: 0, razon: 'invalido' };
+    if (p > 3.0) {
+        console.warn('Promedio imposible detectado:', p, '— carambolas:', c, 'entradas:', e);
+        return { valido: false, promedio: p, razon: 'imposible' };
+    }
+    if (e < 3) return { valido: true, promedio: p, confiable: false, razon: 'pocas_entradas' };
+    return { valido: true, promedio: p, confiable: true };
+}
+
+/** ¿Esta fila del historial local cuenta para recalcular promedio del jugador? */
+function _historialCuentaParaPromedio(x) {
+    if (x.excluir_promedio === true) return false;
+    const c = parseInt(x.carambolas, 10) || 0;
+    const e = parseInt(x.entradas, 10) || 0;
+    const v = validarPromedio(c, e);
+    return v.valido && v.confiable === true;
+}
+
 const MasterVIP = {
 
     // ─────────────────────────────────────────
@@ -109,7 +136,7 @@ const MasterVIP = {
         }
         if (data && data.length > 0) {
             // Convertir formato Supabase → formato local
-            const jugadores = data.map(j => ({
+            let jugadores = data.map(j => ({
                 id: j.id,
                 nombre: j.nombre,
                 alias: j.alias || '',
@@ -128,6 +155,14 @@ const MasterVIP = {
                 activo: j.activo,
                 fechaRegistro: j.created_at
             }));
+            jugadores = jugadores.filter(function (j) {
+                const p = parseFloat(j.promedio);
+                if (isNaN(p) || p < 0 || p > 3.0) {
+                    console.warn('Jugador filtrado del ranking por promedio inválido:', j.nombre, p);
+                    return false;
+                }
+                return true;
+            });
             localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(jugadores));
             return jugadores;
         }
@@ -141,7 +176,16 @@ const MasterVIP = {
 
         if (idx >= 0) {
             // Actualizar existente
+            const prevProm = parseFloat(lista[idx].promedio);
             lista[idx] = { ...lista[idx], ...jugador };
+            const rawPr = parseFloat(jugador.promedio);
+            let promGuardar = rawPr;
+            if (isNaN(rawPr) || rawPr < 0) promGuardar = 0;
+            else if (rawPr > 3.0) {
+                console.warn('[MasterVIP] promedio fuera de rango al guardar jugador, se mantiene el anterior:', rawPr, jugador.nombre);
+                promGuardar = !isNaN(prevProm) && prevProm >= 0 && prevProm <= 3.0 ? prevProm : 0;
+            }
+            lista[idx].promedio = promGuardar;
             localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(lista));
 
             // Sincronizar con Supabase si tiene ID de nube
@@ -150,7 +194,7 @@ const MasterVIP = {
                     const jm = await __dcImportApi('jugador-api');
                     const ur = await jm.updateJugador(lista[idx].id, {
                         nombre: jugador.nombre,
-                        promedio: parseFloat(jugador.promedio) || 0,
+                        promedio: promGuardar,
                         alias: jugador.alias || null,
                         nivel: jugador.nivel || 'BRONCE',
                         puntos: jugador.puntos || 0,
@@ -169,7 +213,13 @@ const MasterVIP = {
             // Crear nuevo
             jugador.id = 'J' + Date.now(); // ID temporal local
             jugador.fechaRegistro = new Date().toISOString();
-            jugador.promedio = parseFloat(jugador.promedio) || 0;
+            let np = parseFloat(jugador.promedio);
+            if (isNaN(np) || np < 0) np = 0;
+            else if (np > 3.0) {
+                console.warn('[MasterVIP] promedio fuera de rango al crear jugador, se usa 0:', np, jugador.nombre);
+                np = 0;
+            }
+            jugador.promedio = np;
             lista.push(jugador);
             localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(lista));
 
@@ -593,6 +643,8 @@ const MasterVIP = {
         const j1 = this.buscarJugador(resultado.j1);
         const j2 = this.buscarJugador(resultado.j2);
         const ganador = this.buscarJugador(resultado.ganador);
+        const vIns1 = validarPromedio(resultado.pts1 || 0, resultado.entradas1 || 0);
+        const vIns2 = validarPromedio(resultado.pts2 || 0, resultado.entradas2 || 0);
         try {
             const jm = await __dcImportApi('jugador-api');
             const pr = await jm.insertPartidaTorneo({
@@ -605,8 +657,8 @@ const MasterVIP = {
                 carambolas_j2: resultado.pts2 || 0,
                 entradas_j1: resultado.entradas1 || 0,
                 entradas_j2: resultado.entradas2 || 0,
-                promedio_j1: resultado.promFinalJ1 || 0,
-                promedio_j2: resultado.promFinalJ2 || 0,
+                promedio_j1: vIns1.valido ? vIns1.promedio : 0,
+                promedio_j2: vIns2.valido ? vIns2.promedio : 0,
                 ganador_id: (ganador && ganador.id && ganador.id.length > 10) ? ganador.id : null,
                 tipo: 'TORNEO',
                 ronda: resultado.ronda || null
@@ -719,16 +771,35 @@ const MasterVIP = {
     // ─────────────────────────────────────────
     _actualizarHistorial: async function (resultado) {
         let h = JSON.parse(localStorage.getItem('ranking_historico_club')) || [];
-        // Guardar promedio real (carambolas / entradas) si hay entradas disponibles
-        const promJ1 = resultado.entradas1 > 0
-            ? parseFloat((resultado.pts1 / resultado.entradas1).toFixed(3))
-            : resultado.promFinalJ1;
-        const promJ2 = resultado.entradas2 > 0
-            ? parseFloat((resultado.pts2 / resultado.entradas2).toFixed(3))
-            : resultado.promFinalJ2;
+        const v1 = validarPromedio(resultado.pts1 || 0, resultado.entradas1 || 0);
+        const v2 = validarPromedio(resultado.pts2 || 0, resultado.entradas2 || 0);
+        const promJ1 = v1.valido ? v1.promedio : 0;
+        const promJ2 = v2.valido ? v2.promedio : 0;
+        const excl1 = !v1.valido || !v1.confiable;
+        const excl2 = !v2.valido || !v2.confiable;
+        const corta1 = !!(v1.valido && !v1.confiable);
+        const corta2 = !!(v2.valido && !v2.confiable);
 
-        h.push({ nombre: resultado.j1, promedio: promJ1, carambolas: resultado.pts1 || 0, entradas: resultado.entradas1 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
-        h.push({ nombre: resultado.j2, promedio: promJ2, carambolas: resultado.pts2 || 0, entradas: resultado.entradas2 || 0, fecha: new Date().toLocaleDateString(), tipo: 'Torneo' });
+        h.push({
+            nombre: resultado.j1,
+            promedio: promJ1,
+            carambolas: resultado.pts1 || 0,
+            entradas: resultado.entradas1 || 0,
+            fecha: new Date().toLocaleDateString(),
+            tipo: 'Torneo',
+            partida_corta: corta1,
+            excluir_promedio: excl1
+        });
+        h.push({
+            nombre: resultado.j2,
+            promedio: promJ2,
+            carambolas: resultado.pts2 || 0,
+            entradas: resultado.entradas2 || 0,
+            fecha: new Date().toLocaleDateString(),
+            tipo: 'Torneo',
+            partida_corta: corta2,
+            excluir_promedio: excl2
+        });
         localStorage.setItem('ranking_historico_club', JSON.stringify(h));
 
         this._recalcularPromedio(resultado.j1);
@@ -769,20 +840,23 @@ const MasterVIP = {
     _recalcularPromedio: function (nombre) {
         const h = JSON.parse(localStorage.getItem('ranking_historico_club')) || [];
         const partidas = h.filter(x => x.nombre.toUpperCase() === nombre.toUpperCase());
-        if (partidas.length === 0) return;
+        const elegible = partidas.filter(_historialCuentaParaPromedio);
+        if (elegible.length === 0) return;
 
-        // Fórmula real billar tres bandas: total carambolas / total entradas
-        // Si hay entradas guardadas las usamos; si no, promediamos los promedios (fallback)
-        const totalCar = partidas.reduce((acc, x) => acc + (parseInt(x.carambolas) || 0), 0);
-        const totalEnt = partidas.reduce((acc, x) => acc + (parseInt(x.entradas)   || 0), 0);
-        const prom = totalEnt > 0
+        // Fórmula real billar tres bandas: total carambolas / total entradas (solo filas confiables)
+        const totalCar = elegible.reduce((acc, x) => acc + (parseInt(x.carambolas) || 0), 0);
+        const totalEnt = elegible.reduce((acc, x) => acc + (parseInt(x.entradas)   || 0), 0);
+        let prom = totalEnt > 0
             ? totalCar / totalEnt
-            : partidas.reduce((acc, x) => acc + parseFloat(x.promedio), 0) / partidas.length;
+            : elegible.reduce((acc, x) => acc + parseFloat(x.promedio), 0) / elegible.length;
+        let promVal = parseFloat(prom.toFixed(3));
+        if (isNaN(promVal) || promVal < 0) promVal = 0;
+        if (promVal > 3.0) promVal = 3.0;
 
         let jugadores = this.getJugadores();
         const idx = jugadores.findIndex(j => j.nombre.toUpperCase() === nombre.toUpperCase());
         if (idx >= 0) {
-            jugadores[idx].promedio = parseFloat(prom.toFixed(3));
+            jugadores[idx].promedio = promVal;
             localStorage.setItem('JUGADORES_PLATAFORMA', JSON.stringify(jugadores));
 
             // Actualizar promedio en Supabase
@@ -1269,6 +1343,10 @@ const HISTORIAL = {
             fecha
           }
         */
+        const vHist = validarPromedio(datos.carambolas_jugador || 0, datos.entradas_jugador || 0);
+        const promPart = vHist.valido ? vHist.promedio : 0;
+        const exclProm = !vHist.valido || !vHist.confiable;
+        const partidaCorta = !!(vHist.valido && !vHist.confiable);
         const registro = {
             jugador_id:        datos.jugador_id,
             jugador_nombre:    datos.jugador_nombre,
@@ -1277,18 +1355,21 @@ const HISTORIAL = {
             entrada_objetivo:  datos.entrada_objetivo   || 0,
             entradas:          datos.entradas_jugador   || 0,
             carambolas:        datos.carambolas_jugador || 0,
-            promedio_partida:  datos.promedio_partida   || 0,
+            promedio_partida:  promPart,
             gano:              datos.gano               || false,
             tipo:              datos.tipo               || 'torneo',
             torneo_nombre:     datos.torneo_nombre      || null,
             serie_mayor:       datos.serie_mayor        || 0,
-            fecha:             datos.fecha              || new Date().toISOString()
+            fecha:             datos.fecha              || new Date().toISOString(),
+            partida_corta:     partidaCorta,
+            excluir_promedio:  exclProm
         };
 
         let partida_id = null;
         try {
             const jm = await __dcImportApi('jugador-api');
-            const pr = await jm.insertPartidaHistorialJugador(datos);
+            const datosIns = Object.assign({}, datos, { promedio_partida: promPart });
+            const pr = await jm.insertPartidaHistorialJugador(datosIns);
             if (pr.error) console.warn(pr.error);
             else if (pr.data != null && pr.data.id != null) partida_id = pr.data.id;
         } catch (e) { console.warn(e); }
