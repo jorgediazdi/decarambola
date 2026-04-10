@@ -2152,7 +2152,7 @@
             <img class="p-inicio-wl-logo-img" id="p-inicio-wl-logo" alt="" />
         </div>
         <div class="p-inicio-tit">TV Salón</div>
-        <button type="button" class="btn-tema-salon-casual btn-tema-salon-inicio" id="btn-tema-salon-inicio" title="Modo sol" aria-pressed="false">☀️</button>
+        <button type="button" class="btn-tema-salon-casual btn-tema-salon-inicio" id="btn-tema-salon-inicio" title="Modo brillo" aria-pressed="false">☀️ Brillo</button>
         <div class="p-inicio-wl-nombre" id="p-inicio-wl-nombre" hidden></div>
         <button type="button" class="btn-casual" id="btn-iniciar-casual">INICIAR CASUAL</button>
         <button type="button" class="btn-pro-grande" id="btn-iniciar-pro">INICIAR PRO</button>
@@ -2534,8 +2534,8 @@
     }
 
     function syncTemaSalonBotones(esSol) {
-        var icon = esSol ? '🌙' : '☀️';
-        var title = esSol ? 'Modo oscuro' : 'Modo sol ☀️';
+        var icon = esSol ? '🌙' : '☀️ Brillo';
+        var title = esSol ? 'Modo oscuro' : 'Modo brillo';
         var pressed = esSol ? 'true' : 'false';
         ['btn-tema-salon', 'btn-tema-salon-inicio'].forEach(function (id) {
             var b = document.getElementById(id);
@@ -4149,7 +4149,7 @@
             html += '<span class="salon-casual-hdr-costo" id="salon-casual-costo">$—</span>';
             html += '<span class="salon-casual-hdr-sep">·</span>';
             html +=
-                '<button type="button" class="btn-tema-salon-casual" id="btn-tema-salon" title="Modo sol" aria-pressed="false">☀️</button>';
+                '<button type="button" class="btn-tema-salon-casual" id="btn-tema-salon" title="Modo brillo" aria-pressed="false">☀️ Brillo</button>';
             html += '</div></header>';
             html += '<div class="salon-casual-controls-bar premium-salon-duelo">';
             html += '<div class="salon-casual-ctrl-cluster">';
@@ -4278,7 +4278,7 @@
             html += '</div>';
             html += '<span class="salon-casual-hdr-sep">·</span>';
             html +=
-                '<button type="button" class="btn-tema-salon-casual" id="btn-tema-salon" title="Modo sol" aria-pressed="false">☀️</button>';
+                '<button type="button" class="btn-tema-salon-casual" id="btn-tema-salon" title="Modo brillo" aria-pressed="false">☀️ Brillo</button>';
             html += '</div></header>';
 
             html += '<div class="salon-casual-controls-bar premium-salon-duelo">';
