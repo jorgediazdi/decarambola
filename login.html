@@ -108,13 +108,17 @@
     }
     function showError(msg) { showMsg(msg, false); }
 
-    function nextUrl() {
+    function safeNextFromQuery() {
       try {
         var q = new URLSearchParams(window.location.search);
         var n = (q.get('next') || '').trim();
-        if (n && n.startsWith('/')) return n;
-      } catch (_e) {}
-      return '/jugador/index.html';
+        if (!n || !n.startsWith('/') || n.startsWith('//')) return null;
+        var abs = new URL(n, window.location.origin);
+        if (abs.origin !== window.location.origin) return null;
+        return abs.pathname + abs.search + abs.hash;
+      } catch (_e) {
+        return null;
+      }
     }
 
     form.addEventListener('submit', async (e) => {
@@ -137,6 +141,12 @@
           .select('role')
           .eq('id', userId)
           .maybeSingle();
+
+      const next = safeNextFromQuery();
+      if (next) {
+        window.location.replace(next);
+        return;
+      }
 
       const role = profile?.role;
       const paths = {

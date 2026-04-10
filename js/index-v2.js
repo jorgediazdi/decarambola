@@ -238,9 +238,15 @@
         var supabaseMod = await import('/js/supabase-client.js');
         var supabase = supabaseMod.supabase;
 
-        // Sesión
+        // Sesión: getSession a veces llega vacío antes de hidratar storage; getUser confirma con servidor
         var sessR = await supabase.auth.getSession();
         var session = sessR.data && sessR.data.session ? sessR.data.session : null;
+        if (!session) {
+            var ur = await supabase.auth.getUser();
+            if (ur.data && ur.data.user) {
+                session = { user: ur.data.user };
+            }
+        }
         var uid = session && session.user ? session.user.id : null;
 
         // Defaults
@@ -249,10 +255,18 @@
         var inscritosIds = [];
 
         if (uid) {
-            // Perfil
-            var prR = await supabase.from('profiles').select('nombre_completo').eq('id', uid).maybeSingle();
-            if (prR.data && prR.data.nombre_completo) user.nombre = prR.data.nombre_completo;
-            else if (session.user.email) user.nombre = session.user.email.split('@')[0];
+            // Perfil: nombre_completo (app) o display_name (esquema base Supabase)
+            var prR = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
+            if (prR.data) {
+                user.nombre = String(prR.data.nombre_completo || prR.data.display_name || '').trim();
+            }
+            if (!user.nombre && session.user) {
+                var meta = session.user.user_metadata || {};
+                user.nombre = String(meta.full_name || meta.display_name || meta.name || '').trim();
+            }
+            if (!user.nombre && session.user.email) {
+                user.nombre = session.user.email.split('@')[0];
+            }
 
             // Partidas de la semana
             var hace7 = new Date();

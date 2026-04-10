@@ -53,6 +53,16 @@ function removeOverlay() {
     if (el) el.remove();
 }
 
+/** Login con retorno a esta pantalla (evita next erróneo o default a jugador). */
+function authLoginHref() {
+    try {
+        var path = window.location.pathname + (window.location.search || '');
+        return '/auth.html?next=' + encodeURIComponent(path);
+    } catch (e) {
+        return '/auth.html';
+    }
+}
+
 function bodyReveal() {
     try {
         document.body.style.visibility = 'visible';
@@ -186,19 +196,25 @@ export async function guardSalaPage(opts) {
                     '<strong style="color:#d4af37">' +
                         title +
                         '</strong><p style="margin-top:12px">Inicia sesión con tu cuenta de <strong>personal del club</strong> (Supabase).</p>' +
-                        '<p style="margin-top:16px;font-size:0.8rem"><a href="/login.html" style="color:#6cf">Iniciar sesión</a> · <a href="/jugador/" style="color:#8c8">App jugador</a> · <a href="/index.html" style="color:#d4af37">Inicio</a></p>'
+                        '<p style="margin-top:16px;font-size:0.8rem"><a href="' +
+                        authLoginHref() +
+                        '" style="color:#6cf">Iniciar sesión</a> · <a href="/jugador/" style="color:#8c8">App jugador</a> · <a href="/index.html" style="color:#d4af37">Inicio</a></p>'
                 );
             } else if (r.reason === 'no_profile') {
                 setGateMessage(
                     '<strong style="color:#c98">Sin fila en <code>profiles</code></strong><p style="margin-top:12px">Tu usuario de Auth existe pero <strong>no tiene perfil</strong> en la tabla <code>profiles</code> (o RLS no deja leerla). En Supabase: creá/actualizá la fila con el mismo <code>id</code> que en Authentication → Users. Ver <strong>docs/FIX_PROFILES_ROLE_SUPABASE.md</strong>.</p>' +
-                        '<p style="margin-top:16px;font-size:0.8rem"><a href="/login.html" style="color:#6cf">Volver a auth</a></p>'
+                        '<p style="margin-top:16px;font-size:0.8rem"><a href="' +
+                        authLoginHref() +
+                        '" style="color:#6cf">Volver a auth</a></p>'
                 );
             } else if (r.reason === 'role') {
                 setGateMessage(
                     '<strong style="color:#c98">Sin permiso</strong><p style="margin-top:12px">Tu rol (<code>' +
                         (r.role || '—') +
                         '</code>) no puede operar mesas. Si está vacío: en Supabase ejecutá <code>UPDATE profiles SET role = \'club_admin\', club_id = \'MVIP-001\'</code> (ajustá código) para tu usuario.</p>' +
-                        '<p style="margin-top:16px;font-size:0.8rem"><a href="/jugador/">App jugador</a> · <a href="/login.html">Otra cuenta</a></p>'
+                        '<p style="margin-top:16px;font-size:0.8rem"><a href="/jugador/">App jugador</a> · <a href="' +
+                        authLoginHref() +
+                        '">Otra cuenta</a></p>'
                 );
             } else if (r.reason === 'no_club_id') {
                 setGateMessage(
@@ -215,7 +231,9 @@ export async function guardSalaPage(opts) {
         if (!roleAllowed(r, opts.allowedRoles)) {
             setGateMessage(
                 '<strong style="color:#c98">Solo administración del club</strong><p style="margin-top:12px">Esta pantalla es para <strong>club_admin</strong> o <strong>superadmin</strong>.</p>' +
-                    '<p style="margin-top:16px;font-size:0.8rem"><a href="/jugador/" style="color:#6cf">App jugador</a> · <a href="/login.html" style="color:#8c8">Otra cuenta</a> · <a href="/index.html" style="color:#c9a84c">Inicio</a></p>'
+                    '<p style="margin-top:16px;font-size:0.8rem"><a href="/jugador/" style="color:#6cf">App jugador</a> · <a href="' +
+                    authLoginHref() +
+                    '" style="color:#8c8">Otra cuenta</a> · <a href="/index.html" style="color:#c9a84c">Inicio</a></p>'
             );
             return false;
         }
