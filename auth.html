@@ -66,6 +66,11 @@
       background: linear-gradient(135deg, var(--neon), #18b040);
       color: #000;
     }
+    /* Primario sistema: solo el submit de login */
+    button#btn-in.btn-go {
+      background: #c9a84c;
+      color: #0a0a0a;
+    }
     .btn-go:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-sec {
       background: transparent;
@@ -133,7 +138,6 @@
   </script>
   <div class="wrap dc-reveal">
     <h1>DeCarambola</h1>
-    <p class="sub">Cuenta con correo (Supabase Auth). Mismo proyecto que <code>core.js</code>.</p>
 
     <div id="sesion" class="sesion" role="status">
       <div id="sesion-loading" style="display:none;">
@@ -173,11 +177,6 @@
         <span style="color:#444;"> · Escribe el correo arriba y tocá aquí (te llega un enlace).</span>
       </p>
     </div>
-
-    <p style="font-size:0.7rem;color:#444;line-height:1.5;text-align:center;">
-      <strong>Invalid login credentials</strong> = correo o contraseña no coinciden con una cuenta en este proyecto. Probá <strong>Crear cuenta</strong> si es la primera vez, o recuperá la clave arriba.
-      Si acabas de crear la cuenta, revisá el correo de confirmación o desactivá “Confirm email” en desarrollo (ver <strong>docs/PASOS_AUTH_EMPEZAR.md</strong>).
-    </p>
 
     <div class="nav-foot">
       <a href="/index.html">← Inicio</a>

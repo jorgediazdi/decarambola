@@ -53,13 +53,13 @@
                 </div>
                 <div class="hero-dashboard__copy">
                     <h1 class="hero-dashboard__greeting" id="hero-greeting">Bienvenido</h1>
-                    <p class="hero-dashboard__motivation" id="hero-motivation">Promedio en estas partidas: 1.12</p>
+                    <p class="hero-dashboard__motivation" id="hero-motivation">Reta jugadores, sube tu ranking y gana.</p>
                     <p class="hero-dashboard__ring-caption" id="hero-ring-caption">Ganaste 3 de 5 partidas esta semana</p>
                     <p class="hero-dashboard__recent" id="hero-recent-session"></p>
                     <div class="hero-dashboard__ctas">
                         <a class="btn-primary-lg" href="/jugador/index.html">MI ESPACIO</a>
+                        <a class="btn-primary-lg" href="/duelo-movil.html?modo=movil" title="Crear duelo con marcador en vivo">+ Crear duelo</a>
                         <a class="btn-secondary-outline" href="/apps/organizador/torneos.html">TORNEOS</a>
-                        <a class="btn-tertiary" href="/duelo-movil.html?modo=movil" title="Crear duelo con marcador en vivo">Crear duelo <span aria-hidden="true">＋</span></a>
                     </div>
                 </div>
             </div>
@@ -230,5 +230,22 @@ if (!sess?.session) {
     </nav>
 
     <script src="js/index-v2.js"></script>
+    <script>
+      (function () {
+        var TAGLINE = 'Reta jugadores, sube tu ranking y gana.';
+        function patchHeroMotivation() {
+          var m = document.getElementById('hero-motivation');
+          if (!m) return;
+          var t = (m.textContent || '').trim();
+          if (t === 'Bienvenido a DeCarambola') m.textContent = TAGLINE;
+        }
+        var n = 0;
+        var id = setInterval(function () {
+          patchHeroMotivation();
+          if (++n >= 40) clearInterval(id);
+        }, 200);
+        patchHeroMotivation();
+      })();
+    </script>
 </body>
 </html>

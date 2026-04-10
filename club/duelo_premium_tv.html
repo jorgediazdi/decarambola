@@ -2152,7 +2152,7 @@
             <img class="p-inicio-wl-logo-img" id="p-inicio-wl-logo" alt="" />
         </div>
         <div class="p-inicio-tit">TV Salón</div>
-        <button type="button" class="btn-tema-salon-casual btn-tema-salon-inicio" id="btn-tema-salon-inicio" title="Modo sol" aria-pressed="false">☀️</button>
+        <button type="button" class="btn-tema-salon-casual btn-tema-salon-inicio" id="btn-tema-salon-inicio" title="Modo brillo" aria-pressed="false">☀️ Brillo</button>
         <div class="p-inicio-wl-nombre" id="p-inicio-wl-nombre" hidden></div>
         <button type="button" class="btn-casual" id="btn-iniciar-casual">INICIAR CASUAL</button>
         <button type="button" class="btn-pro-grande" id="btn-iniciar-pro">INICIAR PRO</button>
@@ -2167,7 +2167,7 @@
     <div class="modal-ident-inner">
         <h2>Identificar jugador (PRO)</h2>
         <div class="pro-busca-row">
-            <input type="search" id="modal-pro-input" autocomplete="off" placeholder="Cédula o nombre" />
+            <input type="search" id="modal-pro-input" autocomplete="off" placeholder="Cédula o nombre" data-dc-keyboard />
             <button type="button" class="btn-buscar-pro" id="modal-pro-buscar">BUSCAR</button>
         </div>
         <p class="pro-msg" id="modal-pro-msg"></p>
@@ -2534,8 +2534,8 @@
     }
 
     function syncTemaSalonBotones(esSol) {
-        var icon = esSol ? '🌙' : '☀️';
-        var title = esSol ? 'Modo oscuro' : 'Modo sol ☀️';
+        var icon = esSol ? '🌙' : '☀️ Brillo';
+        var title = esSol ? 'Modo oscuro' : 'Modo brillo';
         var pressed = esSol ? 'true' : 'false';
         ['btn-tema-salon', 'btn-tema-salon-inicio'].forEach(function (id) {
             var b = document.getElementById(id);
@@ -4149,7 +4149,7 @@
             html += '<span class="salon-casual-hdr-costo" id="salon-casual-costo">$—</span>';
             html += '<span class="salon-casual-hdr-sep">·</span>';
             html +=
-                '<button type="button" class="btn-tema-salon-casual" id="btn-tema-salon" title="Modo sol" aria-pressed="false">☀️</button>';
+                '<button type="button" class="btn-tema-salon-casual" id="btn-tema-salon" title="Modo brillo" aria-pressed="false">☀️ Brillo</button>';
             html += '</div></header>';
             html += '<div class="salon-casual-controls-bar premium-salon-duelo">';
             html += '<div class="salon-casual-ctrl-cluster">';
@@ -4175,7 +4175,7 @@
                 j1 +
                 '</span></h2>';
             html +=
-                '<input type="text" class="panel-nombre-inp" id="inp-nombre-j1" maxlength="48" autocomplete="off" />';
+                '<input type="text" class="panel-nombre-inp" id="inp-nombre-j1" maxlength="48" autocomplete="off" data-dc-keyboard />';
             html += '</div>';
             html += '<div class="salon-casual-mid-stack">';
             html +=
@@ -4183,7 +4183,7 @@
                 '<span class="salon-casual-score-view">' +
                 '<span id="hdr-pts1">0</span>/<span class="salon-hdr-meta-editable" id="lbl-meta1-top" title="Tocar para editar meta" role="button" tabindex="0">40</span>' +
                 '</span>' +
-                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j1" style="display:none;" />' +
+                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j1" style="display:none;" data-dc-keyboard="numeric" />' +
                 '</div>';
             html +=
                 '<div class="bola bola-blanca bola-casual-mid" id="bola1-sb" role="button" tabindex="0" title="+1 J1" onclick="sumarCasualBolaTap(1)"><div class="pts" id="pts1-sb">0</div></div>';
@@ -4217,7 +4217,7 @@
                 j2 +
                 '</span></h2>';
             html +=
-                '<input type="text" class="panel-nombre-inp" id="inp-nombre-j2" maxlength="48" autocomplete="off" />';
+                '<input type="text" class="panel-nombre-inp" id="inp-nombre-j2" maxlength="48" autocomplete="off" data-dc-keyboard />';
             html += '</div>';
             html += '<div class="salon-casual-mid-stack">';
             html +=
@@ -4225,7 +4225,7 @@
                 '<span class="salon-casual-score-view">' +
                 '<span id="hdr-pts2">0</span>/<span class="salon-hdr-meta-editable" id="lbl-meta2-top" title="Tocar para editar meta" role="button" tabindex="0">40</span>' +
                 '</span>' +
-                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j2" style="display:none;" />' +
+                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j2" style="display:none;" data-dc-keyboard="numeric" />' +
                 '</div>';
             html +=
                 '<div class="bola bola-dorada bola-casual-mid" id="bola2-sb" role="button" tabindex="0" title="+1 J2" onclick="sumarCasualBolaTap(2)"><div class="pts" id="pts2-sb">0</div></div>';
@@ -4263,12 +4263,12 @@
                 '<span class="salon-pro-hdr-scores" title="Marcador">' +
                 '<span id="lbl-pts-meta1" class="salon-pro-hdr-score-line">' +
                 '<span id="hdr-pts1">0</span>/<span class="salon-hdr-meta-editable" id="lbl-meta1-top" title="Tocar para editar meta J1" role="button" tabindex="0">40</span>' +
-                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j1" style="display:none;" />' +
+                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j1" style="display:none;" data-dc-keyboard="numeric" />' +
                 '</span>' +
                 '<span class="salon-casual-hdr-sep">·</span>' +
                 '<span id="lbl-pts-meta2" class="salon-pro-hdr-score-line">' +
                 '<span id="hdr-pts2">0</span>/<span class="salon-hdr-meta-editable" id="lbl-meta2-top" title="Tocar para editar meta J2" role="button" tabindex="0">40</span>' +
-                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j2" style="display:none;" />' +
+                '<input type="number" min="1" max="999" step="1" class="panel-nombre-inp salon-meta-inp-hdr" id="inp-meta-hdr-j2" style="display:none;" data-dc-keyboard="numeric" />' +
                 '</span>' +
                 '</span>';
             html += '<span class="salon-casual-hdr-sep">·</span>';
@@ -4278,7 +4278,7 @@
             html += '</div>';
             html += '<span class="salon-casual-hdr-sep">·</span>';
             html +=
-                '<button type="button" class="btn-tema-salon-casual" id="btn-tema-salon" title="Modo sol" aria-pressed="false">☀️</button>';
+                '<button type="button" class="btn-tema-salon-casual" id="btn-tema-salon" title="Modo brillo" aria-pressed="false">☀️ Brillo</button>';
             html += '</div></header>';
 
             html += '<div class="salon-casual-controls-bar premium-salon-duelo">';
@@ -4304,12 +4304,12 @@
                 j1 +
                 '</span></h2>';
             html +=
-                '<input type="search" class="panel-nombre-inp" id="inp-pro-j1" autocomplete="off" placeholder="Cédula o nombre" />';
+                '<input type="search" class="panel-nombre-inp" id="inp-pro-j1" autocomplete="off" placeholder="Cédula o nombre" data-dc-keyboard />';
             html +=
                 '<div class="panel-meta salon-pro-meta-editable" id="wrap-meta-pro-primary" title="Tocar para editar meta">';
             html += '<span class="salon-pro-meta-static">META <span id="meta1-sb">40</span></span>';
             html +=
-                '<input type="number" class="panel-nombre-inp salon-pro-meta-inp" id="inp-meta-pro" min="1" max="999" step="1" />';
+                '<input type="number" class="panel-nombre-inp salon-pro-meta-inp" id="inp-meta-pro" min="1" max="999" step="1" data-dc-keyboard="numeric" />';
             html += '</div>';
             html += '<div class="salon-pro-perfil-prom" id="salon-pro-perfil-j1" hidden></div>';
             html += '<p class="salon-pro-handicap-sugerido" id="salon-pro-handicap-line"></p>';
@@ -4351,7 +4351,7 @@
                 j2 +
                 '</span></h2>';
             html +=
-                '<input type="search" class="panel-nombre-inp" id="inp-pro-j2" autocomplete="off" placeholder="Cédula o nombre" />';
+                '<input type="search" class="panel-nombre-inp" id="inp-pro-j2" autocomplete="off" placeholder="Cédula o nombre" data-dc-keyboard />';
             html +=
                 '<div class="panel-meta salon-pro-meta-editable" id="wrap-meta-pro-secondary" title="Tocar para editar meta">';
             html += '<span class="salon-pro-meta-static">META <span id="meta2-sb">40</span></span>';
@@ -4746,5 +4746,6 @@
     }
     tickTimer = setInterval(tickCronos, 1000);
 </script>
+<script src="/js/dc-keyboard.js"></script>
 </body>
 </html>
