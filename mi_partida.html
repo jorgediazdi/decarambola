@@ -409,6 +409,18 @@ async function guardar(){
 
   var p = st.e === 0 ? 0 : parseFloat((st.c / st.e).toFixed(3));
 
+  var perfilAnt = {};
+  try {
+    perfilAnt = JSON.parse(localStorage.getItem('mi_perfil') || '{}');
+  } catch (e) {}
+  var prevProm = parseFloat(perfilAnt.promedio);
+  if (isNaN(prevProm) || prevProm < 0) prevProm = 0;
+  var vProm =
+    typeof window.validarPromedio === 'function'
+      ? window.validarPromedio(st.c, st.e)
+      : { valido: false, confiable: false };
+  var promedioPerfil = vProm.valido && vProm.confiable ? vProm.promedio : prevProm;
+
   // 1. Guardar en Supabase + localStorage via HISTORIAL
   try {
     await HISTORIAL.guardarPartida({
@@ -430,9 +442,13 @@ async function guardar(){
     console.warn('HISTORIAL.guardarPartida error:', e);
   }
 
-  // 2. Actualizar perfil y jugador activo local
-  localStorage.setItem('mi_perfil',      JSON.stringify({ nombre: nom, cedula: doc, promedio: p }));
-  localStorage.setItem('jugador_activo', JSON.stringify({ nombre: nom, cedula: jugActivo.cedula, promedio: p, id: jugadorIdActual }));
+  // 2. Actualizar perfil y jugador activo local (promedio solo si validarPromedio lo marca confiable)
+  var miPerfilNuevo = Object.assign({}, perfilAnt, { nombre: nom, cedula: doc, promedio: promedioPerfil });
+  localStorage.setItem('mi_perfil', JSON.stringify(miPerfilNuevo));
+  localStorage.setItem(
+    'jugador_activo',
+    JSON.stringify(Object.assign({}, jugActivo, { nombre: nom, cedula: jugActivo.cedula, promedio: promedioPerfil, id: jugadorIdActual }))
+  );
 
   alert('✅ GUARDADO — Tu promedio ya suma al ranking y torneos');
   location.href = '/jugador/';
