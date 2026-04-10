@@ -189,9 +189,15 @@
 
         var displayName = hasSession && user ? (user.nombre || 'Usuario') : 'invitado';
         if (greet) greet.textContent = "Bienvenido, " + displayName;
-        if (mot) mot.textContent = user && user.promedio > 0
-            ? "Promedio en estas partidas: " + user.promedio.toFixed(2)
-            : "Bienvenido a DeCarambola";
+        if (mot) {
+            if (hasSession && user && user.promedio > 0) {
+                mot.textContent = "Promedio en estas partidas: " + user.promedio.toFixed(2);
+            } else if (!hasSession) {
+                mot.textContent = "Reta jugadores, sube tu ranking y gana.";
+            } else {
+                mot.textContent = "Bienvenido a DeCarambola";
+            }
+        }
 
         var jugadas = user ? user.partidas_semana : 0;
         var meta = 5;

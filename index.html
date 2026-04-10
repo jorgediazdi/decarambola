@@ -230,22 +230,5 @@ if (!sess?.session) {
     </nav>
 
     <script src="js/index-v2.js"></script>
-    <script>
-      (function () {
-        var TAGLINE = 'Reta jugadores, sube tu ranking y gana.';
-        function patchHeroMotivation() {
-          var m = document.getElementById('hero-motivation');
-          if (!m) return;
-          var t = (m.textContent || '').trim();
-          if (t === 'Bienvenido a DeCarambola') m.textContent = TAGLINE;
-        }
-        var n = 0;
-        var id = setInterval(function () {
-          patchHeroMotivation();
-          if (++n >= 40) clearInterval(id);
-        }, 200);
-        patchHeroMotivation();
-      })();
-    </script>
 </body>
 </html>
