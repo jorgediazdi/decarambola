@@ -22,6 +22,19 @@ function humanAuthError(err) {
   return msg || 'Error al iniciar sesión.';
 }
 
+function safeNextFromQuery() {
+  try {
+    var q = new URLSearchParams(window.location.search);
+    var n = (q.get('next') || '').trim();
+    if (!n || !n.startsWith('/') || n.startsWith('//')) return null;
+    var abs = new URL(n, window.location.origin);
+    if (abs.origin !== window.location.origin) return null;
+    return abs.pathname + abs.search + abs.hash;
+  } catch (_e) {
+    return null;
+  }
+}
+
 async function redirectAfterLogin() {
   const { data: sess } = await supabase.auth.getSession();
   const session = sess && sess.session;
@@ -39,7 +52,14 @@ async function redirectAfterLogin() {
   console.log('[Auth] profile data:', data);
   console.log('[Auth] profile error:', error);
   if (error || !data || !data.role) {
-    window.location.replace('/jugador/index.html');
+    var nextMissing = safeNextFromQuery();
+    window.location.replace(nextMissing || '/jugador/index.html');
+    return;
+  }
+  var next = safeNextFromQuery();
+  if (next) {
+    console.log('[Auth] redirecting to next:', next);
+    window.location.replace(next);
     return;
   }
   var role = String(data.role);
