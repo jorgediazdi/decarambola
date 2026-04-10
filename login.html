@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Entrar — DeCarambola</title>
   <style>
-    :root { --oro: #c9a84c; --fondo: #0b0b0b; --card: #14100a; --texto: #eaeaea; --muted: #888; --err: #e74c3c; --ok: #2eff70; }
+    :root { --oro: #c9a84c; --fondo: #0b0b0b; --card: #14100a; --texto: #eaeaea; --muted: #888; --err: #e74c3c; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -54,14 +54,13 @@
       font-size: 0.78rem;
       letter-spacing: 0.06em;
       cursor: pointer;
-      background: linear-gradient(135deg, var(--ok), #18b040);
-      color: #000;
+      background: #c9a84c;
+      color: #0a0a0a;
     }
     button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
     .msg { font-size: 0.8rem; padding: 12px; border-radius: 12px; margin-bottom: 14px; display: none; }
     .msg.err { display: block; background: rgba(231, 76, 60, 0.12); border: 1px solid rgba(231, 76, 60, 0.35); color: #eaa; }
     .msg.ok { display: block; background: rgba(46, 255, 112, 0.08); border: 1px solid rgba(46, 255, 112, 0.25); color: #8d8; }
-    .foot { margin-top: 16px; font-size: 0.7rem; color: #444; text-align: center; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -80,7 +79,6 @@
         <button type="submit" id="btn-submit">Entrar</button>
       </form>
     </div>
-    <p class="foot">Página de prueba aislada (<code>login.html</code>). Sesión compartida con el mismo proyecto Supabase.</p>
   </div>
 
   <script type="module">
