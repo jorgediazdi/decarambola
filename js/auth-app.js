@@ -7,7 +7,8 @@ import {
   signOut,
   signUp,
   requestPasswordReset,
-  getSession
+  getSession,
+  getRole
 } from '/js/auth-manager.js';
 
 function humanAuthError(err) {
@@ -44,14 +45,9 @@ async function redirectAfterLogin() {
     window.location.replace('/jugador/index.html');
     return;
   }
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-  console.log('[Auth] profile data:', data);
-  console.log('[Auth] profile error:', error);
-  if (error || !data || !data.role) {
+  const r = await getRole();
+  console.log('[Auth] getRole:', r);
+  if (r.error) {
     var nextMissing = safeNextFromQuery();
     window.location.replace(nextMissing || '/jugador/index.html');
     return;
@@ -62,7 +58,7 @@ async function redirectAfterLogin() {
     window.location.replace(next);
     return;
   }
-  var role = String(data.role);
+  var role = r.data || 'jugador';
   var paths = {
     jugador: '/jugador/index.html',
     organizador: '/apps/organizador/organizador.html',
