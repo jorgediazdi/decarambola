@@ -4,6 +4,13 @@
  */
 import { supabase } from '/js/supabase-client.js';
 
+/** Rol de app en profiles: minúsculas, sin espacios raros (coincide con CHECK y rutas). */
+export function normalizeAppRole(raw) {
+  if (raw == null || raw === '') return 'jugador';
+  var s = String(raw).trim().toLowerCase().replace(/\s+/g, '_');
+  return s || 'jugador';
+}
+
 function wrap(data, error) {
   if (error) return { data: null, error: error };
   return { data: data, error: null };
@@ -50,7 +57,7 @@ export async function getRole() {
     const uid = sess.session.user.id;
     const { data, error } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle();
     if (error) return { data: null, error };
-    return { data: data && data.role ? String(data.role) : 'jugador', error: null };
+    return { data: normalizeAppRole(data?.role), error: null };
   } catch (e) {
     return { data: null, error: e };
   }
@@ -86,8 +93,9 @@ export async function requireAuth() {
 
 export async function requireRole(role) {
   try {
+    const expected = normalizeAppRole(role);
     const r = await getRole();
-    if (r.error || !r.data || r.data !== role) {
+    if (r.error || !r.data || r.data !== expected) {
       window.location.href = '/login.html';
     }
   } catch (e) {

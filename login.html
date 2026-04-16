@@ -83,6 +83,7 @@
 
   <script type="module">
     import { supabase } from '/js/supabase-client.js';
+    import { getRole } from '/js/auth-manager.js';
 
     var form = document.getElementById('login-form');
     var elMsg = document.getElementById('msg');
@@ -133,12 +134,8 @@
       elBtn.disabled = false;
       if (error) { showError('Email o contraseña incorrectos'); return; }
 
-      const userId = data.user.id;
-      const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', userId)
-          .maybeSingle();
+      const rRole = await getRole();
+      const role = rRole.error ? 'jugador' : (rRole.data || 'jugador');
 
       const next = safeNextFromQuery();
       if (next) {
@@ -146,7 +143,6 @@
         return;
       }
 
-      const role = profile?.role;
       const paths = {
           jugador: '/jugador/index.html',
           organizador: '/apps/organizador/organizador.html',
